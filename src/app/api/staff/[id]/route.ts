@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import bcrypt from "bcryptjs";
 
 // GET /api/staff/[id]
 export async function GET(
@@ -58,6 +59,9 @@ export async function PUT(
     if (body.slotDuration !== undefined) updateData.slotDuration = Number(body.slotDuration);
     if (body.status !== undefined) updateData.status = body.status;
     if (body.isActive !== undefined) updateData.isActive = body.isActive;
+    if (body.password && typeof body.password === "string" && body.password.length >= 6) {
+      updateData.password = await bcrypt.hash(body.password, 12);
+    }
 
     const user = await prisma.user.update({ where: { id }, data: updateData });
     const { password: _, totpSecret: __, ...safe } = user as Record<string, unknown>;

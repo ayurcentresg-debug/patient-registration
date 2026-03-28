@@ -93,7 +93,7 @@ interface DashboardData {
 const statusColors: Record<string, { bg: string; color: string }> = {
   scheduled: { bg: "#fff7ed", color: "#ea580c" },
   confirmed: { bg: "var(--blue-50)", color: "var(--blue-500)" },
-  "in-progress": { bg: "#fffbeb", color: "#d97706" },
+  "in-progress": { bg: "#f0faf4", color: "#37845e" },
   completed: { bg: "var(--green-light)", color: "var(--green)" },
   cancelled: { bg: "var(--red-light)", color: "var(--red)" },
   "no-show": { bg: "var(--purple-light)", color: "var(--purple)" },
@@ -241,7 +241,7 @@ export default function Dashboard() {
               <p className="text-[12px] font-semibold uppercase tracking-wide" style={{ color: "var(--grey-600)" }}>Today&apos;s Revenue</p>
               <p className="text-[26px] font-bold mt-1 tracking-tight" style={{ color: "var(--grey-900)" }}>{formatCurrency(todayRevenue)}</p>
             </div>
-            <div className="w-11 h-11 flex items-center justify-center" style={{ background: "#fef3c7", borderRadius: "var(--radius-sm)", color: "#b45309" }}>
+            <div className="w-11 h-11 flex items-center justify-center" style={{ background: "#d1f2e0", borderRadius: "var(--radius-sm)", color: "#2d6a4f" }}>
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
@@ -356,7 +356,7 @@ export default function Dashboard() {
                         className="w-full transition-all duration-300 ease-out"
                         style={{
                           height: Math.max(barHeight, 2),
-                          background: hoveredBar === i ? "#92400e" : "var(--blue-500)",
+                          background: hoveredBar === i ? "#14532d" : "var(--blue-500)",
                           borderRadius: "4px 4px 0 0",
                           minWidth: 16,
                           maxWidth: 48,
@@ -468,7 +468,7 @@ export default function Dashboard() {
                       <div>
                         <p className="text-[13px] font-semibold" style={{ color: "var(--grey-900)" }}>
                           {apt.patient ? `${apt.patient.firstName} ${apt.patient.lastName}` : (apt.walkinName || "Walk-in")}
-                          {apt.isWalkin && <span className="ml-1 text-[9px] font-bold px-1 py-0.5 rounded" style={{ background: "#fef3c7", color: "#92400e" }}>WALK-IN</span>}
+                          {apt.isWalkin && <span className="ml-1 text-[9px] font-bold px-1 py-0.5 rounded" style={{ background: "#d1f2e0", color: "#14532d" }}>WALK-IN</span>}
                         </p>
                         <p className="text-[11px]" style={{ color: "var(--grey-500)" }}>
                           {apt.doctorRef?.name || apt.doctor} &middot; {apt.type}
@@ -495,7 +495,7 @@ export default function Dashboard() {
               <h2 className="text-[14px] font-bold" style={{ color: "var(--grey-900)" }}>Top Treatments</h2>
               <p className="text-[11px] mt-0.5" style={{ color: "var(--grey-500)" }}>This month</p>
             </div>
-            <div className="w-9 h-9 flex items-center justify-center" style={{ background: "#fef3c7", borderRadius: "var(--radius-sm)", color: "#b45309" }}>
+            <div className="w-9 h-9 flex items-center justify-center" style={{ background: "#d1f2e0", borderRadius: "var(--radius-sm)", color: "#2d6a4f" }}>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               </svg>
@@ -628,7 +628,7 @@ export default function Dashboard() {
                         className="w-full transition-all duration-300 ease-out"
                         style={{
                           height: Math.max(barHeight, 2),
-                          background: hoveredTrendBar === i ? "#92400e" : "var(--blue-500)",
+                          background: hoveredTrendBar === i ? "#14532d" : "var(--blue-500)",
                           borderRadius: "4px 4px 0 0",
                           minWidth: 24,
                           maxWidth: 64,
@@ -799,7 +799,7 @@ export default function Dashboard() {
         <div className="lg:col-span-2 p-5" style={cardStyle}>
           <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 flex items-center justify-center" style={{ background: "#fef3c7", borderRadius: "var(--radius-sm)", color: "#b45309" }}>
+              <div className="w-9 h-9 flex items-center justify-center" style={{ background: "#d1f2e0", borderRadius: "var(--radius-sm)", color: "#2d6a4f" }}>
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>

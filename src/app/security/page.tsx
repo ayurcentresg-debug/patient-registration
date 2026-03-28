@@ -103,7 +103,7 @@ export default function SecurityPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="w-8 h-8 border-2 rounded-full animate-spin" style={{ borderColor: "#e5e7eb", borderTopColor: "#b45309" }} />
+        <div className="w-8 h-8 border-2 rounded-full animate-spin" style={{ borderColor: "#e5e7eb", borderTopColor: "#2d6a4f" }} />
       </div>
     );
   }
@@ -128,8 +128,8 @@ export default function SecurityPage() {
       <div className="rounded-xl p-6" style={{ background: "var(--white)", border: "1.5px solid var(--grey-300)" }}>
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: totpEnabled ? "#f0fdf4" : "#fef3c7" }}>
-              <svg className="w-5 h-5" fill="none" stroke={totpEnabled ? "#16a34a" : "#b45309"} viewBox="0 0 24 24">
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: totpEnabled ? "#f0fdf4" : "#d1f2e0" }}>
+              <svg className="w-5 h-5" fill="none" stroke={totpEnabled ? "#16a34a" : "#2d6a4f"} viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
             </div>
@@ -156,7 +156,7 @@ export default function SecurityPage() {
           <button
             onClick={startSetup}
             className="px-5 py-2.5 text-[13px] font-bold text-white rounded-lg transition-all hover:opacity-90"
-            style={{ background: "#b45309" }}
+            style={{ background: "#2d6a4f" }}
           >
             Enable 2FA
           </button>
@@ -179,7 +179,7 @@ export default function SecurityPage() {
               {/* Step 1 */}
               <div>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold text-white" style={{ background: "#b45309" }}>1</span>
+                  <span className="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold text-white" style={{ background: "#2d6a4f" }}>1</span>
                   <span className="text-[13px] font-bold" style={{ color: "var(--grey-800)" }}>Scan QR code with your authenticator app</span>
                 </div>
                 {qrCode ? (
@@ -196,7 +196,7 @@ export default function SecurityPage() {
                   </div>
                 ) : (
                   <div className="flex justify-center py-8">
-                    <div className="w-6 h-6 border-2 rounded-full animate-spin" style={{ borderColor: "#e5e7eb", borderTopColor: "#b45309" }} />
+                    <div className="w-6 h-6 border-2 rounded-full animate-spin" style={{ borderColor: "#e5e7eb", borderTopColor: "#2d6a4f" }} />
                   </div>
                 )}
               </div>
@@ -204,7 +204,7 @@ export default function SecurityPage() {
               {/* Step 2 */}
               <div>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold text-white" style={{ background: "#b45309" }}>2</span>
+                  <span className="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold text-white" style={{ background: "#2d6a4f" }}>2</span>
                   <span className="text-[13px] font-bold" style={{ color: "var(--grey-800)" }}>Enter the 6-digit code from your app</span>
                 </div>
                 <div className="flex items-center gap-3">
@@ -216,14 +216,14 @@ export default function SecurityPage() {
                     maxLength={6}
                     className="px-4 py-3 text-[18px] font-bold text-center tracking-[6px] rounded-lg outline-none w-[200px]"
                     style={{ border: "1.5px solid #d1d5db", background: "#fafafa" }}
-                    onFocus={(e) => { e.currentTarget.style.borderColor = "#b45309"; }}
+                    onFocus={(e) => { e.currentTarget.style.borderColor = "#2d6a4f"; }}
                     onBlur={(e) => { e.currentTarget.style.borderColor = "#d1d5db"; }}
                   />
                   <button
                     onClick={verifyAndEnable}
                     disabled={verifying || verifyCode.length !== 6}
                     className="px-5 py-3 text-[13px] font-bold text-white rounded-lg transition-all"
-                    style={{ background: "#b45309", opacity: (verifying || verifyCode.length !== 6) ? 0.6 : 1 }}
+                    style={{ background: "#2d6a4f", opacity: (verifying || verifyCode.length !== 6) ? 0.6 : 1 }}
                   >
                     {verifying ? "Verifying..." : "Verify & Enable"}
                   </button>
@@ -243,7 +243,7 @@ export default function SecurityPage() {
       </div>
 
       {/* Info */}
-      <div className="mt-4 px-4 py-3 rounded-lg text-[12px]" style={{ background: "#fef3c7", color: "#92400e" }}>
+      <div className="mt-4 px-4 py-3 rounded-lg text-[12px]" style={{ background: "#d1f2e0", color: "#14532d" }}>
         <strong>Recommended apps:</strong> Google Authenticator, Microsoft Authenticator, Authy, or 1Password
       </div>
     </div>

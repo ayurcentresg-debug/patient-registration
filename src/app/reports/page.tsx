@@ -43,7 +43,7 @@ const METHOD_COLORS: Record<string, string> = {
   insurance: "#f59e0b", bank_transfer: "#06b6d4", mixed: "#6b7280",
 };
 
-const HEATMAP_COLORS = ["#fef3c7", "#fde68a", "#fbbf24", "#d97706", "#b45309", "#92400e"];
+const HEATMAP_COLORS = ["#d1f2e0", "#a7e3bd", "#6bc792", "#37845e", "#2d6a4f", "#14532d"];
 
 interface ReportData {
   period: { from: string; to: string; label: string };
@@ -736,7 +736,7 @@ export default function ReportsPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card>
               <h3 className="text-[13px] font-bold mb-3" style={{ color: "var(--grey-800)" }}>Revenue Trend (Last 7)</h3>
-              <TrendChart data={data.revenue.trend.slice(-7) as unknown as Array<Record<string, unknown>>} valueKey="amount" labelKey="date" color="#b45309" height={100} />
+              <TrendChart data={data.revenue.trend.slice(-7) as unknown as Array<Record<string, unknown>>} valueKey="amount" labelKey="date" color="#2d6a4f" height={100} />
             </Card>
             <Card>
               <h3 className="text-[13px] font-bold mb-3" style={{ color: "var(--grey-800)" }}>Payment Methods</h3>
@@ -799,7 +799,7 @@ export default function ReportsPage() {
                 <div className="pt-2 mt-2" style={{ borderTop: "2px solid var(--grey-200)" }}>
                   <div className="flex justify-between items-center">
                     <span className="text-[12px] font-bold" style={{ color: "var(--grey-700)" }}>Total GST</span>
-                    <span className="text-[15px] font-bold" style={{ color: "#b45309" }}>{formatCurrency(estimatedGST)}</span>
+                    <span className="text-[15px] font-bold" style={{ color: "#2d6a4f" }}>{formatCurrency(estimatedGST)}</span>
                   </div>
                 </div>
               </div>
@@ -1125,8 +1125,8 @@ export default function ReportsPage() {
                               <td className="py-2 px-2" style={{ borderBottom: "1px solid var(--grey-100)" }}>
                                 <span className="px-2 py-0.5 text-[10px] font-bold rounded-full"
                                   style={{
-                                    background: item.daysUntilExpiry <= 7 ? "#fee2e2" : item.daysUntilExpiry <= 30 ? "#fef3c7" : "#dcfce7",
-                                    color: item.daysUntilExpiry <= 7 ? "#dc2626" : item.daysUntilExpiry <= 30 ? "#d97706" : "#16a34a",
+                                    background: item.daysUntilExpiry <= 7 ? "#fee2e2" : item.daysUntilExpiry <= 30 ? "#d1f2e0" : "#dcfce7",
+                                    color: item.daysUntilExpiry <= 7 ? "#dc2626" : item.daysUntilExpiry <= 30 ? "#37845e" : "#16a34a",
                                   }}>
                                   {item.daysUntilExpiry <= 0 ? "Expired" : `${item.daysUntilExpiry}d`}
                                 </span>
@@ -1151,7 +1151,7 @@ export default function ReportsPage() {
                       {inventoryData.topSelling.map((item) => (
                         <CountBar key={item.name} label={item.name} value={item.sold}
                           max={Math.max(...inventoryData.topSelling.map(i => i.sold))}
-                          color="#b45309" />
+                          color="#2d6a4f" />
                       ))}
                     </div>
                   )}
@@ -1167,7 +1167,7 @@ export default function ReportsPage() {
                       {inventoryData.categoryBreakdown.map((cat, i) => {
                         const maxVal = Math.max(...inventoryData.categoryBreakdown.map(c => c.value));
                         const pct = maxVal > 0 ? (cat.value / maxVal) * 100 : 0;
-                        const colors = ["#b45309", "#3b82f6", "#16a34a", "#8b5cf6", "#f59e0b", "#06b6d4", "#e11d48", "#d946ef"];
+                        const colors = ["#2d6a4f", "#3b82f6", "#16a34a", "#8b5cf6", "#f59e0b", "#06b6d4", "#e11d48", "#d946ef"];
                         const barColor = colors[i % colors.length];
                         return (
                           <div key={cat.category}>
@@ -1214,7 +1214,7 @@ export default function ReportsPage() {
                   icon="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 <StatCard label="Settled" value={String(insuranceData.settled)} color="#06b6d4"
                   icon="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-                <StatCard label="Approval Rate" value={`${insuranceData.approvalRate}%`} color="#b45309"
+                <StatCard label="Approval Rate" value={`${insuranceData.approvalRate}%`} color="#2d6a4f"
                   icon="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
               </div>
 
@@ -1290,8 +1290,8 @@ export default function ReportsPage() {
                               <td className="py-2 px-2" style={{ borderBottom: "1px solid var(--grey-100)" }}>
                                 <span className="px-2 py-0.5 text-[10px] font-bold rounded-full"
                                   style={{
-                                    background: p.approvalRate >= 80 ? "#dcfce7" : p.approvalRate >= 60 ? "#fef3c7" : "#fee2e2",
-                                    color: p.approvalRate >= 80 ? "#16a34a" : p.approvalRate >= 60 ? "#d97706" : "#dc2626",
+                                    background: p.approvalRate >= 80 ? "#dcfce7" : p.approvalRate >= 60 ? "#d1f2e0" : "#fee2e2",
+                                    color: p.approvalRate >= 80 ? "#16a34a" : p.approvalRate >= 60 ? "#37845e" : "#dc2626",
                                   }}>
                                   {p.approvalRate}%
                                 </span>
@@ -1322,8 +1322,8 @@ export default function ReportsPage() {
                             <p className="text-[12px] font-bold" style={{ color: "var(--grey-800)" }}>{formatCurrency(claim.amount)}</p>
                             <span className="px-1.5 py-0.5 text-[9px] font-bold uppercase rounded-full"
                               style={{
-                                background: claim.status === "settled" ? "#dcfce7" : claim.status === "approved" ? "#dbeafe" : claim.status === "rejected" ? "#fee2e2" : "#fef3c7",
-                                color: claim.status === "settled" ? "#16a34a" : claim.status === "approved" ? "#3b82f6" : claim.status === "rejected" ? "#dc2626" : "#d97706",
+                                background: claim.status === "settled" ? "#dcfce7" : claim.status === "approved" ? "#dbeafe" : claim.status === "rejected" ? "#fee2e2" : "#d1f2e0",
+                                color: claim.status === "settled" ? "#16a34a" : claim.status === "approved" ? "#3b82f6" : claim.status === "rejected" ? "#dc2626" : "#37845e",
                               }}>
                               {claim.status}
                             </span>
@@ -1404,8 +1404,8 @@ export default function ReportsPage() {
                         <td className="py-2 px-3 text-[12px] font-medium" style={{ color: "var(--grey-700)", borderBottom: "1px solid var(--grey-100)" }}>{inv.daysOverdue}d</td>
                         <td className="py-2 px-3" style={{ borderBottom: "1px solid var(--grey-100)" }}>
                           <span className="px-2 py-0.5 text-[10px] font-bold rounded-full"
-                            style={{ background: inv.daysOverdue > 90 ? "#fee2e2" : inv.daysOverdue > 60 ? "#ffedd5" : inv.daysOverdue > 30 ? "#fef3c7" : "#fefce8",
-                              color: inv.daysOverdue > 90 ? "#dc2626" : inv.daysOverdue > 60 ? "#ea580c" : inv.daysOverdue > 30 ? "#d97706" : "#ca8a04" }}>
+                            style={{ background: inv.daysOverdue > 90 ? "#fee2e2" : inv.daysOverdue > 60 ? "#ffedd5" : inv.daysOverdue > 30 ? "#d1f2e0" : "#fefce8",
+                              color: inv.daysOverdue > 90 ? "#dc2626" : inv.daysOverdue > 60 ? "#ea580c" : inv.daysOverdue > 30 ? "#37845e" : "#ca8a04" }}>
                             {inv.bucket}
                           </span>
                         </td>
@@ -1503,7 +1503,7 @@ export default function ReportsPage() {
                         return (
                           <div key={h} className="flex flex-col items-center" style={{ flex: 1 }}>
                             <div className="rounded-t-sm cursor-default"
-                              style={{ width: "100%", maxWidth: 28, height: barH, background: "#b45309", opacity: 0.8 }}
+                              style={{ width: "100%", maxWidth: 28, height: barH, background: "#2d6a4f", opacity: 0.8 }}
                               title={`${h}:00 - ${val} appointments`} />
                             <span className="text-[8px] mt-0.5" style={{ color: "var(--grey-400)" }}>
                               {h > 12 ? `${h - 12}p` : h === 12 ? "12p" : `${h}a`}

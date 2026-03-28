@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
+import ConfirmDialog from "@/components/ConfirmDialog";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface POItem {
@@ -55,7 +56,7 @@ function getStatusStyle(status: string): { bg: string; color: string } {
   switch (status) {
     case "draft": return { bg: "var(--grey-200)", color: "var(--grey-700)" };
     case "submitted": return { bg: "#dbeafe", color: "#1d4ed8" };
-    case "partial": return { bg: "#fef3c7", color: "#d97706" };
+    case "partial": return { bg: "#d1f2e0", color: "#37845e" };
     case "received": return { bg: "#dcfce7", color: "var(--green)" };
     case "cancelled": return { bg: "#fef2f2", color: "var(--red)" };
     default: return { bg: "var(--grey-200)", color: "var(--grey-600)" };
@@ -93,6 +94,9 @@ export default function PurchaseOrderDetailPage() {
   const [order, setOrder] = useState<PurchaseOrder | null>(null);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
+  // Confirm dialog
+  const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; title: string; message: string; confirmLabel: string; variant: "danger" | "warning" | "default"; onConfirm: () => void }>({ open: false, title: "", message: "", confirmLabel: "Confirm", variant: "default", onConfirm: () => {} });
+  const [confirmLoading, setConfirmLoading] = useState(false);
   const [showReceive, setShowReceive] = useState(false);
   const [receiveQtys, setReceiveQtys] = useState<Record<string, number>>({});
 
@@ -139,19 +143,30 @@ export default function PurchaseOrderDetailPage() {
     }
   }
 
-  async function handleDelete() {
-    if (!confirm("Are you sure you want to delete this purchase order?")) return;
-    setActionLoading(true);
-    try {
-      const res = await fetch(`/api/purchase-orders/${id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("Failed");
-      setToast({ message: "Purchase order deleted", type: "success" });
-      setTimeout(() => router.push("/inventory/purchase-orders"), 500);
-    } catch {
-      setToast({ message: "Failed to delete purchase order", type: "error" });
-    } finally {
-      setActionLoading(false);
-    }
+  function handleDelete() {
+    setConfirmDialog({
+      open: true,
+      title: "Delete Purchase Order",
+      message: "Remove this purchase order? This action cannot be undone.",
+      confirmLabel: "Delete Order",
+      variant: "danger",
+      onConfirm: async () => {
+        setConfirmLoading(true);
+        setActionLoading(true);
+        try {
+          const res = await fetch(`/api/purchase-orders/${id}`, { method: "DELETE" });
+          if (!res.ok) throw new Error("Failed");
+          setToast({ message: "Purchase order deleted", type: "success" });
+          setTimeout(() => router.push("/inventory/purchase-orders"), 500);
+        } catch {
+          setToast({ message: "Failed to delete purchase order", type: "error" });
+        } finally {
+          setActionLoading(false);
+          setConfirmLoading(false);
+          setConfirmDialog((prev) => ({ ...prev, open: false }));
+        }
+      },
+    });
   }
 
   async function handleReceiveItems() {
@@ -338,7 +353,7 @@ export default function PurchaseOrderDetailPage() {
                         <div style={{
                           width: `${Math.min(100, receivePct)}%`,
                           height: "100%",
-                          background: receivePct >= 100 ? "var(--green)" : receivePct > 0 ? "#d97706" : "var(--grey-300)",
+                          background: receivePct >= 100 ? "var(--green)" : receivePct > 0 ? "#37845e" : "var(--grey-300)",
                           borderRadius: "var(--radius-pill)",
                           transition: "width 0.3s ease",
                         }} />
@@ -374,7 +389,7 @@ export default function PurchaseOrderDetailPage() {
                   <span>{formatCurrency(item.unitPrice)} ea</span>
                 </div>
                 <div className="w-full h-1.5" style={{ background: "var(--grey-200)", borderRadius: "var(--radius-pill)" }}>
-                  <div style={{ width: `${Math.min(100, receivePct)}%`, height: "100%", background: receivePct >= 100 ? "var(--green)" : receivePct > 0 ? "#d97706" : "var(--grey-300)", borderRadius: "var(--radius-pill)" }} />
+                  <div style={{ width: `${Math.min(100, receivePct)}%`, height: "100%", background: receivePct >= 100 ? "var(--green)" : receivePct > 0 ? "#37845e" : "var(--grey-300)", borderRadius: "var(--radius-pill)" }} />
                 </div>
               </div>
             );
@@ -452,6 +467,17 @@ export default function PurchaseOrderDetailPage() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={confirmDialog.open}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        confirmLabel={confirmDialog.confirmLabel}
+        variant={confirmDialog.variant}
+        loading={confirmLoading}
+        onConfirm={confirmDialog.onConfirm}
+        onCancel={() => { setConfirmDialog(prev => ({ ...prev, open: false })); setConfirmLoading(false); }}
+      />
     </div>
   );
 }

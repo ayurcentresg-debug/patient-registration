@@ -8,8 +8,8 @@ const cardStyle = { background: "var(--white)", border: "1px solid var(--grey-30
 
 const CHANNEL_COLORS: Record<string, string> = { whatsapp: "#25D366", email: "#3b82f6", sms: "#8b5cf6" };
 const CHANNEL_BG: Record<string, string> = { whatsapp: "#ecfdf5", email: "#eff6ff", sms: "#f5f3ff" };
-const STATUS_COLORS: Record<string, string> = { sent: "var(--green)", failed: "var(--red)", pending: "#d97706" };
-const STATUS_BG: Record<string, string> = { sent: "var(--green-light)", failed: "var(--red-light)", pending: "#fffbeb" };
+const STATUS_COLORS: Record<string, string> = { sent: "var(--green)", failed: "var(--red)", pending: "#37845e" };
+const STATUS_BG: Record<string, string> = { sent: "var(--green-light)", failed: "var(--red-light)", pending: "#f0faf4" };
 
 interface Patient { id: string; firstName: string; lastName: string; email: string | null; phone: string; whatsapp: string | null; }
 interface Communication {

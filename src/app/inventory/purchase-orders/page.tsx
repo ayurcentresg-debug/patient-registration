@@ -45,7 +45,7 @@ function getStatusStyle(status: string): { bg: string; color: string } {
   switch (status) {
     case "draft": return { bg: "var(--grey-200)", color: "var(--grey-700)" };
     case "submitted": return { bg: "#dbeafe", color: "#1d4ed8" };
-    case "partial": return { bg: "#fef3c7", color: "#d97706" };
+    case "partial": return { bg: "#d1f2e0", color: "#37845e" };
     case "received": return { bg: "#dcfce7", color: "var(--green)" };
     case "cancelled": return { bg: "#fef2f2", color: "var(--red)" };
     default: return { bg: "var(--grey-200)", color: "var(--grey-600)" };

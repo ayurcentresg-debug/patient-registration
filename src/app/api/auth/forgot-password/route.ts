@@ -35,11 +35,11 @@ export async function POST(req: NextRequest) {
         subject: "Password Reset Code - Ayur Centre",
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px;">
-            <h2 style="color: #92400e; margin-bottom: 16px;">Password Reset</h2>
+            <h2 style="color: #14532d; margin-bottom: 16px;">Password Reset</h2>
             <p style="color: #374151; font-size: 14px;">Hi ${user.name},</p>
             <p style="color: #374151; font-size: 14px;">Your password reset code is:</p>
-            <div style="background: #fef3c7; border: 2px solid #b45309; border-radius: 8px; padding: 20px; text-align: center; margin: 24px 0;">
-              <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #92400e;">${otp}</span>
+            <div style="background: #d1f2e0; border: 2px solid #2d6a4f; border-radius: 8px; padding: 20px; text-align: center; margin: 24px 0;">
+              <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #14532d;">${otp}</span>
             </div>
             <p style="color: #6b7280; font-size: 12px;">This code expires in 10 minutes. If you didn't request this, ignore this email.</p>
           </div>

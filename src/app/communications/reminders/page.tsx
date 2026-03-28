@@ -8,8 +8,8 @@ const cardStyle = { background: "var(--white)", border: "1px solid var(--grey-30
 
 const CHANNEL_COLORS: Record<string, string> = { whatsapp: "#25D366", email: "#3b82f6", sms: "#8b5cf6" };
 const CHANNEL_BG: Record<string, string> = { whatsapp: "#ecfdf5", email: "#eff6ff", sms: "#f5f3ff" };
-const STATUS_COLORS: Record<string, string> = { pending: "#d97706", sent: "var(--green)", failed: "var(--red)", cancelled: "var(--grey-500)" };
-const STATUS_BG: Record<string, string> = { pending: "#fffbeb", sent: "var(--green-light)", failed: "var(--red-light)", cancelled: "var(--grey-100)" };
+const STATUS_COLORS: Record<string, string> = { pending: "#37845e", sent: "var(--green)", failed: "var(--red)", cancelled: "var(--grey-500)" };
+const STATUS_BG: Record<string, string> = { pending: "#f0faf4", sent: "var(--green-light)", failed: "var(--red-light)", cancelled: "var(--grey-100)" };
 
 const TYPE_LABELS: Record<string, string> = {
   appointment: "Appointment", follow_up: "Follow Up", payment: "Payment", medication: "Medication", custom: "Custom",
@@ -17,7 +17,7 @@ const TYPE_LABELS: Record<string, string> = {
 const TYPE_COLORS: Record<string, { bg: string; color: string }> = {
   appointment: { bg: "#dbeafe", color: "#1d4ed8" },
   follow_up: { bg: "#ecfdf5", color: "#047857" },
-  payment: { bg: "#fef3c7", color: "#b45309" },
+  payment: { bg: "#d1f2e0", color: "#2d6a4f" },
   medication: { bg: "#fce7f3", color: "#be185d" },
   custom: { bg: "var(--grey-100)", color: "var(--grey-700)" },
 };
@@ -324,7 +324,7 @@ export default function RemindersPage() {
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
         {[
-          { label: "Pending", value: stats.pending, color: "#d97706", bg: "#fffbeb" },
+          { label: "Pending", value: stats.pending, color: "#37845e", bg: "#f0faf4" },
           { label: "Sent Today", value: stats.sentToday, color: "var(--green)", bg: "var(--green-light)" },
           { label: "Failed", value: stats.failed, color: "var(--red)", bg: "var(--red-light)" },
           { label: "Upcoming (24h)", value: stats.upcoming, color: "#3b82f6", bg: "#eff6ff" },

@@ -84,7 +84,7 @@ const BLOCK_COLORS = [
 
 const STATUS_COLORS: Record<string, string> = {
   scheduled: "#d00d00",
-  confirmed: "#b45309",
+  confirmed: "#2d6a4f",
   "in-progress": "#f97c00",
   completed: "#028901",
   cancelled: "#909090",
@@ -209,9 +209,9 @@ function MiniCalendar({ selectedDate, onSelect }: { selectedDate: Date; onSelect
               }}
               onMouseEnter={(e) => {
                 if (!isSelected) {
-                  e.currentTarget.style.background = "#fef3c7";
+                  e.currentTarget.style.background = "#d1f2e0";
                   e.currentTarget.style.transform = "scale(1.15)";
-                  e.currentTarget.style.color = "#92400e";
+                  e.currentTarget.style.color = "#14532d";
                 }
               }}
               onMouseLeave={(e) => {
@@ -630,12 +630,12 @@ function QuickBookModal({
                   ))}
                 </div>
                 {bookingFor === "therapy" && !walkinGender && (
-                  <p className="text-[10px] mt-1" style={{ color: "var(--orange, #d97706)" }}>Select gender to see matching therapists</p>
+                  <p className="text-[10px] mt-1" style={{ color: "var(--orange, #37845e)" }}>Select gender to see matching therapists</p>
                 )}
               </div>
-              <div className="flex items-center gap-2 px-3 py-2 rounded" style={{ background: "#fffbeb", border: "1px solid #fbbf24" }}>
-                <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="#d97706" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                <p className="text-[11px]" style={{ color: "#92400e" }}>
+              <div className="flex items-center gap-2 px-3 py-2 rounded" style={{ background: "#f0faf4", border: "1px solid #6bc792" }}>
+                <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="#37845e" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <p className="text-[11px]" style={{ color: "#14532d" }}>
                   Walk-in patient — register them when they arrive at the clinic
                 </p>
               </div>
@@ -698,9 +698,9 @@ function QuickBookModal({
                 : null; // Walk-in gender unknown
               if (patientGender && selectedDoctor.gender !== patientGender) {
                 return (
-                  <div className="flex items-center gap-2 mt-2 px-3 py-2 rounded" style={{ background: "#fef3c7", border: "1px solid #fbbf24" }}>
-                    <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="#d97706" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>
-                    <p className="text-[11px] font-medium" style={{ color: "#92400e" }}>
+                  <div className="flex items-center gap-2 mt-2 px-3 py-2 rounded" style={{ background: "#d1f2e0", border: "1px solid #6bc792" }}>
+                    <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="#37845e" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>
+                    <p className="text-[11px] font-medium" style={{ color: "#14532d" }}>
                       <strong>Gender mismatch:</strong> {selectedDoctor.gender === "male" ? "Male" : "Female"} therapist selected for {patientGender === "male" ? "male" : "female"} patient. In Ayurveda, same-gender therapist is recommended.
                     </p>
                   </div>
@@ -764,7 +764,7 @@ function QuickBookModal({
                   <span className="text-[12px]" style={{ color: "var(--grey-500)" }}>Loading treatments...</span>
                 </div>
               ) : treatments.length === 0 ? (
-                <p className="text-[11px] py-1" style={{ color: "var(--grey-500)" }}>No treatments configured. <a href="/treatments" className="underline" style={{ color: "var(--blue-500)" }}>Add treatments</a></p>
+                <p className="text-[11px] py-1" style={{ color: "var(--grey-500)" }}>No treatments configured. <a href="/admin/treatments" className="underline" style={{ color: "var(--blue-500)" }}>Add treatments</a></p>
               ) : (
                 <>
                   <select
@@ -814,9 +814,9 @@ function QuickBookModal({
                         );
                       })}
                       {isWalkinFirstTime && selectedTreatment.packages.length > 0 && (
-                        <div className="flex items-center gap-2 px-2 py-1.5 rounded" style={{ background: "#fffbeb", border: "1px solid #fbbf24" }}>
-                          <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="#d97706" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                          <p className="text-[10px]" style={{ color: "#92400e" }}>Packages unavailable for first-time walk-ins. Available after first completed session.</p>
+                        <div className="flex items-center gap-2 px-2 py-1.5 rounded" style={{ background: "#f0faf4", border: "1px solid #6bc792" }}>
+                          <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="#37845e" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                          <p className="text-[10px]" style={{ color: "#14532d" }}>Packages unavailable for first-time walk-ins. Available after first completed session.</p>
                         </div>
                       )}
                     </div>
@@ -1189,9 +1189,9 @@ export default function AppointmentsPage() {
               className="h-full px-4 text-[13px] font-semibold transition-colors"
               style={{
                 background: viewMode === mode ? "var(--white)" : "transparent",
-                color: viewMode === mode ? "#b45309" : "var(--grey-600)",
+                color: viewMode === mode ? "#2d6a4f" : "var(--grey-600)",
                 borderRight: "1px solid var(--grey-300)",
-                borderBottom: viewMode === mode ? "2px solid #b45309" : "2px solid transparent",
+                borderBottom: viewMode === mode ? "2px solid #2d6a4f" : "2px solid transparent",
                 fontWeight: viewMode === mode ? 700 : 600,
               }}
             >
@@ -1240,7 +1240,7 @@ export default function AppointmentsPage() {
               outline: "none",
               transition: "border-color 0.2s, box-shadow 0.2s",
             }}
-            onFocus={(e) => { e.currentTarget.style.borderColor = "#b45309"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(180,83,9,0.08)"; }}
+            onFocus={(e) => { e.currentTarget.style.borderColor = "#2d6a4f"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(45,106,79,0.08)"; }}
             onBlur={(e) => { e.currentTarget.style.borderColor = "var(--grey-300)"; e.currentTarget.style.boxShadow = "none"; }}
           />
           {searchQuery && searchResults.length > 0 && (
@@ -1250,7 +1250,7 @@ export default function AppointmentsPage() {
                   key={apt.id}
                   className="w-full text-left px-3 py-2.5 transition-colors"
                   style={{ borderBottom: "1px solid var(--grey-200)" }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = "#fef3c7")}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = "#d1f2e0")}
                   onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                   onClick={() => {
                     setSelectedDate(new Date(apt.date));
@@ -1292,7 +1292,7 @@ export default function AppointmentsPage() {
         <button
           onClick={() => setBookModal({ date: new Date(), time: minutesToTime(Math.ceil((new Date().getHours() * 60 + new Date().getMinutes()) / 15) * 15) })}
           className="flex items-center gap-2 px-4 py-2 text-[13px] font-semibold transition-colors hover:opacity-90"
-          style={{ background: "#b45309", color: "#fff", borderRadius: 6 }}
+          style={{ background: "#2d6a4f", color: "#fff", borderRadius: 6 }}
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
           + add walk in appointment
@@ -1408,11 +1408,11 @@ export default function AppointmentsPage() {
                     <div
                       className="h-[48px] flex items-center justify-center sticky top-0 z-10 border-b"
                       style={{
-                        background: isToday ? "#fef3c7" : "#f8f8f8",
+                        background: isToday ? "#d1f2e0" : "#f8f8f8",
                         borderColor: "var(--grey-300)",
                       }}
                     >
-                      <span className="text-[13px] font-bold" style={{ color: isToday ? "#b45309" : "var(--grey-700)" }}>
+                      <span className="text-[13px] font-bold" style={{ color: isToday ? "#2d6a4f" : "var(--grey-700)" }}>
                         {["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][date.getDay()]} {date.getDate()}{date.getDate() === 1 || date.getDate() === 21 || date.getDate() === 31 ? "st" : date.getDate() === 2 || date.getDate() === 22 ? "nd" : date.getDate() === 3 || date.getDate() === 23 ? "rd" : "th"} {["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][date.getMonth()]}
                       </span>
                     </div>
@@ -1424,7 +1424,7 @@ export default function AppointmentsPage() {
                         <div
                           className="cursor-pointer transition-colors"
                           style={{ height: HOUR_HEIGHT / 2, borderBottom: "1px dashed var(--grey-200)" }}
-                          onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(180,83,9,0.04)")}
+                          onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(45,106,79,0.04)")}
                           onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                           onClick={() => handleSlotClick(date, h, false)}
                           title={`Book at ${formatTime12(minutesToTime(h * 60))}`}
@@ -1433,7 +1433,7 @@ export default function AppointmentsPage() {
                         <div
                           className="cursor-pointer transition-colors"
                           style={{ height: HOUR_HEIGHT / 2 }}
-                          onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(180,83,9,0.04)")}
+                          onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(45,106,79,0.04)")}
                           onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                           onClick={() => handleSlotClick(date, h, true)}
                           title={`Book at ${formatTime12(minutesToTime(h * 60 + 30))}`}
@@ -1601,7 +1601,7 @@ export default function AppointmentsPage() {
                   <div className="flex items-center gap-1 mt-0.5 ml-[56px]">
                     <span className="text-[9px]" style={{ color: "var(--grey-400)" }}>{apt.doctorRef?.name || apt.doctor}</span>
                     {apt.isWalkin && (
-                      <span className="px-1 rounded text-[7px] font-bold" style={{ background: "#fef3c7", color: "#92400e" }}>WALK-IN</span>
+                      <span className="px-1 rounded text-[7px] font-bold" style={{ background: "#d1f2e0", color: "#14532d" }}>WALK-IN</span>
                     )}
                     {apt.isWalkin && !apt.patientId && (
                       <Link
@@ -1658,7 +1658,7 @@ export default function AppointmentsPage() {
                 {popup.apt.isWalkin ? (
                   <span>
                     <span className="font-semibold" style={{ color: "var(--grey-700)" }}>{popup.apt.walkinName}</span>
-                    <span className="ml-1 px-1.5 py-0.5 rounded text-[9px] font-bold" style={{ background: "#fef3c7", color: "#92400e" }}>WALK-IN</span>
+                    <span className="ml-1 px-1.5 py-0.5 rounded text-[9px] font-bold" style={{ background: "#d1f2e0", color: "#14532d" }}>WALK-IN</span>
                   </span>
                 ) : popup.apt.patientId ? (
                   <Link href={`/patients/${popup.apt.patientId}`} className="font-semibold hover:underline" style={{ color: "var(--blue-500)" }}>
@@ -1729,7 +1729,7 @@ export default function AppointmentsPage() {
                 <Link
                   href={`/patients/new?walkinName=${encodeURIComponent(popup.apt.walkinName || "")}&walkinPhone=${encodeURIComponent(popup.apt.walkinPhone || "")}&appointmentId=${popup.apt.id}`}
                   className="flex items-center justify-center gap-1 w-full py-2 mt-2 text-[12px] font-bold rounded"
-                  style={{ background: "#fef3c7", color: "#92400e", border: "1px solid #fbbf24" }}
+                  style={{ background: "#d1f2e0", color: "#14532d", border: "1px solid #6bc792" }}
                 >
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
                   Register This Patient
@@ -1827,7 +1827,7 @@ function MonthView({
               key={i}
               className="min-h-[80px] p-1 border-r border-b cursor-pointer transition-colors"
               style={{ borderColor: "var(--grey-300)", background: isToday ? "var(--blue-50)" : "transparent" }}
-              onMouseEnter={(e) => { if (!isToday && day) e.currentTarget.style.background = "#fef3c7"; }}
+              onMouseEnter={(e) => { if (!isToday && day) e.currentTarget.style.background = "#d1f2e0"; }}
               onMouseLeave={(e) => { if (!isToday && day) e.currentTarget.style.background = "transparent"; }}
               onClick={() => day && onDateClick(new Date(year, month, day))}
             >
@@ -1835,7 +1835,7 @@ function MonthView({
                 <>
                   <div className="text-[12px] font-bold mb-0.5" style={{ color: isToday ? "var(--blue-500)" : "var(--grey-700)" }}>{day}</div>
                   {dayAppts.slice(0, 3).map(a => (
-                    <div key={a.id} className="text-[10px] truncate px-1 py-0.5 mb-0.5 rounded" style={{ background: a.isWalkin ? "#fef3c7" : "var(--blue-50)", color: a.isWalkin ? "#92400e" : "var(--blue-500)" }}>
+                    <div key={a.id} className="text-[10px] truncate px-1 py-0.5 mb-0.5 rounded" style={{ background: a.isWalkin ? "#d1f2e0" : "var(--blue-50)", color: a.isWalkin ? "#14532d" : "var(--blue-500)" }}>
                       {a.time} {getPatientName(a)}
                     </div>
                   ))}

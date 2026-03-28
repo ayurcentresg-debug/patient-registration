@@ -62,7 +62,13 @@ export default function LoginPage() {
         return;
       }
 
-      router.push("/");
+      // Role-based redirect
+      const role = data.user?.role;
+      if (role === "doctor" || role === "therapist") {
+        router.push("/doctor");
+      } else {
+        router.push("/");
+      }
       router.refresh();
     } catch {
       setError("Network error. Please try again.");
@@ -136,7 +142,7 @@ export default function LoginPage() {
   return (
     <div
       className="min-h-screen flex items-center justify-center px-4"
-      style={{ background: "linear-gradient(135deg, #fefbf6 0%, #fef3c7 50%, #fde68a 100%)" }}
+      style={{ background: "linear-gradient(135deg, #fefbf6 0%, #d1f2e0 50%, #a7e3bd 100%)" }}
     >
       <div
         className="w-full rounded-2xl shadow-xl overflow-hidden"
@@ -145,7 +151,7 @@ export default function LoginPage() {
         {/* Header */}
         <div
           className="px-8 pt-8 pb-6 text-center"
-          style={{ background: "linear-gradient(135deg, #92400e, #b45309)" }}
+          style={{ background: "linear-gradient(135deg, #14532d, #2d6a4f)" }}
         >
           <div className="w-16 h-16 mx-auto mb-3 rounded-2xl flex items-center justify-center" style={{ background: "rgba(255,255,255,0.15)" }}>
             <svg className="w-9 h-9 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -187,7 +193,7 @@ export default function LoginPage() {
                   required
                   className="w-full px-4 py-3 text-[14px] rounded-lg outline-none transition-all"
                   style={{ border: "1.5px solid #d1d5db", background: "#fafafa" }}
-                  onFocus={(e) => { e.currentTarget.style.borderColor = "#b45309"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(180,83,9,0.08)"; }}
+                  onFocus={(e) => { e.currentTarget.style.borderColor = "#2d6a4f"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(45,106,79,0.08)"; }}
                   onBlur={(e) => { e.currentTarget.style.borderColor = "#d1d5db"; e.currentTarget.style.boxShadow = "none"; }}
                 />
               </div>
@@ -203,7 +209,7 @@ export default function LoginPage() {
                     required
                     className="w-full px-4 py-3 pr-12 text-[14px] rounded-lg outline-none transition-all"
                     style={{ border: "1.5px solid #d1d5db", background: "#fafafa" }}
-                    onFocus={(e) => { e.currentTarget.style.borderColor = "#b45309"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(180,83,9,0.08)"; }}
+                    onFocus={(e) => { e.currentTarget.style.borderColor = "#2d6a4f"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(45,106,79,0.08)"; }}
                     onBlur={(e) => { e.currentTarget.style.borderColor = "#d1d5db"; e.currentTarget.style.boxShadow = "none"; }}
                   />
                   <button
@@ -230,7 +236,7 @@ export default function LoginPage() {
                   type="button"
                   onClick={() => { setView("forgot"); setError(""); setSuccess(""); }}
                   className="text-[12px] font-bold hover:underline"
-                  style={{ color: "#b45309" }}
+                  style={{ color: "#2d6a4f" }}
                 >
                   Forgot password?
                 </button>
@@ -240,7 +246,7 @@ export default function LoginPage() {
                 type="submit"
                 disabled={loading}
                 className="w-full py-3 text-[14px] font-bold text-white rounded-lg transition-all"
-                style={{ background: loading ? "#d97706" : "#b45309", opacity: loading ? 0.7 : 1 }}
+                style={{ background: loading ? "#37845e" : "#2d6a4f", opacity: loading ? 0.7 : 1 }}
               >
                 {loading ? "Signing in..." : "Sign In"}
               </button>
@@ -251,8 +257,8 @@ export default function LoginPage() {
           {view === "totp" && (
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="text-center mb-2">
-                <div className="w-12 h-12 mx-auto mb-2 rounded-full flex items-center justify-center" style={{ background: "#fef3c7" }}>
-                  <svg className="w-6 h-6" fill="none" stroke="#b45309" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                <div className="w-12 h-12 mx-auto mb-2 rounded-full flex items-center justify-center" style={{ background: "#d1f2e0" }}>
+                  <svg className="w-6 h-6" fill="none" stroke="#2d6a4f" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
                 </div>
                 <p className="text-[13px]" style={{ color: "#6b7280" }}>
                   Open your authenticator app and enter the 6-digit code
@@ -270,7 +276,7 @@ export default function LoginPage() {
                   autoFocus
                   className="w-full px-4 py-4 text-[24px] font-bold text-center tracking-[10px] rounded-lg outline-none transition-all"
                   style={{ border: "1.5px solid #d1d5db", background: "#fafafa" }}
-                  onFocus={(e) => { e.currentTarget.style.borderColor = "#b45309"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(180,83,9,0.08)"; }}
+                  onFocus={(e) => { e.currentTarget.style.borderColor = "#2d6a4f"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(45,106,79,0.08)"; }}
                   onBlur={(e) => { e.currentTarget.style.borderColor = "#d1d5db"; e.currentTarget.style.boxShadow = "none"; }}
                 />
               </div>
@@ -279,7 +285,7 @@ export default function LoginPage() {
                 type="submit"
                 disabled={loading || totpCode.length !== 6}
                 className="w-full py-3 text-[14px] font-bold text-white rounded-lg transition-all"
-                style={{ background: loading ? "#d97706" : "#b45309", opacity: (loading || totpCode.length !== 6) ? 0.6 : 1 }}
+                style={{ background: loading ? "#37845e" : "#2d6a4f", opacity: (loading || totpCode.length !== 6) ? 0.6 : 1 }}
               >
                 {loading ? "Verifying..." : "Verify & Sign In"}
               </button>
@@ -308,7 +314,7 @@ export default function LoginPage() {
                   required
                   className="w-full px-4 py-3 text-[14px] rounded-lg outline-none transition-all"
                   style={{ border: "1.5px solid #d1d5db", background: "#fafafa" }}
-                  onFocus={(e) => { e.currentTarget.style.borderColor = "#b45309"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(180,83,9,0.08)"; }}
+                  onFocus={(e) => { e.currentTarget.style.borderColor = "#2d6a4f"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(45,106,79,0.08)"; }}
                   onBlur={(e) => { e.currentTarget.style.borderColor = "#d1d5db"; e.currentTarget.style.boxShadow = "none"; }}
                 />
               </div>
@@ -317,7 +323,7 @@ export default function LoginPage() {
                 type="submit"
                 disabled={loading}
                 className="w-full py-3 text-[14px] font-bold text-white rounded-lg transition-all"
-                style={{ background: loading ? "#d97706" : "#b45309", opacity: loading ? 0.7 : 1 }}
+                style={{ background: loading ? "#37845e" : "#2d6a4f", opacity: loading ? 0.7 : 1 }}
               >
                 {loading ? "Sending..." : "Send Reset Code"}
               </button>
@@ -347,7 +353,7 @@ export default function LoginPage() {
                   maxLength={6}
                   className="w-full px-4 py-3 text-[18px] font-bold text-center tracking-[8px] rounded-lg outline-none transition-all"
                   style={{ border: "1.5px solid #d1d5db", background: "#fafafa" }}
-                  onFocus={(e) => { e.currentTarget.style.borderColor = "#b45309"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(180,83,9,0.08)"; }}
+                  onFocus={(e) => { e.currentTarget.style.borderColor = "#2d6a4f"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(45,106,79,0.08)"; }}
                   onBlur={(e) => { e.currentTarget.style.borderColor = "#d1d5db"; e.currentTarget.style.boxShadow = "none"; }}
                 />
               </div>
@@ -363,7 +369,7 @@ export default function LoginPage() {
                   minLength={6}
                   className="w-full px-4 py-3 text-[14px] rounded-lg outline-none transition-all"
                   style={{ border: "1.5px solid #d1d5db", background: "#fafafa" }}
-                  onFocus={(e) => { e.currentTarget.style.borderColor = "#b45309"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(180,83,9,0.08)"; }}
+                  onFocus={(e) => { e.currentTarget.style.borderColor = "#2d6a4f"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(45,106,79,0.08)"; }}
                   onBlur={(e) => { e.currentTarget.style.borderColor = "#d1d5db"; e.currentTarget.style.boxShadow = "none"; }}
                 />
               </div>
@@ -372,7 +378,7 @@ export default function LoginPage() {
                 type="submit"
                 disabled={loading}
                 className="w-full py-3 text-[14px] font-bold text-white rounded-lg transition-all"
-                style={{ background: loading ? "#d97706" : "#b45309", opacity: loading ? 0.7 : 1 }}
+                style={{ background: loading ? "#37845e" : "#2d6a4f", opacity: loading ? 0.7 : 1 }}
               >
                 {loading ? "Resetting..." : "Reset Password"}
               </button>

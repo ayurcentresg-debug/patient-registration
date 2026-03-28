@@ -18,7 +18,7 @@ interface AuditEntry {
 // ─── Constants ──────────────────────────────────────────────────────────────
 const ACTION_COLORS: Record<string, { bg: string; color: string; label: string }> = {
   create: { bg: "#ecfdf5", color: "#059669", label: "Create" },
-  update: { bg: "#fffbeb", color: "#d97706", label: "Update" },
+  update: { bg: "#f0faf4", color: "#37845e", label: "Update" },
   delete: { bg: "#fef2f2", color: "#dc2626", label: "Delete" },
 };
 

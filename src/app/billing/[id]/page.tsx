@@ -620,7 +620,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
               {clinicSettings?.logoUrl ? (
                 <img src={clinicSettings.logoUrl} alt="Logo" style={{ height: 48, margin: "0 auto 8px" }} />
               ) : (
-                <div style={{ width: 48, height: 48, margin: "0 auto 8px", background: "#b45309", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 700, fontSize: 18 }}>
+                <div style={{ width: 48, height: 48, margin: "0 auto 8px", background: "#2d6a4f", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 700, fontSize: 18 }}>
                   {clinicInitials}
                 </div>
               )}
@@ -730,7 +730,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
               {clinicSettings?.logoUrl ? (
                 <img src={clinicSettings.logoUrl} alt="Logo" style={{ height: 56 }} />
               ) : (
-                <div style={{ width: 56, height: 56, background: "#b45309", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 700, fontSize: 22, flexShrink: 0 }}>
+                <div style={{ width: 56, height: 56, background: "#2d6a4f", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 700, fontSize: 22, flexShrink: 0 }}>
                   {clinicInitials}
                 </div>
               )}

@@ -4,26 +4,30 @@
    YODA DESIGN SYSTEM — CSS Variables
    ======================================== */
 :root {
-  /* Primary — Warm Earth (Burnt Orange) */
-  --blue-500: #b45309;
-  --blue-600: #a14b08;
-  --blue-700: #8c4107;
-  --blue-800: #713605;
-  --blue-50: #fffbeb;
-  --blue-100: #fef3c7;
+  /* Primary — Forest Green */
+  --blue-500: #2d6a4f;
+  --blue-600: #256b48;
+  --blue-700: #1b5e3a;
+  --blue-800: #14532d;
+  --blue-50: #f0faf4;
+  --blue-100: #d1f2e0;
 
-  /* Neutrals — Warm Stone tones */
-  --black: #1c1917;
-  --grey-900: #292524;
-  --grey-800: #44403c;
-  --grey-700: #57534e;
-  --grey-600: #78716c;
-  --grey-500: #a8a29e;
-  --grey-400: #d6d3d1;
-  --grey-300: #e7e5e4;
-  --grey-200: #f5f5f4;
-  --grey-100: #fafaf9;
-  --grey-50: #fafaf9;
+  /* Accent — Earthy Gold */
+  --accent: #b68d40;
+  --accent-light: #faf3e6;
+
+  /* Neutrals — Warm Linen tones */
+  --black: #1a1c1b;
+  --grey-900: #1e2a24;
+  --grey-800: #374840;
+  --grey-700: #4a5d52;
+  --grey-600: #6b7f73;
+  --grey-500: #9baa9f;
+  --grey-400: #c8d1cb;
+  --grey-300: #dfe5e1;
+  --grey-200: #eef1ef;
+  --grey-100: #f5f7f6;
+  --grey-50: #f8faf9;
   --white: #ffffff;
 
   /* Semantic */
@@ -33,21 +37,21 @@
   --red-light: #fef2f2;
   --orange: #ea580c;
   --orange-light: #fff7ed;
-  --purple: #9333ea;
-  --purple-light: #faf5ff;
+  --purple: #7c3aed;
+  --purple-light: #f5f3ff;
 
-  /* Shadows — warmer tones */
-  --shadow-sm: 0 1px 2px rgba(28, 25, 23, 0.06);
-  --shadow-card: 0 1px 10px rgba(28, 25, 23, 0.05);
-  --shadow-md: 0 5px 20px rgba(28, 25, 23, 0.07);
-  --shadow-blue: 0 1px 4px rgba(180, 83, 9, 0.1);
-  --shadow-lg: 0 8px 30px rgba(28, 25, 23, 0.1);
+  /* Shadows — natural tones */
+  --shadow-sm: 0 1px 2px rgba(30, 42, 36, 0.06);
+  --shadow-card: 0 1px 10px rgba(30, 42, 36, 0.05);
+  --shadow-md: 0 5px 20px rgba(30, 42, 36, 0.07);
+  --shadow-blue: 0 1px 4px rgba(45, 106, 79, 0.12);
+  --shadow-lg: 0 8px 30px rgba(30, 42, 36, 0.1);
 
   /* Layout */
-  --background: #faf8f5;
-  --foreground: #44403c;
+  --background: #f8f6f2;
+  --foreground: #374840;
   --sidebar-width: 64px;
-  --sidebar-bg: #3c2415;
+  --sidebar-bg: #1b3a2d;
   --radius: 8px;
   --radius-sm: 5px;
   --radius-pill: 100px;
@@ -97,7 +101,7 @@ input:focus,
 select:focus,
 textarea:focus {
   border-color: var(--blue-500) !important;
-  box-shadow: 0 0 0 3px rgba(180, 83, 9, 0.1) !important;
+  box-shadow: 0 0 0 3px rgba(45, 106, 79, 0.12) !important;
   outline: none !important;
 }
 

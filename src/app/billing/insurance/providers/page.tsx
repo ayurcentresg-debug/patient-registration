@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import BillingTabs from "@/components/BillingTabs";
+import ConfirmDialog from "@/components/ConfirmDialog";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface InsuranceProvider {
@@ -57,6 +58,10 @@ export default function InsuranceProvidersPage() {
   const [error, setError] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+
+  // Confirm dialog
+  const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; title: string; message: string; confirmLabel: string; variant: "danger" | "warning" | "default"; onConfirm: () => void }>({ open: false, title: "", message: "", confirmLabel: "Confirm", variant: "default", onConfirm: () => {} });
+  const [confirmLoading, setConfirmLoading] = useState(false);
 
   // Form state
   const [showForm, setShowForm] = useState(false);
@@ -175,16 +180,27 @@ export default function InsuranceProvidersPage() {
   }
 
   // ─── Delete (Soft) ────────────────────────────────────────────────────
-  async function handleDelete(provider: InsuranceProvider) {
-    if (!confirm(`Deactivate "${provider.name}"? This will soft-delete the provider.`)) return;
-
-    try {
-      const res = await fetch(`/api/insurance/providers/${provider.id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("Failed");
-      fetchProviders();
-    } catch {
-      setError("Failed to deactivate provider");
-    }
+  function handleDelete(provider: InsuranceProvider) {
+    setConfirmDialog({
+      open: true,
+      title: "Deactivate Provider",
+      message: `Deactivate "${provider.name}"? This will hide the provider from new claims.`,
+      confirmLabel: "Deactivate",
+      variant: "warning",
+      onConfirm: async () => {
+        setConfirmLoading(true);
+        try {
+          const res = await fetch(`/api/insurance/providers/${provider.id}`, { method: "DELETE" });
+          if (!res.ok) throw new Error("Failed");
+          fetchProviders();
+        } catch {
+          setError("Failed to deactivate provider");
+        } finally {
+          setConfirmLoading(false);
+          setConfirmDialog((prev) => ({ ...prev, open: false }));
+        }
+      },
+    });
   }
 
   function getPanelStyle(panelType: string) {
@@ -553,6 +569,17 @@ export default function InsuranceProvidersPage() {
           </div>
         </>
       )}
+
+      <ConfirmDialog
+        open={confirmDialog.open}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        confirmLabel={confirmDialog.confirmLabel}
+        variant={confirmDialog.variant}
+        loading={confirmLoading}
+        onConfirm={confirmDialog.onConfirm}
+        onCancel={() => { setConfirmDialog(prev => ({ ...prev, open: false })); setConfirmLoading(false); }}
+      />
     </div>
   );
 }

@@ -7,10 +7,21 @@ import AuthProvider from "@/components/AuthProvider";
 export default function LayoutShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isLoginPage = pathname === "/login";
+  const isInvitePage = pathname?.startsWith("/invite");
+  const isDoctorPortal = pathname?.startsWith("/doctor");
 
-  // Login page renders without sidebar or auth check
-  if (isLoginPage) {
+  // Login & invite pages render without sidebar or auth check
+  if (isLoginPage || isInvitePage) {
     return <>{children}</>;
+  }
+
+  // Doctor portal has its own header/layout — no sidebar
+  if (isDoctorPortal) {
+    return (
+      <AuthProvider>
+        <main className="min-h-screen">{children}</main>
+      </AuthProvider>
+    );
   }
 
   // All other pages get auth protection + sidebar

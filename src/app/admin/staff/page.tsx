@@ -44,12 +44,12 @@ interface StaffForm {
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 const ALL_ROLES = [
-  { value: "doctor", label: "Doctor", prefix: "D", color: "#2563eb", bg: "#dbeafe" },
-  { value: "therapist", label: "Therapist", prefix: "T", color: "#059669", bg: "#d1fae5" },
-  { value: "pharmacist", label: "Pharmacist", prefix: "P", color: "#7c3aed", bg: "#ede9fe" },
-  { value: "receptionist", label: "Receptionist", prefix: "R", color: "#d97706", bg: "#fef3c7" },
-  { value: "admin", label: "Admin", prefix: "A", color: "#dc2626", bg: "#fee2e2" },
-  { value: "staff", label: "Staff", prefix: "S", color: "#6b7280", bg: "#f3f4f6" },
+  { value: "doctor", label: "Doctor", prefix: "D", color: "#2d6a4f", bg: "#f0faf4" },
+  { value: "therapist", label: "Therapist", prefix: "T", color: "#059669", bg: "#ecfdf5" },
+  { value: "pharmacist", label: "Pharmacist", prefix: "P", color: "#7c3aed", bg: "#faf5ff" },
+  { value: "receptionist", label: "Receptionist", prefix: "R", color: "#37845e", bg: "#f0faf4" },
+  { value: "admin", label: "Admin", prefix: "A", color: "#dc2626", bg: "#fef2f2" },
+  { value: "staff", label: "Staff", prefix: "S", color: "#78716c", bg: "#fafaf9" },
 ];
 
 const CLINICAL_ROLES = ["doctor", "therapist"];
@@ -88,18 +88,26 @@ const EMPTY_FORM: StaffForm = {
   schedule: {}, sendInvite: false,
 };
 
+// ─── Design Tokens (YODA) ───────────────────────────────────────────────────
+const cardStyle: React.CSSProperties = {
+  background: "var(--white)",
+  border: "1px solid var(--grey-300)",
+  borderRadius: "var(--radius)",
+  boxShadow: "var(--shadow-card)",
+};
+
+const inputStyle: React.CSSProperties = {
+  border: "1px solid var(--grey-400)",
+  borderRadius: "var(--radius-sm)",
+  color: "var(--grey-900)",
+  background: "var(--white)",
+  fontSize: "13px",
+};
+
 // ─── Helpers ────────────────────────────────────────────────────────────────
 function getRoleMeta(role: string) {
   return ALL_ROLES.find((r) => r.value === role) || ALL_ROLES[5];
 }
-
-const inputStyle: React.CSSProperties = {
-  border: "1.5px solid var(--grey-300)",
-  borderRadius: "var(--radius-sm)",
-  fontSize: 13,
-  background: "white",
-  outline: "none",
-};
 
 // ─── Component ──────────────────────────────────────────────────────────────
 export default function StaffPage() {
@@ -266,52 +274,70 @@ export default function StaffPage() {
 
   // ─── Render ───────────────────────────────────────────────────────────
   return (
-    <div style={{ maxWidth: 1200, margin: "0 auto", padding: "24px 16px" }}>
-      <AdminTabs />
+    <div className="p-6 md:p-8 yoda-fade-in">
+      {/* Toast */}
+      {toast && (
+        <div
+          className="fixed top-5 right-5 z-[200] px-4 py-3 rounded shadow-lg yoda-slide-in"
+          style={{
+            background: toast.type === "ok" ? "#e8f5e9" : "#ffebee",
+            color: toast.type === "ok" ? "#2e7d32" : "var(--red)",
+            border: `1px solid ${toast.type === "ok" ? "#a5d6a7" : "#ef9a9a"}`,
+          }}
+        >
+          <p className="text-[13px] font-semibold">{toast.msg}</p>
+        </div>
+      )}
 
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <h2 className="text-[20px] font-bold" style={{ color: "var(--grey-900)" }}>Staff Management</h2>
-          <p className="text-[12px] mt-0.5" style={{ color: "var(--grey-500)" }}>Manage doctors, therapists, and clinic staff</p>
+          <h1 className="text-[22px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>Staff Management</h1>
+          <p className="text-[13px] mt-0.5" style={{ color: "var(--grey-600)" }}>Manage doctors, therapists, and clinic staff</p>
         </div>
         <button
           onClick={openAdd}
-          className="px-4 py-2 text-[13px] font-semibold text-white rounded-lg"
-          style={{ background: "var(--blue-500)" }}
+          className="inline-flex items-center gap-2 text-white px-5 py-2 text-[13px] font-semibold"
+          style={{ background: "var(--blue-500)", borderRadius: "var(--radius-sm)" }}
         >
-          + Add Staff
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+          Add Staff
         </button>
       </div>
 
-      {/* Role filter chips */}
-      <div className="flex flex-wrap gap-2 mb-4">
-        <button
-          onClick={() => setRoleFilter("all")}
-          className="px-3 py-1.5 text-[12px] font-semibold rounded-full transition-all"
-          style={{
-            background: roleFilter === "all" ? "var(--grey-900)" : "var(--grey-100)",
-            color: roleFilter === "all" ? "white" : "var(--grey-600)",
-          }}
-        >
-          All ({roleCounts.all || 0})
-        </button>
-        {ALL_ROLES.map((r) => (
+      <AdminTabs />
+
+      {/* Filters card */}
+      <div className="p-4 mb-5" style={cardStyle}>
+        <div className="flex flex-wrap items-center gap-2 mb-3">
           <button
-            key={r.value}
-            onClick={() => setRoleFilter(r.value)}
-            className="px-3 py-1.5 text-[12px] font-semibold rounded-full transition-all"
+            onClick={() => setRoleFilter("all")}
+            className="px-3 py-1 text-[11px] font-semibold transition-all duration-150"
             style={{
-              background: roleFilter === r.value ? r.color : r.bg,
-              color: roleFilter === r.value ? "white" : r.color,
+              borderRadius: "var(--radius-pill)",
+              border: roleFilter === "all" ? "1.5px solid var(--blue-500)" : "1px solid var(--grey-300)",
+              background: roleFilter === "all" ? "var(--blue-50)" : "var(--white)",
+              color: roleFilter === "all" ? "var(--blue-500)" : "var(--grey-600)",
             }}
           >
-            {r.label} ({roleCounts[r.value] || 0})
+            All ({roleCounts.all || 0})
           </button>
-        ))}
-      </div>
-
-      {/* Search */}
-      <div className="mb-4">
+          {ALL_ROLES.map((r) => (
+            <button
+              key={r.value}
+              onClick={() => setRoleFilter(r.value)}
+              className="px-3 py-1 text-[11px] font-semibold transition-all duration-150"
+              style={{
+                borderRadius: "var(--radius-pill)",
+                border: roleFilter === r.value ? `1.5px solid ${r.color}` : "1px solid var(--grey-300)",
+                background: roleFilter === r.value ? r.bg : "var(--white)",
+                color: roleFilter === r.value ? r.color : "var(--grey-600)",
+              }}
+            >
+              {r.label} ({roleCounts[r.value] || 0})
+            </button>
+          ))}
+        </div>
         <input
           type="text"
           placeholder="Search by name, email, or ID..."
@@ -324,95 +350,159 @@ export default function StaffPage() {
 
       {/* Staff list */}
       {loading ? (
-        <p className="text-[13px] py-8 text-center" style={{ color: "var(--grey-500)" }}>Loading...</p>
+        <div className="space-y-3">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="h-20 animate-pulse" style={{ background: "var(--grey-200)", borderRadius: "var(--radius)" }} />
+          ))}
+        </div>
       ) : staff.length === 0 ? (
-        <div className="text-center py-12" style={{ color: "var(--grey-500)" }}>
-          <p className="text-[14px] font-medium">No staff members found</p>
-          <p className="text-[12px] mt-1">Add your first staff member to get started</p>
+        <div className="py-16 text-center" style={cardStyle}>
+          <svg className="w-12 h-12 mx-auto mb-3" style={{ color: "var(--grey-400)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+          <p className="text-[14px] font-semibold" style={{ color: "var(--grey-700)" }}>No staff members found</p>
+          <p className="text-[12px] mt-1" style={{ color: "var(--grey-500)" }}>Add your first staff member to get started</p>
         </div>
       ) : (
-        <div className="grid gap-3">
-          {staff.map((s) => {
-            const meta = getRoleMeta(s.role);
-            return (
-              <div
-                key={s.id}
-                className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 rounded-xl"
-                style={{ background: "white", border: "1.5px solid var(--grey-200)", opacity: s.status === "inactive" ? 0.6 : 1 }}
-              >
-                {/* Avatar + Info */}
-                <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div
-                    className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-[13px] flex-shrink-0"
-                    style={{ background: meta.color }}
-                  >
-                    {s.name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase()}
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-[14px] font-semibold" style={{ color: "var(--grey-900)" }}>{s.name}</span>
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ background: meta.bg, color: meta.color }}>{meta.label}</span>
-                      {s.staffIdNumber && (
-                        <span className="text-[10px] font-mono" style={{ color: "var(--grey-400)" }}>{s.staffIdNumber}</span>
-                      )}
-                      {s.status === "inactive" && (
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ background: "#fee2e2", color: "#dc2626" }}>Inactive</span>
-                      )}
-                      {s.invitePending && (
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ background: "#fef3c7", color: "#d97706" }}>Invite Pending</span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-3 mt-0.5 flex-wrap">
-                      <span className="text-[11px]" style={{ color: "var(--grey-500)" }}>{s.email}</span>
-                      {s.phone && <span className="text-[11px]" style={{ color: "var(--grey-500)" }}>{s.phone}</span>}
-                      {s.specialization && <span className="text-[11px]" style={{ color: "var(--grey-500)" }}>{s.specialization}</span>}
-                      {s.department && <span className="text-[11px] px-1.5 py-0.5 rounded" style={{ background: "var(--grey-100)", color: "var(--grey-600)" }}>{s.department}</span>}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Actions */}
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  <button
-                    onClick={() => openEdit(s)}
-                    className="px-3 py-1.5 text-[11px] font-semibold rounded-lg"
-                    style={{ background: "var(--grey-100)", color: "var(--grey-700)" }}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => toggleStatus(s)}
-                    className="px-3 py-1.5 text-[11px] font-semibold rounded-lg"
+        <div className="overflow-hidden" style={cardStyle}>
+          <table className="w-full">
+            <thead>
+              <tr style={{ background: "var(--grey-100)", borderBottom: "1px solid var(--grey-300)" }}>
+                <th className="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Staff Member</th>
+                <th className="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Role</th>
+                <th className="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider hidden sm:table-cell" style={{ color: "var(--grey-600)" }}>Department</th>
+                <th className="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Status</th>
+                <th className="text-right px-4 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {staff.map((s, idx) => {
+                const meta = getRoleMeta(s.role);
+                return (
+                  <tr
+                    key={s.id}
                     style={{
-                      background: s.status === "active" ? "#fee2e2" : "#d1fae5",
-                      color: s.status === "active" ? "#dc2626" : "#059669",
+                      borderBottom: idx < staff.length - 1 ? "1px solid var(--grey-200)" : "none",
+                      opacity: s.status === "inactive" ? 0.55 : 1,
                     }}
                   >
-                    {s.status === "active" ? "Deactivate" : "Activate"}
-                  </button>
-                </div>
-              </div>
-            );
-          })}
+                    {/* Staff member info */}
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-[11px] flex-shrink-0"
+                          style={{ background: meta.color }}
+                        >
+                          {s.name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase()}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-[13px] font-semibold truncate" style={{ color: "var(--grey-900)" }}>{s.name}</p>
+                          <p className="text-[11px] truncate" style={{ color: "var(--grey-500)" }}>
+                            {s.email}
+                            {s.phone && <span className="ml-2">{s.phone}</span>}
+                          </p>
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* Role */}
+                    <td className="px-4 py-3">
+                      <span
+                        className="inline-flex px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide"
+                        style={{ background: meta.bg, color: meta.color, borderRadius: "var(--radius-pill)" }}
+                      >
+                        {meta.label}
+                      </span>
+                      {s.staffIdNumber && (
+                        <span className="block text-[10px] font-mono mt-0.5" style={{ color: "var(--grey-500)" }}>{s.staffIdNumber}</span>
+                      )}
+                      {s.specialization && (
+                        <span className="block text-[11px] mt-0.5" style={{ color: "var(--grey-600)" }}>{s.specialization}</span>
+                      )}
+                    </td>
+
+                    {/* Department */}
+                    <td className="px-4 py-3 hidden sm:table-cell">
+                      {s.department ? (
+                        <span className="text-[12px]" style={{ color: "var(--grey-700)" }}>{s.department}</span>
+                      ) : (
+                        <span className="text-[11px]" style={{ color: "var(--grey-400)" }}>--</span>
+                      )}
+                    </td>
+
+                    {/* Status */}
+                    <td className="px-4 py-3">
+                      <span
+                        className="inline-flex px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide"
+                        style={{
+                          borderRadius: "var(--radius-pill)",
+                          background: s.status === "active" ? "var(--green-light)" : "var(--red-light)",
+                          color: s.status === "active" ? "var(--green)" : "var(--red)",
+                        }}
+                      >
+                        {s.status}
+                      </span>
+                      {s.invitePending && (
+                        <span
+                          className="inline-flex ml-1 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide"
+                          style={{ borderRadius: "var(--radius-pill)", background: "var(--orange-light)", color: "var(--orange)" }}
+                        >
+                          Invite Pending
+                        </span>
+                      )}
+                    </td>
+
+                    {/* Actions */}
+                    <td className="px-4 py-3 text-right">
+                      <div className="inline-flex items-center gap-1.5">
+                        <button
+                          onClick={() => openEdit(s)}
+                          className="px-2.5 py-1 text-[11px] font-semibold transition-colors"
+                          style={{ background: "var(--grey-100)", color: "var(--grey-700)", borderRadius: "var(--radius-sm)", border: "1px solid var(--grey-300)" }}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => toggleStatus(s)}
+                          className="px-2.5 py-1 text-[11px] font-semibold transition-colors"
+                          style={{
+                            borderRadius: "var(--radius-sm)",
+                            border: "1px solid transparent",
+                            background: s.status === "active" ? "var(--red-light)" : "var(--green-light)",
+                            color: s.status === "active" ? "var(--red)" : "var(--green)",
+                          }}
+                        >
+                          {s.status === "active" ? "Deactivate" : "Activate"}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       )}
 
       {/* ─── Add/Edit Modal ──────────────────────────────────────────────── */}
       {showForm && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center" style={{ background: "rgba(0,0,0,0.4)" }}>
+        <div className="fixed inset-0 z-50 flex items-start justify-center" style={{ background: "rgba(0,0,0,0.35)" }} onClick={closeForm}>
           <div
-            className="bg-white rounded-2xl shadow-xl w-full max-w-lg mx-4 mt-8 mb-8 overflow-y-auto"
-            style={{ maxHeight: "calc(100vh - 64px)" }}
+            className="bg-white w-full max-w-lg mx-4 mt-12 mb-8 overflow-y-auto yoda-slide-in"
+            style={{ maxHeight: "calc(100vh - 80px)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-lg)" }}
+            onClick={(e) => e.stopPropagation()}
           >
-            <div className="p-5 border-b" style={{ borderColor: "var(--grey-200)" }}>
+            {/* Modal header */}
+            <div className="px-5 py-4" style={{ borderBottom: "1px solid var(--grey-300)" }}>
               <h3 className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>
-                {editingId ? "Edit Staff Member" : "Add Staff Member"}
+                {editingId ? "Edit Staff Member" : "Add New Staff Member"}
               </h3>
+              <p className="text-[12px] mt-0.5" style={{ color: "var(--grey-500)" }}>
+                {editingId ? "Update staff details below" : "Fill in the details to add a new staff member"}
+              </p>
             </div>
 
-            <div className="p-5 space-y-4">
+            <div className="px-5 py-5 space-y-4">
               {formError && (
-                <div className="p-3 rounded-lg text-[12px] font-medium" style={{ background: "#fee2e2", color: "#dc2626" }}>
+                <div className="p-3 text-[12px] font-semibold" style={{ background: "var(--red-light)", color: "var(--red)", borderRadius: "var(--radius-sm)", border: "1px solid #fecaca" }}>
                   {formError}
                 </div>
               )}
@@ -463,6 +553,10 @@ export default function StaffPage() {
               {/* Clinical fields */}
               {isClinical && (
                 <>
+                  <div className="pt-2 pb-1">
+                    <p className="text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-500)" }}>Clinical Details</p>
+                  </div>
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className="block text-[12px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Specialization *</label>
@@ -496,16 +590,18 @@ export default function StaffPage() {
                   {/* Schedule builder */}
                   <div>
                     <label className="block text-[12px] font-semibold mb-2" style={{ color: "var(--grey-700)" }}>Weekly Schedule</label>
-                    <div className="flex flex-wrap gap-2 mb-3">
+                    <div className="flex flex-wrap gap-1.5 mb-3">
                       {DAYS.map((d) => (
                         <button
                           key={d.key}
                           type="button"
                           onClick={() => toggleDay(d.key)}
-                          className="px-3 py-1.5 text-[11px] font-bold rounded-lg transition-all"
+                          className="px-3 py-1.5 text-[11px] font-bold transition-all"
                           style={{
+                            borderRadius: "var(--radius-sm)",
                             background: form.schedule[d.key] ? "var(--blue-500)" : "var(--grey-100)",
                             color: form.schedule[d.key] ? "white" : "var(--grey-600)",
+                            border: form.schedule[d.key] ? "1px solid var(--blue-500)" : "1px solid var(--grey-300)",
                           }}
                         >
                           {d.label}
@@ -513,19 +609,19 @@ export default function StaffPage() {
                       ))}
                     </div>
                     {DAYS.filter((d) => form.schedule[d.key]).map((d) => (
-                      <div key={d.key} className="mb-2 p-2 rounded-lg" style={{ background: "var(--grey-50)" }}>
-                        <div className="text-[11px] font-bold mb-1" style={{ color: "var(--grey-700)" }}>{d.label}</div>
+                      <div key={d.key} className="mb-2 p-3" style={{ background: "var(--grey-100)", borderRadius: "var(--radius-sm)", border: "1px solid var(--grey-200)" }}>
+                        <div className="text-[11px] font-bold mb-1.5" style={{ color: "var(--grey-700)" }}>{d.label}</div>
                         {(form.schedule[d.key] || []).map((block, idx) => (
-                          <div key={idx} className="flex items-center gap-2 mb-1">
+                          <div key={idx} className="flex items-center gap-2 mb-1.5">
                             <input type="time" value={block.start} onChange={(e) => updateBlock(d.key, idx, "start", e.target.value)} className="px-2 py-1 text-[12px]" style={inputStyle} />
-                            <span className="text-[11px]" style={{ color: "var(--grey-400)" }}>to</span>
+                            <span className="text-[11px]" style={{ color: "var(--grey-500)" }}>to</span>
                             <input type="time" value={block.end} onChange={(e) => updateBlock(d.key, idx, "end", e.target.value)} className="px-2 py-1 text-[12px]" style={inputStyle} />
                             {(form.schedule[d.key] || []).length > 1 && (
-                              <button type="button" onClick={() => removeBlock(d.key, idx)} className="text-[11px] text-red-500 font-semibold">Remove</button>
+                              <button type="button" onClick={() => removeBlock(d.key, idx)} className="text-[11px] font-semibold" style={{ color: "var(--red)" }}>Remove</button>
                             )}
                           </div>
                         ))}
-                        <button type="button" onClick={() => addBlock(d.key)} className="text-[11px] font-semibold mt-1" style={{ color: "var(--blue-500)" }}>+ Add block</button>
+                        <button type="button" onClick={() => addBlock(d.key)} className="text-[11px] font-semibold mt-0.5" style={{ color: "var(--blue-500)" }}>+ Add time block</button>
                       </div>
                     ))}
                   </div>
@@ -534,7 +630,7 @@ export default function StaffPage() {
 
               {/* Send invite toggle */}
               {!editingId && (
-                <div className="flex items-center gap-3 p-3 rounded-lg" style={{ background: "var(--grey-50)" }}>
+                <div className="flex items-center gap-3 p-3" style={{ background: "var(--grey-100)", borderRadius: "var(--radius-sm)", border: "1px solid var(--grey-200)" }}>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input
                       type="checkbox"
@@ -542,7 +638,7 @@ export default function StaffPage() {
                       onChange={(e) => setForm({ ...form, sendInvite: e.target.checked })}
                       className="sr-only peer"
                     />
-                    <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-500"></div>
+                    <div className="w-9 h-5 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[var(--blue-500)]"></div>
                   </label>
                   <div>
                     <p className="text-[12px] font-semibold" style={{ color: "var(--grey-800)" }}>Send email invite</p>
@@ -553,28 +649,24 @@ export default function StaffPage() {
             </div>
 
             {/* Footer */}
-            <div className="p-5 border-t flex justify-end gap-2" style={{ borderColor: "var(--grey-200)" }}>
-              <button onClick={closeForm} className="px-4 py-2 text-[13px] font-semibold rounded-lg" style={{ background: "var(--grey-100)", color: "var(--grey-700)" }}>Cancel</button>
+            <div className="px-5 py-4 flex justify-end gap-2" style={{ borderTop: "1px solid var(--grey-300)" }}>
+              <button
+                onClick={closeForm}
+                className="px-4 py-2 text-[13px] font-semibold"
+                style={{ background: "var(--grey-100)", color: "var(--grey-700)", borderRadius: "var(--radius-sm)", border: "1px solid var(--grey-300)" }}
+              >
+                Cancel
+              </button>
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="px-5 py-2 text-[13px] font-semibold text-white rounded-lg"
-                style={{ background: saving ? "var(--grey-400)" : "var(--blue-500)" }}
+                className="px-5 py-2 text-[13px] font-semibold text-white disabled:opacity-50"
+                style={{ background: "var(--blue-500)", borderRadius: "var(--radius-sm)" }}
               >
                 {saving ? "Saving..." : editingId ? "Update" : "Add Staff"}
               </button>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Toast */}
-      {toast && (
-        <div
-          className="fixed bottom-6 right-6 px-4 py-3 rounded-xl text-[13px] font-semibold text-white shadow-lg z-50"
-          style={{ background: toast.type === "ok" ? "#059669" : "#dc2626", animation: "yoda-slide-in-right 0.2s ease" }}
-        >
-          {toast.msg}
         </div>
       )}
     </div>

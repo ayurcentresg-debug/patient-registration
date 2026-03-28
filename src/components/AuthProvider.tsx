@@ -71,7 +71,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: "#fefbf6" }}>
         <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 border-3 rounded-full animate-spin" style={{ borderColor: "#e5e7eb", borderTopColor: "#b45309" }} />
+          <div className="w-10 h-10 border-3 rounded-full animate-spin" style={{ borderColor: "#e5e7eb", borderTopColor: "#2d6a4f" }} />
           <p className="text-[13px] font-medium" style={{ color: "#6b7280" }}>Loading...</p>
         </div>
       </div>

@@ -60,7 +60,7 @@ export default function InvitePage() {
     <div className="min-h-screen flex items-center justify-center p-4" style={{ background: "var(--grey-50, #f9fafb)" }}>
       <div className="w-full max-w-md">
         <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl text-white font-bold text-xl mb-3" style={{ background: "#92400e" }}>AC</div>
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl text-white font-bold text-xl mb-3" style={{ background: "#14532d" }}>AC</div>
           <h1 className="text-xl font-bold" style={{ color: "var(--grey-900, #111)" }}>Ayur Centre</h1>
         </div>
 
@@ -114,7 +114,7 @@ export default function InvitePage() {
                   type="submit"
                   disabled={submitting}
                   className="w-full py-2.5 text-[13px] font-semibold text-white rounded-lg"
-                  style={{ background: submitting ? "#9ca3af" : "#92400e" }}
+                  style={{ background: submitting ? "#9ca3af" : "#14532d" }}
                 >
                   {submitting ? "Activating..." : "Activate Account"}
                 </button>

@@ -58,6 +58,7 @@ model Patient {
   vitals         Vital[]
   reminders      Reminder[]
   treatmentPlans TreatmentPlan[]
+  prescriptions  Prescription[]
 }
 
 model FamilyMember {
@@ -503,6 +504,39 @@ model Reminder {
   notes           String?
   createdAt       DateTime @default(now())
   patient         Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+}
+
+// ─── Prescriptions ──────────────────────────────────────────────────────
+
+model Prescription {
+  id              String   @id @default(cuid())
+  prescriptionNo  String   @unique
+  patientId       String
+  doctorId        String?
+  doctorName      String
+  diagnosis       String?
+  notes           String?
+  status          String   @default("active") // active, completed, cancelled
+  date            DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  patient         Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  items           PrescriptionItem[]
+}
+
+model PrescriptionItem {
+  id              String   @id @default(cuid())
+  prescriptionId  String
+  medicineName    String
+  inventoryItemId String?  // link to InventoryItem if from stock
+  dosage          String   // e.g., "500mg", "10ml", "2 tablets"
+  frequency       String   // e.g., "twice_daily", "thrice_daily", "once_daily"
+  timing          String?  // e.g., "after_food", "before_food", "with_food"
+  duration        String   // e.g., "7 days", "2 weeks", "1 month"
+  quantity        Int?     // total quantity to dispense
+  instructions    String?  // special instructions
+  sequence        Int      @default(0)
+  prescription    Prescription @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)
 }
 
 // ─── Treatment Plans ────────────────────────────────────────────────────

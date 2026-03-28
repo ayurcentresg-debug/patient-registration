@@ -147,14 +147,14 @@ export default function StockAlertsPage() {
 
   function getProgressColor(pct: number): string {
     if (pct > 50) return "var(--green)";
-    if (pct >= 25) return "#d97706";
+    if (pct >= 25) return "#37845e";
     return "var(--red)";
   }
 
   function getDaysLeftColor(days: number): { bg: string; color: string } {
     if (days < 7) return { bg: "#fef2f2", color: "var(--red)" };
     if (days <= 14) return { bg: "#fff7ed", color: "var(--orange)" };
-    return { bg: "#fffbeb", color: "#d97706" };
+    return { bg: "#f0faf4", color: "#37845e" };
   }
 
   // ─── Loading skeleton ────────────────────────────────────────────────────
@@ -219,9 +219,9 @@ export default function StockAlertsPage() {
 
       {/* ── Alert Category Cards ────────────────────────────────── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <div className="p-4 transition-shadow duration-150 hover:shadow-md cursor-pointer" style={{ ...cardStyle, boxShadow: "var(--shadow-sm)", borderLeft: "4px solid #d97706" }} onClick={() => toggleSection("lowStock")}>
-          <p className="text-[12px] font-semibold uppercase tracking-wide" style={{ color: "#d97706" }}>Low Stock</p>
-          <p className="text-[28px] font-bold mt-1 tracking-tight" style={{ color: alerts.lowStock.length > 0 ? "#d97706" : "var(--grey-900)" }}>{alerts.lowStock.length}</p>
+        <div className="p-4 transition-shadow duration-150 hover:shadow-md cursor-pointer" style={{ ...cardStyle, boxShadow: "var(--shadow-sm)", borderLeft: "4px solid #37845e" }} onClick={() => toggleSection("lowStock")}>
+          <p className="text-[12px] font-semibold uppercase tracking-wide" style={{ color: "#37845e" }}>Low Stock</p>
+          <p className="text-[28px] font-bold mt-1 tracking-tight" style={{ color: alerts.lowStock.length > 0 ? "#37845e" : "var(--grey-900)" }}>{alerts.lowStock.length}</p>
         </div>
         <div className="p-4 transition-shadow duration-150 hover:shadow-md cursor-pointer" style={{ ...cardStyle, boxShadow: "var(--shadow-sm)", borderLeft: "4px solid var(--orange)" }} onClick={() => toggleSection("expiringSoon")}>
           <p className="text-[12px] font-semibold uppercase tracking-wide" style={{ color: "var(--orange)" }}>Expiring Soon</p>
@@ -267,7 +267,7 @@ export default function StockAlertsPage() {
           {/* ═══ LOW STOCK SECTION ═══ */}
           {alerts.lowStock.length > 0 && (
             <div>
-              <SectionHeader title="Low Stock Items" count={alerts.lowStock.length} color="#d97706" sectionKey="lowStock" />
+              <SectionHeader title="Low Stock Items" count={alerts.lowStock.length} color="#37845e" sectionKey="lowStock" />
               {expanded.lowStock && (
                 <div className="mt-2 yoda-fade-in" style={cardStyle}>
                   <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: "1px solid var(--grey-200)" }}>

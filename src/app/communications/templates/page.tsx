@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import CommunicationTabs from "@/components/CommunicationTabs";
+import ConfirmDialog from "@/components/ConfirmDialog";
 
 const inputStyle = { border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)", fontSize: "13px" };
 const cardStyle = { background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-card)" };
@@ -23,7 +24,7 @@ const CATEGORIES = [
 const CATEGORY_COLORS: Record<string, { bg: string; color: string }> = {
   appointment_reminder: { bg: "#dbeafe", color: "#1d4ed8" },
   follow_up: { bg: "#ecfdf5", color: "#047857" },
-  payment_reminder: { bg: "#fef3c7", color: "#b45309" },
+  payment_reminder: { bg: "#d1f2e0", color: "#2d6a4f" },
   medication: { bg: "#fce7f3", color: "#be185d" },
   welcome: { bg: "#ede9fe", color: "#7c3aed" },
   birthday: { bg: "#fff1f2", color: "#e11d48" },
@@ -57,6 +58,10 @@ export default function TemplatesPage() {
   const [formSubject, setFormSubject] = useState("");
   const [formBody, setFormBody] = useState("");
   const [previewText, setPreviewText] = useState("");
+
+  // Confirm dialog
+  const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; title: string; message: string; confirmLabel: string; variant: "danger" | "warning" | "default"; onConfirm: () => void }>({ open: false, title: "", message: "", confirmLabel: "Confirm", variant: "default", onConfirm: () => {} });
+  const [confirmLoading, setConfirmLoading] = useState(false);
 
   // Toast
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
@@ -155,19 +160,31 @@ export default function TemplatesPage() {
     setSaving(false);
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm("Are you sure you want to delete this template?")) return;
-    try {
-      const res = await fetch(`/api/templates/${id}`, { method: "DELETE" });
-      if (res.ok) {
-        showToast("Template deleted", "success");
-        setTemplates((prev) => prev.filter((t) => t.id !== id));
-      } else {
-        showToast("Failed to delete template", "error");
-      }
-    } catch {
-      showToast("Failed to delete template", "error");
-    }
+  function handleDelete(id: string) {
+    setConfirmDialog({
+      open: true,
+      title: "Delete Template",
+      message: "Remove this message template? This cannot be undone.",
+      confirmLabel: "Delete Template",
+      variant: "danger",
+      onConfirm: async () => {
+        setConfirmLoading(true);
+        try {
+          const res = await fetch(`/api/templates/${id}`, { method: "DELETE" });
+          if (res.ok) {
+            showToast("Template deleted", "success");
+            setTemplates((prev) => prev.filter((t) => t.id !== id));
+          } else {
+            showToast("Failed to delete template", "error");
+          }
+        } catch {
+          showToast("Failed to delete template", "error");
+        } finally {
+          setConfirmLoading(false);
+          setConfirmDialog((prev) => ({ ...prev, open: false }));
+        }
+      },
+    });
   }
 
   async function handleToggleActive(tpl: Template) {
@@ -486,6 +503,17 @@ export default function TemplatesPage() {
           })}
         </div>
       )}
+
+      <ConfirmDialog
+        open={confirmDialog.open}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        confirmLabel={confirmDialog.confirmLabel}
+        variant={confirmDialog.variant}
+        loading={confirmLoading}
+        onConfirm={confirmDialog.onConfirm}
+        onCancel={() => { setConfirmDialog(prev => ({ ...prev, open: false })); setConfirmLoading(false); }}
+      />
     </div>
   );
 }
