@@ -1,26 +1,168 @@
 @import "tailwindcss";
 
+/* ========================================
+   YODA DESIGN SYSTEM — CSS Variables
+   ======================================== */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Primary — Warm Earth (Burnt Orange) */
+  --blue-500: #b45309;
+  --blue-600: #a14b08;
+  --blue-700: #8c4107;
+  --blue-800: #713605;
+  --blue-50: #fffbeb;
+  --blue-100: #fef3c7;
+
+  /* Neutrals — Warm Stone tones */
+  --black: #1c1917;
+  --grey-900: #292524;
+  --grey-800: #44403c;
+  --grey-700: #57534e;
+  --grey-600: #78716c;
+  --grey-500: #a8a29e;
+  --grey-400: #d6d3d1;
+  --grey-300: #e7e5e4;
+  --grey-200: #f5f5f4;
+  --grey-100: #fafaf9;
+  --grey-50: #fafaf9;
+  --white: #ffffff;
+
+  /* Semantic */
+  --green: #059669;
+  --green-light: #ecfdf5;
+  --red: #dc2626;
+  --red-light: #fef2f2;
+  --orange: #ea580c;
+  --orange-light: #fff7ed;
+  --purple: #9333ea;
+  --purple-light: #faf5ff;
+
+  /* Shadows — warmer tones */
+  --shadow-sm: 0 1px 2px rgba(28, 25, 23, 0.06);
+  --shadow-card: 0 1px 10px rgba(28, 25, 23, 0.05);
+  --shadow-md: 0 5px 20px rgba(28, 25, 23, 0.07);
+  --shadow-blue: 0 1px 4px rgba(180, 83, 9, 0.1);
+  --shadow-lg: 0 8px 30px rgba(28, 25, 23, 0.1);
+
+  /* Layout */
+  --background: #faf8f5;
+  --foreground: #44403c;
+  --sidebar-width: 64px;
+  --sidebar-bg: #3c2415;
+  --radius: 8px;
+  --radius-sm: 5px;
+  --radius-pill: 100px;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ========================================
+   BASE STYLES
+   ======================================== */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
+  letter-spacing: -0.01em;
+}
+
+/* ========================================
+   YODA FORM CONTROLS
+   ======================================== */
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="number"],
+input[type="date"],
+input[type="password"],
+input[type="search"],
+select,
+textarea {
+  font-family: inherit;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* Focus ring YODA style */
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--blue-500) !important;
+  box-shadow: 0 0 0 3px rgba(180, 83, 9, 0.1) !important;
+  outline: none !important;
+}
+
+/* Checkbox styling */
+input[type="checkbox"] {
+  accent-color: var(--blue-500);
+}
+
+input[type="radio"] {
+  accent-color: var(--blue-500);
+}
+
+/* ========================================
+   YODA SCROLLBAR
+   ======================================== */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--grey-400);
+  border-radius: 100px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--grey-600);
+}
+
+/* ========================================
+   PRINT STYLES
+   ======================================== */
+@media print {
+  body { background: white !important; }
+  [data-print-hide], nav, aside { display: none !important; }
+  main { padding: 0 !important; }
+}
+
+/* ========================================
+   YODA ANIMATIONS
+   ======================================== */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.yoda-fade-in {
+  animation: fadeIn 0.2s ease-out;
+}
+
+.yoda-slide-in {
+  animation: slideIn 0.25s ease-out;
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.yoda-slide-in-right {
+  animation: slideInRight 0.25s ease-out;
 }

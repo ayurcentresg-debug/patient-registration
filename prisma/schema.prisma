@@ -1,0 +1,634 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Patient {
+  id              String   @id @default(cuid())
+  patientIdNumber String   @unique @default("")
+  firstName       String
+  lastName        String
+  nricId          String?
+  email           String?
+  phone           String
+  secondaryMobile String?
+  landline        String?
+  whatsapp        String?
+  dateOfBirth     DateTime?
+  age             Int?
+  gender          String
+  address         String?
+  locality        String?
+  city            String?
+  state           String?
+  zipCode         String?
+  bloodGroup      String?
+  ethnicity       String?
+  nationality     String?
+  occupation      String?
+  referredBy      String?
+  familyRelation  String?
+  familyMemberName String?
+  emergencyName   String?
+  emergencyPhone  String?
+
+  // Medical History (stored as JSON string)
+  medicalHistory  String   @default("[]")
+  otherHistory    String?
+  allergies       String?
+  medicalNotes    String?
+
+  // Groups (stored as JSON string)
+  groups          String   @default("[]")
+
+  photoUrl        String?
+  status          String   @default("active")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  communications Communication[]
+  appointments   Appointment[]
+  clinicalNotes  ClinicalNote[]
+  documents      Document[]
+  familyMembers  FamilyMember[]
+  vitals         Vital[]
+  reminders      Reminder[]
+  treatmentPlans TreatmentPlan[]
+}
+
+model FamilyMember {
+  id              String   @id @default(cuid())
+  patientId       String
+  relation        String   // spouse | parent | child | sibling | grandparent | grandchild | uncle_aunt | nephew_niece | cousin | other
+  linkedPatientId String?  // optional FK to another Patient record
+  memberName      String   // display name (auto-filled from linked patient or manually entered)
+  memberPhone     String?
+  memberGender    String?  // "male" | "female" — used for gender-aware labels
+  createdAt       DateTime @default(now())
+
+  patient         Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+}
+
+model Doctor {
+  id                String   @id @default(cuid())
+  doctorIdNumber    String   @unique @default("")
+  name              String
+  role              String   @default("doctor") // "doctor" | "therapist"
+  gender            String?  // "male" | "female" — important for therapist-patient gender matching
+  specialization    String
+  department        String
+  phone             String?
+  email             String?
+  consultationFee   Float    @default(0)
+  // Weekly schedule stored as JSON: { "monday": [{"start":"09:00","end":"12:00"},{"start":"14:00","end":"17:00"}], ... }
+  schedule          String   @default("{}")
+  slotDuration      Int      @default(15) // minutes per slot
+  status            String   @default("active") // active | inactive
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  appointments      Appointment[]
+}
+
+model Appointment {
+  id              String   @id @default(cuid())
+  patientId       String?
+  doctorId        String?
+  date            DateTime
+  time            String
+  endTime         String?
+  duration        Int      @default(15) // minutes
+  doctor          String   // doctor name (kept for backward compat)
+  department      String?
+  type            String   @default("consultation") // consultation | follow-up | procedure | emergency
+  reason          String?
+  notes           String?
+  status          String   @default("scheduled") // scheduled | confirmed | in-progress | completed | cancelled | no-show
+
+  // Walk-in / unregistered patient fields
+  walkinName      String?
+  walkinPhone     String?
+  isWalkin        Boolean  @default(false)
+
+  // Treatment & Package linkage
+  treatmentId     String?
+  packageId       String?
+  treatmentName   String?  // denormalized for display
+  packageName     String?  // e.g. "10-Session Package"
+  sessionPrice    Float?   // price for this session (single or per-session from package)
+  packageTotal    Float?   // total package price (null for single sessions)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  patient         Patient?  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  doctorRef       Doctor?  @relation(fields: [doctorId], references: [id], onDelete: SetNull)
+  treatment       Treatment? @relation(fields: [treatmentId], references: [id], onDelete: SetNull)
+  treatmentPkg    TreatmentPackage? @relation(fields: [packageId], references: [id], onDelete: SetNull)
+}
+
+model Communication {
+  id        String   @id @default(cuid())
+  patientId String
+  type      String   // "email" | "whatsapp"
+  subject   String?
+  message   String
+  status    String   @default("sent")
+  sentAt    DateTime @default(now())
+
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+}
+
+model ClinicalNote {
+  id              String   @id @default(cuid())
+  patientId       String
+  type            String   // "present_illness" | "past_history" | "personal_history" | "examination" | "diagnosis" | "treatment" | "general"
+  title           String
+  content         String
+  doctor          String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+}
+
+model Document {
+  id          String   @id @default(cuid())
+  patientId   String
+  fileName    String
+  fileType    String   // MIME type
+  fileSize    Int      // bytes
+  filePath    String   // stored path
+  category    String   @default("report") // "report" | "lab" | "imaging" | "prescription" | "other"
+  description String?
+  uploadedAt  DateTime @default(now())
+
+  patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+}
+
+// ─── Vitals Tracking ─────────────────────────────────────────────────────
+
+model Vital {
+  id              String   @id @default(cuid())
+  patientId       String
+  appointmentId   String?
+  date            DateTime @default(now())
+
+  // Core vitals
+  bloodPressureSys  Int?     // systolic mmHg
+  bloodPressureDia  Int?     // diastolic mmHg
+  pulse             Int?     // bpm
+  temperature       Float?   // °C
+  weight            Float?   // kg
+  height            Float?   // cm
+  bmi               Float?   // auto-calculated
+  oxygenSaturation  Int?     // SpO2 %
+  respiratoryRate   Int?     // breaths/min
+
+  notes           String?
+  recordedBy      String?
+  createdAt       DateTime @default(now())
+
+  patient         Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+}
+
+// ─── Treatments & Packages ────────────────────────────────────────────────
+
+model Treatment {
+  id              String   @id @default(cuid())
+  name            String
+  description     String?
+  category        String   @default("therapy") // therapy | consultation | panchakarma | massage | detox | specialty
+  duration        Int      @default(50) // minutes
+  basePrice       Float    @default(0) // single session price in SGD
+  isActive        Boolean  @default(true)
+  sortOrder       Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  packages        TreatmentPackage[]
+  appointments    Appointment[]
+}
+
+model TreatmentPackage {
+  id              String   @id @default(cuid())
+  treatmentId     String
+  name            String   // e.g. "10-Session Package"
+  sessionCount    Int      // number of sessions
+  discountPercent Float    @default(0) // e.g. 20 = 20% off
+  totalPrice      Float    @default(0) // calculated: basePrice * sessionCount * (1 - discount/100)
+  pricePerSession Float    @default(0) // calculated: totalPrice / sessionCount
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  treatment       Treatment @relation(fields: [treatmentId], references: [id], onDelete: Cascade)
+  appointments    Appointment[]
+}
+
+// ─── Inventory Management ─────────────────────────────────────────────────
+
+model InventoryItem {
+  id              String   @id @default(cuid())
+  sku             String   @unique
+  name            String
+  category        String   @default("medicine") // medicine | herb | oil | consumable | equipment
+  subcategory     String?  // e.g. "Kashayam", "Arishtam", "Choornam", "Thailam", "Ghritam", "Leham"
+  unit            String   @default("nos") // nos | ml | gm | kg | litre | bottle | packet | box
+  unitPrice       Float    @default(0)     // selling price
+  costPrice       Float    @default(0)     // purchase/cost price
+  currentStock    Int      @default(0)
+  reorderLevel    Int      @default(10)    // alert when stock falls below
+  expiryDate      DateTime?
+  batchNumber     String?
+  manufacturer    String?
+  supplier        String?
+  location        String?  // storage location in clinic
+  hsnCode         String?  // HSN code for GST
+  gstPercent      Float    @default(0)
+  description     String?
+  status          String   @default("active") // active | discontinued | out_of_stock
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  transactions    StockTransaction[]
+}
+
+model StockTransaction {
+  id              String   @id @default(cuid())
+  itemId          String
+  type            String   // purchase | sale | adjustment | return | expired | damaged
+  quantity        Int      // positive = stock in, negative = stock out
+  unitPrice       Float    @default(0)
+  totalAmount     Float    @default(0)
+  previousStock   Int      @default(0)
+  newStock        Int      @default(0)
+  reference       String?  // invoice number, PO number, etc.
+  notes           String?
+  performedBy     String?  // who did this transaction
+  date            DateTime @default(now())
+  createdAt       DateTime @default(now())
+
+  item            InventoryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+}
+
+model Supplier {
+  id              String   @id @default(cuid())
+  name            String
+  contactPerson   String?
+  phone           String?
+  email           String?
+  address         String?
+  gstNumber       String?
+  status          String   @default("active")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// ─── Clinic Settings (singleton) ─────────────────────────────────────────
+
+model ClinicSettings {
+  id                String   @id @default("default")
+  clinicName        String   @default("Ayurveda Wellness Clinic")
+  address           String   @default("")
+  city              String   @default("")
+  state             String   @default("")
+  zipCode           String   @default("")
+  phone             String   @default("")
+  email             String   @default("")
+  website           String   @default("")
+  logoUrl           String?
+  gstRegistrationNo String   @default("")
+  termsAndConditions String  @default("Payment is due upon receipt. Medical services are subject to GST at prevailing rates.")
+  currency          String   @default("SGD")
+  dateFormat        String   @default("dd/MM/yyyy")
+  timeFormat        String   @default("12h")
+  appointmentDuration Int    @default(30)
+  workingHoursStart String   @default("09:00")
+  workingHoursEnd   String   @default("18:00")
+  workingDays       String   @default("[1,2,3,4,5,6]")
+  updatedAt         DateTime @updatedAt
+}
+
+// ─── Billing System ───────────────────────────────────────────────────────
+
+model Invoice {
+  id              String   @id @default(cuid())
+  invoiceNumber   String   @unique
+  patientId       String?
+  appointmentId   String?
+  date            DateTime @default(now())
+  dueDate         DateTime?
+
+  // Patient info (denormalized for walk-ins)
+  patientName     String
+  patientPhone    String?
+
+  // Amounts
+  subtotal        Float    @default(0)
+  discountPercent Float    @default(0)
+  discountAmount  Float    @default(0)
+  taxableAmount   Float    @default(0)
+  gstAmount       Float    @default(0)
+  totalAmount     Float    @default(0)
+  paidAmount      Float    @default(0)
+  balanceAmount   Float    @default(0)
+
+  // Status & payment
+  status          String   @default("draft") // draft | pending | paid | partially_paid | cancelled | refunded
+  paymentMethod   String?  // cash | card | upi | insurance | mixed
+  paymentNotes    String?
+
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  items           InvoiceItem[]
+  payments        Payment[]
+  insuranceClaims InsuranceClaim[]
+  creditNotes     CreditNote[]
+}
+
+model InvoiceItem {
+  id              String   @id @default(cuid())
+  invoiceId       String
+  type            String   // consultation | therapy | medicine | procedure | lab | other
+  description     String
+  hsnSacCode      String?  // HSN/SAC code for GST classification
+  inventoryItemId String?  // linked to inventory for medicines
+  quantity        Int      @default(1)
+  unitPrice       Float    @default(0)
+  discount        Float    @default(0)
+  gstPercent      Float    @default(0)
+  gstAmount       Float    @default(0)
+  amount          Float    @default(0) // final amount after discount + gst
+
+  invoice         Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+}
+
+model Payment {
+  id              String   @id @default(cuid())
+  invoiceId       String
+  receiptNumber   String?  @unique // REC-YYYYMM-XXXX
+  amount          Float
+  method          String   // cash | card | upi | insurance | bank_transfer
+  reference       String?  // transaction ID, cheque number, etc.
+  notes           String?
+  date            DateTime @default(now())
+  createdAt       DateTime @default(now())
+
+  invoice         Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+}
+
+// ─── Insurance ───────────────────────────────────────────────────────────
+
+model InsuranceProvider {
+  id              String   @id @default(cuid())
+  name            String
+  code            String   @unique // short code e.g. "AIA", "NTUC"
+  contactPerson   String?
+  phone           String?
+  email           String?
+  address         String?
+  panelType       String   @default("private") // corporate | government | private
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  claims          InsuranceClaim[]
+}
+
+model InsuranceClaim {
+  id              String   @id @default(cuid())
+  claimNumber     String   @unique // CLM-YYYYMM-XXXX
+  invoiceId       String
+  providerId      String
+  patientId       String?
+  patientName     String
+
+  // Amounts
+  claimAmount     Float    @default(0)
+  approvedAmount  Float?
+  settledAmount   Float?
+
+  // Pre-authorization
+  preAuthNumber   String?
+  preAuthStatus   String?  // pending | approved | denied
+  preAuthAmount   Float?
+
+  // Status workflow: submitted → under_review → approved/partially_approved/rejected → settled
+  status          String   @default("submitted")
+  submittedDate   DateTime @default(now())
+  reviewDate      DateTime?
+  approvedDate    DateTime?
+  settledDate     DateTime?
+  rejectionReason String?
+  notes           String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  invoice         Invoice           @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  provider        InsuranceProvider  @relation(fields: [providerId], references: [id])
+}
+
+// ─── Credit Notes ────────────────────────────────────────────────────────
+
+model CreditNote {
+  id                String   @id @default(cuid())
+  creditNoteNumber  String   @unique // CN-YYYYMM-XXXX
+  invoiceId         String
+  reason            String
+  items             String   @default("[]") // JSON: [{description, amount, gstAmount}]
+  subtotal          Float    @default(0)
+  gstAmount         Float    @default(0)
+  totalAmount       Float    @default(0)
+  status            String   @default("draft") // draft | issued | applied | voided
+  refundMethod      String?  // cash | card | upi | bank_transfer
+  refundReference   String?
+  refundDate        DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  invoice           Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+}
+
+// ─── Purchase Orders ─────────────────────────────────────────────────────
+
+model PurchaseOrder {
+  id              String   @id @default(cuid())
+  poNumber        String   @unique
+  supplierId      String
+  supplierName    String
+  status          String   @default("draft") // draft, submitted, partial, received, cancelled
+  orderDate       DateTime @default(now())
+  expectedDate    DateTime?
+  receivedDate    DateTime?
+  subtotal        Float    @default(0)
+  gstAmount       Float    @default(0)
+  totalAmount     Float    @default(0)
+  paidAmount      Float    @default(0)
+  notes           String?
+  createdBy       String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  items           PurchaseOrderItem[]
+}
+
+model PurchaseOrderItem {
+  id              String   @id @default(cuid())
+  purchaseOrderId String
+  inventoryItemId String?
+  itemName        String
+  sku             String?
+  quantity        Int
+  receivedQty     Int      @default(0)
+  unitPrice       Float
+  gstPercent      Float    @default(0)
+  totalAmount     Float
+  notes           String?
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+}
+
+// ─── Message Templates & Reminders ──────────────────────────────────────
+
+model MessageTemplate {
+  id          String   @id @default(cuid())
+  name        String
+  channel     String   // whatsapp, email, sms
+  subject     String?  // for email
+  body        String   // supports variables like {{patientName}}, {{appointmentDate}}, {{doctorName}}, {{clinicName}}, {{amount}}
+  category    String   // appointment_reminder, follow_up, payment_reminder, medication, welcome, birthday, custom
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Reminder {
+  id              String   @id @default(cuid())
+  patientId       String
+  appointmentId   String?
+  type            String   // appointment, follow_up, payment, medication, custom
+  channel         String   // whatsapp, email, sms
+  scheduledAt     DateTime
+  sentAt          DateTime?
+  status          String   @default("pending") // pending, sent, failed, cancelled
+  message         String
+  templateId      String?
+  notes           String?
+  createdAt       DateTime @default(now())
+  patient         Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+}
+
+// ─── Treatment Plans ────────────────────────────────────────────────────
+
+model TreatmentPlan {
+  id              String   @id @default(cuid())
+  planNumber      String   @unique
+  patientId       String
+  doctorId        String?
+  doctorName      String
+  name            String   // e.g., "Lower Back Pain Management", "Detox Program"
+  description     String?
+  diagnosis       String?
+  goals           String?  // treatment goals
+  startDate       DateTime @default(now())
+  endDate         DateTime?
+  status          String   @default("active") // active, completed, paused, cancelled
+  totalSessions   Int      @default(0)
+  completedSessions Int    @default(0)
+  totalCost       Float    @default(0)
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  patient         Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  items           TreatmentPlanItem[]
+  milestones      TreatmentMilestone[]
+}
+
+model TreatmentPlanItem {
+  id              String   @id @default(cuid())
+  planId          String
+  treatmentId     String?
+  treatmentName   String
+  category        String?
+  frequency       String   // e.g., "2x per week", "daily", "once per week", "alternate days"
+  totalSessions   Int
+  completedSessions Int    @default(0)
+  sessionPrice    Float    @default(0)
+  totalCost       Float    @default(0)
+  sequence        Int      @default(0) // ordering within plan
+  status          String   @default("pending") // pending, in_progress, completed, skipped
+  notes           String?
+  startDate       DateTime?
+  endDate         DateTime?
+  plan            TreatmentPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+}
+
+model TreatmentMilestone {
+  id              String   @id @default(cuid())
+  planId          String
+  title           String
+  description     String?
+  targetDate      DateTime?
+  achievedDate    DateTime?
+  status          String   @default("pending") // pending, achieved, missed
+  notes           String?
+  createdAt       DateTime @default(now())
+  plan            TreatmentPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+}
+
+// ─── User Management ─────────────────────────────────────────────────────
+
+model User {
+  id          String    @id @default(cuid())
+  name        String
+  email       String    @unique
+  phone       String?
+  role        String    @default("staff") // admin | doctor | receptionist | staff
+  password    String    @default("") // hashed placeholder
+  isActive    Boolean   @default(true)
+  avatar      String?
+  totpSecret  String?   // TOTP secret for 2FA (Google Authenticator)
+  totpEnabled Boolean   @default(false) // whether 2FA is active
+  lastLogin   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+// ─── Multi-Branch ────────────────────────────────────────────────────────
+
+model Branch {
+  id             String   @id @default(cuid())
+  name           String
+  code           String   @unique
+  address        String?
+  city           String?
+  state          String?
+  zipCode        String?
+  phone          String?
+  email          String?
+  isActive       Boolean  @default(true)
+  isMainBranch   Boolean  @default(false)
+  operatingHours String   @default("{}") // JSON
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+// ─── Audit Log ───────────────────────────────────────────────────────────
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  userName  String
+  action    String   // create | update | delete
+  entity    String   // patient | appointment | invoice etc
+  entityId  String?
+  details   String?  // JSON
+  ipAddress String?
+  createdAt DateTime @default(now())
+}

@@ -1,0 +1,27 @@
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+
+export async function GET(_request: NextRequest) {
+  try {
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const todayEnd = new Date();
+    todayEnd.setHours(23, 59, 59, 999);
+
+    const appointments = await prisma.appointment.findMany({
+      where: {
+        date: { gte: todayStart, lte: todayEnd },
+      },
+      orderBy: { time: "asc" },
+      include: {
+        patient: { select: { firstName: true, lastName: true, email: true, whatsapp: true, phone: true } },
+        doctorRef: true,
+      },
+    });
+
+    return NextResponse.json(appointments);
+  } catch (error) {
+    console.error("GET /api/appointments/today error:", error);
+    return NextResponse.json({ error: "Failed to fetch today's appointments" }, { status: 500 });
+  }
+}

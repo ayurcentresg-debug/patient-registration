@@ -1,0 +1,48 @@
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { hashPassword } from "@/lib/auth";
+import { otpStore } from "../forgot-password/route";
+
+export async function POST(req: NextRequest) {
+  try {
+    const { email, otp, newPassword } = await req.json();
+
+    if (!email || !otp || !newPassword) {
+      return NextResponse.json(
+        { error: "Email, OTP, and new password are required" },
+        { status: 400 }
+      );
+    }
+
+    if (newPassword.length < 6) {
+      return NextResponse.json(
+        { error: "Password must be at least 6 characters" },
+        { status: 400 }
+      );
+    }
+
+    // Verify OTP
+    const stored = otpStore.get(email);
+    if (!stored || stored.otp !== otp || Date.now() > stored.expires) {
+      return NextResponse.json(
+        { error: "Invalid or expired reset code" },
+        { status: 400 }
+      );
+    }
+
+    // Hash new password and update
+    const hashed = await hashPassword(newPassword);
+    await prisma.user.update({
+      where: { email },
+      data: { password: hashed },
+    });
+
+    // Clear OTP
+    otpStore.delete(email);
+
+    return NextResponse.json({ message: "Password reset successfully" });
+  } catch (error) {
+    console.error("Reset password error:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}
