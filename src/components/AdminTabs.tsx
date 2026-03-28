@@ -5,10 +5,8 @@ import { usePathname } from "next/navigation";
 
 const TABS = [
   { href: "/admin/settings", label: "Clinic Settings" },
-  { href: "/admin/users", label: "User Management" },
+  { href: "/admin/staff", label: "Staff" },
   { href: "/admin/branches", label: "Branches" },
-  { href: "/admin", label: "Doctors" },
-  { href: "/therapists", label: "Therapists" },
   { href: "/admin/audit-log", label: "Audit Log" },
 ];
 
@@ -16,7 +14,6 @@ export default function AdminTabs() {
   const pathname = usePathname();
 
   function isActive(href: string) {
-    if (href === "/admin") return pathname === "/admin";
     return pathname === href || pathname.startsWith(href + "/");
   }
 

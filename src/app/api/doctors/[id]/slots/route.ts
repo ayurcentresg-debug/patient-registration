@@ -65,7 +65,7 @@ export async function GET(
       );
     }
 
-    const doctor = await prisma.doctor.findUnique({ where: { id } });
+    const doctor = await prisma.user.findUnique({ where: { id } });
 
     if (!doctor) {
       return NextResponse.json(

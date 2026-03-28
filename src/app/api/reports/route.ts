@@ -110,8 +110,8 @@ export async function GET(request: NextRequest) {
         orderBy: { date: "asc" },
       }),
       // All doctors
-      prisma.doctor.findMany({
-        where: { status: "active" },
+      prisma.user.findMany({
+        where: { status: "active", role: { in: ["doctor", "therapist"] } },
         select: { id: true, name: true, role: true, specialization: true, consultationFee: true },
       }),
       // All treatments

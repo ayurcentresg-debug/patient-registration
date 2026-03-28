@@ -73,26 +73,7 @@ model FamilyMember {
   patient         Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
 }
 
-model Doctor {
-  id                String   @id @default(cuid())
-  doctorIdNumber    String   @unique @default("")
-  name              String
-  role              String   @default("doctor") // "doctor" | "therapist"
-  gender            String?  // "male" | "female" — important for therapist-patient gender matching
-  specialization    String
-  department        String
-  phone             String?
-  email             String?
-  consultationFee   Float    @default(0)
-  // Weekly schedule stored as JSON: { "monday": [{"start":"09:00","end":"12:00"},{"start":"14:00","end":"17:00"}], ... }
-  schedule          String   @default("{}")
-  slotDuration      Int      @default(15) // minutes per slot
-  status            String   @default("active") // active | inactive
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-
-  appointments      Appointment[]
-}
+// Doctor model removed — merged into User model
 
 model Appointment {
   id              String   @id @default(cuid())
@@ -126,7 +107,7 @@ model Appointment {
   updatedAt       DateTime @updatedAt
 
   patient         Patient?  @relation(fields: [patientId], references: [id], onDelete: Cascade)
-  doctorRef       Doctor?  @relation(fields: [doctorId], references: [id], onDelete: SetNull)
+  doctorRef       User?    @relation(fields: [doctorId], references: [id], onDelete: SetNull)
   treatment       Treatment? @relation(fields: [treatmentId], references: [id], onDelete: SetNull)
   treatmentPkg    TreatmentPackage? @relation(fields: [packageId], references: [id], onDelete: SetNull)
 }
@@ -585,19 +566,38 @@ model TreatmentMilestone {
 // ─── User Management ─────────────────────────────────────────────────────
 
 model User {
-  id          String    @id @default(cuid())
-  name        String
-  email       String    @unique
-  phone       String?
-  role        String    @default("staff") // admin | doctor | receptionist | staff
-  password    String    @default("") // hashed placeholder
-  isActive    Boolean   @default(true)
-  avatar      String?
-  totpSecret  String?   // TOTP secret for 2FA (Google Authenticator)
-  totpEnabled Boolean   @default(false) // whether 2FA is active
-  lastLogin   DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id              String    @id @default(cuid())
+  name            String
+  email           String    @unique
+  phone           String?
+  role            String    @default("staff") // admin | doctor | therapist | pharmacist | receptionist | staff
+  password        String    @default("") // hashed placeholder
+  isActive        Boolean   @default(true)
+  avatar          String?
+  totpSecret      String?   // TOTP secret for 2FA (Google Authenticator)
+  totpEnabled     Boolean   @default(false) // whether 2FA is active
+  lastLogin       DateTime?
+
+  // Staff identification
+  staffIdNumber   String?   @unique // D10001, T10001, P10001, R10001, A10001, S10001
+
+  // Clinical fields (doctor/therapist only)
+  gender          String?   // "male" | "female"
+  specialization  String?
+  department      String?
+  consultationFee Float?
+  schedule        String    @default("{}") // weekly schedule JSON
+  slotDuration    Int       @default(30)   // minutes per slot
+  status          String    @default("active") // active | inactive
+
+  // Email invite
+  inviteToken     String?   @unique
+  inviteExpiresAt DateTime?
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  appointments    Appointment[]
 }
 
 // ─── Multi-Branch ────────────────────────────────────────────────────────

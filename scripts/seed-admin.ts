@@ -21,6 +21,8 @@ async function main() {
       password: hashed,
       role: "admin",
       isActive: true,
+      staffIdNumber: "A10001",
+      status: "active",
     },
   });
 

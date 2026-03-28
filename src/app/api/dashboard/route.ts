@@ -66,8 +66,8 @@ export async function GET() {
       prisma.patient.count({ where: { status: "active" } }),
       prisma.appointment.count(),
       prisma.communication.count(),
-      prisma.doctor.count({ where: { status: "active", role: "doctor" } }),
-      prisma.doctor.count({ where: { status: "active", role: "therapist" } }),
+      prisma.user.count({ where: { status: "active", role: "doctor" } }),
+      prisma.user.count({ where: { status: "active", role: "therapist" } }),
       prisma.appointment.count({
         where: {
           date: { gte: today, lt: tomorrow },

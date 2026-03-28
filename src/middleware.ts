@@ -5,7 +5,7 @@ const secret = new TextEncoder().encode(
   process.env.JWT_SECRET || "fallback-dev-secret-change-in-production"
 );
 
-const PUBLIC_PATHS = ["/login", "/api/auth/login", "/api/auth/forgot-password", "/api/auth/reset-password"];
+const PUBLIC_PATHS = ["/login", "/api/auth/login", "/api/auth/forgot-password", "/api/auth/reset-password", "/invite", "/api/invite"];
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 
-// GET /api/doctors — list doctors with optional ?status= and ?search= filters
+// GET /api/doctors — backward-compat wrapper, queries User model
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = request.nextUrl;
@@ -9,92 +9,108 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get("search");
     const role = searchParams.get("role"); // "doctor" | "therapist"
 
-    const where: Record<string, unknown> = {};
+    const where: Record<string, unknown> = {
+      role: role ? role : { in: ["doctor", "therapist"] },
+    };
 
-    if (status) {
-      where.status = status;
-    }
+    if (status) where.status = status;
+    if (search) where.name = { contains: search };
 
-    if (role) {
-      where.role = role;
-    }
-
-    if (search) {
-      where.name = { contains: search };
-    }
-
-    const doctors = await prisma.doctor.findMany({
+    const staff = await prisma.user.findMany({
       where,
       orderBy: { createdAt: "desc" },
     });
 
-    return NextResponse.json(doctors);
+    // Map to legacy Doctor shape for backward compat
+    return NextResponse.json(
+      staff.map((s) => ({
+        id: s.id,
+        doctorIdNumber: s.staffIdNumber || "",
+        name: s.name,
+        role: s.role,
+        gender: s.gender,
+        specialization: s.specialization || "",
+        department: s.department || "",
+        phone: s.phone,
+        email: s.email,
+        consultationFee: s.consultationFee ?? 0,
+        schedule: s.schedule,
+        slotDuration: s.slotDuration,
+        status: s.status,
+        createdAt: s.createdAt,
+        updatedAt: s.updatedAt,
+      }))
+    );
   } catch (error) {
     console.error("Failed to fetch doctors:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch doctors" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to fetch doctors" }, { status: 500 });
   }
 }
 
-// POST /api/doctors — create a new doctor with auto-generated doctorIdNumber
+// POST /api/doctors — backward-compat, creates via User model
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-
     const { name, role, gender, specialization, department, phone, email, consultationFee, schedule, slotDuration, status } = body;
 
     if (!name || !specialization || !department) {
-      return NextResponse.json(
-        { error: "Name, specialization, and department are required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Name, specialization, and department are required" }, { status: 400 });
     }
 
-    // Auto-generate doctorIdNumber: D10001, D10002, ...
-    const lastDoctor = await prisma.doctor.findFirst({
-      where: {
-        doctorIdNumber: { not: "" },
-      },
-      orderBy: { doctorIdNumber: "desc" },
+    // Auto-generate staffIdNumber
+    const prefix = role === "therapist" ? "T" : "D";
+    const lastStaff = await prisma.user.findFirst({
+      where: { staffIdNumber: { startsWith: prefix } },
+      orderBy: { staffIdNumber: "desc" },
     });
 
     let nextNumber = 10001;
-    if (lastDoctor && lastDoctor.doctorIdNumber) {
-      const numericPart = parseInt(lastDoctor.doctorIdNumber.replace("D", ""), 10);
-      if (!isNaN(numericPart)) {
-        nextNumber = numericPart + 1;
-      }
+    if (lastStaff?.staffIdNumber) {
+      const numericPart = parseInt(lastStaff.staffIdNumber.replace(/^[A-Z]/, ""), 10);
+      if (!isNaN(numericPart)) nextNumber = numericPart + 1;
     }
+    const staffIdNumber = `${prefix}${nextNumber}`;
 
-    // Use prefix based on role: D for doctors, T for therapists
-    const prefix = role === "therapist" ? "T" : "D";
-    const doctorIdFinal = `${prefix}${nextNumber}`;
+    // Need a unique email
+    const staffEmail = email || `${name.toLowerCase().replace(/[^a-z0-9]/g, "")}.${staffIdNumber.toLowerCase()}@staff.local`;
 
-    const doctor = await prisma.doctor.create({
+    const user = await prisma.user.create({
       data: {
-        doctorIdNumber: doctorIdFinal,
         name,
+        email: staffEmail,
         role: role || "doctor",
         gender: gender || null,
         specialization,
         department,
         phone: phone || null,
-        email: email || null,
         consultationFee: consultationFee !== undefined ? Number(consultationFee) : 0,
         schedule: schedule || "{}",
         slotDuration: slotDuration !== undefined ? Number(slotDuration) : 15,
         status: status || "active",
+        staffIdNumber,
+        isActive: true,
       },
     });
 
-    return NextResponse.json(doctor, { status: 201 });
+    return NextResponse.json({
+      id: user.id,
+      doctorIdNumber: user.staffIdNumber,
+      name: user.name,
+      role: user.role,
+      gender: user.gender,
+      specialization: user.specialization,
+      department: user.department,
+      phone: user.phone,
+      email: user.email,
+      consultationFee: user.consultationFee,
+      schedule: user.schedule,
+      slotDuration: user.slotDuration,
+      status: user.status,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    }, { status: 201 });
   } catch (error) {
     console.error("Failed to create doctor:", error);
-    return NextResponse.json(
-      { error: "Failed to create doctor" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to create doctor" }, { status: 500 });
   }
 }
