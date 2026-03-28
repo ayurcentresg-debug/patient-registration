@@ -33,10 +33,7 @@ export async function POST(request: NextRequest) {
     const doctorsWithoutPassword = await prisma.user.findMany({
       where: {
         role: { in: ["doctor", "therapist"] },
-        OR: [
-          { password: "" },
-          { password: null },
-        ],
+        password: "",
       },
       select: { id: true, name: true, email: true, role: true },
     });

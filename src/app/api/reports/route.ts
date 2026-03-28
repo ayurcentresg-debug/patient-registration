@@ -199,7 +199,7 @@ export async function GET(request: NextRequest) {
     // ═══ 2. DOCTOR PERFORMANCE ═══
     const doctorPerf = new Map<string, { name: string; role: string; spec: string; total: number; completed: number; cancelled: number; noShow: number; revenue: number; patients: Set<string> }>();
     for (const doc of allDoctors) {
-      doctorPerf.set(doc.id, { name: doc.name, role: doc.role, spec: doc.specialization, total: 0, completed: 0, cancelled: 0, noShow: 0, revenue: 0, patients: new Set() });
+      doctorPerf.set(doc.id, { name: doc.name, role: doc.role, spec: doc.specialization || "", total: 0, completed: 0, cancelled: 0, noShow: 0, revenue: 0, patients: new Set() });
     }
     for (const apt of detailedAppointments) {
       if (!apt.doctorId) continue;
