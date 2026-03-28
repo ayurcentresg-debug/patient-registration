@@ -25,31 +25,183 @@ async function main() {
   const adapter = new PrismaBetterSqlite3({ url: dbPath });
   const prisma = new PrismaClient({ adapter });
 
-  const email = "admin@clinic.com";
-  const password = "admin123";
-  const hashed = await bcrypt.hash(password, 12);
+  const adminPassword = await bcrypt.hash("admin123", 12);
+  const doctorPassword = await bcrypt.hash("doctor123", 12);
 
-  const user = await prisma.user.upsert({
-    where: { email },
-    update: { password: hashed, role: "admin", isActive: true },
+  // ─── Admin ────────────────────────────────────────────────────────────
+  const admin = await prisma.user.upsert({
+    where: { email: "admin@clinic.com" },
+    update: { password: adminPassword, role: "admin", isActive: true },
     create: {
       name: "Admin",
-      email,
-      password: hashed,
+      email: "admin@clinic.com",
+      password: adminPassword,
       role: "admin",
       isActive: true,
       staffIdNumber: "A10001",
       status: "active",
     },
   });
+  console.log(`✅ Admin: ${admin.email}`);
 
-  console.log("✅ Admin user created/updated:");
-  console.log(`   Email:    ${email}`);
-  console.log(`   Password: ${password}`);
-  console.log(`   Role:     ${user.role}`);
-  console.log(`   ID:       ${user.id}`);
+  // ─── Doctors ──────────────────────────────────────────────────────────
+  const doctors = [
+    {
+      name: "Dr. Rajesh Kumar",
+      email: "rajesh@clinic.com",
+      phone: "+6591234567",
+      specialization: "Kayachikitsa",
+      department: "Panchakarma",
+      staffIdNumber: "D10001",
+      consultationFee: 50,
+      slotDuration: 30,
+      schedule: JSON.stringify({
+        monday: [{ start: "09:00", end: "13:00" }, { start: "14:00", end: "17:00" }],
+        tuesday: [{ start: "09:00", end: "13:00" }, { start: "14:00", end: "17:00" }],
+        wednesday: [{ start: "09:00", end: "13:00" }],
+        thursday: [{ start: "09:00", end: "13:00" }, { start: "14:00", end: "17:00" }],
+        friday: [{ start: "09:00", end: "13:00" }],
+      }),
+    },
+    {
+      name: "Karthikeyan Periyasami",
+      email: "ayurvista@gmail.com",
+      phone: "+919962326631",
+      specialization: "General Physician",
+      department: "General Medicine",
+      staffIdNumber: "D10002",
+      consultationFee: 20,
+      slotDuration: 20,
+      schedule: "{}",
+    },
+    {
+      name: "Dr. 3Phala",
+      email: "3phala@gmail.com",
+      phone: "+6590909090",
+      specialization: "Panchakarma",
+      department: "Yoga & Naturopathy",
+      staffIdNumber: "D10003",
+      consultationFee: 25,
+      slotDuration: 30,
+      schedule: JSON.stringify({
+        monday: [{ start: "09:00", end: "13:00" }],
+        tuesday: [{ start: "09:00", end: "13:00" }],
+        wednesday: [{ start: "09:00", end: "13:00" }],
+        thursday: [{ start: "09:00", end: "13:00" }],
+        friday: [{ start: "09:00", end: "13:00" }],
+        saturday: [{ start: "09:00", end: "13:00" }],
+      }),
+    },
+  ];
 
-  // Seed clinic settings with Ayur Centre details
+  for (const doc of doctors) {
+    await prisma.user.upsert({
+      where: { email: doc.email },
+      update: { password: doctorPassword, isActive: true, status: "active" },
+      create: {
+        name: doc.name,
+        email: doc.email,
+        password: doctorPassword,
+        role: "doctor",
+        phone: doc.phone,
+        specialization: doc.specialization,
+        department: doc.department,
+        staffIdNumber: doc.staffIdNumber,
+        consultationFee: doc.consultationFee,
+        slotDuration: doc.slotDuration,
+        schedule: doc.schedule,
+        isActive: true,
+        status: "active",
+      },
+    });
+    console.log(`✅ Doctor: ${doc.name} (${doc.email}) — password: doctor123`);
+  }
+
+  // ─── Therapists ───────────────────────────────────────────────────────
+  const therapists = [
+    {
+      name: "SIJU",
+      email: "siju@staff.local",
+      specialization: "Abhyanga",
+      department: "Panchakarma",
+      staffIdNumber: "T10003",
+    },
+    {
+      name: "LINU",
+      email: "linu@staff.local",
+      specialization: "General Therapy",
+      department: "Panchakarma",
+      staffIdNumber: "T10001",
+    },
+  ];
+
+  for (const t of therapists) {
+    await prisma.user.upsert({
+      where: { email: t.email },
+      update: { password: doctorPassword, isActive: true, status: "active" },
+      create: {
+        name: t.name,
+        email: t.email,
+        password: doctorPassword,
+        role: "therapist",
+        specialization: t.specialization,
+        department: t.department,
+        staffIdNumber: t.staffIdNumber,
+        consultationFee: 0,
+        slotDuration: 30,
+        schedule: "{}",
+        isActive: true,
+        status: "active",
+      },
+    });
+    console.log(`✅ Therapist: ${t.name} (${t.email}) — password: doctor123`);
+  }
+
+  // ─── Patients ─────────────────────────────────────────────────────────
+  const patients = [
+    {
+      patientIdNumber: "P10001",
+      firstName: "Harini",
+      lastName: "Karthikeyan",
+      phone: "+65937667676",
+      gender: "female",
+      dateOfBirth: new Date("2010-07-07"),
+      status: "inactive",
+    },
+    {
+      patientIdNumber: "P10002",
+      firstName: "Bharathi",
+      lastName: "Karthikeyan",
+      phone: "9898989898",
+      gender: "female",
+      dateOfBirth: new Date("2000-08-02"),
+      status: "active",
+    },
+    {
+      patientIdNumber: "P10003",
+      firstName: "Sangeetha",
+      lastName: "Karthikeyan",
+      phone: "+6590118920",
+      email: "keyan1987@gmail.com",
+      gender: "female",
+      dateOfBirth: new Date("1987-07-07"),
+      bloodGroup: "A+",
+      address: "84 Bedok North Street",
+      status: "active",
+    },
+  ];
+
+  for (const p of patients) {
+    const existing = await prisma.patient.findFirst({ where: { patientIdNumber: p.patientIdNumber } });
+    if (!existing) {
+      await prisma.patient.create({ data: p });
+      console.log(`✅ Patient: ${p.firstName} ${p.lastName} (${p.patientIdNumber})`);
+    } else {
+      console.log(`⏭️  Patient already exists: ${p.firstName} ${p.lastName}`);
+    }
+  }
+
+  // ─── Clinic Settings ──────────────────────────────────────────────────
   await prisma.clinicSettings.upsert({
     where: { id: "default" },
     update: {},
@@ -73,7 +225,14 @@ async function main() {
     },
   });
 
-  console.log("✅ Clinic settings seeded (Ayur Centre Pte. Ltd.)");
+  console.log("✅ Clinic settings seeded");
+  console.log("\n🎉 All done! Login credentials:");
+  console.log("   Admin:   admin@clinic.com / admin123");
+  console.log("   Doctors: rajesh@clinic.com / doctor123");
+  console.log("            3phala@gmail.com / doctor123");
+  console.log("            ayurvista@gmail.com / doctor123");
+  console.log("   Therapists: siju@staff.local / doctor123");
+  console.log("               linu@staff.local / doctor123");
 
   await prisma.$disconnect();
 }
