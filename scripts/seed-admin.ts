@@ -2,9 +2,26 @@ import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
 import { PrismaClient } from "../src/generated/prisma/client";
 import bcrypt from "bcryptjs";
 import path from "path";
+import fs from "fs";
+
+function getDbPath() {
+  const volumePath = process.env.DB_PATH || process.env.RAILWAY_VOLUME_MOUNT_PATH;
+  if (volumePath && fs.existsSync(path.dirname(volumePath))) {
+    return volumePath;
+  }
+  if (process.env.NODE_ENV === "production") {
+    const dataDir = "/data";
+    if (fs.existsSync(dataDir)) {
+      return path.join(dataDir, "clinic.db");
+    }
+  }
+  return path.join(process.cwd(), "dev.db");
+}
 
 async function main() {
-  const dbPath = path.join(process.cwd(), "dev.db");
+  const dbPath = getDbPath();
+  console.log(`📂 Database path: ${dbPath}`);
+
   const adapter = new PrismaBetterSqlite3({ url: dbPath });
   const prisma = new PrismaClient({ adapter });
 
