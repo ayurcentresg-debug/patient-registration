@@ -121,6 +121,11 @@ export default function StaffPage() {
   const [formError, setFormError] = useState("");
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type: "ok" | "err" } | null>(null);
+  const [passwordModal, setPasswordModal] = useState<{ id: string; name: string } | null>(null);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordSaving, setPasswordSaving] = useState(false);
+  const [passwordError, setPasswordError] = useState("");
 
   const showToast = (msg: string, type: "ok" | "err" = "ok") => {
     setToast({ msg, type });
@@ -236,6 +241,40 @@ export default function StaffPage() {
     });
     showToast(`${s.name} ${newStatus === "active" ? "activated" : "deactivated"}`);
     fetchStaff();
+  };
+
+  // ─── Password handler ────────────────────────────────────────────────
+  const openPasswordModal = (s: Staff) => {
+    setPasswordModal({ id: s.id, name: s.name });
+    setNewPassword("");
+    setConfirmPassword("");
+    setPasswordError("");
+  };
+
+  const handleSetPassword = async () => {
+    if (!passwordModal) return;
+    if (newPassword.length < 6) { setPasswordError("Password must be at least 6 characters"); return; }
+    if (newPassword !== confirmPassword) { setPasswordError("Passwords do not match"); return; }
+    setPasswordSaving(true);
+    setPasswordError("");
+    try {
+      const res = await fetch(`/api/staff/${passwordModal.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: newPassword }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        setPasswordError(data.error || "Failed to set password");
+      } else {
+        showToast(`Password set for ${passwordModal.name}`);
+        setPasswordModal(null);
+      }
+    } catch {
+      setPasswordError("Network error");
+    } finally {
+      setPasswordSaving(false);
+    }
   };
 
   // ─── Schedule helpers ─────────────────────────────────────────────────
@@ -461,6 +500,14 @@ export default function StaffPage() {
                           Edit
                         </button>
                         <button
+                          onClick={() => openPasswordModal(s)}
+                          className="px-2.5 py-1 text-[11px] font-semibold transition-colors"
+                          style={{ background: "#eff6ff", color: "#2563eb", borderRadius: "var(--radius-sm)", border: "1px solid #bfdbfe" }}
+                          title="Set login password"
+                        >
+                          Password
+                        </button>
+                        <button
                           onClick={() => toggleStatus(s)}
                           className="px-2.5 py-1 text-[11px] font-semibold transition-colors"
                           style={{
@@ -479,6 +526,74 @@ export default function StaffPage() {
               })}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* ─── Set Password Modal ─────────────────────────────────────────── */}
+      {passwordModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.35)" }} onClick={() => setPasswordModal(null)}>
+          <div
+            className="bg-white w-full max-w-sm mx-4 yoda-slide-in"
+            style={{ borderRadius: "var(--radius)", boxShadow: "var(--shadow-lg)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="px-5 py-4" style={{ borderBottom: "1px solid var(--grey-300)" }}>
+              <h3 className="text-[15px] font-bold" style={{ color: "var(--grey-900)" }}>Set Password</h3>
+              <p className="text-[12px] mt-0.5" style={{ color: "var(--grey-500)" }}>
+                Set login password for <strong>{passwordModal.name}</strong>
+              </p>
+            </div>
+
+            <div className="px-5 py-5 space-y-3">
+              {passwordError && (
+                <div className="p-2.5 text-[12px] font-semibold" style={{ background: "var(--red-light)", color: "var(--red)", borderRadius: "var(--radius-sm)", border: "1px solid #fecaca" }}>
+                  {passwordError}
+                </div>
+              )}
+              <div>
+                <label className="block text-[12px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>New Password</label>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full px-3 py-2 text-[13px]"
+                  style={inputStyle}
+                  placeholder="Min 6 characters"
+                  autoFocus
+                />
+              </div>
+              <div>
+                <label className="block text-[12px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Confirm Password</label>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full px-3 py-2 text-[13px]"
+                  style={inputStyle}
+                  placeholder="Re-enter password"
+                  onKeyDown={(e) => { if (e.key === "Enter") handleSetPassword(); }}
+                />
+              </div>
+            </div>
+
+            <div className="px-5 py-4 flex justify-end gap-2" style={{ borderTop: "1px solid var(--grey-300)" }}>
+              <button
+                onClick={() => setPasswordModal(null)}
+                className="px-4 py-2 text-[13px] font-semibold"
+                style={{ background: "var(--grey-100)", color: "var(--grey-700)", borderRadius: "var(--radius-sm)", border: "1px solid var(--grey-300)" }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSetPassword}
+                disabled={passwordSaving}
+                className="px-5 py-2 text-[13px] font-semibold text-white disabled:opacity-50"
+                style={{ background: "#2563eb", borderRadius: "var(--radius-sm)" }}
+              >
+                {passwordSaving ? "Saving..." : "Set Password"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
