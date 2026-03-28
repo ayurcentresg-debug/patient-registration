@@ -44,7 +44,7 @@ export async function POST() {
                 <p>Dear ${reminder.patient.firstName},</p>
                 <p>${reminder.message}</p>
                 <hr style="border-color: #e5e7eb;" />
-                <p style="color: #6b7280; font-size: 12px;">Ayurveda Wellness Clinic</p>
+                <p style="color: #6b7280; font-size: 12px;">Ayur Centre Pte. Ltd.</p>
               </div>
             `,
           });

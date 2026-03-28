@@ -234,7 +234,7 @@ export default function ClinicSettingsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="md:col-span-2">
                 <label className="block text-[12px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Clinic Name</label>
-                <input type="text" value={settings.clinicName} onChange={e => updateField("clinicName", e.target.value)} className="w-full px-3 py-2" style={inputStyle} placeholder="Ayurveda Wellness Clinic" />
+                <input type="text" value={settings.clinicName} onChange={e => updateField("clinicName", e.target.value)} className="w-full px-3 py-2" style={inputStyle} placeholder="Ayur Centre Pte. Ltd." />
               </div>
               <div className="md:col-span-2">
                 <label className="block text-[12px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Address</label>

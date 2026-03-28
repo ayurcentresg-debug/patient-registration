@@ -94,7 +94,7 @@ const EMPTY_FORM: StaffForm = {
 };
 
 const DEFAULT_SETTINGS: ClinicSettings = {
-  clinicName: "Ayurveda Wellness Clinic",
+  clinicName: "Ayur Centre Pte. Ltd.",
   operatingStart: "08:00",
   operatingEnd: "18:00",
   defaultConsultationDuration: "30",

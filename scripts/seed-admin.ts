@@ -30,6 +30,32 @@ async function main() {
   console.log(`   Role:     ${user.role}`);
   console.log(`   ID:       ${user.id}`);
 
+  // Seed clinic settings with Ayur Centre details
+  await prisma.clinicSettings.upsert({
+    where: { id: "default" },
+    update: {},
+    create: {
+      id: "default",
+      clinicName: "Ayur Centre Pte. Ltd.",
+      address: "84 Bedok North Street 4 #01-17",
+      city: "Singapore",
+      state: "Singapore",
+      zipCode: "460084",
+      phone: "6445 0072",
+      email: "ayurcentresg@gmail.com",
+      website: "www.ayurcentre.sg",
+      currency: "SGD",
+      dateFormat: "dd/MM/yyyy",
+      timeFormat: "12h",
+      appointmentDuration: 30,
+      workingHoursStart: "09:00",
+      workingHoursEnd: "18:00",
+      workingDays: "[1,2,3,4,5,6]",
+    },
+  });
+
+  console.log("✅ Clinic settings seeded (Ayur Centre Pte. Ltd.)");
+
   await prisma.$disconnect();
 }
 

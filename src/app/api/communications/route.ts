@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
               <p>Dear ${patient.firstName},</p>
               <p>${message}</p>
               <hr style="border-color: #e5e7eb;" />
-              <p style="color: #6b7280; font-size: 12px;">This message was sent from the Patient Registration System.</p>
+              <p style="color: #6b7280; font-size: 12px;">Ayur Centre Pte. Ltd.</p>
             </div>
           `,
         });

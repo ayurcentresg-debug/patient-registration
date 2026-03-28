@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
     try {
       await sendEmail({
         to: email,
-        subject: "Password Reset Code - Patient Registration System",
+        subject: "Password Reset Code - Ayur Centre",
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px;">
             <h2 style="color: #92400e; margin-bottom: 16px;">Password Reset</h2>

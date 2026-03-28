@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
 
       // Verify TOTP code
       const totp = new OTPAuth.TOTP({
-        issuer: "PatientReg Clinic",
+        issuer: "Ayur Centre",
         label: user.email,
         algorithm: "SHA1",
         digits: 6,

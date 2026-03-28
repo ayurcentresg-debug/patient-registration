@@ -9,7 +9,7 @@ export async function GET() {
       update: {},
       create: {
         id: "default",
-        clinicName: "Ayurveda Wellness Clinic",
+        clinicName: "Ayur Centre Pte. Ltd.",
         address: "",
         city: "",
         state: "",
@@ -78,7 +78,7 @@ export async function PUT(request: NextRequest) {
       update: updateData,
       create: {
         id: "default",
-        clinicName: (updateData.clinicName as string) || "Ayurveda Wellness Clinic",
+        clinicName: (updateData.clinicName as string) || "Ayur Centre Pte. Ltd.",
         address: (updateData.address as string) || "",
         city: (updateData.city as string) || "",
         state: (updateData.state as string) || "",

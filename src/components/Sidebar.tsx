@@ -236,7 +236,7 @@ export default function Sidebar() {
               fontSize: 13,
             }}
           >
-            PR
+            AC
           </div>
           <div
             className="ml-3 overflow-hidden whitespace-nowrap"
@@ -247,8 +247,8 @@ export default function Sidebar() {
               minWidth: 0,
             }}
           >
-            <h1 className="text-[13px] font-bold text-white tracking-tight">PatientReg</h1>
-            <p className="text-[10px] font-medium" style={{ color: "rgba(255,255,255,0.45)" }}>Clinic System</p>
+            <h1 className="text-[13px] font-bold text-white tracking-tight">Ayur Centre</h1>
+            <p className="text-[10px] font-medium" style={{ color: "rgba(255,255,255,0.45)" }}>Ayurveda Clinic</p>
           </div>
 
           {/* Notification Bell */}

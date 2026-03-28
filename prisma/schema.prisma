@@ -293,14 +293,14 @@ model Supplier {
 
 model ClinicSettings {
   id                String   @id @default("default")
-  clinicName        String   @default("Ayurveda Wellness Clinic")
-  address           String   @default("")
-  city              String   @default("")
-  state             String   @default("")
-  zipCode           String   @default("")
-  phone             String   @default("")
-  email             String   @default("")
-  website           String   @default("")
+  clinicName        String   @default("Ayur Centre Pte. Ltd.")
+  address           String   @default("84 Bedok North Street 4 #01-17")
+  city              String   @default("Singapore")
+  state             String   @default("Singapore")
+  zipCode           String   @default("460084")
+  phone             String   @default("6445 0072")
+  email             String   @default("ayurcentresg@gmail.com")
+  website           String   @default("www.ayurcentre.sg")
   logoUrl           String?
   gstRegistrationNo String   @default("")
   termsAndConditions String  @default("Payment is due upon receipt. Medical services are subject to GST at prevailing rates.")

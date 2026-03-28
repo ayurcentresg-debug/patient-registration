@@ -3,8 +3,8 @@ import "./globals.css";
 import LayoutShell from "@/components/LayoutShell";
 
 export const metadata: Metadata = {
-  title: "PatientReg — Registration & Communication",
-  description: "Patient registration with WhatsApp and Email communication",
+  title: "Ayur Centre — Patient Registration & Management",
+  description: "Ayur Centre Pte. Ltd. — Ayurveda patient registration and clinic management system",
 };
 
 export default function RootLayout({

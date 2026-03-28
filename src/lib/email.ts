@@ -20,7 +20,7 @@ export async function sendEmail({
   html: string;
 }) {
   const info = await transporter.sendMail({
-    from: process.env.EMAIL_FROM || "Patient Registration <noreply@clinic.com>",
+    from: process.env.EMAIL_FROM || "Ayur Centre <noreply@clinic.com>",
     to,
     subject,
     html,

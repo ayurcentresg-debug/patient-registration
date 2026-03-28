@@ -517,9 +517,9 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
   }
 
   // ─── Clinic info helpers ──────────────────────────────────────────────
-  const clinicName = clinicSettings?.clinicName || "Ayurveda Wellness Clinic";
-  const clinicAddress = clinicSettings?.address || "123 Wellness Road, Thiruvananthapuram, Kerala - 695001";
-  const clinicPhone = clinicSettings?.phone || "+91 471 2345678";
+  const clinicName = clinicSettings?.clinicName || "Ayur Centre Pte. Ltd.";
+  const clinicAddress = clinicSettings?.address || "84 Bedok North Street 4 #01-17, Singapore 460084";
+  const clinicPhone = clinicSettings?.phone || "6445 0072";
   const clinicEmail = clinicSettings?.email || "info@ayurvedawellness.in";
   const clinicGst = clinicSettings?.gstRegistrationNo || "";
   const clinicTerms = clinicSettings?.termsAndConditions || "";
