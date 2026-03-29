@@ -7,6 +7,7 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 // Use DB_PATH env var if set (for Railway volume), otherwise dev.db in project root
+// Railway volume: DB_PATH=/data/clinic.db persists data across deploys
 export const DB_PATH = process.env.DB_PATH || path.join(process.cwd(), "dev.db");
 
 function createPrismaClient() {
