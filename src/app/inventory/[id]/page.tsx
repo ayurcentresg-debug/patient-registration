@@ -62,6 +62,33 @@ interface Transaction {
   poId?: string | null;
 }
 
+interface MovementDay {
+  date: string;
+  stockIn: number;
+  stockOut: number;
+  netChange: number;
+  closingStock: number;
+}
+
+interface MovementSummary {
+  totalIn: number;
+  totalOut: number;
+  netChange: number;
+  avgDailyOut: number;
+  daysOfStock: number;
+  peakStock: number;
+  lowestStock: number;
+}
+
+interface MovementData {
+  itemName: string;
+  period: number;
+  reorderLevel: number;
+  currentStock: number;
+  movements: MovementDay[];
+  summary: MovementSummary;
+}
+
 type StockActionType = "purchase" | "issue" | "adjust" | "return";
 
 // ─── Constants ──────────────────────────────────────────────────────────────
@@ -174,6 +201,266 @@ function FormRow({ label, required, children, error }: { label: string; required
   );
 }
 
+// ─── Stock Movement Chart (pure SVG) ───────────────────────────────────────
+function StockMovementChart({ movements, reorderLevel, period }: { movements: MovementDay[]; reorderLevel: number; period: number }) {
+  const [tooltip, setTooltip] = useState<{ x: number; y: number; day: MovementDay } | null>(null);
+
+  if (movements.length === 0) {
+    return <p className="text-center py-8 text-[15px]" style={{ color: "var(--grey-500)" }}>No data available</p>;
+  }
+
+  // Chart dimensions
+  const margin = { top: 20, right: 20, bottom: 50, left: 50 };
+  const width = 800;
+  const height = 320;
+  const chartW = width - margin.left - margin.right;
+  const chartH = height - margin.top - margin.bottom;
+
+  // Data ranges
+  const maxStock = Math.max(...movements.map((m) => m.closingStock), reorderLevel, 1);
+  const maxBar = Math.max(...movements.map((m) => Math.max(m.stockIn, m.stockOut)), 1);
+  const yMax = Math.max(maxStock, maxBar) * 1.15;
+
+  // Scale helpers
+  const xScale = (i: number) => margin.left + (i / Math.max(movements.length - 1, 1)) * chartW;
+  const yScale = (v: number) => margin.top + chartH - (v / yMax) * chartH;
+
+  // Build polyline points for stock level
+  const stockPoints = movements.map((m, i) => `${xScale(i)},${yScale(m.closingStock)}`).join(" ");
+
+  // Build fill area under the stock line
+  const areaPoints = `${xScale(0)},${yScale(0)} ${stockPoints} ${xScale(movements.length - 1)},${yScale(0)}`;
+
+  // Bar width
+  const barW = Math.max(2, Math.min(12, (chartW / movements.length) * 0.35));
+
+  // Y-axis grid lines
+  const yTicks: number[] = [];
+  const tickStep = Math.max(1, Math.ceil(yMax / 5));
+  for (let v = 0; v <= yMax; v += tickStep) yTicks.push(v);
+
+  // X-axis labels — show a subset to avoid crowding
+  const labelInterval = period <= 7 ? 1 : period <= 30 ? 5 : period <= 60 ? 10 : 15;
+  const xLabelIndices = movements.map((_, i) => i).filter((i) => i % labelInterval === 0 || i === movements.length - 1);
+
+  return (
+    <div className="w-full overflow-x-auto" style={{ position: "relative" }}>
+      <svg
+        viewBox={`0 0 ${width} ${height}`}
+        className="w-full"
+        style={{ minWidth: period > 60 ? 700 : "auto", maxHeight: 360 }}
+        onMouseLeave={() => setTooltip(null)}
+      >
+        {/* Grid lines */}
+        {yTicks.map((v) => (
+          <g key={v}>
+            <line x1={margin.left} y1={yScale(v)} x2={width - margin.right} y2={yScale(v)} stroke="var(--grey-200)" strokeWidth={1} />
+            <text x={margin.left - 8} y={yScale(v) + 4} textAnchor="end" fontSize={11} fill="var(--grey-500)">{v}</text>
+          </g>
+        ))}
+
+        {/* X-axis line */}
+        <line x1={margin.left} y1={margin.top + chartH} x2={width - margin.right} y2={margin.top + chartH} stroke="var(--grey-300)" strokeWidth={1} />
+
+        {/* X-axis labels */}
+        {xLabelIndices.map((idx) => {
+          const m = movements[idx];
+          const d = new Date(m.date);
+          const label = `${d.getDate()}/${d.getMonth() + 1}`;
+          return (
+            <text key={idx} x={xScale(idx)} y={margin.top + chartH + 18} textAnchor="middle" fontSize={11} fill="var(--grey-500)">
+              {label}
+            </text>
+          );
+        })}
+
+        {/* Reorder level dashed line */}
+        {reorderLevel > 0 && (
+          <g>
+            <line
+              x1={margin.left}
+              y1={yScale(reorderLevel)}
+              x2={width - margin.right}
+              y2={yScale(reorderLevel)}
+              stroke="#ff9800"
+              strokeWidth={1.5}
+              strokeDasharray="6,4"
+            />
+            <text x={width - margin.right + 4} y={yScale(reorderLevel) + 4} fontSize={10} fill="#ff9800" fontWeight={600}>
+              Reorder
+            </text>
+          </g>
+        )}
+
+        {/* Stock In/Out bars */}
+        {movements.map((m, i) => {
+          const cx = xScale(i);
+          return (
+            <g key={`bars-${i}`}>
+              {m.stockIn > 0 && (
+                <rect
+                  x={cx - barW - 1}
+                  y={yScale(m.stockIn)}
+                  width={barW}
+                  height={yScale(0) - yScale(m.stockIn)}
+                  fill="var(--green)"
+                  opacity={0.5}
+                  rx={1}
+                />
+              )}
+              {m.stockOut > 0 && (
+                <rect
+                  x={cx + 1}
+                  y={yScale(m.stockOut)}
+                  width={barW}
+                  height={yScale(0) - yScale(m.stockOut)}
+                  fill="var(--red)"
+                  opacity={0.5}
+                  rx={1}
+                />
+              )}
+            </g>
+          );
+        })}
+
+        {/* Stock level area fill */}
+        <polygon points={areaPoints} fill="var(--blue-500)" opacity={0.08} />
+
+        {/* Stock level line */}
+        <polyline
+          points={stockPoints}
+          fill="none"
+          stroke="var(--blue-500)"
+          strokeWidth={2.5}
+          strokeLinejoin="round"
+          strokeLinecap="round"
+        />
+
+        {/* Data point dots */}
+        {movements.map((m, i) => (
+          <circle
+            key={`dot-${i}`}
+            cx={xScale(i)}
+            cy={yScale(m.closingStock)}
+            r={movements.length <= 31 ? 3 : 1.5}
+            fill="var(--blue-500)"
+            stroke="var(--white)"
+            strokeWidth={1.5}
+          />
+        ))}
+
+        {/* Invisible hover targets */}
+        {movements.map((m, i) => (
+          <rect
+            key={`hover-${i}`}
+            x={xScale(i) - (chartW / movements.length) / 2}
+            y={margin.top}
+            width={chartW / movements.length}
+            height={chartH}
+            fill="transparent"
+            onMouseEnter={(e) => {
+              const svg = e.currentTarget.ownerSVGElement;
+              if (!svg) return;
+              const pt = svg.createSVGPoint();
+              pt.x = e.clientX;
+              pt.y = e.clientY;
+              const svgPt = pt.matrixTransform(svg.getScreenCTM()?.inverse());
+              setTooltip({ x: svgPt.x, y: svgPt.y - 10, day: m });
+            }}
+            onMouseLeave={() => setTooltip(null)}
+          />
+        ))}
+
+        {/* Tooltip */}
+        {tooltip && (() => {
+          const d = new Date(tooltip.day.date);
+          const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+          const dateStr = `${d.getDate()} ${months[d.getMonth()]}`;
+          const tipW = 140;
+          const tipH = 80;
+          const tx = Math.max(margin.left, Math.min(tooltip.x - tipW / 2, width - margin.right - tipW));
+          const ty = Math.max(margin.top, tooltip.y - tipH - 8);
+          return (
+            <g>
+              <rect x={tx} y={ty} width={tipW} height={tipH} rx={6} fill="var(--grey-900)" opacity={0.92} />
+              <text x={tx + 10} y={ty + 18} fontSize={12} fill="#fff" fontWeight={700}>{dateStr}</text>
+              <text x={tx + 10} y={ty + 34} fontSize={11} fill="#81c784">In: +{tooltip.day.stockIn}</text>
+              <text x={tx + 80} y={ty + 34} fontSize={11} fill="#ef9a9a">Out: -{tooltip.day.stockOut}</text>
+              <text x={tx + 10} y={ty + 50} fontSize={11} fill="#90caf9">Net: {tooltip.day.netChange > 0 ? "+" : ""}{tooltip.day.netChange}</text>
+              <text x={tx + 10} y={ty + 66} fontSize={12} fill="#fff" fontWeight={600}>Stock: {tooltip.day.closingStock}</text>
+            </g>
+          );
+        })()}
+
+        {/* Legend */}
+        <g transform={`translate(${margin.left}, ${height - 10})`}>
+          <rect x={0} y={-6} width={10} height={10} fill="var(--blue-500)" rx={2} />
+          <text x={14} y={3} fontSize={11} fill="var(--grey-600)">Stock Level</text>
+          <rect x={90} y={-6} width={10} height={10} fill="var(--green)" opacity={0.6} rx={2} />
+          <text x={104} y={3} fontSize={11} fill="var(--grey-600)">Stock In</text>
+          <rect x={165} y={-6} width={10} height={10} fill="var(--red)" opacity={0.6} rx={2} />
+          <text x={179} y={3} fontSize={11} fill="var(--grey-600)">Stock Out</text>
+          {reorderLevel > 0 && (
+            <>
+              <line x1={240} y1={0} x2={260} y2={0} stroke="#ff9800" strokeWidth={1.5} strokeDasharray="4,3" />
+              <text x={264} y={3} fontSize={11} fill="var(--grey-600)">Reorder Level</text>
+            </>
+          )}
+        </g>
+      </svg>
+    </div>
+  );
+}
+
+// ─── Movement Table ────────────────────────────────────────────────────────
+function MovementTable({ movements }: { movements: MovementDay[] }) {
+  const activeDays = movements.filter((m) => m.stockIn > 0 || m.stockOut > 0);
+
+  if (activeDays.length === 0) {
+    return <p className="text-center py-6 text-[15px]" style={{ color: "var(--grey-500)" }}>No stock movements in this period</p>;
+  }
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full" role="table" style={{ borderCollapse: "collapse" }}>
+        <thead>
+          <tr style={{ borderBottom: "2px solid var(--grey-200)" }}>
+            <th className="text-left px-4 py-2 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Date</th>
+            <th className="text-right px-4 py-2 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--green)" }}>Stock In</th>
+            <th className="text-right px-4 py-2 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--red)" }}>Stock Out</th>
+            <th className="text-right px-4 py-2 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Net</th>
+            <th className="text-right px-4 py-2 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Closing Stock</th>
+          </tr>
+        </thead>
+        <tbody>
+          {[...activeDays].reverse().map((m, i) => {
+            const d = new Date(m.date);
+            const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            const dateLabel = `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+            return (
+              <tr key={m.date} style={{ borderBottom: i < activeDays.length - 1 ? "1px solid var(--grey-100)" : "none" }}>
+                <td className="px-4 py-2.5 text-[14px] font-medium" style={{ color: "var(--grey-700)" }}>{dateLabel}</td>
+                <td className="px-4 py-2.5 text-[15px] font-semibold text-right" style={{ color: m.stockIn > 0 ? "var(--green)" : "var(--grey-400)" }}>
+                  {m.stockIn > 0 ? `+${m.stockIn}` : "\u2014"}
+                </td>
+                <td className="px-4 py-2.5 text-[15px] font-semibold text-right" style={{ color: m.stockOut > 0 ? "var(--red)" : "var(--grey-400)" }}>
+                  {m.stockOut > 0 ? `-${m.stockOut}` : "\u2014"}
+                </td>
+                <td className="px-4 py-2.5 text-[15px] font-bold text-right" style={{ color: m.netChange > 0 ? "var(--green)" : m.netChange < 0 ? "var(--red)" : "var(--grey-500)" }}>
+                  {m.netChange > 0 ? "+" : ""}{m.netChange}
+                </td>
+                <td className="px-4 py-2.5 text-[15px] font-semibold text-right" style={{ color: "var(--grey-800)" }}>
+                  {m.closingStock}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // MAIN COMPONENT
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -203,7 +490,12 @@ export default function InventoryDetailPage() {
   const [actionSubmitting, setActionSubmitting] = useState(false);
 
   // Sub-tab navigation
-  const [activeTab, setActiveTab] = useState<"overview" | "actions" | "transactions">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "actions" | "transactions" | "movement">("overview");
+
+  // Movement tab state
+  const [movementPeriod, setMovementPeriod] = useState(30);
+  const [movementData, setMovementData] = useState<MovementData | null>(null);
+  const [movementLoading, setMovementLoading] = useState(false);
 
   // Delete
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -226,6 +518,21 @@ export default function InventoryDetailPage() {
   }, [id]);
 
   useEffect(() => { if (id) fetchItem(); }, [id, fetchItem]);
+
+  // ─── Fetch Movement Data ─────────────────────────────────────────────────
+  const fetchMovement = useCallback(() => {
+    if (!id) return;
+    setMovementLoading(true);
+    fetch(`/api/inventory/${id}/movement?period=${movementPeriod}`)
+      .then((r) => { if (!r.ok) throw new Error("Failed"); return r.json(); })
+      .then((data: MovementData) => setMovementData(data))
+      .catch(() => setMovementData(null))
+      .finally(() => setMovementLoading(false));
+  }, [id, movementPeriod]);
+
+  useEffect(() => {
+    if (activeTab === "movement") fetchMovement();
+  }, [activeTab, fetchMovement]);
 
   // ─── Enter edit mode ──────────────────────────────────────────────────────
   function enterEditMode() {
@@ -503,6 +810,7 @@ export default function InventoryDetailPage() {
             { key: "overview" as const, label: "Overview" },
             { key: "actions" as const, label: "Stock Actions" },
             { key: "transactions" as const, label: "Transactions" },
+            { key: "movement" as const, label: "Movement" },
           ]).map((tab) => {
             const active = activeTab === tab.key;
             return (
@@ -811,6 +1119,120 @@ export default function InventoryDetailPage() {
                   {actionSubmitting ? "Submitting..." : "Submit"}
                 </button>
               </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Movement Tab ────────────────────────────────────────── */}
+      {!editMode && activeTab === "movement" && (
+        <div className="space-y-6">
+          {/* Period Selector */}
+          <div className="flex items-center gap-2">
+            <span className="text-[14px] font-semibold" style={{ color: "var(--grey-600)" }}>Period:</span>
+            {[7, 30, 60, 90].map((p) => (
+              <button
+                key={p}
+                onClick={() => setMovementPeriod(p)}
+                className="px-3 py-1.5 text-[14px] font-semibold transition-colors"
+                style={{
+                  borderRadius: "var(--radius-sm)",
+                  border: movementPeriod === p ? "1.5px solid var(--blue-500)" : "1px solid var(--grey-300)",
+                  background: movementPeriod === p ? "var(--blue-50, rgba(33,150,243,0.06))" : "var(--white)",
+                  color: movementPeriod === p ? "var(--blue-500)" : "var(--grey-600)",
+                  cursor: "pointer",
+                }}
+              >
+                {p}D
+              </button>
+            ))}
+          </div>
+
+          {movementLoading ? (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="h-24 animate-pulse" style={{ background: "var(--grey-100)", borderRadius: "var(--radius)" }} />
+                ))}
+              </div>
+              <div className="h-72 animate-pulse" style={{ background: "var(--grey-100)", borderRadius: "var(--radius)" }} />
+            </div>
+          ) : movementData ? (
+            <>
+              {/* Summary Cards */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="p-4" style={cardStyle}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <svg className="w-4 h-4" style={{ color: "var(--green)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                    </svg>
+                    <span className="text-[13px] font-semibold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Total In</span>
+                  </div>
+                  <p className="text-[24px] font-bold" style={{ color: "var(--green)" }}>{movementData.summary.totalIn}</p>
+                </div>
+                <div className="p-4" style={cardStyle}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <svg className="w-4 h-4" style={{ color: "var(--red)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                    </svg>
+                    <span className="text-[13px] font-semibold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Total Out</span>
+                  </div>
+                  <p className="text-[24px] font-bold" style={{ color: "var(--red)" }}>{movementData.summary.totalOut}</p>
+                </div>
+                <div className="p-4" style={cardStyle}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <svg className="w-4 h-4" style={{ color: "var(--blue-500)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                    </svg>
+                    <span className="text-[13px] font-semibold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Net Change</span>
+                  </div>
+                  <p className="text-[24px] font-bold" style={{ color: "var(--blue-500)" }}>
+                    {movementData.summary.netChange > 0 ? "+" : ""}{movementData.summary.netChange}
+                  </p>
+                </div>
+                <div className="p-4" style={cardStyle}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <svg className="w-4 h-4" style={{ color: "var(--grey-600)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span className="text-[13px] font-semibold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Days of Stock</span>
+                  </div>
+                  <p className="text-[24px] font-bold" style={{ color: "var(--grey-800)" }}>
+                    {movementData.summary.daysOfStock >= 999 ? "\u221E" : movementData.summary.daysOfStock}
+                  </p>
+                  <p className="text-[12px] mt-0.5" style={{ color: "var(--grey-500)" }}>
+                    avg {movementData.summary.avgDailyOut}/day out
+                  </p>
+                </div>
+              </div>
+
+              {/* SVG Chart */}
+              <div className="p-6" style={cardStyle}>
+                <h2 className="mb-4 pb-3" style={{ ...sectionTitle, borderBottom: "1px solid var(--grey-200)" }}>
+                  Stock Movement — Last {movementData.period} Days
+                </h2>
+                <StockMovementChart
+                  movements={movementData.movements}
+                  reorderLevel={movementData.reorderLevel}
+                  period={movementData.period}
+                />
+              </div>
+
+              {/* Movement Table */}
+              <div className="p-6" style={cardStyle}>
+                <h2 className="mb-4 pb-3" style={{ ...sectionTitle, borderBottom: "1px solid var(--grey-200)" }}>
+                  Daily Movement
+                  <span className="text-[14px] font-normal ml-2" style={{ color: "var(--grey-500)" }}>
+                    (days with activity only)
+                  </span>
+                </h2>
+                <MovementTable movements={movementData.movements} />
+              </div>
+            </>
+          ) : (
+            <div className="text-center py-12 p-6" style={cardStyle}>
+              <p className="text-[15px]" style={{ color: "var(--grey-500)" }}>Failed to load movement data</p>
+              <button onClick={fetchMovement} className="text-[14px] font-semibold mt-2 hover:underline" style={{ color: "var(--blue-500)" }}>Retry</button>
             </div>
           )}
         </div>
