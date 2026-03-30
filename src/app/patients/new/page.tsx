@@ -558,30 +558,44 @@ export default function NewPatientPage() {
                       <FieldError error={fieldErrors.gender} />
                     </div>
                   </div>
-                  {/* Row 3: DOB | Age | Blood Group | Ethnicity */}
+                  {/* Row 3: DOB | Age | Referred By | Blood Group */}
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     <div>
                       <label className="block mb-1" style={labelStyle}>Date of Birth</label>
-                      <div className="flex items-center gap-2">
-                        {dobMode === "dob" ? (
-                          <input name="dateOfBirth" type="date" className="w-full px-3 py-1.5" style={inputStyle} onChange={handleDobChange} />
-                        ) : (
-                          <input name="age" type="number" min="0" max="150" placeholder="Age" className="w-full px-3 py-1.5" style={inputStyle} />
-                        )}
-                      </div>
-                      <button type="button" onClick={() => { setDobMode(dobMode === "dob" ? "age" : "dob"); setCalculatedAge(""); }} className="text-[13px] font-semibold mt-0.5" style={{ color: "var(--blue-500)" }}>
-                        Or {dobMode === "dob" ? "age" : "DOB"}
+                      {dobMode === "dob" ? (
+                        <input name="dateOfBirth" type="date" className="w-full px-3 py-1.5" style={inputStyle} onChange={handleDobChange} />
+                      ) : (
+                        <input name="age" type="number" min="0" max="150" placeholder="Age" className="w-full px-3 py-1.5" style={inputStyle} />
+                      )}
+                      <button type="button" onClick={() => { setDobMode(dobMode === "dob" ? "age" : "dob"); setCalculatedAge(""); }} className="text-[12px] font-semibold mt-0.5" style={{ color: "var(--blue-500)" }}>
+                        Or enter {dobMode === "dob" ? "age" : "DOB"}
                       </button>
                     </div>
-                    <div className="flex flex-col justify-center">
+                    <div>
                       <label className="block mb-1" style={labelStyle}>Age</label>
-                      {calculatedAge ? (
-                        <span className="text-[14px] font-semibold pt-1" style={{ color: "var(--blue-500)" }}>
-                          {calculatedAge}
-                        </span>
-                      ) : (
-                        <span className="text-[14px] pt-1" style={{ color: "var(--grey-400)" }}>--</span>
-                      )}
+                      <div className="py-1.5">
+                        {calculatedAge ? (
+                          <span className="text-[14px] font-semibold" style={{ color: "var(--blue-500)" }}>{calculatedAge}</span>
+                        ) : (
+                          <span className="text-[14px]" style={{ color: "var(--grey-400)" }}>--</span>
+                        )}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block mb-1" style={labelStyle}>Referred by</label>
+                      <div className="flex items-center gap-1">
+                        {showNewReferral ? (
+                          <input name="referredBy" placeholder="Enter referral" className="flex-1 px-3 py-1.5" style={inputStyle} />
+                        ) : (
+                          <select name="referredBy" className="flex-1 px-3 py-1.5" style={inputStyle}>
+                            <option value="">Select</option>
+                            {REFERRAL_SOURCES.map((r) => <option key={r} value={r}>{r}</option>)}
+                          </select>
+                        )}
+                        <button type="button" onClick={() => setShowNewReferral(!showNewReferral)} className="text-[12px] font-semibold whitespace-nowrap" style={{ color: "var(--blue-500)" }}>
+                          {showNewReferral ? "List" : "+"}
+                        </button>
+                      </div>
                     </div>
                     <div>
                       <label htmlFor="bloodGroup" className="block mb-1" style={labelStyle}>Blood Group</label>
@@ -590,16 +604,16 @@ export default function NewPatientPage() {
                         {BLOOD_GROUPS.map((bg) => <option key={bg} value={bg}>{bg}</option>)}
                       </select>
                     </div>
+                  </div>
+                  {/* Row 4: Ethnicity | Nationality | Occupation */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
                       <label htmlFor="ethnicity" className="block mb-1" style={labelStyle}>Ethnicity</label>
                       <select id="ethnicity" name="ethnicity" className="w-full px-3 py-1.5" style={inputStyle}>
-                        <option value="">Select</option>
+                        <option value="">Select ethnicity</option>
                         {ETHNICITIES.map((e) => <option key={e} value={e}>{e}</option>)}
                       </select>
                     </div>
-                  </div>
-                  {/* Row 4: Nationality | Occupation | Referred By */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
                       <label htmlFor="nationality" className="block mb-1" style={labelStyle}>Nationality</label>
                       <select id="nationality" name="nationality" className="w-full px-3 py-1.5" style={inputStyle}>
@@ -609,33 +623,17 @@ export default function NewPatientPage() {
                     </div>
                     <div>
                       <label className="block mb-1" style={labelStyle}>Occupation</label>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1">
                         {showNewOccupation ? (
                           <input name="occupation" placeholder="Enter occupation" className="flex-1 px-3 py-1.5" style={inputStyle} />
                         ) : (
                           <select name="occupation" className="flex-1 px-3 py-1.5" style={inputStyle}>
-                            <option value="">Select</option>
+                            <option value="">Select occupation</option>
                             {OCCUPATIONS.map((o) => <option key={o} value={o}>{o}</option>)}
                           </select>
                         )}
-                        <button type="button" onClick={() => setShowNewOccupation(!showNewOccupation)} className="text-[13px] font-semibold whitespace-nowrap" style={{ color: "var(--blue-500)" }}>
-                          {showNewOccupation ? "Select" : "+ New"}
-                        </button>
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block mb-1" style={labelStyle}>Referred by</label>
-                      <div className="flex items-center gap-2">
-                        {showNewReferral ? (
-                          <input name="referredBy" placeholder="Enter referral" className="flex-1 px-3 py-1.5" style={inputStyle} />
-                        ) : (
-                          <select name="referredBy" className="flex-1 px-3 py-1.5" style={inputStyle}>
-                            <option value="">Select</option>
-                            {REFERRAL_SOURCES.map((r) => <option key={r} value={r}>{r}</option>)}
-                          </select>
-                        )}
-                        <button type="button" onClick={() => setShowNewReferral(!showNewReferral)} className="text-[13px] font-semibold whitespace-nowrap" style={{ color: "var(--blue-500)" }}>
-                          {showNewReferral ? "Select" : "+ New"}
+                        <button type="button" onClick={() => setShowNewOccupation(!showNewOccupation)} className="text-[12px] font-semibold whitespace-nowrap" style={{ color: "var(--blue-500)" }}>
+                          {showNewOccupation ? "List" : "+"}
                         </button>
                       </div>
                     </div>
