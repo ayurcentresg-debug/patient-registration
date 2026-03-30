@@ -194,6 +194,7 @@ export default function NewInvoicePage() {
             firstName: p.firstName,
             lastName: p.lastName,
             phone: p.phone || "",
+            email: p.email || null,
             patientIdNumber: p.patientIdNumber || "",
           });
         }
