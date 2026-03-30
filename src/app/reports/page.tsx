@@ -381,7 +381,18 @@ export default function ReportsPage() {
   const [insuranceLoading, setInsuranceLoading] = useState(false);
   const [insuranceFetched, setInsuranceFetched] = useState(false);
 
+  const [branches, setBranches] = useState<Array<{ id: string; name: string }>>([]);
+  const [selectedBranchId, setSelectedBranchId] = useState("");
+
   const printRef = useRef<HTMLDivElement>(null);
+
+  // Fetch branches on mount
+  useEffect(() => {
+    fetch("/api/branches?active=true")
+      .then((r) => (r.ok ? r.json() : []))
+      .then((data) => setBranches(Array.isArray(data) ? data : []))
+      .catch(() => {});
+  }, []);
 
   const fetchReport = useCallback(async () => {
     setLoading(true);
@@ -389,6 +400,7 @@ export default function ReportsPage() {
       let url = `/api/reports?period=${period}`;
       if (period === "custom" && customFrom) url += `&from=${customFrom}`;
       if (period === "custom" && customTo) url += `&to=${customTo}`;
+      if (selectedBranchId) url += `&branchId=${selectedBranchId}`;
       const res = await fetch(url);
       if (res.ok) {
         const raw = await res.json();
@@ -421,13 +433,13 @@ export default function ReportsPage() {
     setInsuranceFetched(false);
     setInventoryData(null);
     setInsuranceData(null);
-  }, [period, customFrom, customTo]);
+  }, [period, customFrom, customTo, selectedBranchId]);
 
   const fetchInventory = useCallback(async () => {
     if (inventoryFetched || inventoryLoading) return;
     setInventoryLoading(true);
     try {
-      const res = await fetch(`/api/reports/inventory?period=${period}${period === "custom" && customFrom ? `&from=${customFrom}` : ""}${period === "custom" && customTo ? `&to=${customTo}` : ""}`);
+      const res = await fetch(`/api/reports/inventory?period=${period}${period === "custom" && customFrom ? `&from=${customFrom}` : ""}${period === "custom" && customTo ? `&to=${customTo}` : ""}${selectedBranchId ? `&branchId=${selectedBranchId}` : ""}`);
       if (res.ok) {
         const raw = await res.json();
         // Map API response to frontend interface
@@ -456,7 +468,7 @@ export default function ReportsPage() {
       }
     } catch { /* ignore */ }
     setInventoryLoading(false);
-  }, [period, customFrom, customTo, inventoryFetched, inventoryLoading]);
+  }, [period, customFrom, customTo, selectedBranchId, inventoryFetched, inventoryLoading]);
 
   const fetchInsurance = useCallback(async () => {
     if (insuranceFetched || insuranceLoading) return;
@@ -644,9 +656,24 @@ export default function ReportsPage() {
             {new Date(data.period.from).toLocaleDateString("en-SG", { day: "numeric", month: "short", year: "numeric" })}
             {" \u2014 "}
             {new Date(data.period.to).toLocaleDateString("en-SG", { day: "numeric", month: "short", year: "numeric" })}
+            {selectedBranchId && branches.length > 0 && (
+              <span style={{ color: "var(--blue-500)", fontWeight: 600, marginLeft: 8 }}>
+                | {branches.find((b) => b.id === selectedBranchId)?.name || "Branch"}
+              </span>
+            )}
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
+          <select
+            value={selectedBranchId}
+            onChange={(e) => setSelectedBranchId(e.target.value)}
+            className="px-3 py-1.5 text-[14px] font-semibold transition-colors"
+            style={{ background: "var(--white)", color: "var(--grey-700)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", cursor: "pointer", minWidth: 160 }}>
+            <option value="">All Branches</option>
+            {branches.map((b) => (
+              <option key={b.id} value={b.id}>{b.name}</option>
+            ))}
+          </select>
           <button onClick={handlePrint}
             className="flex items-center gap-1.5 px-3 py-1.5 text-[14px] font-semibold transition-colors"
             style={{ background: "var(--white)", color: "var(--grey-600)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)" }}>

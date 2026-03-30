@@ -328,6 +328,7 @@ model Invoice {
   invoiceNumber   String   @unique
   patientId       String?
   appointmentId   String?
+  branchId        String?
   date            DateTime @default(now())
   dueDate         DateTime?
 

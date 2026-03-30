@@ -175,6 +175,34 @@ export default function Dashboard() {
     lowStockCount: number;
     expiringSoonCount: number;
   } | null>(null);
+  const [branches, setBranches] = useState<{ id: string; name: string; code: string; isMainBranch: boolean }[]>([]);
+  const [selectedBranchId, setSelectedBranchId] = useState<string>("");
+
+  // Fetch branches once
+  useEffect(() => {
+    fetch("/api/branches?active=true")
+      .then((r) => r.ok ? r.json() : [])
+      .then((list: { id: string; name: string; code: string; isMainBranch: boolean }[]) => {
+        setBranches(list);
+        const main = list.find((b) => b.isMainBranch);
+        if (main) setSelectedBranchId(main.id);
+      })
+      .catch(() => {});
+  }, []);
+
+  // Fetch inventory stats when branch changes
+  useEffect(() => {
+    const url = selectedBranchId
+      ? `/api/inventory/stats?branchId=${selectedBranchId}`
+      : "/api/inventory/stats";
+    fetch(url)
+      .then((r) => {
+        if (!r.ok) throw new Error(`API error: ${r.status}`);
+        return r.json();
+      })
+      .then(setInventoryStats)
+      .catch((err) => console.error("Inventory stats fetch failed:", err));
+  }, [selectedBranchId]);
 
   useEffect(() => {
     fetch("/api/dashboard")
@@ -185,14 +213,6 @@ export default function Dashboard() {
       .then(setData)
       .catch((err) => console.error("Dashboard fetch failed:", err))
       .finally(() => setLoading(false));
-
-    fetch("/api/inventory/stats")
-      .then((r) => {
-        if (!r.ok) throw new Error(`API error: ${r.status}`);
-        return r.json();
-      })
-      .then(setInventoryStats)
-      .catch((err) => console.error("Inventory stats fetch failed:", err));
   }, []);
 
   if (loading) {
@@ -334,7 +354,22 @@ export default function Dashboard() {
 
       {/* ═══════ Inventory Overview ═══════ */}
       <div className="mb-6">
-        <h2 className="text-[16px] font-bold mb-3" style={{ color: "var(--grey-900)" }}>Inventory Overview</h2>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>Inventory Overview</h2>
+          {branches.length > 0 && (
+            <select
+              value={selectedBranchId}
+              onChange={(e) => setSelectedBranchId(e.target.value)}
+              className="px-2.5 py-1.5 text-[13px] font-medium rounded-md"
+              style={{ border: "1px solid var(--grey-300)", color: "var(--grey-700)", background: "var(--white)" }}
+            >
+              <option value="">All Branches</option>
+              {branches.map((b) => (
+                <option key={b.id} value={b.id}>{b.name}</option>
+              ))}
+            </select>
+          )}
+        </div>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <Link href="/inventory" className="block">
             <div className="p-4 transition-shadow duration-150 hover:shadow-md" style={{ ...cardStyle, boxShadow: "var(--shadow-sm)" }}>

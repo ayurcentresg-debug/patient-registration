@@ -16,6 +16,18 @@ interface InventoryItem {
   status: string;
 }
 
+interface BranchOption {
+  id: string;
+  name: string;
+  code: string;
+  isMainBranch: boolean;
+}
+
+interface BranchStockEntry {
+  itemId: string;
+  quantity: number;
+}
+
 interface AuditEntry {
   itemId: string;
   physicalCount: number;
@@ -104,6 +116,11 @@ export default function StockAuditPage() {
   const [lastAuditedAt, setLastAuditedAt] = useState<string | null>(null);
   const [search, setSearch] = useState("");
 
+  // Branch-aware state
+  const [branches, setBranches] = useState<BranchOption[]>([]);
+  const [selectedBranchId, setSelectedBranchId] = useState<string>("");
+  const [branchStockMap, setBranchStockMap] = useState<Record<string, number>>({});
+
   // Fetch items
   const fetchItems = useCallback(async () => {
     setLoading(true);
@@ -132,6 +149,36 @@ export default function StockAuditPage() {
     const saved = localStorage.getItem("lastStockAuditAt");
     if (saved) setLastAuditedAt(saved);
   }, []);
+
+  // Fetch branches
+  useEffect(() => {
+    fetch("/api/branches?active=true")
+      .then((r) => r.ok ? r.json() : [])
+      .then((list: BranchOption[]) => {
+        setBranches(list);
+        const main = list.find((b) => b.isMainBranch);
+        if (main) setSelectedBranchId(main.id);
+      })
+      .catch(() => {});
+  }, []);
+
+  // Fetch branch stock when branch changes
+  useEffect(() => {
+    if (!selectedBranchId) {
+      setBranchStockMap({});
+      return;
+    }
+    fetch(`/api/branches/stock?branchId=${selectedBranchId}`)
+      .then((r) => r.ok ? r.json() : [])
+      .then((data: BranchStockEntry[]) => {
+        const map: Record<string, number> = {};
+        for (const entry of data) {
+          map[entry.itemId] = entry.quantity;
+        }
+        setBranchStockMap(map);
+      })
+      .catch(() => setBranchStockMap({}));
+  }, [selectedBranchId]);
 
   // Update physical count for an item
   const handleCountChange = useCallback((itemId: string, value: string) => {
@@ -169,19 +216,27 @@ export default function StockAuditPage() {
     return Object.values(physicalCounts).filter((v) => v !== "" && v !== undefined).length;
   }, [physicalCounts]);
 
+  // Helper to get the system stock for an item (branch stock if branch selected, otherwise global)
+  const getSystemStock = useCallback((item: InventoryItem): number => {
+    if (selectedBranchId && branchStockMap) {
+      return branchStockMap[item.id] ?? 0;
+    }
+    return item.currentStock;
+  }, [selectedBranchId, branchStockMap]);
+
   const discrepancyCount = useMemo(() => {
     let count = 0;
     for (const item of items) {
       const val = physicalCounts[item.id];
       if (val !== undefined && val !== "") {
         const physical = parseInt(val, 10);
-        if (!isNaN(physical) && physical !== item.currentStock) {
+        if (!isNaN(physical) && physical !== getSystemStock(item)) {
           count++;
         }
       }
     }
     return count;
-  }, [items, physicalCounts]);
+  }, [items, physicalCounts, getSystemStock]);
 
   // Submit audit
   const handleSubmitAudit = async () => {
@@ -219,7 +274,10 @@ export default function StockAuditPage() {
       const res = await fetch("/api/inventory/stock-audit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ items: entries }),
+        body: JSON.stringify({
+          items: entries,
+          ...(selectedBranchId ? { branchId: selectedBranchId } : {}),
+        }),
       });
 
       clearInterval(progressInterval);
@@ -234,9 +292,22 @@ export default function StockAuditPage() {
         setLastAuditedAt(now);
         localStorage.setItem("lastStockAuditAt", now);
 
-        // Clear counts and refresh items
+        // Clear counts and refresh items + branch stock
         setPhysicalCounts({});
         fetchItems();
+        // Refresh branch stock map if branch-specific audit
+        if (selectedBranchId) {
+          fetch(`/api/branches/stock?branchId=${selectedBranchId}`)
+            .then((r) => r.ok ? r.json() : [])
+            .then((data: BranchStockEntry[]) => {
+              const map: Record<string, number> = {};
+              for (const entry of data) {
+                map[entry.itemId] = entry.quantity;
+              }
+              setBranchStockMap(map);
+            })
+            .catch(() => {});
+        }
       } else {
         const err = await res.json();
         alert(`Audit failed: ${err.error || "Unknown error"}`);
@@ -367,6 +438,37 @@ export default function StockAuditPage() {
         </div>
       </div>
 
+      {/* Branch Selector */}
+      {branches.length > 0 && (
+        <div className="mb-4 p-3 rounded-lg flex items-center gap-3" style={{ ...cardStyle, background: "var(--blue-50, #eff6ff)" }}>
+          <label className="text-[13px] font-bold uppercase tracking-wide" style={{ color: "var(--grey-600)" }}>
+            Branch
+          </label>
+          <select
+            value={selectedBranchId}
+            onChange={(e) => {
+              setSelectedBranchId(e.target.value);
+              setPhysicalCounts({});
+              setAuditResult(null);
+            }}
+            className="px-3 py-1.5 text-[14px] font-medium"
+            style={{ ...inputStyle, minWidth: "200px" }}
+          >
+            <option value="">All (Global Stock)</option>
+            {branches.map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.name} ({b.code}){b.isMainBranch ? " - Main" : ""}
+              </option>
+            ))}
+          </select>
+          {selectedBranchId && (
+            <span className="text-[12px] ml-2" style={{ color: "var(--grey-500)" }}>
+              System stock shows branch-level quantities
+            </span>
+          )}
+        </div>
+      )}
+
       {/* Filters */}
       <div className="p-4 rounded-lg mb-6" style={cardStyle}>
         <div className="flex flex-wrap items-center gap-3">
@@ -471,10 +573,11 @@ export default function StockAuditPage() {
               </thead>
               <tbody>
                 {filteredItems.map((item) => {
+                  const systemStock = getSystemStock(item);
                   const countStr = physicalCounts[item.id] ?? "";
                   const hasCount = countStr !== "";
                   const physical = hasCount ? parseInt(countStr, 10) : NaN;
-                  const diff = hasCount && !isNaN(physical) ? physical - item.currentStock : null;
+                  const diff = hasCount && !isNaN(physical) ? physical - systemStock : null;
 
                   return (
                     <tr
@@ -512,7 +615,7 @@ export default function StockAuditPage() {
                       </td>
                       <td className="px-4 py-3 text-right">
                         <span className="text-[15px] font-bold" style={{ color: "var(--grey-900)" }}>
-                          {item.currentStock}
+                          {systemStock}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-center">

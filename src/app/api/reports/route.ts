@@ -8,6 +8,7 @@ export async function GET(request: NextRequest) {
     const period = searchParams.get("period") || "month"; // week | month | quarter | year | custom
     const customFrom = searchParams.get("from");
     const customTo = searchParams.get("to");
+    const branchId = searchParams.get("branchId") || undefined; // optional branch filter
 
     const now = new Date();
     let fromDate: Date;
@@ -287,6 +288,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       period: { from: fromDate.toISOString(), to: toDate.toISOString(), label: period },
+      branchId: branchId || null,
       revenue: {
         total: Math.round(totalRevenue * 100) / 100,
         previousTotal: Math.round(prevRevenue * 100) / 100,

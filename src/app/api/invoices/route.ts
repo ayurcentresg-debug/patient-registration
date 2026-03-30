@@ -102,6 +102,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // ─── Resolve branchId ────────────────────────────────────────────────────
+    let branchId: string | null = body.branchId || null;
+    if (!branchId) {
+      // Default to the main branch
+      const mainBranch = await prisma.branch.findFirst({
+        where: { isMainBranch: true, isActive: true },
+      });
+      if (mainBranch) {
+        branchId = mainBranch.id;
+      }
+    }
+
     // Auto-generate invoice number: INV-YYYYMM-0001
     const now = new Date();
     const yearMonth = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}`;
@@ -265,6 +277,7 @@ export async function POST(request: NextRequest) {
         invoiceNumber,
         patientId: body.patientId || null,
         appointmentId: body.appointmentId || null,
+        branchId: branchId,
         patientName: body.patientName,
         patientPhone: body.patientPhone || null,
         subtotal: Math.round(subtotal * 100) / 100,
@@ -330,6 +343,39 @@ export async function POST(request: NextRequest) {
         );
       }
 
+      // ─── BranchStock deduction ──────────────────────────────────────────────
+      if (branchId) {
+        // BranchStock has @@unique([branchId, itemId, variantId]) — variantId may be null
+        const branchStock = await prisma.branchStock.findFirst({
+          where: {
+            branchId: branchId,
+            itemId: update.itemId,
+            variantId: update.variantId ?? null,
+          },
+        });
+
+        if (branchStock) {
+          if (branchStock.quantity < update.quantity) {
+            console.warn(
+              `[Invoice ${invoiceNumber}] Branch stock insufficient for item ${update.itemId} at branch ${branchId}. ` +
+              `Branch qty: ${branchStock.quantity}, sale qty: ${update.quantity}. Proceeding anyway.`
+            );
+          }
+          const newBranchQty = Math.max(branchStock.quantity - update.quantity, 0);
+          transactionOps.push(
+            prisma.branchStock.update({
+              where: { id: branchStock.id },
+              data: { quantity: newBranchQty },
+            })
+          );
+        } else {
+          console.warn(
+            `[Invoice ${invoiceNumber}] No BranchStock record found for item ${update.itemId} ` +
+            `(variant: ${update.variantId ?? "none"}) at branch ${branchId}. Skipping branch deduction.`
+          );
+        }
+      }
+
       transactionOps.push(
         prisma.stockTransaction.create({
           data: {
@@ -342,7 +388,9 @@ export async function POST(request: NextRequest) {
             previousStock: update.previousStock,
             newStock: update.newStock,
             reference: invoiceNumber,
-            notes: `Sale via invoice ${invoiceNumber}`,
+            notes: branchId
+              ? `Sale via invoice ${invoiceNumber} [branch:${branchId}]`
+              : `Sale via invoice ${invoiceNumber}`,
           },
         })
       );

@@ -58,6 +58,13 @@ interface MedicineResult {
   _count?: { variants: number };
 }
 
+interface BranchOption {
+  id: string;
+  name: string;
+  code: string;
+  isMainBranch: boolean;
+}
+
 interface InvoiceItem {
   id: string;
   type: "consultation" | "therapy" | "medicine" | "procedure" | "other";
@@ -171,6 +178,10 @@ export default function NewInvoicePage() {
   const [treatmentResults, setTreatmentResults] = useState<TreatmentOption[]>([]);
   const [searchingTreatment, setSearchingTreatment] = useState(false);
 
+  // Branch selection
+  const [branches, setBranches] = useState<BranchOption[]>([]);
+  const [selectedBranchId, setSelectedBranchId] = useState<string>("");
+
   // Summary
   const [discountMode, setDiscountMode] = useState<"percent" | "amount">("percent");
   const [discountPercent, setDiscountPercent] = useState(0);
@@ -180,6 +191,21 @@ export default function NewInvoicePage() {
   const [notes, setNotes] = useState("");
 
   useEffect(() => { setMounted(true); }, []);
+
+  // ─── Fetch active branches ────────────────────────────────────────────────
+  useEffect(() => {
+    fetch("/api/branches?active=true")
+      .then((r) => r.json())
+      .then((data: BranchOption[]) => {
+        const list = Array.isArray(data) ? data : [];
+        setBranches(list);
+        // Default to main branch
+        const main = list.find((b: BranchOption) => b.isMainBranch);
+        if (main) setSelectedBranchId(main.id);
+        else if (list.length > 0) setSelectedBranchId(list[0].id);
+      })
+      .catch(() => setBranches([]));
+  }, []);
 
   // ─── Auto-fill patient from URL params ────────────────────────────────────
   useEffect(() => {
@@ -451,6 +477,7 @@ export default function NewInvoicePage() {
         patientName: patientMode === "existing" ? `${selectedPatient?.firstName} ${selectedPatient?.lastName}` : walkInName,
         patientPhone: patientMode === "existing" ? selectedPatient?.phone : walkInPhone,
         appointmentId: selectedAppointment?.id || null,
+        branchId: selectedBranchId || null,
         items: items.map((item) => ({
           type: item.type,
           description: item.description,
@@ -518,6 +545,27 @@ export default function NewInvoicePage() {
       </div>
 
       <SectionNote type="tip" text="Select a patient (or walk-in), add consultation/medicine/treatment line items, set payment method, and click Create Invoice. The invoice number is generated automatically." />
+
+      {/* ── Branch Selector ────────────────────────────────────── */}
+      {branches.length > 0 && (
+        <div className="flex items-center gap-3 mb-4 p-3" style={{ ...cardStyle, background: "var(--grey-50, #f8f9fa)" }}>
+          <label className="text-[14px] font-semibold whitespace-nowrap" style={{ color: "var(--grey-700)" }}>
+            Billing Branch:
+          </label>
+          <select
+            value={selectedBranchId}
+            onChange={(e) => setSelectedBranchId(e.target.value)}
+            className="px-3 py-1.5 text-[14px]"
+            style={{ ...inputStyle, minWidth: 180 }}
+          >
+            {branches.map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.name} ({b.code}){b.isMainBranch ? " - Main" : ""}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* ── Left Column (2/3) ────────────────────────────────────── */}

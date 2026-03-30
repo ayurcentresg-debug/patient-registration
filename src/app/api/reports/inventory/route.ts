@@ -8,6 +8,7 @@ export async function GET(request: NextRequest) {
     const period = searchParams.get("period") || "month";
     const customFrom = searchParams.get("from");
     const customTo = searchParams.get("to");
+    const branchId = searchParams.get("branchId") || undefined; // optional branch filter
 
     const now = new Date();
     let fromDate: Date;
@@ -93,12 +94,60 @@ export async function GET(request: NextRequest) {
       }),
     ]);
 
+    // ─── Branch-specific stock overlay ────────────────────────────────────
+    // When branchId is provided, use BranchStock quantities instead of global currentStock
+    let branchStockMap: Map<string, number> | null = null;
+    if (branchId) {
+      const branchStocks = await prisma.branchStock.findMany({
+        where: { branchId },
+        select: { itemId: true, quantity: true },
+      });
+      branchStockMap = new Map(branchStocks.map((bs) => [bs.itemId, bs.quantity]));
+    }
+
+    // Helper: get effective stock for an item (branch-specific or global)
+    const getEffectiveStock = (itemId: string, globalStock: number): number => {
+      if (branchStockMap) {
+        return branchStockMap.get(itemId) ?? 0;
+      }
+      return globalStock;
+    };
+
     // Summary
     const totalItems = allItems.length;
-    const lowStockCount = lowStockItems.length;
     const expiringCount = expiringSoonItems.length;
     const expiredCount = expiredItems.length;
-    const totalStockValue = Math.round(allItems.reduce((s, i) => s + i.currentStock * i.unitPrice, 0) * 100) / 100;
+
+    // For branch filtering, recalculate low stock and stock value
+    let lowStockCount: number;
+    let totalStockValue: number;
+    let effectiveLowStockItems: typeof lowStockItems;
+
+    if (branchStockMap) {
+      // Low stock: items where branch quantity <= reorderLevel
+      effectiveLowStockItems = allItems
+        .filter((item) => {
+          const qty = branchStockMap!.get(item.id) ?? 0;
+          return qty <= item.reorderLevel;
+        })
+        .map((item) => ({
+          id: item.id,
+          name: item.name,
+          sku: item.sku || "",
+          currentStock: branchStockMap!.get(item.id) ?? 0,
+          reorderLevel: item.reorderLevel,
+          unit: item.unit,
+          category: item.category,
+        }));
+      lowStockCount = effectiveLowStockItems.length;
+      totalStockValue = Math.round(
+        allItems.reduce((s, i) => s + (branchStockMap!.get(i.id) ?? 0) * i.unitPrice, 0) * 100
+      ) / 100;
+    } else {
+      effectiveLowStockItems = lowStockItems;
+      lowStockCount = lowStockItems.length;
+      totalStockValue = Math.round(allItems.reduce((s, i) => s + i.currentStock * i.unitPrice, 0) * 100) / 100;
+    }
 
     // Expiring soon with daysUntilExpiry
     const expiringSoon = expiringSoonItems.map((item) => ({
@@ -138,7 +187,8 @@ export async function GET(request: NextRequest) {
     for (const item of allItems) {
       const entry = categoryMap.get(item.category) || { itemCount: 0, totalValue: 0, totalSold: 0 };
       entry.itemCount++;
-      entry.totalValue += item.currentStock * item.unitPrice;
+      const effectiveQty = getEffectiveStock(item.id, item.currentStock);
+      entry.totalValue += effectiveQty * item.unitPrice;
       categoryMap.set(item.category, entry);
     }
     // Add totalSold from sale transactions
@@ -187,6 +237,7 @@ export async function GET(request: NextRequest) {
       .sort((a, b) => b.totalValue - a.totalValue);
 
     return NextResponse.json({
+      branchId: branchId || null,
       summary: {
         totalItems,
         lowStockItems: lowStockCount,
@@ -194,7 +245,7 @@ export async function GET(request: NextRequest) {
         expiredItems: expiredCount,
         totalStockValue,
       },
-      lowStock: lowStockItems,
+      lowStock: effectiveLowStockItems,
       expiringSoon,
       topSelling,
       categoryBreakdown,

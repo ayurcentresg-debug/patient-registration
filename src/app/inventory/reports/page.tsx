@@ -110,31 +110,70 @@ export default function StockReportsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [categoryFilter, setCategoryFilter] = useState("all");
+  const [branches, setBranches] = useState<Array<{ id: string; name: string }>>([]);
+  const [selectedBranchId, setSelectedBranchId] = useState("");
 
   useEffect(() => {
     setMounted(true);
+  }, []);
+
+  // ─── Fetch Branches ─────────────────────────────────────────────────────────
+  useEffect(() => {
+    fetch("/api/branches?active=true")
+      .then((r) => (r.ok ? r.json() : []))
+      .then((data) => setBranches(Array.isArray(data) ? data : []))
+      .catch(() => {});
   }, []);
 
   // ─── Data Fetching ──────────────────────────────────────────────────────────
   const fetchAllItems = useCallback(() => {
     setLoading(true);
     setError(null);
-    fetch("/api/inventory")
+
+    const itemsPromise = fetch("/api/inventory")
       .then((r) => {
         if (!r.ok) throw new Error("Failed to fetch inventory");
         return r.json();
-      })
-      .then((data) => {
-        setAllItems(data);
+      });
+
+    // If branch selected, also fetch branch stock to overlay quantities
+    const branchStockPromise = selectedBranchId
+      ? fetch(`/api/branches/stock?branchId=${selectedBranchId}`)
+          .then((r) => (r.ok ? r.json() : []))
+      : Promise.resolve(null);
+
+    Promise.all([itemsPromise, branchStockPromise])
+      .then(([items, branchStock]) => {
+        if (branchStock && Array.isArray(branchStock)) {
+          // Overlay branch quantities onto items
+          const branchQtyMap = new Map<string, number>();
+          for (const bs of branchStock) {
+            branchQtyMap.set(bs.itemId, bs.quantity);
+          }
+          const overlaid = items.map((item: InventoryItem) => ({
+            ...item,
+            currentStock: branchQtyMap.get(item.id) ?? 0,
+          }));
+          setAllItems(overlaid);
+        } else {
+          setAllItems(items);
+        }
         setLoading(false);
       })
       .catch((err) => {
         setError(err.message);
         setLoading(false);
       });
-  }, []);
+  }, [selectedBranchId]);
 
   const fetchLowStock = useCallback(() => {
+    // When branch is selected, low stock is computed client-side from allItems
+    // (since allItems already has branch-overlaid quantities)
+    if (selectedBranchId) {
+      // Low stock will be derived from allItems in useMemo, skip API call
+      setLowStockItems([]);
+      return;
+    }
     fetch("/api/inventory?lowStock=true")
       .then((r) => {
         if (!r.ok) throw new Error("Failed");
@@ -142,7 +181,7 @@ export default function StockReportsPage() {
       })
       .then(setLowStockItems)
       .catch(() => {});
-  }, []);
+  }, [selectedBranchId]);
 
   const fetchExpiryItems = useCallback(() => {
     // Fetch items expiring within 90 days and already expired
@@ -152,8 +191,6 @@ export default function StockReportsPage() {
         return r.json();
       })
       .then((data) => {
-        // Also include items from allItems that have expired but might not come via expiringSoon
-        // The API returns items with expiryDate <= 30 days. We augment with wider range from allItems.
         setExpiryItems(data);
       })
       .catch(() => {});
@@ -164,6 +201,17 @@ export default function StockReportsPage() {
     fetchLowStock();
     fetchExpiryItems();
   }, [fetchAllItems, fetchLowStock, fetchExpiryItems]);
+
+  // ─── Branch-aware low stock (derived from overlaid allItems) ────────────────
+  const effectiveLowStockItems = useMemo(() => {
+    if (selectedBranchId) {
+      // Compute low stock from branch-overlaid allItems
+      return allItems.filter(
+        (item) => item.currentStock <= item.reorderLevel && item.status !== "discontinued"
+      );
+    }
+    return lowStockItems;
+  }, [selectedBranchId, allItems, lowStockItems]);
 
   // ─── Computed: expiry items with wider range ──────────────────────────────
   const expiryReportItems = useMemo(() => {
@@ -214,13 +262,13 @@ export default function StockReportsPage() {
 
   // ─── Low Stock Totals ─────────────────────────────────────────────────────
   const lowStockTotals = useMemo(() => {
-    const totalToReorder = lowStockItems.length;
-    const totalEstimatedCost = lowStockItems.reduce((sum, item) => {
+    const totalToReorder = effectiveLowStockItems.length;
+    const totalEstimatedCost = effectiveLowStockItems.reduce((sum, item) => {
       const shortage = Math.max(0, item.reorderLevel - item.currentStock);
       return sum + shortage * (item.costPrice || 0);
     }, 0);
     return { totalToReorder, totalEstimatedCost };
-  }, [lowStockItems]);
+  }, [effectiveLowStockItems]);
 
   // ─── Expiry Totals ────────────────────────────────────────────────────────
   const expiryTotals = useMemo(() => {
@@ -276,7 +324,7 @@ export default function StockReportsPage() {
       "Name", "SKU", "Packing", "Current Stock", "Reorder Level",
       "Shortage", "Unit", "Estimated Cost",
     ];
-    const rows = lowStockItems.map((item) => {
+    const rows = effectiveLowStockItems.map((item) => {
       const shortage = Math.max(0, item.reorderLevel - item.currentStock);
       return [
         escapeCSV(item.name),
@@ -303,7 +351,7 @@ export default function StockReportsPage() {
   // ─── Kottakkal Indent Export ──────────────────────────────────────────────
   function exportKottakkalIndent() {
     const headers = ["Code", "Name of Medicine", "Unit", "Qty"];
-    const rows = lowStockItems.map((item) => {
+    const rows = effectiveLowStockItems.map((item) => {
       const shortage = Math.max(0, item.reorderLevel - item.currentStock);
       return [
         escapeCSV(item.manufacturerCode || item.sku),
@@ -406,10 +454,26 @@ export default function StockReportsPage() {
 
       <div style={{ padding: "0 32px 32px" }}>
         {/* ─── Page Header ──────────────────────────────────────────────── */}
-        <div className="no-print" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
+        <div className="no-print" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24, flexWrap: "wrap", gap: 12 }}>
           <h1 style={{ fontSize: "22px", fontWeight: 800, color: "var(--grey-900)" }}>
             Stock Reports
+            {selectedBranchId && branches.length > 0 && (
+              <span style={{ fontSize: "14px", fontWeight: 500, color: "var(--blue-500)", marginLeft: 8 }}>
+                — {branches.find((b) => b.id === selectedBranchId)?.name || "Branch"}
+              </span>
+            )}
           </h1>
+          <select
+            value={selectedBranchId}
+            onChange={(e) => setSelectedBranchId(e.target.value)}
+            className="px-3 py-2 text-[14px]"
+            style={{ ...cardStyle, cursor: "pointer", minWidth: 200 }}
+          >
+            <option value="">All Branches</option>
+            {branches.map((b) => (
+              <option key={b.id} value={b.id}>{b.name}</option>
+            ))}
+          </select>
         </div>
 
         {/* ─── Report Type Tabs ─────────────────────────────────────────── */}
@@ -656,14 +720,14 @@ export default function StockReportsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {lowStockItems.length === 0 ? (
+                  {effectiveLowStockItems.length === 0 ? (
                     <tr>
                       <td colSpan={8} style={{ padding: 32, textAlign: "center", color: "var(--grey-400)" }}>
                         No low stock items found — all items are adequately stocked
                       </td>
                     </tr>
                   ) : (
-                    lowStockItems.map((item) => {
+                    effectiveLowStockItems.map((item) => {
                       const shortage = Math.max(0, item.reorderLevel - item.currentStock);
                       return (
                         <tr key={item.id} style={{ borderBottom: "1px solid var(--grey-100)", background: item.currentStock === 0 ? "#ffebee" : "transparent" }}>
@@ -696,7 +760,7 @@ export default function StockReportsPage() {
                     })
                   )}
                 </tbody>
-                {lowStockItems.length > 0 && (
+                {effectiveLowStockItems.length > 0 && (
                   <tfoot>
                     <tr style={{ borderTop: "2px solid var(--grey-300)", background: "var(--grey-50, #fafafa)" }}>
                       <td className="px-4 py-3 text-[13px] font-bold" style={{ color: "var(--grey-900)" }}>
