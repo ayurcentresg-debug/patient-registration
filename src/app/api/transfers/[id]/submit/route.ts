@@ -134,6 +134,22 @@ export async function POST(
       return result;
     });
 
+    // Create notification for the destination branch (outside transaction — non-blocking)
+    try {
+      const totalItems = transfer.items.reduce((sum, item) => sum + item.quantitySent, 0);
+      await prisma.notification.create({
+        data: {
+          type: "transfer_incoming",
+          title: "Incoming Transfer",
+          message: `Transfer ${transfer.transferNumber} from ${updatedTransfer.fromBranch.name} is on its way. ${totalItems} item${totalItems !== 1 ? "s" : ""}.`,
+          link: `/inventory/transfers/${transfer.id}`,
+          branchId: transfer.toBranchId,
+        },
+      });
+    } catch (notifError) {
+      console.error("Failed to create transfer notification:", notifError);
+    }
+
     return NextResponse.json(updatedTransfer);
   } catch (error) {
     console.error("Error submitting transfer:", error);

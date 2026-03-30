@@ -188,6 +188,21 @@ export async function POST(
       return result;
     });
 
+    // Create notification for the sender branch (outside transaction — non-blocking)
+    try {
+      await prisma.notification.create({
+        data: {
+          type: "transfer_received",
+          title: "Transfer Received",
+          message: `Transfer ${transfer.transferNumber} has been received at ${transfer.toBranch.name}.`,
+          link: `/inventory/transfers/${transfer.id}`,
+          branchId: transfer.fromBranchId,
+        },
+      });
+    } catch (notifError) {
+      console.error("Failed to create transfer received notification:", notifError);
+    }
+
     return NextResponse.json(updatedTransfer);
   } catch (error) {
     console.error("Error receiving transfer:", error);

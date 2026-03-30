@@ -45,6 +45,17 @@ interface ReminderItem {
   dueDate?: string;
 }
 
+interface NotificationItem {
+  id: string;
+  type: string;
+  title: string;
+  message: string;
+  link?: string;
+  branchId?: string;
+  isRead: boolean;
+  createdAt: string;
+}
+
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
@@ -72,10 +83,11 @@ export default function Sidebar() {
   const [notifOpen, setNotifOpen] = useState(false);
   const [lowStockAlerts, setLowStockAlerts] = useState<AlertItem[]>([]);
   const [pendingReminders, setPendingReminders] = useState<ReminderItem[]>([]);
+  const [transferNotifications, setTransferNotifications] = useState<NotificationItem[]>([]);
   const [notifLoading, setNotifLoading] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
 
-  const totalNotifCount = lowStockAlerts.length + pendingReminders.length;
+  const totalNotifCount = lowStockAlerts.length + pendingReminders.length + transferNotifications.length;
 
   useEffect(() => {
     setMounted(true);
@@ -85,9 +97,10 @@ export default function Sidebar() {
   const fetchNotifications = useCallback(async () => {
     setNotifLoading(true);
     try {
-      const [alertsRes, remindersRes] = await Promise.allSettled([
+      const [alertsRes, remindersRes, notificationsRes] = await Promise.allSettled([
         fetch("/api/inventory/alerts"),
         fetch("/api/reminders?status=pending"),
+        fetch("/api/notifications"),
       ]);
 
       if (alertsRes.status === "fulfilled" && alertsRes.value.ok) {
@@ -98,6 +111,11 @@ export default function Sidebar() {
       if (remindersRes.status === "fulfilled" && remindersRes.value.ok) {
         const data = await remindersRes.value.json();
         setPendingReminders(Array.isArray(data) ? data : data.reminders || data.items || []);
+      }
+
+      if (notificationsRes.status === "fulfilled" && notificationsRes.value.ok) {
+        const data = await notificationsRes.value.json();
+        setTransferNotifications(Array.isArray(data) ? data : data.notifications || []);
       }
     } catch {
       // Silently fail - notifications are non-critical
@@ -171,6 +189,20 @@ export default function Sidebar() {
       return [patient.firstName, patient.lastName].filter(Boolean).join(" ");
     }
     return `Patient #${patient.id}`;
+  }
+
+  function getTimeAgo(dateString: string): string {
+    const now = new Date();
+    const date = new Date(dateString);
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    if (diffMins < 1) return "Just now";
+    if (diffMins < 60) return `${diffMins}m ago`;
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours}h ago`;
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return date.toLocaleDateString();
   }
 
   function handleSearchResultClick(patientId: string) {
@@ -491,10 +523,99 @@ export default function Sidebar() {
                       ))}
                     </>
                   )}
+
+                  {/* Transfer / System Notifications */}
+                  {transferNotifications.length > 0 && (
+                    <>
+                      <div style={{ padding: "8px 14px 4px", fontSize: 10, fontWeight: 700, color: "var(--grey-500, #6b7280)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                        Transfer Updates
+                      </div>
+                      {transferNotifications.slice(0, 5).map((notif) => {
+                        const iconColor =
+                          notif.type === "transfer_incoming" ? "#3b82f6" :
+                          notif.type === "transfer_received" ? "#22c55e" :
+                          notif.type === "transfer_cancelled" ? "#ef4444" : "#6b7280";
+                        const bgColor =
+                          notif.type === "transfer_incoming" ? "#eff6ff" :
+                          notif.type === "transfer_received" ? "#f0fdf4" :
+                          notif.type === "transfer_cancelled" ? "#fef2f2" : "#f9fafb";
+                        const iconPath =
+                          notif.type === "transfer_incoming"
+                            ? "M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+                            : notif.type === "transfer_received"
+                            ? "M5 13l4 4L19 7"
+                            : notif.type === "transfer_cancelled"
+                            ? "M6 18L18 6M6 6l12 12"
+                            : "M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z";
+                        const timeAgo = getTimeAgo(notif.createdAt);
+
+                        return (
+                          <Link
+                            key={notif.id}
+                            href={notif.link || "/inventory/transfers"}
+                            onClick={() => {
+                              setNotifOpen(false);
+                              // Mark this notification as read
+                              fetch("/api/notifications", {
+                                method: "PUT",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ ids: [notif.id] }),
+                              }).catch(() => {});
+                            }}
+                            style={{
+                              display: "flex",
+                              alignItems: "flex-start",
+                              gap: 10,
+                              padding: "8px 14px",
+                              textDecoration: "none",
+                              borderBottom: "1px solid var(--grey-100, #f3f4f6)",
+                              borderLeft: "3px solid " + iconColor,
+                              cursor: "pointer",
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor = "var(--grey-50, #f9fafb)";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor = "transparent";
+                            }}
+                          >
+                            <div
+                              style={{
+                                width: 28,
+                                height: 28,
+                                borderRadius: 6,
+                                backgroundColor: bgColor,
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                flexShrink: 0,
+                                marginTop: 1,
+                              }}
+                            >
+                              <svg style={{ width: 14, height: 14 }} fill="none" stroke={iconColor} viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={iconPath} />
+                              </svg>
+                            </div>
+                            <div style={{ minWidth: 0, flex: 1 }}>
+                              <div style={{ fontSize: 12, fontWeight: 600, color: "var(--grey-900, #111)", lineHeight: 1.3 }}>
+                                {notif.title}
+                              </div>
+                              <div style={{ fontSize: 11, color: "var(--grey-500, #6b7280)", marginTop: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                {notif.message}
+                              </div>
+                              <div style={{ fontSize: 10, color: "var(--grey-400, #9ca3af)", marginTop: 2 }}>
+                                {timeAgo}
+                              </div>
+                            </div>
+                          </Link>
+                        );
+                      })}
+                    </>
+                  )}
                 </div>
 
                 {totalNotifCount > 0 && (
-                  <div style={{ borderTop: "1px solid var(--grey-200, #e5e7eb)", padding: "8px 14px" }}>
+                  <div style={{ borderTop: "1px solid var(--grey-200, #e5e7eb)", padding: "8px 14px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <Link
                       href="/inventory/alerts"
                       onClick={() => setNotifOpen(false)}
@@ -507,6 +628,37 @@ export default function Sidebar() {
                     >
                       View all alerts
                     </Link>
+                    {transferNotifications.length > 0 && (
+                      <button
+                        onClick={async (e) => {
+                          e.preventDefault();
+                          try {
+                            await fetch("/api/notifications", {
+                              method: "PUT",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ markAllRead: true }),
+                            });
+                            setTransferNotifications([]);
+                          } catch {
+                            // Silently fail
+                          }
+                        }}
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 600,
+                          color: "var(--grey-500, #6b7280)",
+                          textDecoration: "none",
+                          background: "none",
+                          border: "none",
+                          cursor: "pointer",
+                          padding: 0,
+                        }}
+                        onMouseEnter={(e) => { e.currentTarget.style.color = "var(--blue-500, #3b82f6)"; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.color = "var(--grey-500, #6b7280)"; }}
+                      >
+                        Mark all read
+                      </button>
+                    )}
                   </div>
                 )}
               </div>

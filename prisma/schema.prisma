@@ -861,6 +861,20 @@ model PackageRefund {
   patientPackage    PatientPackage @relation(fields: [patientPackageId], references: [id], onDelete: Cascade)
 }
 
+// ─── Notifications ──────────────────────────────────────────────────────
+
+model Notification {
+  id          String   @id @default(cuid())
+  type        String   // transfer_incoming | transfer_received | transfer_cancelled | low_stock | po_received | general
+  title       String
+  message     String
+  link        String?  // URL to navigate to when clicked
+  branchId    String?  // target branch (null = all branches)
+  userId      String?  // target user (null = all users at branch)
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
 // ─── Audit Log ───────────────────────────────────────────────────────────
 
 model AuditLog {

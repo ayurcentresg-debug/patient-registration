@@ -61,6 +61,7 @@ export async function POST(
     }
 
     // Status is "in_transit": reverse stock deductions
+    const wasInTransit = true; // flag to create notification after transaction
     const updatedTransfer = await prisma.$transaction(async (tx) => {
       // Update transfer status to cancelled
       const result = await tx.stockTransfer.update({
@@ -140,6 +141,23 @@ export async function POST(
 
       return result;
     });
+
+    // Notify destination branch that an in_transit transfer was cancelled (outside transaction)
+    if (wasInTransit) {
+      try {
+        await prisma.notification.create({
+          data: {
+            type: "transfer_cancelled",
+            title: "Transfer Cancelled",
+            message: `Transfer ${transfer.transferNumber} from ${transfer.fromBranch.name} has been cancelled.`,
+            link: `/inventory/transfers/${transfer.id}`,
+            branchId: transfer.toBranchId,
+          },
+        });
+      } catch (notifError) {
+        console.error("Failed to create transfer cancelled notification:", notifError);
+      }
+    }
 
     return NextResponse.json(updatedTransfer);
   } catch (error) {
