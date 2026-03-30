@@ -169,6 +169,12 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [hoveredBar, setHoveredBar] = useState<number | null>(null);
   const [hoveredTrendBar, setHoveredTrendBar] = useState<number | null>(null);
+  const [inventoryStats, setInventoryStats] = useState<{
+    totalItems: number;
+    totalValue: number;
+    lowStockCount: number;
+    expiringSoonCount: number;
+  } | null>(null);
 
   useEffect(() => {
     fetch("/api/dashboard")
@@ -179,6 +185,14 @@ export default function Dashboard() {
       .then(setData)
       .catch((err) => console.error("Dashboard fetch failed:", err))
       .finally(() => setLoading(false));
+
+    fetch("/api/inventory/stats")
+      .then((r) => {
+        if (!r.ok) throw new Error(`API error: ${r.status}`);
+        return r.json();
+      })
+      .then(setInventoryStats)
+      .catch((err) => console.error("Inventory stats fetch failed:", err));
   }, []);
 
   if (loading) {
@@ -316,6 +330,76 @@ export default function Dashboard() {
           icon="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
           color="blue"
         />
+      </div>
+
+      {/* ═══════ Inventory Overview ═══════ */}
+      <div className="mb-6">
+        <h2 className="text-[16px] font-bold mb-3" style={{ color: "var(--grey-900)" }}>Inventory Overview</h2>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <Link href="/inventory" className="block">
+            <div className="p-4 transition-shadow duration-150 hover:shadow-md" style={{ ...cardStyle, boxShadow: "var(--shadow-sm)" }}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-[14px] font-semibold uppercase tracking-wide" style={{ color: "var(--grey-600)" }}>Total Items</p>
+                  <p className="text-[28px] font-bold mt-1 tracking-tight" style={{ color: "var(--grey-900)" }}>{inventoryStats?.totalItems ?? 0}</p>
+                </div>
+                <div className="w-11 h-11 flex items-center justify-center" style={{ background: "var(--blue-50)", borderRadius: "var(--radius-sm)", color: "var(--blue-500)" }}>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </Link>
+
+          <Link href="/inventory" className="block">
+            <div className="p-4 transition-shadow duration-150 hover:shadow-md" style={{ ...cardStyle, boxShadow: "var(--shadow-sm)" }}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-[14px] font-semibold uppercase tracking-wide" style={{ color: "var(--grey-600)" }}>Stock Value</p>
+                  <p className="text-[28px] font-bold mt-1 tracking-tight" style={{ color: "var(--grey-900)" }}>{formatCurrency(inventoryStats?.totalValue ?? 0)}</p>
+                </div>
+                <div className="w-11 h-11 flex items-center justify-center" style={{ background: "#d1f2e0", borderRadius: "var(--radius-sm)", color: "#2d6a4f" }}>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </Link>
+
+          <Link href="/inventory/alerts" className="block">
+            <div className="p-4 transition-shadow duration-150 hover:shadow-md" style={{ ...cardStyle, boxShadow: "var(--shadow-sm)", borderColor: (inventoryStats?.lowStockCount ?? 0) > 0 ? "var(--red)" : undefined }}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-[14px] font-semibold uppercase tracking-wide" style={{ color: (inventoryStats?.lowStockCount ?? 0) > 0 ? "var(--red)" : "var(--grey-600)" }}>Low Stock</p>
+                  <p className="text-[28px] font-bold mt-1 tracking-tight" style={{ color: (inventoryStats?.lowStockCount ?? 0) > 0 ? "var(--red)" : "var(--grey-900)" }}>{inventoryStats?.lowStockCount ?? 0}</p>
+                </div>
+                <div className="w-11 h-11 flex items-center justify-center" style={{ background: (inventoryStats?.lowStockCount ?? 0) > 0 ? "var(--red-light)" : "var(--orange-light)", borderRadius: "var(--radius-sm)", color: (inventoryStats?.lowStockCount ?? 0) > 0 ? "var(--red)" : "var(--orange)" }}>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </Link>
+
+          <Link href="/inventory/alerts" className="block">
+            <div className="p-4 transition-shadow duration-150 hover:shadow-md" style={{ ...cardStyle, boxShadow: "var(--shadow-sm)", borderColor: (inventoryStats?.expiringSoonCount ?? 0) > 0 ? "#ea580c" : undefined }}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-[14px] font-semibold uppercase tracking-wide" style={{ color: (inventoryStats?.expiringSoonCount ?? 0) > 0 ? "#ea580c" : "var(--grey-600)" }}>Expiring Soon</p>
+                  <p className="text-[28px] font-bold mt-1 tracking-tight" style={{ color: (inventoryStats?.expiringSoonCount ?? 0) > 0 ? "#ea580c" : "var(--grey-900)" }}>{inventoryStats?.expiringSoonCount ?? 0}</p>
+                </div>
+                <div className="w-11 h-11 flex items-center justify-center" style={{ background: (inventoryStats?.expiringSoonCount ?? 0) > 0 ? "#fff7ed" : "var(--grey-100)", borderRadius: "var(--radius-sm)", color: (inventoryStats?.expiringSoonCount ?? 0) > 0 ? "#ea580c" : "var(--grey-500)" }}>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </Link>
+        </div>
       </div>
 
       {/* ═══════ Row 2: Charts ═══════ */}
