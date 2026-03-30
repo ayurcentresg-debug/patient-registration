@@ -303,11 +303,15 @@ export default function TransferDetailPage() {
     try {
       const items = Object.entries(receiveQtys)
         .filter(([, qty]) => qty > 0)
-        .map(([itemId, receivedQty]) => ({
-          itemId,
-          receivedQty,
-          notes: receiveNotes[itemId] || undefined,
-        }));
+        .map(([transferItemId, qty]) => {
+          // Map transfer item ID to inventory item ID
+          const ti = transfer?.items.find((i) => i.id === transferItemId);
+          return {
+            itemId: ti?.itemId || transferItemId,
+            quantityReceived: qty,
+            notes: receiveNotes[transferItemId] || undefined,
+          };
+        });
 
       if (items.length === 0) {
         setToast({ message: "Please enter quantities to receive", type: "error" });
