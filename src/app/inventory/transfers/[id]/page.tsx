@@ -144,11 +144,23 @@ export default function TransferDetailPage() {
         return r.json();
       })
       .then((data) => {
-        setTransfer(data);
+        // Map nested item data to flat structure
+        const mapped = {
+          ...data,
+          initiatedByName: data.initiatedByUser?.name || data.initiatedBy || null,
+          receivedByName: data.receivedByUser?.name || data.receivedBy || null,
+          items: (data.items || []).map((ti: { id: string; itemId: string; item?: { name?: string; sku?: string; packing?: string | null }; itemName?: string; sku?: string; packing?: string | null; quantitySent: number; quantityReceived: number; notes: string | null }) => ({
+            ...ti,
+            itemName: ti.item?.name || ti.itemName || "Unknown",
+            sku: ti.item?.sku || ti.sku || "",
+            packing: ti.item?.packing || ti.packing || null,
+          })),
+        };
+        setTransfer(mapped);
         // Init receive quantities
         const qtys: Record<string, number> = {};
         const notes: Record<string, string> = {};
-        (data.items || []).forEach((item: TransferItem) => {
+        (mapped.items || []).forEach((item: TransferItem) => {
           qtys[item.id] = 0;
           notes[item.id] = "";
         });
