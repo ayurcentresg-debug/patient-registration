@@ -10,6 +10,7 @@ export async function GET(request: NextRequest) {
     const from = searchParams.get("from");
     const to = searchParams.get("to");
     const search = searchParams.get("search");
+    const branchId = searchParams.get("branchId");
 
     const where: Record<string, unknown> = {};
 
@@ -34,6 +35,10 @@ export async function GET(request: NextRequest) {
         dateFilter.lte = toDate;
       }
       where.date = dateFilter;
+    }
+
+    if (branchId) {
+      where.branchId = branchId;
     }
 
     if (search) {

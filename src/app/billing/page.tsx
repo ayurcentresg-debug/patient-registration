@@ -107,6 +107,8 @@ export default function BillingPage() {
 
   // Filters
   const [statusFilter, setStatusFilter] = useState("all");
+  const [branchFilter, setBranchFilter] = useState("all");
+  const [branches, setBranches] = useState<{ id: string; name: string; code: string; isMainBranch: boolean }[]>([]);
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
 
@@ -115,6 +117,14 @@ export default function BillingPage() {
   const [sortDir, setSortDir] = useState<SortDir>("desc");
 
   useEffect(() => { setMounted(true); }, []);
+
+  // Fetch branches
+  useEffect(() => {
+    fetch("/api/branches?active=true")
+      .then((r) => r.ok ? r.json() : [])
+      .then((list) => setBranches(Array.isArray(list) ? list : []))
+      .catch(() => {});
+  }, []);
 
   // ─── Fetch Stats ──────────────────────────────────────────────────────────
   const fetchStats = useCallback(() => {
@@ -139,6 +149,7 @@ export default function BillingPage() {
     const params = new URLSearchParams();
     if (search) params.set("search", search);
     if (statusFilter !== "all") params.set("status", statusFilter);
+    if (branchFilter !== "all") params.set("branchId", branchFilter);
     if (dateFrom) params.set("dateFrom", dateFrom);
     if (dateTo) params.set("dateTo", dateTo);
 
@@ -167,7 +178,7 @@ export default function BillingPage() {
       })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
-  }, [search, statusFilter, dateFrom, dateTo]);
+  }, [search, statusFilter, branchFilter, dateFrom, dateTo]);
 
   useEffect(() => {
     const timeout = setTimeout(fetchInvoices, 300);
@@ -380,6 +391,19 @@ export default function BillingPage() {
             {STATUS_OPTIONS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
           </select>
 
+          {/* Branch Filter */}
+          {branches.length > 0 && (
+            <select
+              value={branchFilter}
+              onChange={(e) => setBranchFilter(e.target.value)}
+              className="px-3 py-2 text-[15px]"
+              style={{ border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)", minWidth: 150 }}
+            >
+              <option value="all">All Branches</option>
+              {branches.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+            </select>
+          )}
+
           {/* Date From */}
           <input
             type="date"
@@ -401,10 +425,10 @@ export default function BillingPage() {
           />
         </div>
 
-        {(search || statusFilter !== "all" || dateFrom || dateTo) && (
+        {(search || statusFilter !== "all" || branchFilter !== "all" || dateFrom || dateTo) && (
           <div className="flex items-center">
             <button
-              onClick={() => { setSearch(""); setStatusFilter("all"); setDateFrom(""); setDateTo(""); }}
+              onClick={() => { setSearch(""); setStatusFilter("all"); setBranchFilter("all"); setDateFrom(""); setDateTo(""); }}
               className="text-[13px] font-semibold hover:underline"
               style={{ color: "var(--blue-500)" }}
             >
@@ -438,11 +462,11 @@ export default function BillingPage() {
             </svg>
           </div>
           <p className="text-[16px] font-semibold" style={{ color: "var(--grey-700)" }}>
-            {search || statusFilter !== "all" || dateFrom || dateTo ? "No invoices match your filters" : "No invoices found"}
+            {search || statusFilter !== "all" || branchFilter !== "all" || dateFrom || dateTo ? "No invoices match your filters" : "No invoices found"}
           </p>
-          {(search || statusFilter !== "all" || dateFrom || dateTo) ? (
+          {(search || statusFilter !== "all" || branchFilter !== "all" || dateFrom || dateTo) ? (
             <button
-              onClick={() => { setSearch(""); setStatusFilter("all"); setDateFrom(""); setDateTo(""); }}
+              onClick={() => { setSearch(""); setStatusFilter("all"); setBranchFilter("all"); setDateFrom(""); setDateTo(""); }}
               className="text-[14px] font-semibold mt-2 hover:underline"
               style={{ color: "var(--blue-500)" }}
             >
