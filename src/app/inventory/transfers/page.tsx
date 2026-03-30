@@ -75,6 +75,14 @@ function formatStatusLabel(status: string): string {
 // ═══════════════════════════════════════════════════════════════════════════════
 // MAIN COMPONENT
 // ═══════════════════════════════════════════════════════════════════════════════
+interface TransferTemplateListItem {
+  id: string;
+  name: string;
+  fromBranch: { name: string };
+  toBranch: { name: string };
+  itemCount: number;
+}
+
 export default function TransfersPage() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
@@ -85,6 +93,9 @@ export default function TransfersPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  // Templates dropdown
+  const [templates, setTemplates] = useState<TransferTemplateListItem[]>([]);
+  const [showTemplateDropdown, setShowTemplateDropdown] = useState(false);
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -116,6 +127,14 @@ export default function TransfersPage() {
     const timeout = setTimeout(fetchTransfers, 300);
     return () => clearTimeout(timeout);
   }, [fetchTransfers]);
+
+  // Fetch templates for dropdown
+  useEffect(() => {
+    fetch("/api/transfers/templates")
+      .then((r) => r.ok ? r.json() : [])
+      .then((data) => setTemplates(Array.isArray(data) ? data : []))
+      .catch(() => {});
+  }, []);
 
   // ─── Stats ──────────────────────────────────────────────────────────────
   const stats: TransferStats = useMemo(() => {
@@ -161,16 +180,69 @@ export default function TransfersPage() {
           <h2 className="text-[18px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>Stock Transfers</h2>
           <p className="text-[15px] mt-0.5" style={{ color: "var(--grey-600)" }}>Move stock between branches and track deliveries</p>
         </div>
-        <Link
-          href="/inventory/transfers/new"
-          className="inline-flex items-center justify-center gap-2 text-white px-5 py-2 text-[15px] font-semibold transition-colors duration-150"
-          style={btnPrimary}
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          New Transfer
-        </Link>
+        <div className="flex items-center gap-2">
+          {/* From Template dropdown */}
+          <div className="relative">
+            <button
+              onClick={() => setShowTemplateDropdown((v) => !v)}
+              className="inline-flex items-center justify-center gap-2 px-4 py-2 text-[15px] font-semibold transition-colors duration-150"
+              style={{ borderRadius: "var(--radius-sm)", border: "1px solid var(--grey-300)", color: "var(--grey-700)", background: "var(--white)" }}
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+              </svg>
+              From Template
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            {showTemplateDropdown && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setShowTemplateDropdown(false)} />
+                <div
+                  className="absolute right-0 top-full mt-1 w-80 z-50 overflow-y-auto"
+                  style={{ background: "var(--white)", borderRadius: "var(--radius)", border: "1px solid var(--grey-300)", boxShadow: "var(--shadow-lg)", maxHeight: 300 }}
+                >
+                  {templates.length === 0 ? (
+                    <div className="px-4 py-6 text-center">
+                      <p className="text-[14px]" style={{ color: "var(--grey-500)" }}>No templates yet</p>
+                      <p className="text-[13px] mt-1" style={{ color: "var(--grey-400)" }}>Save a transfer as a template first</p>
+                    </div>
+                  ) : (
+                    templates.map((tpl) => (
+                      <button
+                        key={tpl.id}
+                        onClick={() => {
+                          setShowTemplateDropdown(false);
+                          router.push(`/inventory/transfers/new?templateId=${tpl.id}`);
+                        }}
+                        className="w-full text-left px-4 py-3 transition-colors duration-100"
+                        style={{ borderBottom: "1px solid var(--grey-100)" }}
+                        onMouseEnter={(e) => { e.currentTarget.style.background = "var(--grey-50)"; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+                      >
+                        <p className="text-[15px] font-semibold" style={{ color: "var(--grey-900)" }}>{tpl.name}</p>
+                        <p className="text-[13px] mt-0.5" style={{ color: "var(--grey-500)" }}>
+                          {tpl.fromBranch?.name} &rarr; {tpl.toBranch?.name} &middot; {tpl.itemCount} item{tpl.itemCount !== 1 ? "s" : ""}
+                        </p>
+                      </button>
+                    ))
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+          <Link
+            href="/inventory/transfers/new"
+            className="inline-flex items-center justify-center gap-2 text-white px-5 py-2 text-[15px] font-semibold transition-colors duration-150"
+            style={btnPrimary}
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            New Transfer
+          </Link>
+        </div>
       </div>
 
       {/* ── Stats Cards ──────────────────────────────────────────── */}

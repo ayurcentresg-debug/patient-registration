@@ -134,6 +134,11 @@ export default function TransferDetailPage() {
   const [receiveNotes, setReceiveNotes] = useState<Record<string, string>>({});
   const [scannerActive, setScannerActive] = useState(false);
   const [highlightedItemId, setHighlightedItemId] = useState<string | null>(null);
+  // Save as Template
+  const [showTemplateModal, setShowTemplateModal] = useState(false);
+  const [templateName, setTemplateName] = useState("");
+  const [templateDesc, setTemplateDesc] = useState("");
+  const [savingTemplate, setSavingTemplate] = useState(false);
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -242,6 +247,46 @@ export default function TransferDetailPage() {
         }
       },
     });
+  }
+
+  // ─── Save as Template ──────────────────────────────────────────────────────
+  async function handleSaveTemplate() {
+    if (!transfer) return;
+    if (!templateName.trim()) {
+      setToast({ message: "Please enter a template name", type: "error" });
+      return;
+    }
+    setSavingTemplate(true);
+    try {
+      const res = await fetch("/api/transfers/templates", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: templateName.trim(),
+          description: templateDesc.trim() || undefined,
+          fromBranchId: transfer.fromBranchId,
+          toBranchId: transfer.toBranchId,
+          createdBy: user?.id,
+          items: transfer.items.map((item) => ({
+            itemId: item.itemId,
+            variantId: undefined,
+            quantity: item.quantitySent,
+          })),
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || "Failed to save template");
+      }
+      setToast({ message: `Template saved: ${templateName.trim()}`, type: "success" });
+      setShowTemplateModal(false);
+      setTemplateName("");
+      setTemplateDesc("");
+    } catch (e) {
+      setToast({ message: e instanceof Error ? e.message : "Failed to save template", type: "error" });
+    } finally {
+      setSavingTemplate(false);
+    }
   }
 
   // ─── Barcode Scan Handler ──────────────────────────────────────────────────
@@ -436,6 +481,17 @@ export default function TransferDetailPage() {
                 </span>
               </button>
             )}
+            {/* Save as Template — available for any status */}
+            <button
+              onClick={() => setShowTemplateModal(true)}
+              className="px-4 py-2 text-[15px] font-semibold"
+              style={{ borderRadius: "var(--radius-sm)", border: "1px solid var(--grey-300)", color: "var(--grey-700)" }}
+            >
+              <span className="inline-flex items-center gap-1.5">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>
+                Save as Template
+              </span>
+            </button>
           </div>
         </div>
 
@@ -823,6 +879,63 @@ export default function TransferDetailPage() {
           onConfirm={confirmDialog.onConfirm}
           onCancel={() => { setConfirmDialog(prev => ({ ...prev, open: false })); setConfirmLoading(false); }}
         />
+
+        {/* Save as Template Modal */}
+        {showTemplateModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.4)" }} onClick={() => setShowTemplateModal(false)}>
+            <div className="w-full max-w-md mx-4 p-6" style={{ background: "var(--white)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-lg)" }} onClick={(e) => e.stopPropagation()}>
+              <h3 className="text-[18px] font-bold mb-1" style={{ color: "var(--grey-900)" }}>Save as Template</h3>
+              <p className="text-[14px] mb-4" style={{ color: "var(--grey-500)" }}>
+                Save this transfer&apos;s branches and items as a reusable template.
+              </p>
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Template Name *</label>
+                  <input
+                    type="text"
+                    value={templateName}
+                    onChange={(e) => setTemplateName(e.target.value)}
+                    placeholder="e.g. Weekly Bedok Restock"
+                    className="w-full px-3 py-2 text-[15px]"
+                    style={inputStyle}
+                    autoFocus
+                  />
+                </div>
+                <div>
+                  <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Description</label>
+                  <input
+                    type="text"
+                    value={templateDesc}
+                    onChange={(e) => setTemplateDesc(e.target.value)}
+                    placeholder="Optional description..."
+                    className="w-full px-3 py-2 text-[15px]"
+                    style={inputStyle}
+                  />
+                </div>
+                <div className="text-[13px] px-3 py-2" style={{ background: "var(--grey-50)", borderRadius: "var(--radius-sm)", color: "var(--grey-600)" }}>
+                  {transfer?.fromBranch.name} &rarr; {transfer?.toBranch.name} &middot; {transfer?.items.length} item{(transfer?.items.length || 0) !== 1 ? "s" : ""}
+                </div>
+              </div>
+              <div className="flex justify-end gap-2 mt-5">
+                <button
+                  onClick={() => { setShowTemplateModal(false); setTemplateName(""); setTemplateDesc(""); }}
+                  className="px-4 py-2 text-[15px] font-semibold"
+                  style={{ borderRadius: "var(--radius-sm)", border: "1px solid var(--grey-300)", color: "var(--grey-700)" }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveTemplate}
+                  disabled={savingTemplate || !templateName.trim()}
+                  className="px-4 py-2 text-[15px] font-semibold text-white disabled:opacity-50"
+                  style={btnPrimary}
+                >
+                  {savingTemplate ? "Saving..." : "Save Template"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );

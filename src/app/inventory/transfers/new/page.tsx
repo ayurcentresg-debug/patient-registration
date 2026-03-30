@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -66,8 +66,9 @@ function Toast({ message, type, onClose }: { message: string; type: "success" | 
 // ═══════════════════════════════════════════════════════════════════════════════
 // MAIN COMPONENT
 // ═══════════════════════════════════════════════════════════════════════════════
-export default function NewTransferPage() {
+function NewTransferPageInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user } = useAuth();
 
   const [mounted, setMounted] = useState(false);
@@ -85,6 +86,11 @@ export default function NewTransferPage() {
 
   // Item search
   const [itemSearch, setItemSearch] = useState("");
+
+  // Template pre-fill
+  const templateId = searchParams.get("templateId");
+  const [templateName, setTemplateName] = useState<string | null>(null);
+  const [templateLoaded, setTemplateLoaded] = useState(false);
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -111,10 +117,61 @@ export default function NewTransferPage() {
   }, []);
 
   useEffect(() => {
+    // Skip branch stock fetch if template is handling it
+    if (templateId && !templateLoaded) return;
     fetchBranchStock(fromBranchId);
     // Clear line items when branch changes since available stock differs
     setLineItems([]);
-  }, [fromBranchId, fetchBranchStock]);
+  }, [fromBranchId, fetchBranchStock, templateId, templateLoaded]);
+
+  // Load template data when templateId is present and branches + branch stock are ready
+  useEffect(() => {
+    if (!templateId || templateLoaded || branches.length === 0) return;
+
+    fetch(`/api/transfers/templates/${templateId}`)
+      .then((r) => {
+        if (!r.ok) throw new Error("Template not found");
+        return r.json();
+      })
+      .then((tpl) => {
+        setTemplateName(tpl.name);
+        setFromBranchId(tpl.fromBranchId);
+        setToBranchId(tpl.toBranchId);
+        setTemplateLoaded(true);
+
+        // Fetch branch stock for the from branch, then set line items
+        fetch(`/api/branches/stock?branchId=${tpl.fromBranchId}`)
+          .then((r) => r.ok ? r.json() : [])
+          .then((stockData: BranchStockItem[]) => {
+            setBranchStock(stockData);
+            const stockMap = new Map<string, BranchStockItem>();
+            for (const s of stockData) {
+              stockMap.set(`${s.itemId}-${s.variantId || ""}`, s);
+            }
+            const items: TransferLineItem[] = [];
+            for (const ti of tpl.items) {
+              const stock = stockMap.get(`${ti.itemId}-${ti.variantId || ""}`)
+                || stockMap.get(`${ti.itemId}-`);
+              items.push({
+                tempId: generateTempId(),
+                itemId: ti.itemId,
+                variantId: ti.variantId || null,
+                itemName: ti.item?.name || "Unknown",
+                sku: ti.item?.sku || "",
+                packing: ti.item?.packing || null,
+                availableStock: stock?.quantity || 0,
+                quantitySent: ti.quantity,
+              });
+            }
+            setLineItems(items);
+          })
+          .catch(() => {});
+      })
+      .catch(() => {
+        setToast({ message: "Failed to load template", type: "error" });
+        setTemplateLoaded(true);
+      });
+  }, [templateId, templateLoaded, branches]);
 
   // Filter available stock items for the search dropdown
   const filteredStockItems = branchStock.filter((item) => {
@@ -250,7 +307,16 @@ export default function NewTransferPage() {
         Back to Transfers
       </Link>
 
-      <h1 className="text-[24px] font-bold tracking-tight mb-6" style={{ color: "var(--grey-900)" }}>New Stock Transfer</h1>
+      <h1 className="text-[24px] font-bold tracking-tight mb-4" style={{ color: "var(--grey-900)" }}>New Stock Transfer</h1>
+
+      {templateName && (
+        <div className="flex items-center gap-2 px-4 py-2.5 mb-4" style={{ background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: "var(--radius-sm)" }}>
+          <svg className="w-4 h-4 shrink-0" style={{ color: "#2563eb" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+          </svg>
+          <span className="text-[14px] font-semibold" style={{ color: "#1d4ed8" }}>Creating from template: {templateName}</span>
+        </div>
+      )}
 
       {/* ── Branch Selection ─────────────────────────────────────── */}
       <div className="p-5 mb-4" style={cardStyle}>
@@ -503,5 +569,18 @@ export default function NewTransferPage() {
         </button>
       </div>
     </div>
+  );
+}
+
+export default function NewTransferPage() {
+  return (
+    <Suspense fallback={
+      <div className="p-6 md:p-8">
+        <div className="h-4 w-32 animate-pulse mb-4" style={{ background: "var(--grey-100)", borderRadius: "var(--radius-sm)" }} />
+        <div className="h-8 w-64 animate-pulse mb-6" style={{ background: "var(--grey-100)", borderRadius: "var(--radius-sm)" }} />
+      </div>
+    }>
+      <NewTransferPageInner />
+    </Suspense>
   );
 }
