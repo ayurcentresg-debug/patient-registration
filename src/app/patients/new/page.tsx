@@ -516,44 +516,41 @@ export default function NewPatientPage() {
             <div className="p-5" style={cardStyle}>
               <h2 className="mb-4 pb-3" style={{ ...sectionTitle, borderBottom: "1px solid var(--grey-200)" }}>Patient Details</h2>
 
-              <div className="flex flex-col sm:flex-row gap-5 mb-5">
-                {/* Photo */}
-                <div className="flex-shrink-0">
-                  <div className="w-24 h-28 flex flex-col items-center justify-center" style={{ background: "var(--grey-100)", border: "2px dashed var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-500)" }}>
-                    <svg className="w-8 h-8 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-                    <span className="text-[12px] font-medium">Photo</span>
-                  </div>
-                </div>
-
-                <div className="flex-1 space-y-3">
-                  {/* Row 1: First Name | Last Name */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-3">
+                  {/* Row 1: Photo + First Name + Last Name */}
+                  <div className="grid gap-3" style={{ gridTemplateColumns: "auto 1fr 1fr" }}>
+                    <div className="row-span-2 flex-shrink-0">
+                      <div className="w-20 h-24 flex flex-col items-center justify-center" style={{ background: "var(--grey-100)", border: "2px dashed var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-500)" }}>
+                        <svg className="w-7 h-7 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                        <span className="text-[11px] font-medium">Photo</span>
+                      </div>
+                    </div>
                     <div>
                       <label htmlFor="firstName" className="block mb-1" style={labelStyle}><span style={{ color: "var(--red)" }}>*</span> First Name</label>
-                      <input id="firstName" name="firstName" required defaultValue={prefill.firstName} className="w-full px-3 py-2" style={fieldErrors.firstName ? inputErrorStyle : inputStyle} aria-invalid={!!fieldErrors.firstName} aria-describedby={fieldErrors.firstName ? "err-firstName" : undefined} />
+                      <input id="firstName" name="firstName" required defaultValue={prefill.firstName} className="w-full px-3 py-1.5" style={fieldErrors.firstName ? inputErrorStyle : inputStyle} aria-invalid={!!fieldErrors.firstName} aria-describedby={fieldErrors.firstName ? "err-firstName" : undefined} />
                       {fieldErrors.firstName && <p id="err-firstName" className="mt-0.5 text-[13px] font-medium" style={{ color: "var(--red)" }}>{fieldErrors.firstName}</p>}
                     </div>
                     <div>
                       <label htmlFor="lastName" className="block mb-1" style={labelStyle}><span style={{ color: "var(--red)" }}>*</span> Last Name</label>
-                      <input id="lastName" name="lastName" required defaultValue={prefill.lastName} className="w-full px-3 py-2" style={fieldErrors.lastName ? inputErrorStyle : inputStyle} aria-invalid={!!fieldErrors.lastName} aria-describedby={fieldErrors.lastName ? "err-lastName" : undefined} />
+                      <input id="lastName" name="lastName" required defaultValue={prefill.lastName} className="w-full px-3 py-1.5" style={fieldErrors.lastName ? inputErrorStyle : inputStyle} aria-invalid={!!fieldErrors.lastName} aria-describedby={fieldErrors.lastName ? "err-lastName" : undefined} />
                       {fieldErrors.lastName && <p id="err-lastName" className="mt-0.5 text-[13px] font-medium" style={{ color: "var(--red)" }}>{fieldErrors.lastName}</p>}
                     </div>
                   </div>
                   {/* Row 2: Patient ID | NRIC | Gender */}
-                  <div className="grid gap-3" style={{ gridTemplateColumns: "1fr 1fr auto" }}>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     <div>
                       <label className="block mb-1" style={labelStyle}>Patient ID</label>
-                      <input disabled placeholder="Auto-generated" className="px-3 py-2 max-w-[200px]" style={{ ...inputStyle, background: "var(--grey-100)", color: "var(--grey-500)", width: "100%" }} />
+                      <input disabled placeholder="Auto-generated" className="w-full px-3 py-1.5" style={{ ...inputStyle, background: "var(--grey-100)", color: "var(--grey-500)" }} />
                     </div>
                     <div>
                       <label htmlFor="nricId" className="block mb-1" style={labelStyle}>NRIC ID</label>
-                      <input id="nricId" name="nricId" className="px-3 py-2 max-w-[200px]" style={{ ...inputStyle, width: "100%" }} />
+                      <input id="nricId" name="nricId" className="w-full px-3 py-1.5" style={inputStyle} />
                     </div>
-                    <div>
-                      <label className="block mb-1.5" style={labelStyle}><span style={{ color: "var(--red)" }}>*</span> Gender</label>
-                      <div className="flex gap-5 pt-1" role="radiogroup" aria-label="Gender">
+                    <div className="sm:col-span-2">
+                      <label className="block mb-1" style={labelStyle}><span style={{ color: "var(--red)" }}>*</span> Gender</label>
+                      <div className="flex gap-4 py-1.5" role="radiogroup" aria-label="Gender">
                         {["male", "female", "other"].map((g) => (
-                          <label key={g} className="flex items-center gap-2 text-[15px] cursor-pointer whitespace-nowrap" style={{ color: "var(--grey-800)" }}>
+                          <label key={g} className="flex items-center gap-1.5 text-[14px] cursor-pointer whitespace-nowrap" style={{ color: "var(--grey-800)" }}>
                             <input type="radio" name="gender" value={g} required /> {g.charAt(0).toUpperCase() + g.slice(1)}
                           </label>
                         ))}
@@ -567,9 +564,9 @@ export default function NewPatientPage() {
                       <label className="block mb-1" style={labelStyle}>Date of Birth</label>
                       <div className="flex items-center gap-2">
                         {dobMode === "dob" ? (
-                          <input name="dateOfBirth" type="date" className="px-3 py-2 max-w-[200px]" style={{ ...inputStyle, width: "100%" }} onChange={handleDobChange} />
+                          <input name="dateOfBirth" type="date" className="w-full px-3 py-1.5" style={inputStyle} onChange={handleDobChange} />
                         ) : (
-                          <input name="age" type="number" min="0" max="150" placeholder="Enter age" className="px-3 py-2 max-w-[200px]" style={{ ...inputStyle, width: "100%" }} />
+                          <input name="age" type="number" min="0" max="150" placeholder="Age" className="w-full px-3 py-1.5" style={inputStyle} />
                         )}
                       </div>
                       <button type="button" onClick={() => { setDobMode(dobMode === "dob" ? "age" : "dob"); setCalculatedAge(""); }} className="text-[13px] font-semibold mt-0.5" style={{ color: "var(--blue-500)" }}>
@@ -588,14 +585,14 @@ export default function NewPatientPage() {
                     </div>
                     <div>
                       <label htmlFor="bloodGroup" className="block mb-1" style={labelStyle}>Blood Group</label>
-                      <select id="bloodGroup" name="bloodGroup" className="w-full px-3 py-2" style={inputStyle}>
+                      <select id="bloodGroup" name="bloodGroup" className="w-full px-3 py-1.5" style={inputStyle}>
                         <option value="">Select</option>
                         {BLOOD_GROUPS.map((bg) => <option key={bg} value={bg}>{bg}</option>)}
                       </select>
                     </div>
                     <div>
                       <label htmlFor="ethnicity" className="block mb-1" style={labelStyle}>Ethnicity</label>
-                      <select id="ethnicity" name="ethnicity" className="w-full px-3 py-2" style={inputStyle}>
+                      <select id="ethnicity" name="ethnicity" className="w-full px-3 py-1.5" style={inputStyle}>
                         <option value="">Select</option>
                         {ETHNICITIES.map((e) => <option key={e} value={e}>{e}</option>)}
                       </select>
@@ -605,7 +602,7 @@ export default function NewPatientPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
                       <label htmlFor="nationality" className="block mb-1" style={labelStyle}>Nationality</label>
-                      <select id="nationality" name="nationality" className="w-full px-3 py-2" style={inputStyle}>
+                      <select id="nationality" name="nationality" className="w-full px-3 py-1.5" style={inputStyle}>
                         <option value="">Select</option>
                         {NATIONALITIES.map((n) => <option key={n} value={n}>{n}</option>)}
                       </select>
@@ -614,9 +611,9 @@ export default function NewPatientPage() {
                       <label className="block mb-1" style={labelStyle}>Occupation</label>
                       <div className="flex items-center gap-2">
                         {showNewOccupation ? (
-                          <input name="occupation" placeholder="Enter occupation" className="flex-1 px-3 py-2" style={inputStyle} />
+                          <input name="occupation" placeholder="Enter occupation" className="flex-1 px-3 py-1.5" style={inputStyle} />
                         ) : (
-                          <select name="occupation" className="flex-1 px-3 py-2" style={inputStyle}>
+                          <select name="occupation" className="flex-1 px-3 py-1.5" style={inputStyle}>
                             <option value="">Select</option>
                             {OCCUPATIONS.map((o) => <option key={o} value={o}>{o}</option>)}
                           </select>
@@ -630,9 +627,9 @@ export default function NewPatientPage() {
                       <label className="block mb-1" style={labelStyle}>Referred by</label>
                       <div className="flex items-center gap-2">
                         {showNewReferral ? (
-                          <input name="referredBy" placeholder="Enter referral" className="flex-1 px-3 py-2" style={inputStyle} />
+                          <input name="referredBy" placeholder="Enter referral" className="flex-1 px-3 py-1.5" style={inputStyle} />
                         ) : (
-                          <select name="referredBy" className="flex-1 px-3 py-2" style={inputStyle}>
+                          <select name="referredBy" className="flex-1 px-3 py-1.5" style={inputStyle}>
                             <option value="">Select</option>
                             {REFERRAL_SOURCES.map((r) => <option key={r} value={r}>{r}</option>)}
                           </select>
@@ -643,7 +640,6 @@ export default function NewPatientPage() {
                       </div>
                     </div>
                   </div>
-                </div>
               </div>
 
               {/* Row 5: Family (full width) */}
@@ -800,26 +796,26 @@ export default function NewPatientPage() {
                 <div className="grid gap-3" style={{ gridTemplateColumns: "1fr 3fr" }}>
                   <div>
                     <label htmlFor="blockNumber" className="block mb-1" style={labelStyle}>Blk / House No.</label>
-                    <input id="blockNumber" name="blockNumber" placeholder="e.g., 84" className="w-full px-3 py-2" style={inputStyle} />
+                    <input id="blockNumber" name="blockNumber" placeholder="e.g., 84" className="w-full px-3 py-1.5" style={inputStyle} />
                   </div>
                   <div>
                     <label htmlFor="streetName" className="block mb-1" style={labelStyle}>Street Name</label>
-                    <input id="streetName" name="streetName" placeholder="e.g., Bedok North Street 4" className="w-full px-3 py-2" style={inputStyle} />
+                    <input id="streetName" name="streetName" placeholder="e.g., Bedok North Street 4" className="w-full px-3 py-1.5" style={inputStyle} />
                   </div>
                 </div>
                 {/* Row 5: Unit No. | Building Name | Postal Code */}
                 <div className="grid gap-3" style={{ gridTemplateColumns: "1fr 2fr 1fr" }}>
                   <div>
                     <label htmlFor="unitNumber" className="block mb-1" style={labelStyle}>Unit No.</label>
-                    <input id="unitNumber" name="unitNumber" placeholder="e.g., #01-17" className="w-full px-3 py-2" style={inputStyle} />
+                    <input id="unitNumber" name="unitNumber" placeholder="e.g., #01-17" className="w-full px-3 py-1.5" style={inputStyle} />
                   </div>
                   <div>
                     <label htmlFor="buildingName" className="block mb-1" style={labelStyle}>Building Name</label>
-                    <input id="buildingName" name="buildingName" placeholder="Optional" className="w-full px-3 py-2" style={inputStyle} />
+                    <input id="buildingName" name="buildingName" placeholder="Optional" className="w-full px-3 py-1.5" style={inputStyle} />
                   </div>
                   <div>
                     <label htmlFor="postalCode" className="block mb-1" style={labelStyle}>Postal Code</label>
-                    <input id="postalCode" name="postalCode" placeholder="e.g., 460084" maxLength={6} pattern="[0-9]{6}" className="w-full px-3 py-2" style={inputStyle} />
+                    <input id="postalCode" name="postalCode" placeholder="e.g., 460084" maxLength={6} pattern="[0-9]{6}" className="w-full px-3 py-1.5" style={inputStyle} />
                   </div>
                 </div>
               </div>
@@ -831,7 +827,7 @@ export default function NewPatientPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label htmlFor="emergencyName" className="block mb-1" style={labelStyle}>Contact Name</label>
-                  <input id="emergencyName" name="emergencyName" className="w-full px-3 py-2" style={inputStyle} />
+                  <input id="emergencyName" name="emergencyName" className="w-full px-3 py-1.5" style={inputStyle} />
                 </div>
                 <div>
                   <label htmlFor="emergencyPhone" className="block mb-1" style={labelStyle}>Contact Phone</label>
@@ -891,13 +887,13 @@ export default function NewPatientPage() {
             {/* Other History */}
             <div className="p-5" style={cardStyle}>
               <h2 className="mb-3 pb-3" style={{ ...sectionTitle, borderBottom: "1px solid var(--grey-200)" }}>Other History</h2>
-              <textarea name="otherHistory" rows={3} placeholder="Enter any other medical history..." className="w-full px-3 py-2" style={inputStyle} aria-label="Other medical history" />
+              <textarea name="otherHistory" rows={3} placeholder="Enter any other medical history..." className="w-full px-3 py-1.5" style={inputStyle} aria-label="Other medical history" />
             </div>
 
             {/* Allergies */}
             <div className="p-5" style={cardStyle}>
               <h2 className="mb-3 pb-3" style={{ ...sectionTitle, borderBottom: "1px solid var(--grey-200)" }}>Allergies</h2>
-              <textarea name="allergies" rows={2} placeholder="List any known allergies..." className="w-full px-3 py-2" style={inputStyle} aria-label="Known allergies" />
+              <textarea name="allergies" rows={2} placeholder="List any known allergies..." className="w-full px-3 py-1.5" style={inputStyle} aria-label="Known allergies" />
             </div>
 
             {/* Groups */}
@@ -922,7 +918,7 @@ export default function NewPatientPage() {
             {/* Medical Notes */}
             <div className="p-5" style={cardStyle}>
               <h2 className="mb-3 pb-3" style={{ ...sectionTitle, borderBottom: "1px solid var(--grey-200)" }}>Medical Notes</h2>
-              <textarea name="medicalNotes" rows={3} placeholder="Any relevant medical notes..." className="w-full px-3 py-2" style={inputStyle} aria-label="Medical notes" />
+              <textarea name="medicalNotes" rows={3} placeholder="Any relevant medical notes..." className="w-full px-3 py-1.5" style={inputStyle} aria-label="Medical notes" />
             </div>
           </div>
         </div>
