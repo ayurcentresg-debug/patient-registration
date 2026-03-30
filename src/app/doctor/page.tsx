@@ -27,6 +27,8 @@ export default function DoctorPortal() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"today" | "upcoming" | "prescriptions">("today");
+  const [lowStockItems, setLowStockItems] = useState<Array<{ name: string; quantity: number; unit: string; reorderLevel: number }>>([]);
+  const [showStock, setShowStock] = useState(false);
 
   const fetchDashboard = useCallback(async () => {
     try {
@@ -37,6 +39,49 @@ export default function DoctorPortal() {
   }, []);
 
   useEffect(() => { fetchDashboard(); }, [fetchDashboard]);
+
+  // Fetch low stock items for main branch
+  useEffect(() => {
+    async function fetchLowStock() {
+      try {
+        const branchRes = await fetch("/api/branches?active=true");
+        if (!branchRes.ok) return;
+        const branches = await branchRes.json();
+        const main = branches.find((b: { isMainBranch: boolean }) => b.isMainBranch) || branches[0];
+        if (!main) return;
+
+        const stockRes = await fetch(`/api/branches/stock?branchId=${main.id}`);
+        if (!stockRes.ok) return;
+        const stockData = await stockRes.json();
+
+        // Get reorder levels
+        const invRes = await fetch("/api/inventory?status=active");
+        if (!invRes.ok) return;
+        const items = await invRes.json();
+        const reorderMap = new Map<string, { reorderLevel: number; unit: string }>();
+        for (const item of (Array.isArray(items) ? items : [])) {
+          reorderMap.set(item.id, { reorderLevel: item.reorderLevel || 0, unit: item.unit || "nos" });
+        }
+
+        const low = stockData
+          .filter((s: { itemId: string; quantity: number }) => {
+            const info = reorderMap.get(s.itemId);
+            return info && s.quantity <= info.reorderLevel && s.quantity >= 0;
+          })
+          .map((s: { itemId: string; name: string; quantity: number }) => ({
+            name: s.name,
+            quantity: s.quantity,
+            unit: reorderMap.get(s.itemId)?.unit || "nos",
+            reorderLevel: reorderMap.get(s.itemId)?.reorderLevel || 0,
+          }))
+          .sort((a: { quantity: number }, b: { quantity: number }) => a.quantity - b.quantity)
+          .slice(0, 20);
+
+        setLowStockItems(low);
+      } catch { /* ignore */ }
+    }
+    fetchLowStock();
+  }, []);
 
   async function updateStatus(apptId: string, status: string) {
     try {
@@ -115,6 +160,58 @@ export default function DoctorPortal() {
             </div>
           ))}
         </div>
+
+        {/* Low Stock Alert */}
+        {lowStockItems.length > 0 && (
+          <div className="mb-6 overflow-hidden" style={{ ...cardStyle, border: "1px solid #fed7aa" }}>
+            <button
+              onClick={() => setShowStock(!showStock)}
+              className="w-full flex items-center justify-between p-4 text-left"
+              style={{ background: "#fffbeb" }}
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 flex items-center justify-center rounded-lg" style={{ background: "#fef3c7" }}>
+                  <svg className="w-5 h-5" style={{ color: "#d97706" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-[15px] font-bold" style={{ color: "#92400e" }}>Low Stock Alert</p>
+                  <p className="text-[13px]" style={{ color: "#b45309" }}>{lowStockItems.length} item{lowStockItems.length !== 1 ? "s" : ""} at or below reorder level</p>
+                </div>
+              </div>
+              <svg className="w-5 h-5 transition-transform" style={{ color: "#d97706", transform: showStock ? "rotate(180deg)" : "rotate(0)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            {showStock && (
+              <div className="px-4 pb-4">
+                <table className="w-full" style={{ borderCollapse: "collapse" }}>
+                  <thead>
+                    <tr style={{ borderBottom: "1px solid #fde68a" }}>
+                      <th className="text-left py-2 text-[12px] font-bold uppercase tracking-wider" style={{ color: "#92400e" }}>Medicine</th>
+                      <th className="text-right py-2 text-[12px] font-bold uppercase tracking-wider" style={{ color: "#92400e" }}>Stock</th>
+                      <th className="text-right py-2 text-[12px] font-bold uppercase tracking-wider" style={{ color: "#92400e" }}>Reorder At</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {lowStockItems.map((item, i) => (
+                      <tr key={i} style={{ borderBottom: i < lowStockItems.length - 1 ? "1px solid #fef3c7" : "none" }}>
+                        <td className="py-2 text-[14px] font-medium" style={{ color: "var(--grey-900, #1c1917)" }}>{item.name}</td>
+                        <td className="py-2 text-[14px] font-bold text-right" style={{ color: item.quantity === 0 ? "#dc2626" : "#d97706" }}>
+                          {item.quantity} {item.unit}
+                        </td>
+                        <td className="py-2 text-[13px] text-right" style={{ color: "var(--grey-500, #78716c)" }}>
+                          {item.reorderLevel} {item.unit}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Tabs */}
         <div className="flex gap-1 mb-4 p-1 rounded-lg" style={{ background: "var(--grey-100, #f5f5f4)" }}>
