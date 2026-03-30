@@ -244,6 +244,8 @@ model InventoryItem {
 
   transactions    StockTransaction[]
   variants        InventoryVariant[]
+  branchStock     BranchStock[]
+  transferItems   StockTransferItem[]
 }
 
 model InventoryVariant {
@@ -676,6 +678,59 @@ model Branch {
   operatingHours String   @default("{}") // JSON
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+
+  branchStock    BranchStock[]
+  transfersFrom  StockTransfer[] @relation("TransfersFrom")
+  transfersTo    StockTransfer[] @relation("TransfersTo")
+}
+
+// ─── Branch-Level Stock ─────────────────────────────────────────────────
+
+model BranchStock {
+  id        String  @id @default(cuid())
+  branchId  String
+  itemId    String
+  variantId String?
+  quantity  Int     @default(0)
+
+  branch    Branch        @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  item      InventoryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@unique([branchId, itemId, variantId])
+}
+
+// ─── Stock Transfers ────────────────────────────────────────────────────
+
+model StockTransfer {
+  id              String    @id @default(cuid())
+  transferNumber  String    @unique
+  fromBranchId    String
+  toBranchId      String
+  status          String    @default("draft") // draft | in_transit | received | cancelled
+  initiatedBy     String?
+  receivedBy      String?
+  notes           String?
+  transferDate    DateTime  @default(now())
+  receivedDate    DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  fromBranch      Branch              @relation("TransfersFrom", fields: [fromBranchId], references: [id])
+  toBranch        Branch              @relation("TransfersTo", fields: [toBranchId], references: [id])
+  items           StockTransferItem[]
+}
+
+model StockTransferItem {
+  id               String  @id @default(cuid())
+  transferId       String
+  itemId           String
+  variantId        String?
+  quantitySent     Int
+  quantityReceived Int     @default(0)
+  notes            String?
+
+  transfer         StockTransfer @relation(fields: [transferId], references: [id], onDelete: Cascade)
+  item             InventoryItem @relation(fields: [itemId], references: [id])
 }
 
 // ─── Patient Packages ────────────────────────────────────────────────────

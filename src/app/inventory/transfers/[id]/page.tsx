@@ -1,0 +1,770 @@
+"use client";
+
+import { useEffect, useState, useCallback } from "react";
+import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
+import ConfirmDialog from "@/components/ConfirmDialog";
+
+// ─── Types ──────────────────────────────────────────────────────────────────
+interface TransferItem {
+  id: string;
+  itemId: string;
+  itemName: string;
+  sku: string;
+  packing: string | null;
+  quantitySent: number;
+  quantityReceived: number;
+  notes: string | null;
+}
+
+interface BranchInfo {
+  id: string;
+  name: string;
+  code: string;
+  address: string | null;
+  city: string | null;
+  state: string | null;
+  zipCode: string | null;
+  phone: string | null;
+}
+
+interface StockTransfer {
+  id: string;
+  transferNumber: string;
+  fromBranchId: string;
+  toBranchId: string;
+  status: "draft" | "in_transit" | "received" | "cancelled";
+  initiatedBy: string | null;
+  initiatedByName?: string | null;
+  receivedBy: string | null;
+  receivedByName?: string | null;
+  notes: string | null;
+  transferDate: string;
+  receivedDate: string | null;
+  createdAt: string;
+  updatedAt: string;
+  fromBranch: BranchInfo;
+  toBranch: BranchInfo;
+  items: TransferItem[];
+}
+
+// ─── Design Tokens ──────────────────────────────────────────────────────────
+const cardStyle = { background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-card)" };
+const btnPrimary = { background: "var(--blue-500)", borderRadius: "var(--radius-sm)", color: "white" };
+const inputStyle = { border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)" };
+
+function formatDate(dateStr: string): string {
+  const d = new Date(dateStr);
+  return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;
+}
+
+function formatDateTime(dateStr: string): string {
+  const d = new Date(dateStr);
+  const date = `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;
+  const time = d.toLocaleTimeString("en-SG", { hour: "2-digit", minute: "2-digit", hour12: true });
+  return `${date} ${time}`;
+}
+
+function getStatusStyle(status: string): { bg: string; color: string } {
+  switch (status) {
+    case "draft": return { bg: "var(--grey-200)", color: "var(--grey-700)" };
+    case "in_transit": return { bg: "#dbeafe", color: "#1d4ed8" };
+    case "received": return { bg: "#dcfce7", color: "var(--green)" };
+    case "cancelled": return { bg: "#fef2f2", color: "var(--red)" };
+    default: return { bg: "var(--grey-200)", color: "var(--grey-600)" };
+  }
+}
+
+function getStatusLabel(status: string): string {
+  switch (status) {
+    case "draft": return "Draft";
+    case "in_transit": return "In Transit";
+    case "received": return "Received";
+    case "cancelled": return "Cancelled";
+    default: return status;
+  }
+}
+
+function getItemStatus(sent: number, received: number): { label: string; color: string } {
+  if (received === 0) return { label: "Pending", color: "var(--grey-600)" };
+  if (received >= sent) return { label: "Received", color: "var(--green)" };
+  return { label: "Partial", color: "#d97706" };
+}
+
+// ─── Toast Component ────────────────────────────────────────────────────────
+function Toast({ message, type, onClose }: { message: string; type: "success" | "error"; onClose: () => void }) {
+  useEffect(() => {
+    const t = setTimeout(onClose, 3000);
+    return () => clearTimeout(t);
+  }, [onClose]);
+
+  return (
+    <div
+      className="fixed top-6 right-6 z-50 px-5 py-3 text-[15px] font-semibold text-white yoda-slide-in-right"
+      style={{ background: type === "success" ? "var(--green)" : "var(--red)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-lg)" }}
+    >
+      {message}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MAIN COMPONENT
+// ═══════════════════════════════════════════════════════════════════════════════
+export default function TransferDetailPage() {
+  const params = useParams();
+  const router = useRouter();
+  const id = params.id as string;
+
+  const [mounted, setMounted] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [transfer, setTransfer] = useState<StockTransfer | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
+  // Confirm dialog
+  const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; title: string; message: string; confirmLabel: string; variant: "danger" | "warning" | "default"; onConfirm: () => void }>({ open: false, title: "", message: "", confirmLabel: "Confirm", variant: "default", onConfirm: () => {} });
+  const [confirmLoading, setConfirmLoading] = useState(false);
+  // Receive section
+  const [showReceive, setShowReceive] = useState(false);
+  const [receiveQtys, setReceiveQtys] = useState<Record<string, number>>({});
+  const [receiveNotes, setReceiveNotes] = useState<Record<string, string>>({});
+
+  useEffect(() => { setMounted(true); }, []);
+
+  const fetchTransfer = useCallback(() => {
+    setLoading(true);
+    setError(null);
+    fetch(`/api/transfers/${id}`)
+      .then((r) => {
+        if (!r.ok) throw new Error(`Server error (${r.status})`);
+        return r.json();
+      })
+      .then((data) => {
+        setTransfer(data);
+        // Init receive quantities
+        const qtys: Record<string, number> = {};
+        const notes: Record<string, string> = {};
+        (data.items || []).forEach((item: TransferItem) => {
+          qtys[item.id] = 0;
+          notes[item.id] = "";
+        });
+        setReceiveQtys(qtys);
+        setReceiveNotes(notes);
+      })
+      .catch((e) => setError(e.message))
+      .finally(() => setLoading(false));
+  }, [id]);
+
+  useEffect(() => { fetchTransfer(); }, [fetchTransfer]);
+
+  // ─── Ship Transfer (draft → in_transit) ───────────────────────────────────
+  function handleShipTransfer() {
+    setConfirmDialog({
+      open: true,
+      title: "Ship Transfer",
+      message: "Mark this transfer as shipped? Items will be in transit to the destination branch.",
+      confirmLabel: "Ship Transfer",
+      variant: "default",
+      onConfirm: async () => {
+        setConfirmLoading(true);
+        setActionLoading(true);
+        try {
+          const res = await fetch(`/api/transfers/${id}/submit`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+          });
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.error || "Failed to ship transfer");
+          }
+          setToast({ message: "Transfer shipped successfully", type: "success" });
+          fetchTransfer();
+        } catch (e: unknown) {
+          const msg = e instanceof Error ? e.message : "Failed to ship transfer";
+          setToast({ message: msg, type: "error" });
+        } finally {
+          setActionLoading(false);
+          setConfirmLoading(false);
+          setConfirmDialog((prev) => ({ ...prev, open: false }));
+        }
+      },
+    });
+  }
+
+  // ─── Cancel Transfer ──────────────────────────────────────────────────────
+  function handleCancelTransfer() {
+    setConfirmDialog({
+      open: true,
+      title: "Cancel Transfer",
+      message: "Are you sure you want to cancel this transfer? This action cannot be undone.",
+      confirmLabel: "Cancel Transfer",
+      variant: "danger",
+      onConfirm: async () => {
+        setConfirmLoading(true);
+        setActionLoading(true);
+        try {
+          const res = await fetch(`/api/transfers/${id}/submit`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: "cancel" }),
+          });
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.error || "Failed to cancel transfer");
+          }
+          setToast({ message: "Transfer cancelled", type: "success" });
+          fetchTransfer();
+        } catch (e: unknown) {
+          const msg = e instanceof Error ? e.message : "Failed to cancel transfer";
+          setToast({ message: msg, type: "error" });
+        } finally {
+          setActionLoading(false);
+          setConfirmLoading(false);
+          setConfirmDialog((prev) => ({ ...prev, open: false }));
+        }
+      },
+    });
+  }
+
+  // ─── Receive Items ────────────────────────────────────────────────────────
+  async function handleReceiveItems() {
+    setActionLoading(true);
+    try {
+      const items = Object.entries(receiveQtys)
+        .filter(([, qty]) => qty > 0)
+        .map(([itemId, receivedQty]) => ({
+          itemId,
+          receivedQty,
+          notes: receiveNotes[itemId] || undefined,
+        }));
+
+      if (items.length === 0) {
+        setToast({ message: "Please enter quantities to receive", type: "error" });
+        setActionLoading(false);
+        return;
+      }
+
+      const res = await fetch(`/api/transfers/${id}/receive`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || "Failed to receive items");
+      }
+      setToast({ message: "Items received successfully", type: "success" });
+      setShowReceive(false);
+      fetchTransfer();
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Failed to receive items";
+      setToast({ message: msg, type: "error" });
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
+  // ─── Loading Skeleton ─────────────────────────────────────────────────────
+  if (!mounted || loading) {
+    return (
+      <div className="p-6 md:p-8">
+        <div className="h-4 w-32 animate-pulse mb-4" style={{ background: "var(--grey-100)", borderRadius: "var(--radius-sm)" }} />
+        <div className="h-8 w-64 animate-pulse mb-6" style={{ background: "var(--grey-100)", borderRadius: "var(--radius-sm)" }} />
+        <div className="space-y-4">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="h-32 animate-pulse" style={{ background: "var(--grey-100)", borderRadius: "var(--radius)" }} />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !transfer) {
+    return (
+      <div className="p-6 md:p-8">
+        <Link href="/inventory/transfers" className="inline-flex items-center gap-1 text-[15px] font-semibold hover:underline mb-4" style={{ color: "var(--blue-500)" }}>
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+          Back to Transfers
+        </Link>
+        <div className="text-center py-16">
+          <p className="text-[16px] font-semibold" style={{ color: "var(--red)" }}>Failed to load transfer</p>
+          <p className="text-[14px] mt-1" style={{ color: "var(--grey-500)" }}>{error}</p>
+          <button onClick={fetchTransfer} className="text-[14px] font-semibold mt-2 hover:underline" style={{ color: "var(--blue-500)" }}>Retry</button>
+        </div>
+      </div>
+    );
+  }
+
+  const statusStyle = getStatusStyle(transfer.status);
+
+  return (
+    <>
+      {/* ── Print Styles ───────────────────────────────────────────── */}
+      <style>{`
+        @media print {
+          body * { visibility: hidden; }
+          .print-area, .print-area * { visibility: visible; }
+          .print-area { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; }
+          .no-print { display: none !important; }
+          button, a[href] { display: none !important; }
+        }
+      `}</style>
+
+      <div className="p-6 md:p-8 yoda-fade-in print-area">
+        {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+
+        {/* ── Back Button ──────────────────────────────────────────── */}
+        <Link href="/inventory/transfers" className="inline-flex items-center gap-1 text-[15px] font-semibold hover:underline mb-4 no-print" style={{ color: "var(--blue-500)" }}>
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+          Back to Transfers
+        </Link>
+
+        {/* ── Header ───────────────────────────────────────────────── */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+          <div className="flex items-center gap-3">
+            <h1 className="text-[24px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>{transfer.transferNumber}</h1>
+            <span className="inline-flex px-2.5 py-0.5 text-[13px] font-bold uppercase tracking-wide" style={{ borderRadius: "var(--radius-sm)", background: statusStyle.bg, color: statusStyle.color }}>
+              {getStatusLabel(transfer.status)}
+            </span>
+          </div>
+          {/* Action Buttons */}
+          <div className="flex flex-wrap gap-2 no-print">
+            {transfer.status === "draft" && (
+              <>
+                <button onClick={handleShipTransfer} disabled={actionLoading} className="px-4 py-2 text-[15px] font-semibold text-white disabled:opacity-50" style={btnPrimary}>
+                  <span className="inline-flex items-center gap-1.5">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                    Ship Transfer
+                  </span>
+                </button>
+                <button onClick={handleCancelTransfer} disabled={actionLoading} className="px-4 py-2 text-[15px] font-semibold disabled:opacity-50" style={{ borderRadius: "var(--radius-sm)", border: "1px solid #fecaca", color: "var(--red)", background: "#fef2f2" }}>Cancel</button>
+              </>
+            )}
+            {transfer.status === "in_transit" && (
+              <>
+                <button onClick={() => setShowReceive(true)} disabled={actionLoading} className="px-4 py-2 text-[15px] font-semibold text-white disabled:opacity-50" style={btnPrimary}>
+                  <span className="inline-flex items-center gap-1.5">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8 4-8-4m16 0v10l-8 4m8-14l-8-4-8 4m0 0v10l8 4" /></svg>
+                    Receive Items
+                  </span>
+                </button>
+                <button onClick={handleCancelTransfer} disabled={actionLoading} className="px-4 py-2 text-[15px] font-semibold disabled:opacity-50" style={{ borderRadius: "var(--radius-sm)", border: "1px solid #fecaca", color: "var(--red)", background: "#fef2f2" }}>Cancel</button>
+              </>
+            )}
+            {transfer.status === "received" && (
+              <button onClick={() => window.print()} className="px-4 py-2 text-[15px] font-semibold" style={{ borderRadius: "var(--radius-sm)", border: "1px solid var(--grey-300)", color: "var(--grey-700)" }}>
+                <span className="inline-flex items-center gap-1.5">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
+                  Print
+                </span>
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* ── Branch Info Cards ─────────────────────────────────────── */}
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-4 mb-6 items-stretch">
+          {/* From Branch */}
+          <div className="p-5" style={cardStyle}>
+            <h3 className="text-[14px] font-bold uppercase tracking-wider mb-3" style={{ color: "var(--grey-600)" }}>From Branch</h3>
+            <p className="text-[17px] font-semibold" style={{ color: "var(--grey-900)" }}>{transfer.fromBranch.name}</p>
+            <p className="text-[14px] font-mono mt-0.5" style={{ color: "var(--grey-500)" }}>Code: {transfer.fromBranch.code}</p>
+            {transfer.fromBranch.address && <p className="text-[15px] mt-2" style={{ color: "var(--grey-600)" }}>{transfer.fromBranch.address}</p>}
+            {(transfer.fromBranch.city || transfer.fromBranch.state || transfer.fromBranch.zipCode) && (
+              <p className="text-[15px]" style={{ color: "var(--grey-600)" }}>
+                {[transfer.fromBranch.city, transfer.fromBranch.state, transfer.fromBranch.zipCode].filter(Boolean).join(", ")}
+              </p>
+            )}
+            {transfer.fromBranch.phone && <p className="text-[14px] mt-1" style={{ color: "var(--grey-500)" }}>{transfer.fromBranch.phone}</p>}
+          </div>
+
+          {/* Arrow */}
+          <div className="hidden md:flex items-center justify-center px-2">
+            <svg className="w-8 h-8" style={{ color: "var(--blue-500)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+            </svg>
+          </div>
+          {/* Mobile Arrow */}
+          <div className="flex md:hidden items-center justify-center py-1">
+            <svg className="w-6 h-6" style={{ color: "var(--blue-500)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+            </svg>
+          </div>
+
+          {/* To Branch */}
+          <div className="p-5" style={cardStyle}>
+            <h3 className="text-[14px] font-bold uppercase tracking-wider mb-3" style={{ color: "var(--grey-600)" }}>To Branch</h3>
+            <p className="text-[17px] font-semibold" style={{ color: "var(--grey-900)" }}>{transfer.toBranch.name}</p>
+            <p className="text-[14px] font-mono mt-0.5" style={{ color: "var(--grey-500)" }}>Code: {transfer.toBranch.code}</p>
+            {transfer.toBranch.address && <p className="text-[15px] mt-2" style={{ color: "var(--grey-600)" }}>{transfer.toBranch.address}</p>}
+            {(transfer.toBranch.city || transfer.toBranch.state || transfer.toBranch.zipCode) && (
+              <p className="text-[15px]" style={{ color: "var(--grey-600)" }}>
+                {[transfer.toBranch.city, transfer.toBranch.state, transfer.toBranch.zipCode].filter(Boolean).join(", ")}
+              </p>
+            )}
+            {transfer.toBranch.phone && <p className="text-[14px] mt-1" style={{ color: "var(--grey-500)" }}>{transfer.toBranch.phone}</p>}
+          </div>
+        </div>
+
+        {/* ── Transfer Details ──────────────────────────────────────── */}
+        <div className="mb-6 p-5" style={cardStyle}>
+          <h3 className="text-[14px] font-bold uppercase tracking-wider mb-3" style={{ color: "var(--grey-600)" }}>Transfer Details</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2">
+            <div className="flex justify-between sm:justify-start sm:gap-4">
+              <span className="text-[15px]" style={{ color: "var(--grey-600)" }}>Transfer Date</span>
+              <span className="text-[15px] font-semibold" style={{ color: "var(--grey-900)" }}>{formatDate(transfer.transferDate)}</span>
+            </div>
+            <div className="flex justify-between sm:justify-start sm:gap-4">
+              <span className="text-[15px]" style={{ color: "var(--grey-600)" }}>Initiated By</span>
+              <span className="text-[15px] font-semibold" style={{ color: "var(--grey-900)" }}>{transfer.initiatedByName || transfer.initiatedBy || "\u2014"}</span>
+            </div>
+            <div className="flex justify-between sm:justify-start sm:gap-4">
+              <span className="text-[15px]" style={{ color: "var(--grey-600)" }}>Received By</span>
+              <span className="text-[15px] font-semibold" style={{ color: "var(--grey-900)" }}>{transfer.receivedByName || transfer.receivedBy || "\u2014"}</span>
+            </div>
+            <div className="flex justify-between sm:justify-start sm:gap-4">
+              <span className="text-[15px]" style={{ color: "var(--grey-600)" }}>Received Date</span>
+              <span className="text-[15px] font-semibold" style={{ color: "var(--grey-900)" }}>{transfer.receivedDate ? formatDate(transfer.receivedDate) : "\u2014"}</span>
+            </div>
+          </div>
+          {transfer.notes && (
+            <div className="mt-4 pt-3" style={{ borderTop: "1px solid var(--grey-200)" }}>
+              <p className="text-[14px] font-semibold mb-1" style={{ color: "var(--grey-600)" }}>Notes</p>
+              <p className="text-[15px]" style={{ color: "var(--grey-700)" }}>{transfer.notes}</p>
+            </div>
+          )}
+        </div>
+
+        {/* ── Items Table ──────────────────────────────────────────── */}
+        <div className="mb-6" style={cardStyle}>
+          <div className="px-5 py-3" style={{ borderBottom: "1px solid var(--grey-200)" }}>
+            <h3 className="text-[16px] font-semibold" style={{ color: "var(--grey-900)" }}>Transfer Items</h3>
+          </div>
+          {/* Desktop Table */}
+          <div className="hidden md:block overflow-x-auto">
+            <table className="w-full">
+              <thead style={{ borderBottom: "1px solid var(--grey-200)", background: "var(--grey-50)" }}>
+                <tr>
+                  <th className="text-left px-4 py-2.5 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Item Name</th>
+                  <th className="text-left px-4 py-2.5 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>SKU</th>
+                  <th className="text-left px-4 py-2.5 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Packing</th>
+                  <th className="text-center px-4 py-2.5 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Qty Sent</th>
+                  <th className="text-center px-4 py-2.5 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Qty Received</th>
+                  <th className="text-center px-4 py-2.5 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {transfer.items.map((item, i) => {
+                  const itemStatus = getItemStatus(item.quantitySent, item.quantityReceived);
+                  return (
+                    <tr key={item.id} style={{ borderBottom: i < transfer.items.length - 1 ? "1px solid var(--grey-200)" : "none" }}>
+                      <td className="px-4 py-3">
+                        <p className="text-[15px] font-semibold" style={{ color: "var(--grey-900)" }}>{item.itemName}</p>
+                      </td>
+                      <td className="px-4 py-3 text-[14px] font-mono" style={{ color: "var(--grey-600)" }}>{item.sku || "\u2014"}</td>
+                      <td className="px-4 py-3 text-[14px]" style={{ color: "var(--grey-600)" }}>{item.packing || "\u2014"}</td>
+                      <td className="px-4 py-3 text-center text-[15px] font-semibold" style={{ color: "var(--grey-800)" }}>{item.quantitySent}</td>
+                      <td className="px-4 py-3 text-center">
+                        {transfer.status === "draft" || (transfer.status === "in_transit" && item.quantityReceived === 0) ? (
+                          <span className="text-[15px]" style={{ color: "var(--grey-400)" }}>{"\u2014"}</span>
+                        ) : (
+                          <span className="text-[15px] font-semibold" style={{ color: item.quantityReceived >= item.quantitySent ? "var(--green)" : "var(--grey-800)" }}>
+                            {item.quantityReceived}
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <span className="inline-flex px-2 py-0.5 text-[13px] font-semibold" style={{ borderRadius: "var(--radius-sm)", color: itemStatus.color }}>
+                          {itemStatus.label}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          {/* Mobile Cards */}
+          <div className="md:hidden divide-y" style={{ borderColor: "var(--grey-200)" }}>
+            {transfer.items.map((item) => {
+              const itemStatus = getItemStatus(item.quantitySent, item.quantityReceived);
+              return (
+                <div key={item.id} className="p-4 space-y-2">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="text-[15px] font-semibold" style={{ color: "var(--grey-900)" }}>{item.itemName}</p>
+                      <p className="text-[13px] font-mono" style={{ color: "var(--grey-500)" }}>{item.sku || "N/A"}</p>
+                    </div>
+                    <span className="text-[13px] font-semibold" style={{ color: itemStatus.color }}>{itemStatus.label}</span>
+                  </div>
+                  <div className="flex gap-4 text-[14px]" style={{ color: "var(--grey-600)" }}>
+                    {item.packing && <span>Pack: {item.packing}</span>}
+                    <span>Sent: {item.quantitySent}</span>
+                    <span>Received: {item.quantityReceived > 0 || transfer.status === "received" ? item.quantityReceived : "\u2014"}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* ── Summary ──────────────────────────────────────────────── */}
+          <div className="px-5 py-4" style={{ borderTop: "1px solid var(--grey-200)", background: "var(--grey-50)" }}>
+            <div className="flex justify-between text-[15px]">
+              <span style={{ color: "var(--grey-600)" }}>Total Items</span>
+              <span className="font-semibold" style={{ color: "var(--grey-900)" }}>{transfer.items.length} item(s), {transfer.items.reduce((sum, it) => sum + it.quantitySent, 0)} unit(s)</span>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Receive Items Section (inline, appears when clicked) ─── */}
+        {showReceive && transfer.status === "in_transit" && (
+          <div className="mb-6" style={cardStyle}>
+            <div className="px-5 py-3 flex items-center justify-between" style={{ borderBottom: "1px solid var(--grey-200)", background: "var(--grey-50)" }}>
+              <h3 className="text-[16px] font-semibold" style={{ color: "var(--grey-900)" }}>Receive Items</h3>
+              <button onClick={() => setShowReceive(false)} className="w-8 h-8 flex items-center justify-center no-print" style={{ color: "var(--grey-500)" }}>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+
+            {/* Desktop Table */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full">
+                <thead style={{ borderBottom: "1px solid var(--grey-200)", background: "var(--grey-50)" }}>
+                  <tr>
+                    <th className="text-left px-4 py-2.5 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Item Name</th>
+                    <th className="text-center px-4 py-2.5 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Qty Sent</th>
+                    <th className="text-center px-4 py-2.5 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Already Received</th>
+                    <th className="text-center px-4 py-2.5 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Receiving Now</th>
+                    <th className="text-left px-4 py-2.5 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Notes</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {transfer.items.map((item, i) => {
+                    const remaining = item.quantitySent - item.quantityReceived;
+                    const isFullyReceived = remaining <= 0;
+                    return (
+                      <tr key={item.id} style={{
+                        borderBottom: i < transfer.items.length - 1 ? "1px solid var(--grey-200)" : "none",
+                        background: isFullyReceived ? "var(--grey-50)" : "var(--white)",
+                        opacity: isFullyReceived ? 0.6 : 1,
+                      }}>
+                        <td className="px-4 py-3">
+                          <p className="text-[15px] font-semibold" style={{ color: "var(--grey-900)" }}>{item.itemName}</p>
+                          <p className="text-[12px] font-mono" style={{ color: "var(--grey-500)" }}>{item.sku || "N/A"}</p>
+                        </td>
+                        <td className="px-4 py-3 text-center text-[15px]" style={{ color: "var(--grey-800)" }}>{item.quantitySent}</td>
+                        <td className="px-4 py-3 text-center text-[15px] font-semibold" style={{ color: item.quantityReceived > 0 ? "var(--green)" : "var(--grey-500)" }}>
+                          {item.quantityReceived}
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          {isFullyReceived ? (
+                            <span className="inline-flex items-center gap-1 text-[13px] font-semibold" style={{ color: "var(--green)" }}>
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                              Complete
+                            </span>
+                          ) : (
+                            <input
+                              type="number"
+                              min={0}
+                              max={remaining}
+                              value={receiveQtys[item.id] || 0}
+                              onChange={(e) => setReceiveQtys((prev) => ({ ...prev, [item.id]: Math.min(remaining, Math.max(0, parseInt(e.target.value) || 0)) }))}
+                              className="w-20 px-3 py-1.5 text-[15px] text-center mx-auto block"
+                              style={inputStyle}
+                            />
+                          )}
+                        </td>
+                        <td className="px-4 py-3">
+                          {!isFullyReceived && (
+                            <input
+                              type="text"
+                              placeholder="Optional notes"
+                              value={receiveNotes[item.id] || ""}
+                              onChange={(e) => setReceiveNotes((prev) => ({ ...prev, [item.id]: e.target.value }))}
+                              className="w-full px-3 py-1.5 text-[14px]"
+                              style={inputStyle}
+                            />
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Cards */}
+            <div className="md:hidden divide-y" style={{ borderColor: "var(--grey-200)" }}>
+              {transfer.items.map((item) => {
+                const remaining = item.quantitySent - item.quantityReceived;
+                const isFullyReceived = remaining <= 0;
+                return (
+                  <div key={item.id} className="p-4 space-y-2" style={{ opacity: isFullyReceived ? 0.6 : 1 }}>
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="text-[15px] font-semibold" style={{ color: "var(--grey-900)" }}>{item.itemName}</p>
+                        <p className="text-[13px]" style={{ color: "var(--grey-500)" }}>
+                          Sent: {item.quantitySent} | Received: {item.quantityReceived} | Remaining: {remaining}
+                        </p>
+                      </div>
+                      {isFullyReceived ? (
+                        <span className="text-[13px] font-semibold" style={{ color: "var(--green)" }}>Done</span>
+                      ) : (
+                        <input
+                          type="number"
+                          min={0}
+                          max={remaining}
+                          value={receiveQtys[item.id] || 0}
+                          onChange={(e) => setReceiveQtys((prev) => ({ ...prev, [item.id]: Math.min(remaining, Math.max(0, parseInt(e.target.value) || 0)) }))}
+                          className="w-20 px-3 py-1.5 text-[15px] text-center shrink-0"
+                          style={inputStyle}
+                        />
+                      )}
+                    </div>
+                    {!isFullyReceived && (
+                      <input
+                        type="text"
+                        placeholder="Notes (optional)"
+                        value={receiveNotes[item.id] || ""}
+                        onChange={(e) => setReceiveNotes((prev) => ({ ...prev, [item.id]: e.target.value }))}
+                        className="w-full px-3 py-1.5 text-[14px]"
+                        style={inputStyle}
+                      />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Confirm Button */}
+            <div className="px-5 py-4 flex items-center justify-between no-print" style={{ borderTop: "1px solid var(--grey-200)", background: "var(--grey-50)" }}>
+              <p className="text-[14px]" style={{ color: "var(--grey-600)" }}>
+                {Object.values(receiveQtys).filter((q) => q > 0).length > 0
+                  ? `Receiving ${Object.values(receiveQtys).reduce((sum, q) => sum + q, 0)} units across ${Object.values(receiveQtys).filter((q) => q > 0).length} item(s)`
+                  : "Enter quantities to receive"}
+              </p>
+              <button
+                onClick={handleReceiveItems}
+                disabled={actionLoading || Object.values(receiveQtys).every((q) => q === 0)}
+                className="px-5 py-2 text-[15px] font-semibold text-white disabled:opacity-50"
+                style={btnPrimary}
+              >
+                {actionLoading ? "Receiving..." : "Confirm Receipt"}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ── Status Timeline ──────────────────────────────────────── */}
+        <div className="mb-6 p-5" style={cardStyle}>
+          <h3 className="text-[14px] font-bold uppercase tracking-wider mb-4" style={{ color: "var(--grey-600)" }}>Status Timeline</h3>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-0">
+            {/* Step 1: Created */}
+            <TimelineStep
+              label="Created"
+              date={formatDateTime(transfer.createdAt)}
+              who={transfer.initiatedByName || transfer.initiatedBy || undefined}
+              isActive={true}
+              isCompleted={true}
+              color="var(--green)"
+            />
+            <TimelineConnector isActive={transfer.status !== "draft" && transfer.status !== "cancelled"} />
+
+            {/* Step 2: Shipped */}
+            <TimelineStep
+              label="Shipped"
+              date={transfer.status !== "draft" && transfer.status !== "cancelled" ? formatDateTime(transfer.updatedAt) : undefined}
+              isActive={transfer.status === "in_transit" || transfer.status === "received"}
+              isCompleted={transfer.status === "in_transit" || transfer.status === "received"}
+              color="#1d4ed8"
+            />
+            <TimelineConnector isActive={transfer.status === "received"} />
+
+            {/* Step 3: Received */}
+            <TimelineStep
+              label="Received"
+              date={transfer.receivedDate ? formatDateTime(transfer.receivedDate) : undefined}
+              who={transfer.receivedByName || transfer.receivedBy || undefined}
+              isActive={transfer.status === "received"}
+              isCompleted={transfer.status === "received"}
+              color="var(--green)"
+            />
+
+            {/* Cancelled - show instead if cancelled */}
+            {transfer.status === "cancelled" && (
+              <>
+                <TimelineConnector isActive={true} color="var(--red)" />
+                <TimelineStep
+                  label="Cancelled"
+                  date={formatDateTime(transfer.updatedAt)}
+                  isActive={true}
+                  isCompleted={true}
+                  color="var(--red)"
+                />
+              </>
+            )}
+          </div>
+        </div>
+
+        <ConfirmDialog
+          open={confirmDialog.open}
+          title={confirmDialog.title}
+          message={confirmDialog.message}
+          confirmLabel={confirmDialog.confirmLabel}
+          variant={confirmDialog.variant}
+          loading={confirmLoading}
+          onConfirm={confirmDialog.onConfirm}
+          onCancel={() => { setConfirmDialog(prev => ({ ...prev, open: false })); setConfirmLoading(false); }}
+        />
+      </div>
+    </>
+  );
+}
+
+// ─── Timeline Components ────────────────────────────────────────────────────
+function TimelineStep({ label, date, who, isActive, isCompleted, color }: {
+  label: string;
+  date?: string;
+  who?: string;
+  isActive: boolean;
+  isCompleted: boolean;
+  color: string;
+}) {
+  return (
+    <div className="flex sm:flex-col items-center sm:items-center gap-3 sm:gap-1 py-2 sm:py-0 sm:px-4 min-w-0">
+      <div
+        className="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
+        style={{
+          background: isCompleted ? color : "var(--grey-200)",
+          border: isActive && !isCompleted ? `2px solid ${color}` : "none",
+        }}
+      >
+        {isCompleted ? (
+          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+          </svg>
+        ) : (
+          <div className="w-2.5 h-2.5 rounded-full" style={{ background: isActive ? color : "var(--grey-400)" }} />
+        )}
+      </div>
+      <div className="text-left sm:text-center min-w-0">
+        <p className="text-[14px] font-semibold" style={{ color: isActive ? "var(--grey-900)" : "var(--grey-400)" }}>{label}</p>
+        {date && <p className="text-[12px]" style={{ color: isActive ? "var(--grey-600)" : "var(--grey-400)" }}>{date}</p>}
+        {who && <p className="text-[12px]" style={{ color: isActive ? "var(--grey-500)" : "var(--grey-400)" }}>{who}</p>}
+        {!date && !isActive && <p className="text-[12px]" style={{ color: "var(--grey-400)" }}>Pending</p>}
+      </div>
+    </div>
+  );
+}
+
+function TimelineConnector({ isActive, color }: { isActive: boolean; color?: string }) {
+  return (
+    <>
+      {/* Desktop: horizontal line */}
+      <div className="hidden sm:block flex-1 min-w-[40px] h-0.5" style={{ background: isActive ? (color || "var(--green)") : "var(--grey-200)" }} />
+      {/* Mobile: vertical line */}
+      <div className="sm:hidden w-0.5 h-6 ml-4" style={{ background: isActive ? (color || "var(--green)") : "var(--grey-200)" }} />
+    </>
+  );
+}

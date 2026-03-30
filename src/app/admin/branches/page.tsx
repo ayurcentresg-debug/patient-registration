@@ -139,7 +139,7 @@ export default function BranchesPage() {
       zip: branch.zip,
       phone: branch.phone,
       email: branch.email,
-      operatingHours: branch.operatingHours || JSON.parse(JSON.stringify(DEFAULT_HOURS)),
+      operatingHours: (typeof branch.operatingHours === "string" ? JSON.parse(branch.operatingHours || "{}") : branch.operatingHours) || JSON.parse(JSON.stringify(DEFAULT_HOURS)),
       isMainBranch: branch.isMainBranch,
     });
     setShowModal(true);
@@ -153,10 +153,11 @@ export default function BranchesPage() {
     setSaving(true);
     const url = editingId ? `/api/branches/${editingId}` : "/api/branches";
     const method = editingId ? "PUT" : "POST";
+    const payload = { ...form, operatingHours: JSON.stringify(form.operatingHours), zipCode: form.zip };
     fetch(url, {
       method,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
+      body: JSON.stringify(payload),
     })
       .then(r => {
         if (!r.ok) throw new Error("Failed to save branch");
