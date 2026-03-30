@@ -234,7 +234,7 @@ export default function BranchStockPage() {
 
       {/* Summary Cards */}
       {data && (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <SummaryCard
             label="Total Items"
             value={data.summary.totalItems}
@@ -243,17 +243,17 @@ export default function BranchStockPage() {
           <SummaryCard
             label="In All Branches"
             value={data.summary.itemsInAllBranches}
-            color="var(--green-600, #16A34A)"
+            color="var(--green)"
           />
           <SummaryCard
             label="Single Branch Only"
             value={data.summary.itemsInOneBranchOnly}
-            color="var(--orange-500, #F97316)"
+            color="var(--orange)"
           />
           <SummaryCard
             label="Imbalanced"
             value={data.summary.imbalancedItems}
-            color="var(--red-600)"
+            color="var(--red)"
           />
         </div>
       )}
