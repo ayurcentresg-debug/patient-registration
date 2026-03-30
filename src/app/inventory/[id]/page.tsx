@@ -56,6 +56,10 @@ interface Transaction {
   performedBy: string | null;
   date: string;
   createdAt: string;
+  invoiceId?: string | null;
+  patientId?: string | null;
+  patientName?: string | null;
+  poId?: string | null;
 }
 
 type StockActionType = "purchase" | "issue" | "adjust" | "return";
@@ -197,6 +201,9 @@ export default function InventoryDetailPage() {
   const [actionReference, setActionReference] = useState("");
   const [actionNotes, setActionNotes] = useState("");
   const [actionSubmitting, setActionSubmitting] = useState(false);
+
+  // Sub-tab navigation
+  const [activeTab, setActiveTab] = useState<"overview" | "actions" | "transactions">("overview");
 
   // Delete
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -486,7 +493,45 @@ export default function InventoryDetailPage() {
         </div>
       )}
 
+      {/* ── Sub-Tab Navigation ─────────────────────────────────── */}
+      {!editMode && (
+        <div
+          className="flex gap-0 mb-6 overflow-x-auto"
+          style={{ borderBottom: "2px solid var(--grey-200)" }}
+        >
+          {([
+            { key: "overview" as const, label: "Overview" },
+            { key: "actions" as const, label: "Stock Actions" },
+            { key: "transactions" as const, label: "Transactions" },
+          ]).map((tab) => {
+            const active = activeTab === tab.key;
+            return (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className="px-5 py-2.5 text-[15px] font-semibold whitespace-nowrap transition-colors duration-150"
+                style={{
+                  color: active ? "var(--blue-500)" : "var(--grey-600)",
+                  borderBottom: active ? "2px solid var(--blue-500)" : "2px solid transparent",
+                  marginBottom: "-2px",
+                  background: active ? "var(--blue-50, rgba(33,150,243,0.04))" : "transparent",
+                  borderRadius: "var(--radius-sm) var(--radius-sm) 0 0",
+                  border: "none",
+                  borderBottomStyle: "solid",
+                  borderBottomWidth: "2px",
+                  borderBottomColor: active ? "var(--blue-500)" : "transparent",
+                  cursor: "pointer",
+                }}
+              >
+                {tab.label}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       {/* ── Item Info Card ───────────────────────────────────────── */}
+      {(editMode || activeTab === "overview") && (
       <div className="mb-6 p-6" style={cardStyle}>
         {!editMode ? (
           <>
@@ -621,9 +666,10 @@ export default function InventoryDetailPage() {
           </>
         )}
       </div>
+      )}
 
       {/* ── Variants ──────────────────────────────────────────────── */}
-      {!editMode && item.variants && item.variants.length > 0 && (
+      {!editMode && activeTab === "overview" && item.variants && item.variants.length > 0 && (
         <div className="mb-6 p-6" style={cardStyle}>
           <h2 className="mb-4 pb-3" style={{ ...sectionTitle, borderBottom: "1px solid var(--grey-200)" }}>
             Size Variants <span className="text-[14px] font-normal" style={{ color: "var(--grey-500)" }}>({item.variants.length})</span>
@@ -658,7 +704,7 @@ export default function InventoryDetailPage() {
       )}
 
       {/* ── Stock Actions ────────────────────────────────────────── */}
-      {!editMode && (
+      {!editMode && activeTab === "actions" && (
         <div className="mb-6 p-6" style={cardStyle}>
           <h2 className="mb-4 pb-3" style={{ ...sectionTitle, borderBottom: "1px solid var(--grey-200)" }}>Stock Actions</h2>
           <div className="flex flex-wrap gap-2 mb-4">
@@ -771,7 +817,7 @@ export default function InventoryDetailPage() {
       )}
 
       {/* ── Transaction History ───────────────────────────────────── */}
-      {!editMode && (
+      {!editMode && activeTab === "transactions" && (
         <div className="p-6" style={cardStyle}>
           <h2 className="mb-4 pb-3" style={{ ...sectionTitle, borderBottom: "1px solid var(--grey-200)" }}>Transaction History</h2>
 
@@ -788,11 +834,11 @@ export default function InventoryDetailPage() {
                     <tr>
                       <th className="text-left px-4 py-2 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Date</th>
                       <th className="text-left px-4 py-2 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Type</th>
+                      <th className="text-left px-4 py-2 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Reference</th>
+                      <th className="text-left px-4 py-2 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Patient</th>
                       <th className="text-left px-4 py-2 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Qty</th>
                       <th className="text-left px-4 py-2 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Stock After</th>
-                      <th className="text-left px-4 py-2 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Reference</th>
                       <th className="text-left px-4 py-2 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Notes</th>
-                      <th className="text-left px-4 py-2 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>By</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -804,6 +850,20 @@ export default function InventoryDetailPage() {
                           <td className="px-4 py-2.5">
                             <span className={chipBase} style={{ borderRadius: "var(--radius-sm)", background: cfg.bg, color: cfg.color }}>{cfg.label}</span>
                           </td>
+                          <td className="px-4 py-2.5 text-[14px]" style={{ color: "var(--grey-600)" }}>
+                            {txn.invoiceId ? (
+                              <Link href={`/billing/${txn.invoiceId}`} className="font-medium hover:underline" style={{ color: "var(--blue-500)" }}>{txn.reference || "\u2014"}</Link>
+                            ) : txn.poId ? (
+                              <Link href={`/inventory/purchase-orders/${txn.poId}`} className="font-medium hover:underline" style={{ color: "var(--blue-500)" }}>{txn.reference || "\u2014"}</Link>
+                            ) : (
+                              txn.reference || "\u2014"
+                            )}
+                          </td>
+                          <td className="px-4 py-2.5 text-[14px]" style={{ color: "var(--grey-600)" }}>
+                            {txn.patientId ? (
+                              <Link href={`/patients/${txn.patientId}`} className="font-medium hover:underline" style={{ color: "var(--blue-500)" }}>{txn.patientName || "\u2014"}</Link>
+                            ) : "\u2014"}
+                          </td>
                           <td className="px-4 py-2.5 text-[15px] font-bold" style={{ color: cfg.color }}>
                             {cfg.sign}{txn.quantity} {item.unit}
                             {txn.unitPrice != null && (
@@ -811,9 +871,7 @@ export default function InventoryDetailPage() {
                             )}
                           </td>
                           <td className="px-4 py-2.5 text-[15px] font-medium" style={{ color: "var(--grey-800)" }}>{txn.newStock}</td>
-                          <td className="px-4 py-2.5 text-[14px]" style={{ color: "var(--grey-600)" }}>{txn.reference || "\u2014"}</td>
                           <td className="px-4 py-2.5 text-[14px]" style={{ color: "var(--grey-600)" }}>{txn.notes || "\u2014"}</td>
-                          <td className="px-4 py-2.5 text-[14px]" style={{ color: "var(--grey-600)" }}>{txn.performedBy || "\u2014"}</td>
                         </tr>
                       );
                     })}
@@ -835,7 +893,22 @@ export default function InventoryDetailPage() {
                         <span className="text-[16px] font-bold" style={{ color: cfg.color }}>{cfg.sign}{txn.quantity} {item.unit}</span>
                         <span className="text-[14px]" style={{ color: "var(--grey-600)" }}>Stock: {txn.newStock}</span>
                       </div>
-                      {txn.reference && <p className="text-[13px] mt-1" style={{ color: "var(--grey-500)" }}>Ref: {txn.reference}</p>}
+                      {txn.reference && (
+                        <p className="text-[13px] mt-1" style={{ color: "var(--grey-500)" }}>
+                          Ref:{" "}
+                          {txn.invoiceId ? (
+                            <Link href={`/billing/${txn.invoiceId}`} className="font-medium hover:underline" style={{ color: "var(--blue-500)" }}>{txn.reference}</Link>
+                          ) : txn.poId ? (
+                            <Link href={`/inventory/purchase-orders/${txn.poId}`} className="font-medium hover:underline" style={{ color: "var(--blue-500)" }}>{txn.reference}</Link>
+                          ) : txn.reference}
+                        </p>
+                      )}
+                      {txn.patientId && txn.patientName && (
+                        <p className="text-[13px]" style={{ color: "var(--grey-500)" }}>
+                          Patient:{" "}
+                          <Link href={`/patients/${txn.patientId}`} className="font-medium hover:underline" style={{ color: "var(--blue-500)" }}>{txn.patientName}</Link>
+                        </p>
+                      )}
                       {txn.notes && <p className="text-[13px]" style={{ color: "var(--grey-500)" }}>{txn.notes}</p>}
                     </div>
                   );

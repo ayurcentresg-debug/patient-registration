@@ -29,7 +29,60 @@ export async function GET(
       );
     }
 
-    return NextResponse.json(item);
+    // Collect unique invoice and PO references from transactions
+    const invoiceRefs: string[] = [];
+    const poRefs: string[] = [];
+    for (const txn of item.transactions) {
+      if (txn.reference) {
+        if (txn.reference.startsWith("INV-")) {
+          invoiceRefs.push(txn.reference);
+        } else if (txn.reference.startsWith("PO-")) {
+          poRefs.push(txn.reference);
+        }
+      }
+    }
+
+    // Batch lookups
+    const [invoices, purchaseOrders] = await Promise.all([
+      invoiceRefs.length > 0
+        ? prisma.invoice.findMany({
+            where: { invoiceNumber: { in: invoiceRefs } },
+            select: { id: true, invoiceNumber: true, patientId: true, patientName: true },
+          })
+        : Promise.resolve([]),
+      poRefs.length > 0
+        ? prisma.purchaseOrder.findMany({
+            where: { poNumber: { in: poRefs } },
+            select: { id: true, poNumber: true },
+          })
+        : Promise.resolve([]),
+    ]);
+
+    // Build lookup maps
+    const invoiceMap = new Map(
+      invoices.map((inv) => [inv.invoiceNumber, inv])
+    );
+    const poMap = new Map(
+      purchaseOrders.map((po) => [po.poNumber, po])
+    );
+
+    // Enrich transactions
+    const enrichedTransactions = item.transactions.map((txn) => {
+      const inv = txn.reference ? invoiceMap.get(txn.reference) : undefined;
+      const po = txn.reference ? poMap.get(txn.reference) : undefined;
+      return {
+        ...txn,
+        invoiceId: inv?.id ?? null,
+        patientId: inv?.patientId ?? null,
+        patientName: inv?.patientName ?? null,
+        poId: po?.id ?? null,
+      };
+    });
+
+    return NextResponse.json({
+      ...item,
+      transactions: enrichedTransactions,
+    });
   } catch (error) {
     console.error("Error fetching inventory item:", error);
     return NextResponse.json(
