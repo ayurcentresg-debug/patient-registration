@@ -446,15 +446,21 @@ export default function StockAuditPage() {
         }
       `}</style>
 
+      {/* ── Header ──────────────────────────────────────────────── */}
+      <div className="mb-6">
+        <h1 className="text-[24px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>Inventory</h1>
+        <p className="text-[15px] mt-0.5" style={{ color: "var(--grey-600)" }}>Manage stock and supplies</p>
+      </div>
+
       <InventoryTabs />
 
-      {/* Header */}
+      {/* Sub Header */}
       <div className="flex items-start justify-between mb-6">
         <div>
-          <h1 className="text-[28px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>
+          <h2 className="text-[18px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>
             Stock Audit
-          </h1>
-          <p className="text-[15px] mt-1" style={{ color: "var(--grey-600)" }}>
+          </h2>
+          <p className="text-[15px] mt-0.5" style={{ color: "var(--grey-600)" }}>
             Count physical stock and reconcile with system
           </p>
           {lastAuditedAt && (

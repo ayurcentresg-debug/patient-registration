@@ -536,21 +536,28 @@ export default function StockReportsPage() {
       </div>
 
       {/* ─── Screen Layout ──────────────────────────────────────────────── */}
+      <div className="no-print mb-6">
+        <h1 className="text-[24px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>Inventory</h1>
+        <p className="text-[15px] mt-0.5" style={{ color: "var(--grey-600)" }}>Manage stock and supplies</p>
+      </div>
+
       <div className="no-print">
         <InventoryTabs />
       </div>
 
       <div>
         {/* ─── Page Header ──────────────────────────────────────────────── */}
-        <div className="no-print" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24, flexWrap: "wrap", gap: 12 }}>
-          <h1 style={{ fontSize: "22px", fontWeight: 800, color: "var(--grey-900)" }}>
-            Stock Reports
+        <div className="no-print flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+          <div>
+            <h2 className="text-[18px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>
+              Stock Reports
+            </h2>
             {selectedBranchId && branches.length > 0 && (
-              <span style={{ fontSize: "14px", fontWeight: 500, color: "var(--blue-500)", marginLeft: 8 }}>
-                — {branches.find((b) => b.id === selectedBranchId)?.name || "Branch"}
-              </span>
+              <p className="text-[14px] mt-0.5" style={{ color: "var(--blue-500)" }}>
+                {branches.find((b) => b.id === selectedBranchId)?.name || "Branch"}
+              </p>
             )}
-          </h1>
+          </div>
           <select
             value={selectedBranchId}
             onChange={(e) => setSelectedBranchId(e.target.value)}

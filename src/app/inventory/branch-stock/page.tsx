@@ -188,16 +188,21 @@ export default function BranchStockPage() {
   // ─── Render ───────────────────────────────────────────────────────────────
   return (
     <div className="p-6 md:p-8 yoda-fade-in">
-      {/* Header */}
+      {/* ── Header ──────────────────────────────────────────────── */}
+      <div className="mb-6">
+        <h1 className="text-[24px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>Inventory</h1>
+        <p className="text-[15px] mt-0.5" style={{ color: "var(--grey-600)" }}>Manage stock and supplies</p>
+      </div>
+
+      <InventoryTabs />
+
+      {/* Sub Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <div>
-          <h1
-            className="text-[28px] font-bold tracking-tight"
-            style={{ color: "var(--grey-900)" }}
-          >
+          <h2 className="text-[18px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>
             Branch Stock Comparison
-          </h1>
-          <p className="text-[15px] mt-1" style={{ color: "var(--grey-500)" }}>
+          </h2>
+          <p className="text-[15px] mt-0.5" style={{ color: "var(--grey-600)" }}>
             Side-by-side stock levels across all branches
           </p>
         </div>
