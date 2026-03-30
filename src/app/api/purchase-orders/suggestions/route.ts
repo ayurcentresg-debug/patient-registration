@@ -1,9 +1,12 @@
 import { prisma } from "@/lib/db";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 // GET /api/purchase-orders/suggestions - Smart purchase order suggestions
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url);
+    const branchId = searchParams.get("branchId");
+
     const ninetyDaysAgo = new Date();
     ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
 
@@ -23,6 +26,20 @@ export async function GET() {
         unitPrice: true,
       },
     });
+
+    // If branchId provided, fetch BranchStock quantities to use instead of global currentStock
+    let branchStockMap: Map<string, number> | null = null;
+    if (branchId) {
+      const branchStocks = await prisma.branchStock.findMany({
+        where: { branchId },
+        select: { itemId: true, quantity: true },
+      });
+      branchStockMap = new Map<string, number>();
+      for (const bs of branchStocks) {
+        const existing = branchStockMap.get(bs.itemId) || 0;
+        branchStockMap.set(bs.itemId, existing + bs.quantity);
+      }
+    }
 
     // 2. Get stock transactions from last 90 days (sales / negative qty = consumption)
     const stockTransactions = await prisma.stockTransaction.findMany({
@@ -106,20 +123,29 @@ export async function GET() {
     }
 
     // 6. Build suggestions for low-stock items (currentStock <= reorderLevel)
+    // When branchId is provided, use branch-specific stock levels
+    const getEffectiveStock = (item: { id: string; currentStock: number }) => {
+      if (branchStockMap) {
+        return branchStockMap.get(item.id) ?? 0;
+      }
+      return item.currentStock;
+    };
+
     const lowStockItems = allItems.filter(
-      (item) => item.currentStock <= item.reorderLevel
+      (item) => getEffectiveStock(item) <= item.reorderLevel
     );
 
     const suggestions = lowStockItems.map((item) => {
+      const effectiveStock = getEffectiveStock(item);
       const totalUsed = usageMap.get(item.id) || 0;
       const avgMonthlyUsage = Math.round((totalUsed / 3) * 100) / 100; // 90 days = 3 months
       const avgDailyUsage = totalUsed / 90;
       const daysRemaining = Math.round(
-        item.currentStock / (avgDailyUsage || 0.1)
+        effectiveStock / (avgDailyUsage || 0.1)
       );
 
       // Order enough for 2 months minus current stock, minimum = reorderLevel
-      const rawSuggestedQty = Math.ceil(avgMonthlyUsage * 2) - item.currentStock;
+      const rawSuggestedQty = Math.ceil(avgMonthlyUsage * 2) - effectiveStock;
       const suggestedQty = Math.max(rawSuggestedQty, item.reorderLevel);
 
       const estimatedCost = Math.round(suggestedQty * item.costPrice * 100) / 100;
@@ -133,7 +159,7 @@ export async function GET() {
         manufacturerCode: item.manufacturerCode,
         packing: item.packing,
         category: item.category,
-        currentStock: item.currentStock,
+        currentStock: effectiveStock,
         reorderLevel: item.reorderLevel,
         avgMonthlyUsage,
         daysRemaining,
@@ -157,17 +183,18 @@ export async function GET() {
 
     // 7. Fast-moving items: top 10 by avgMonthlyUsage regardless of stock level
     const allItemUsage = allItems.map((item) => {
+      const effectiveStock = getEffectiveStock(item);
       const totalUsed = usageMap.get(item.id) || 0;
       const avgMonthlyUsage = Math.round((totalUsed / 3) * 100) / 100;
       const avgDailyUsage = totalUsed / 90;
       const daysRemaining = Math.round(
-        item.currentStock / (avgDailyUsage || 0.1)
+        effectiveStock / (avgDailyUsage || 0.1)
       );
 
       return {
         itemId: item.id,
         name: item.name,
-        currentStock: item.currentStock,
+        currentStock: effectiveStock,
         avgMonthlyUsage,
         daysRemaining,
       };

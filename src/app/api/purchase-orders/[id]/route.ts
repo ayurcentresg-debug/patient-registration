@@ -74,6 +74,9 @@ export async function PUT(
     if (body.notes !== undefined) {
       updateData.notes = body.notes;
     }
+    if (body.branchId !== undefined) {
+      updateData.branchId = body.branchId || null;
+    }
 
     // If items are provided, replace all items and recalculate totals
     if (body.items && Array.isArray(body.items)) {

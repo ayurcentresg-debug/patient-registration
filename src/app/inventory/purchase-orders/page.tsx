@@ -6,11 +6,19 @@ import { useRouter } from "next/navigation";
 import InventoryTabs from "@/components/InventoryTabs";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
+interface Branch {
+  id: string;
+  name: string;
+  code: string;
+  isMainBranch: boolean;
+}
+
 interface PurchaseOrder {
   id: string;
   poNumber: string;
   supplierId: string;
   supplierName: string;
+  branchId?: string | null;
   orderDate: string;
   expectedDate: string | null;
   receivedDate: string | null;
@@ -105,6 +113,8 @@ export default function PurchaseOrdersPage() {
   const [orders, setOrders] = useState<PurchaseOrder[]>([]);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [branchFilter, setBranchFilter] = useState("all");
+  const [branches, setBranches] = useState<Branch[]>([]);
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
 
@@ -120,6 +130,14 @@ export default function PurchaseOrdersPage() {
 
   useEffect(() => { setMounted(true); }, []);
 
+  // Fetch branches
+  useEffect(() => {
+    fetch("/api/branches?active=true")
+      .then((r) => r.ok ? r.json() : [])
+      .then((data) => setBranches(Array.isArray(data) ? data : data.branches || []))
+      .catch(() => {});
+  }, []);
+
   const fetchOrders = useCallback(() => {
     setLoading(true);
     setError(null);
@@ -127,6 +145,7 @@ export default function PurchaseOrdersPage() {
     const params = new URLSearchParams();
     if (search) params.set("search", search);
     if (statusFilter !== "all") params.set("status", statusFilter);
+    if (branchFilter !== "all") params.set("branchId", branchFilter);
     if (dateFrom) params.set("dateFrom", dateFrom);
     if (dateTo) params.set("dateTo", dateTo);
 
@@ -135,10 +154,10 @@ export default function PurchaseOrdersPage() {
         if (!r.ok) throw new Error(`Server error (${r.status})`);
         return r.json();
       })
-      .then((data) => setOrders(Array.isArray(data) ? data : data.orders || []))
+      .then((data) => setOrders(Array.isArray(data) ? data : data.data || data.orders || []))
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
-  }, [search, statusFilter, dateFrom, dateTo]);
+  }, [search, statusFilter, branchFilter, dateFrom, dateTo]);
 
   useEffect(() => {
     const timeout = setTimeout(fetchOrders, 300);
@@ -193,6 +212,13 @@ export default function PurchaseOrdersPage() {
   };
 
   // ─── Stats ──────────────────────────────────────────────────────────────
+  // Branch name lookup
+  const branchMap = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const b of branches) map.set(b.id, b.name);
+    return map;
+  }, [branches]);
+
   const stats: POStats = useMemo(() => {
     return {
       total: orders.length,
@@ -591,6 +617,16 @@ export default function PurchaseOrdersPage() {
           <option value="cancelled">Cancelled</option>
         </select>
 
+        <select
+          value={branchFilter}
+          onChange={(e) => setBranchFilter(e.target.value)}
+          className="px-3 py-2 text-[15px]"
+          style={{ border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)", minWidth: 140 }}
+        >
+          <option value="all">All Branches</option>
+          {branches.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+        </select>
+
         <div className="relative flex-1">
           <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: "var(--grey-500)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -659,6 +695,7 @@ export default function PurchaseOrdersPage() {
                 <tr>
                   <th className="text-left px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>PO Number</th>
                   <th className="text-left px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Supplier</th>
+                  <th className="text-left px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Branch</th>
                   <th className="text-left px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Date</th>
                   <th className="text-left px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Expected</th>
                   <th className="text-left px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Items</th>
@@ -681,6 +718,7 @@ export default function PurchaseOrdersPage() {
                     >
                       <td className="px-4 py-3 text-[15px] font-semibold" style={{ color: "var(--blue-500)" }}>{order.poNumber}</td>
                       <td className="px-4 py-3 text-[15px]" style={{ color: "var(--grey-900)" }}>{order.supplierName}</td>
+                      <td className="px-4 py-3 text-[14px]" style={{ color: "var(--grey-600)" }}>{order.branchId ? branchMap.get(order.branchId) || "\u2014" : "\u2014"}</td>
                       <td className="px-4 py-3 text-[14px]" style={{ color: "var(--grey-600)" }}>{formatDate(order.orderDate)}</td>
                       <td className="px-4 py-3 text-[14px]" style={{ color: "var(--grey-600)" }}>{order.expectedDate ? formatDate(order.expectedDate) : "\u2014"}</td>
                       <td className="px-4 py-3 text-[15px]" style={{ color: "var(--grey-700)" }}>{order.items?.length || 0}</td>
@@ -723,9 +761,12 @@ export default function PurchaseOrdersPage() {
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <div className="flex gap-3 text-[13px]" style={{ color: "var(--grey-500)" }}>
+                    <div className="flex flex-wrap gap-3 text-[13px]" style={{ color: "var(--grey-500)" }}>
                       <span>{formatDate(order.orderDate)}</span>
                       <span>{order.items?.length || 0} items</span>
+                      {order.branchId && branchMap.get(order.branchId) && (
+                        <span>{branchMap.get(order.branchId)}</span>
+                      )}
                     </div>
                     <p className="text-[15px] font-bold" style={{ color: "var(--grey-900)" }}>{formatCurrency(order.totalAmount || 0)}</p>
                   </div>

@@ -27,6 +27,7 @@ interface PurchaseOrder {
   supplierPhone?: string;
   supplierEmail?: string;
   supplierAddress?: string;
+  branchId?: string | null;
   orderDate: string;
   expectedDate: string | null;
   receivedDate: string | null;
@@ -37,6 +38,12 @@ interface PurchaseOrder {
   totalAmount: number;
   paidAmount: number;
   notes?: string;
+}
+
+interface Branch {
+  id: string;
+  name: string;
+  code: string;
 }
 
 // ─── Design Tokens ──────────────────────────────────────────────────────────
@@ -99,6 +106,7 @@ export default function PurchaseOrderDetailPage() {
   const [confirmLoading, setConfirmLoading] = useState(false);
   const [showReceive, setShowReceive] = useState(false);
   const [receiveQtys, setReceiveQtys] = useState<Record<string, number>>({});
+  const [branchName, setBranchName] = useState<string | null>(null);
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -118,6 +126,17 @@ export default function PurchaseOrderDetailPage() {
           qtys[item.id] = 0;
         });
         setReceiveQtys(qtys);
+        // Fetch branch name if branchId exists
+        if (data.branchId) {
+          fetch("/api/branches?active=true")
+            .then((r) => r.ok ? r.json() : [])
+            .then((branches) => {
+              const list = Array.isArray(branches) ? branches : branches.branches || [];
+              const branch = list.find((b: Branch) => b.id === data.branchId);
+              setBranchName(branch ? `${branch.name} (${branch.code})` : null);
+            })
+            .catch(() => {});
+        }
       })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
@@ -306,6 +325,12 @@ export default function PurchaseOrderDetailPage() {
               <span className="text-[15px]" style={{ color: "var(--grey-600)" }}>Received Date</span>
               <span className="text-[15px] font-semibold" style={{ color: "var(--grey-900)" }}>{order.receivedDate ? formatDate(order.receivedDate) : "\u2014"}</span>
             </div>
+            {(order.branchId || branchName) && (
+              <div className="flex justify-between">
+                <span className="text-[15px]" style={{ color: "var(--grey-600)" }}>Receiving Branch</span>
+                <span className="text-[15px] font-semibold" style={{ color: "var(--grey-900)" }}>{branchName || "\u2014"}</span>
+              </div>
+            )}
           </div>
           {order.notes && (
             <div className="mt-4 pt-3" style={{ borderTop: "1px solid var(--grey-200)" }}>

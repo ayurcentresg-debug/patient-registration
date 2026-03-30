@@ -10,6 +10,13 @@ interface Supplier {
   name: string;
 }
 
+interface Branch {
+  id: string;
+  name: string;
+  code: string;
+  isMainBranch: boolean;
+}
+
 interface InventoryItem {
   id: string;
   name: string;
@@ -70,6 +77,7 @@ export default function NewPurchaseOrderPage() {
 
   const [mounted, setMounted] = useState(false);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [branches, setBranches] = useState<Branch[]>([]);
   const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -77,6 +85,7 @@ export default function NewPurchaseOrderPage() {
   // Form state
   const [supplierId, setSupplierId] = useState("");
   const [newSupplierName, setNewSupplierName] = useState("");
+  const [branchId, setBranchId] = useState("");
   const [expectedDate, setExpectedDate] = useState("");
   const [notes, setNotes] = useState("");
   const [lineItems, setLineItems] = useState<POLineItem[]>([]);
@@ -88,6 +97,20 @@ export default function NewPurchaseOrderPage() {
     fetch("/api/suppliers")
       .then((r) => r.ok ? r.json() : [])
       .then((data) => setSuppliers(Array.isArray(data) ? data : data.suppliers || []))
+      .catch(() => {});
+  }, []);
+
+  // Fetch branches
+  useEffect(() => {
+    fetch("/api/branches?active=true")
+      .then((r) => r.ok ? r.json() : [])
+      .then((data) => {
+        const list = Array.isArray(data) ? data : data.branches || [];
+        setBranches(list);
+        // Default to main branch
+        const main = list.find((b: Branch) => b.isMainBranch);
+        if (main) setBranchId(main.id);
+      })
       .catch(() => {});
   }, []);
 
@@ -249,6 +272,7 @@ export default function NewPurchaseOrderPage() {
         body: JSON.stringify({
           supplierId: supplierId || undefined,
           supplierName: newSupplierName || undefined,
+          branchId: branchId || undefined,
           expectedDate: expectedDate || undefined,
           notes: notes || undefined,
           status: asDraft ? "draft" : "submitted",
@@ -325,6 +349,24 @@ export default function NewPurchaseOrderPage() {
               style={inputStyle}
             />
           </div>
+        </div>
+      </div>
+
+      {/* ── Receiving Branch ───────────────────────────────────────── */}
+      <div className="p-5 mb-4" style={cardStyle}>
+        <h3 className="text-[14px] font-bold uppercase tracking-wider mb-3" style={{ color: "var(--grey-600)" }}>Receiving Branch</h3>
+        <div>
+          <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Branch</label>
+          <select
+            value={branchId}
+            onChange={(e) => setBranchId(e.target.value)}
+            className="w-full md:w-1/2 px-3 py-2 text-[15px]"
+            style={inputStyle}
+          >
+            <option value="">Select branch...</option>
+            {branches.map((b) => <option key={b.id} value={b.id}>{b.name} ({b.code})</option>)}
+          </select>
+          <p className="text-[13px] mt-1.5" style={{ color: "var(--grey-500)" }}>Stock will be added to this branch when received</p>
         </div>
       </div>
 

@@ -79,6 +79,16 @@ export async function POST(
       }
     }
 
+    // Determine the target branch for BranchStock updates
+    let targetBranchId = purchaseOrder.branchId;
+    if (!targetBranchId) {
+      // Fallback to main branch
+      const mainBranch = await prisma.branch.findFirst({
+        where: { isMainBranch: true, isActive: true },
+      });
+      targetBranchId = mainBranch?.id || null;
+    }
+
     // Use prisma.$transaction for atomicity
     const updatedPO = await prisma.$transaction(async (tx) => {
       // Process each received item
@@ -130,6 +140,35 @@ export async function POST(
                 performedBy: body.receivedBy || null,
               },
             });
+
+            // Update BranchStock if we have a target branch
+            if (targetBranchId) {
+              const existingBranchStock = await tx.branchStock.findFirst({
+                where: {
+                  branchId: targetBranchId,
+                  itemId: inventoryItem.id,
+                  variantId: poItem.variantId,
+                },
+              });
+
+              if (existingBranchStock) {
+                await tx.branchStock.update({
+                  where: { id: existingBranchStock.id },
+                  data: {
+                    quantity: existingBranchStock.quantity + receivedItem.receivedQty,
+                  },
+                });
+              } else {
+                await tx.branchStock.create({
+                  data: {
+                    branchId: targetBranchId,
+                    itemId: inventoryItem.id,
+                    variantId: poItem.variantId,
+                    quantity: receivedItem.receivedQty,
+                  },
+                });
+              }
+            }
           }
         }
       }

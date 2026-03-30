@@ -12,6 +12,8 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get("limit") || "20", 10);
     const skip = (page - 1) * limit;
 
+    const branchId = searchParams.get("branchId");
+
     const where: Record<string, unknown> = {};
 
     if (status) {
@@ -20,6 +22,10 @@ export async function GET(request: NextRequest) {
 
     if (supplierId) {
       where.supplierId = supplierId;
+    }
+
+    if (branchId) {
+      where.branchId = branchId;
     }
 
     if (search) {
@@ -157,6 +163,7 @@ export async function POST(request: NextRequest) {
         expectedDate: body.expectedDate ? new Date(body.expectedDate) : null,
         notes: body.notes || null,
         createdBy: body.createdBy || null,
+        branchId: body.branchId || null,
         subtotal,
         gstAmount,
         totalAmount,
