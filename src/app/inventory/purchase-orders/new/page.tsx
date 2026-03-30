@@ -66,6 +66,7 @@ export default function NewPurchaseOrderPage() {
   const searchParams = useSearchParams();
   const preItemId = searchParams.get("itemId");
   const preReorder = searchParams.get("reorder");
+  const suggestedItems = searchParams.get("suggestedItems");
 
   const [mounted, setMounted] = useState(false);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
@@ -137,6 +138,58 @@ export default function NewPurchaseOrderPage() {
         .catch(() => {});
     }
   }, [preReorder, inventoryItems, lineItems.length]);
+
+  // Pre-populate with suggested items from Smart PO Suggestions
+  useEffect(() => {
+    if (suggestedItems && inventoryItems.length > 0 && lineItems.length === 0) {
+      const itemIds = suggestedItems.split(",").filter(Boolean);
+      if (itemIds.length > 0) {
+        // Fetch suggestions to get suggested quantities
+        fetch("/api/purchase-orders/suggestions")
+          .then((r) => r.ok ? r.json() : { suggestions: [] })
+          .then((data) => {
+            const suggestionsMap = new Map<string, { suggestedQty: number; costPrice: number }>();
+            for (const s of data.suggestions || []) {
+              suggestionsMap.set(s.itemId, { suggestedQty: s.suggestedQty, costPrice: s.costPrice });
+            }
+            const items: POLineItem[] = [];
+            for (const id of itemIds) {
+              const invItem = inventoryItems.find((i) => i.id === id);
+              const suggestion = suggestionsMap.get(id);
+              if (invItem) {
+                items.push({
+                  tempId: generateTempId(),
+                  inventoryItemId: invItem.id,
+                  itemName: invItem.name,
+                  quantity: suggestion?.suggestedQty || Math.max(1, invItem.reorderLevel - invItem.currentStock),
+                  unitPrice: suggestion?.costPrice || invItem.costPrice || 0,
+                  gstPercent: 9,
+                });
+              }
+            }
+            if (items.length > 0) setLineItems(items);
+          })
+          .catch(() => {
+            // Fallback: use inventory data without suggestion quantities
+            const items: POLineItem[] = [];
+            for (const id of itemIds) {
+              const invItem = inventoryItems.find((i) => i.id === id);
+              if (invItem) {
+                items.push({
+                  tempId: generateTempId(),
+                  inventoryItemId: invItem.id,
+                  itemName: invItem.name,
+                  quantity: Math.max(1, invItem.reorderLevel - invItem.currentStock),
+                  unitPrice: invItem.costPrice || 0,
+                  gstPercent: 9,
+                });
+              }
+            }
+            if (items.length > 0) setLineItems(items);
+          });
+      }
+    }
+  }, [suggestedItems, inventoryItems, lineItems.length]);
 
   function addLineItem() {
     setLineItems((prev) => [...prev, {

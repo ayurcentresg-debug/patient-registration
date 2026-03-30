@@ -174,7 +174,7 @@ export default function PurchaseOrderDetailPage() {
     try {
       const items = Object.entries(receiveQtys)
         .filter(([, qty]) => qty > 0)
-        .map(([itemId, quantity]) => ({ itemId, quantity }));
+        .map(([itemId, receivedQty]) => ({ itemId, receivedQty }));
 
       if (items.length === 0) {
         setToast({ message: "Please enter quantities to receive", type: "error" });
@@ -420,6 +420,176 @@ export default function PurchaseOrderDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* ── Pending Items Section ─────────────────────────────────── */}
+      {(() => {
+        const pendingItems = order.items.filter((item) => item.receivedQty < item.quantity);
+        if (pendingItems.length === 0) return null;
+        return (
+          <div className="mb-6" style={{ ...cardStyle, border: "1px solid #f59e0b" }}>
+            <div className="px-5 py-3 flex items-center gap-2" style={{ borderBottom: "1px solid #fbbf24", background: "#fffbeb" }}>
+              <svg className="w-5 h-5" style={{ color: "#d97706" }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>
+              <h3 className="text-[16px] font-semibold" style={{ color: "#92400e" }}>
+                Pending Items ({pendingItems.length} of {order.items.length} items still awaiting delivery)
+              </h3>
+            </div>
+            <div className="divide-y" style={{ borderColor: "#fde68a" }}>
+              {pendingItems.map((item) => {
+                const remaining = item.quantity - item.receivedQty;
+                const pct = item.quantity > 0 ? Math.round((item.receivedQty / item.quantity) * 100) : 0;
+                return (
+                  <div key={item.id} className="px-5 py-3 flex items-center gap-4" style={{ background: "#fffbeb" }}>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[15px] font-semibold truncate" style={{ color: "#92400e" }}>{item.itemName}</p>
+                      <p className="text-[13px]" style={{ color: "#b45309" }}>SKU: {item.sku || "N/A"}</p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-[15px] font-bold" style={{ color: "#92400e" }}>
+                        {remaining} remaining
+                      </p>
+                      <p className="text-[13px]" style={{ color: "#b45309" }}>
+                        {item.receivedQty} of {item.quantity} received ({pct}%)
+                      </p>
+                    </div>
+                    <div className="w-24 shrink-0">
+                      <div className="w-full h-2" style={{ background: "#fde68a", borderRadius: "var(--radius-pill)" }}>
+                        <div style={{
+                          width: `${Math.min(100, pct)}%`,
+                          height: "100%",
+                          background: "#f59e0b",
+                          borderRadius: "var(--radius-pill)",
+                          transition: "width 0.3s ease",
+                        }} />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Receive Items Inline Section ────────────────────────── */}
+      {(order.status === "submitted" || order.status === "partial") && (
+        <div className="mb-6" style={cardStyle}>
+          <div className="px-5 py-3 flex items-center justify-between" style={{ borderBottom: "1px solid var(--grey-200)", background: "var(--grey-50)" }}>
+            <h3 className="text-[16px] font-semibold" style={{ color: "var(--grey-900)" }}>Receive Items</h3>
+            <span className="text-[13px] font-semibold px-2 py-0.5" style={{ background: "#dbeafe", color: "#1d4ed8", borderRadius: "var(--radius-sm)" }}>
+              {order.items.filter((i) => i.receivedQty < i.quantity).length} items pending
+            </span>
+          </div>
+
+          {/* Desktop Table */}
+          <div className="hidden md:block overflow-x-auto">
+            <table className="w-full">
+              <thead style={{ borderBottom: "1px solid var(--grey-200)", background: "var(--grey-50)" }}>
+                <tr>
+                  <th className="text-left px-4 py-2.5 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Item Name</th>
+                  <th className="text-center px-4 py-2.5 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Ordered Qty</th>
+                  <th className="text-center px-4 py-2.5 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Previously Received</th>
+                  <th className="text-center px-4 py-2.5 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Receiving Now</th>
+                  <th className="text-center px-4 py-2.5 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Remaining</th>
+                </tr>
+              </thead>
+              <tbody>
+                {order.items.map((item, i) => {
+                  const remaining = item.quantity - item.receivedQty;
+                  const maxReceivable = remaining - (receiveQtys[item.id] || 0);
+                  const isFullyReceived = remaining === 0;
+                  return (
+                    <tr key={item.id} style={{
+                      borderBottom: i < order.items.length - 1 ? "1px solid var(--grey-200)" : "none",
+                      background: isFullyReceived ? "var(--grey-50)" : "var(--white)",
+                      opacity: isFullyReceived ? 0.6 : 1,
+                    }}>
+                      <td className="px-4 py-3">
+                        <p className="text-[15px] font-semibold" style={{ color: "var(--grey-900)" }}>{item.itemName}</p>
+                        <p className="text-[12px] font-mono" style={{ color: "var(--grey-500)" }}>{item.sku || "N/A"}</p>
+                      </td>
+                      <td className="px-4 py-3 text-center text-[15px]" style={{ color: "var(--grey-800)" }}>{item.quantity}</td>
+                      <td className="px-4 py-3 text-center text-[15px] font-semibold" style={{ color: item.receivedQty > 0 ? "var(--green)" : "var(--grey-500)" }}>
+                        {item.receivedQty}
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        {isFullyReceived ? (
+                          <span className="inline-flex items-center gap-1 text-[13px] font-semibold" style={{ color: "var(--green)" }}>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                            Complete
+                          </span>
+                        ) : (
+                          <input
+                            type="number"
+                            min={0}
+                            max={remaining}
+                            value={receiveQtys[item.id] || 0}
+                            onChange={(e) => setReceiveQtys((prev) => ({ ...prev, [item.id]: Math.min(remaining, Math.max(0, parseInt(e.target.value) || 0)) }))}
+                            className="w-20 px-3 py-1.5 text-[15px] text-center mx-auto block"
+                            style={{ border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)" }}
+                          />
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-center text-[15px] font-semibold" style={{ color: maxReceivable > 0 ? "#d97706" : "var(--green)" }}>
+                        {remaining - (receiveQtys[item.id] || 0)}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile Cards */}
+          <div className="md:hidden divide-y" style={{ borderColor: "var(--grey-200)" }}>
+            {order.items.map((item) => {
+              const remaining = item.quantity - item.receivedQty;
+              const isFullyReceived = remaining === 0;
+              return (
+                <div key={item.id} className="p-4 space-y-2" style={{ opacity: isFullyReceived ? 0.6 : 1 }}>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="text-[15px] font-semibold" style={{ color: "var(--grey-900)" }}>{item.itemName}</p>
+                      <p className="text-[13px]" style={{ color: "var(--grey-500)" }}>
+                        Ordered: {item.quantity} | Received: {item.receivedQty} | Remaining: {remaining}
+                      </p>
+                    </div>
+                    {isFullyReceived ? (
+                      <span className="text-[13px] font-semibold" style={{ color: "var(--green)" }}>Done</span>
+                    ) : (
+                      <input
+                        type="number"
+                        min={0}
+                        max={remaining}
+                        value={receiveQtys[item.id] || 0}
+                        onChange={(e) => setReceiveQtys((prev) => ({ ...prev, [item.id]: Math.min(remaining, Math.max(0, parseInt(e.target.value) || 0)) }))}
+                        className="w-20 px-3 py-1.5 text-[15px] text-center shrink-0"
+                        style={{ border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)" }}
+                      />
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Confirm Button */}
+          <div className="px-5 py-4 flex items-center justify-between" style={{ borderTop: "1px solid var(--grey-200)", background: "var(--grey-50)" }}>
+            <p className="text-[14px]" style={{ color: "var(--grey-600)" }}>
+              {Object.values(receiveQtys).filter((q) => q > 0).length > 0
+                ? `Receiving ${Object.values(receiveQtys).reduce((sum, q) => sum + q, 0)} units across ${Object.values(receiveQtys).filter((q) => q > 0).length} item(s)`
+                : "Enter quantities to receive"}
+            </p>
+            <button
+              onClick={handleReceiveItems}
+              disabled={actionLoading || Object.values(receiveQtys).every((q) => q === 0)}
+              className="px-5 py-2 text-[15px] font-semibold text-white disabled:opacity-50"
+              style={btnPrimary}
+            >
+              {actionLoading ? "Receiving..." : "Confirm Receipt"}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ── Receive Items Modal ──────────────────────────────────── */}
       {showReceive && (
