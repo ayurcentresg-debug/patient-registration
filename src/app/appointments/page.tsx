@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
+import { PageGuide } from "@/components/HelpTip";
 
 /* ─── Types ─── */
 interface Appointment {
@@ -148,7 +149,7 @@ function getPatientName(apt: Appointment): string {
 function Toast({ message, type, onClose }: { message: string; type: "success" | "error"; onClose: () => void }) {
   useEffect(() => { const t = setTimeout(onClose, 3000); return () => clearTimeout(t); }, [onClose]);
   return (
-    <div className="fixed top-5 right-5 z-[200] flex items-center gap-2 px-4 py-3 text-[13px] font-semibold yoda-slide-in"
+    <div className="fixed top-5 right-5 z-[200] flex items-center gap-2 px-4 py-3 text-[15px] font-semibold yoda-slide-in"
       style={{ background: type === "success" ? "var(--green)" : "var(--red)", color: "#fff", borderRadius: "var(--radius-sm)", boxShadow: "0 4px 20px rgba(0,0,0,0.15)", minWidth: 240 }}>
       <span className="flex-1">{message}</span>
       <button onClick={onClose} className="ml-2 opacity-80 hover:opacity-100">&times;</button>
@@ -176,14 +177,14 @@ function MiniCalendar({ selectedDate, onSelect }: { selectedDate: Date; onSelect
         <button onClick={() => setViewMonth(new Date(year, month - 1, 1))} className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-gray-100 transition-colors" style={{ color: "var(--grey-500)" }}>
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
         </button>
-        <span className="text-[13px] font-bold" style={{ color: "var(--grey-900)" }}>{months[month]} {year}</span>
+        <span className="text-[15px] font-bold" style={{ color: "var(--grey-900)" }}>{months[month]} {year}</span>
         <button onClick={() => setViewMonth(new Date(year, month + 1, 1))} className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-gray-100 transition-colors" style={{ color: "var(--grey-500)" }}>
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
         </button>
       </div>
       <div className="grid grid-cols-7 gap-[2px] text-center">
         {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(d => (
-          <div key={d} className="text-[10px] font-semibold py-1" style={{ color: "var(--grey-500)" }}>{d}</div>
+          <div key={d} className="text-[12px] font-semibold py-1" style={{ color: "var(--grey-500)" }}>{d}</div>
         ))}
         {/* Adjust cells so Monday is first day */}
         {(() => {
@@ -201,7 +202,7 @@ function MiniCalendar({ selectedDate, onSelect }: { selectedDate: Date; onSelect
             <button
               key={day}
               onClick={() => onSelect(date)}
-              className="text-[12px] w-[28px] h-[28px] mx-auto flex items-center justify-center font-medium rounded-full transition-all"
+              className="text-[14px] w-[28px] h-[28px] mx-auto flex items-center justify-center font-medium rounded-full transition-all"
               style={{
                 color: isSelected ? "#fff" : isToday ? "var(--blue-500)" : "var(--grey-800)",
                 background: isSelected ? "var(--blue-500)" : isToday ? "var(--blue-50)" : "transparent",
@@ -460,7 +461,7 @@ function QuickBookModal({
         <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: "1px solid var(--grey-200)" }}>
           <div>
             <h2 className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>Quick Book Appointment</h2>
-            <p className="text-[12px] mt-0.5" style={{ color: "var(--grey-500)" }}>
+            <p className="text-[14px] mt-0.5" style={{ color: "var(--grey-500)" }}>
               {formatDateLabel(date)} at {formatTime12(time)}
             </p>
           </div>
@@ -470,11 +471,11 @@ function QuickBookModal({
         <div className="p-5 space-y-4">
           {/* Booking type toggle: Consultation vs Therapy */}
           <div>
-            <label className="text-[11px] font-bold uppercase tracking-wider mb-1.5 block" style={{ color: "var(--grey-500)" }}>Booking For</label>
+            <label className="text-[13px] font-bold uppercase tracking-wider mb-1.5 block" style={{ color: "var(--grey-500)" }}>Booking For</label>
             <div className="flex rounded-md overflow-hidden" style={{ border: "1px solid var(--grey-300)" }}>
               <button
                 onClick={() => { setBookingFor("consultation"); setDoctorId(""); setAptType("consultation"); }}
-                className="flex-1 py-2.5 text-[13px] font-semibold transition-colors"
+                className="flex-1 py-2.5 text-[15px] font-semibold transition-colors"
                 style={{
                   background: bookingFor === "consultation" ? "#1a6d3a" : "var(--white)",
                   color: bookingFor === "consultation" ? "#fff" : "var(--grey-700)",
@@ -484,7 +485,7 @@ function QuickBookModal({
               </button>
               <button
                 onClick={() => { setBookingFor("therapy"); setDoctorId(""); setAptType("therapy"); setDuration(60); }}
-                className="flex-1 py-2.5 text-[13px] font-semibold transition-colors"
+                className="flex-1 py-2.5 text-[15px] font-semibold transition-colors"
                 style={{
                   background: bookingFor === "therapy" ? "#7c3aed" : "var(--white)",
                   color: bookingFor === "therapy" ? "#fff" : "var(--grey-700)",
@@ -500,7 +501,7 @@ function QuickBookModal({
           <div className="flex rounded-md overflow-hidden" style={{ border: "1px solid var(--grey-300)" }}>
             <button
               onClick={() => { setMode("existing"); setSelectedPatient(null); }}
-              className="flex-1 py-2 text-[13px] font-semibold transition-colors"
+              className="flex-1 py-2 text-[15px] font-semibold transition-colors"
               style={{
                 background: mode === "existing" ? "var(--blue-500)" : "var(--white)",
                 color: mode === "existing" ? "#fff" : "var(--grey-700)",
@@ -510,7 +511,7 @@ function QuickBookModal({
             </button>
             <button
               onClick={() => { setMode("walkin"); setSearch(""); setPatients([]); }}
-              className="flex-1 py-2 text-[13px] font-semibold transition-colors"
+              className="flex-1 py-2 text-[15px] font-semibold transition-colors"
               style={{
                 background: mode === "walkin" ? "var(--blue-500)" : "var(--white)",
                 color: mode === "walkin" ? "#fff" : "var(--grey-700)",
@@ -524,19 +525,19 @@ function QuickBookModal({
           {/* Patient selection */}
           {mode === "existing" ? (
             <div>
-              <label className="text-[12px] font-semibold mb-1 block" style={{ color: "var(--grey-700)" }}>Search Patient</label>
+              <label className="text-[14px] font-semibold mb-1 block" style={{ color: "var(--grey-700)" }}>Search Patient</label>
               {selectedPatient ? (
                 <div className="flex items-center justify-between p-3 rounded" style={{ background: "var(--blue-50)", border: "1px solid var(--blue-200, #93c5fd)" }}>
                   <div>
-                    <span className="text-[13px] font-bold" style={{ color: "var(--grey-900)" }}>
+                    <span className="text-[15px] font-bold" style={{ color: "var(--grey-900)" }}>
                       {selectedPatient.firstName} {selectedPatient.lastName}
                     </span>
-                    <span className="ml-2 text-[11px]" style={{ color: "var(--grey-500)" }}>{selectedPatient.patientIdNumber}</span>
-                    <div className="text-[11px]" style={{ color: "var(--grey-500)" }}>{selectedPatient.phone}</div>
+                    <span className="ml-2 text-[13px]" style={{ color: "var(--grey-500)" }}>{selectedPatient.patientIdNumber}</span>
+                    <div className="text-[13px]" style={{ color: "var(--grey-500)" }}>{selectedPatient.phone}</div>
                   </div>
                   <button
                     onClick={() => { setSelectedPatient(null); setSearch(""); }}
-                    className="text-[12px] font-semibold px-2 py-1 rounded"
+                    className="text-[14px] font-semibold px-2 py-1 rounded"
                     style={{ color: "var(--red)" }}
                   >
                     Change
@@ -548,7 +549,7 @@ function QuickBookModal({
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     placeholder="Type name or phone to search..."
-                    className="w-full px-3 py-2 text-[13px]"
+                    className="w-full px-3 py-2 text-[15px]"
                     style={inputStyle}
                     autoFocus
                   />
@@ -566,21 +567,21 @@ function QuickBookModal({
                           className="w-full text-left px-3 py-2 hover:bg-blue-50 transition-colors"
                           style={{ borderBottom: "1px solid var(--grey-100)" }}
                         >
-                          <div className="text-[13px] font-semibold" style={{ color: "var(--grey-900)" }}>
+                          <div className="text-[15px] font-semibold" style={{ color: "var(--grey-900)" }}>
                             {p.firstName} {p.lastName}
-                            <span className="ml-2 text-[11px] font-normal" style={{ color: "var(--grey-500)" }}>{p.patientIdNumber}</span>
+                            <span className="ml-2 text-[13px] font-normal" style={{ color: "var(--grey-500)" }}>{p.patientIdNumber}</span>
                           </div>
-                          <div className="text-[11px]" style={{ color: "var(--grey-500)" }}>{p.phone}</div>
+                          <div className="text-[13px]" style={{ color: "var(--grey-500)" }}>{p.phone}</div>
                         </button>
                       ))}
                     </div>
                   )}
                   {search.length >= 2 && !searchLoading && patients.length === 0 && (
                     <div className="absolute top-full left-0 right-0 mt-1 p-3 rounded shadow-lg text-center" style={{ background: "var(--white)", border: "1px solid var(--grey-300)" }}>
-                      <p className="text-[12px]" style={{ color: "var(--grey-500)" }}>No patients found</p>
+                      <p className="text-[14px]" style={{ color: "var(--grey-500)" }}>No patients found</p>
                       <button
                         onClick={() => setMode("walkin")}
-                        className="text-[12px] font-semibold mt-1"
+                        className="text-[14px] font-semibold mt-1"
                         style={{ color: "var(--blue-500)" }}
                       >
                         Book as walk-in instead
@@ -593,31 +594,31 @@ function QuickBookModal({
           ) : (
             <div className="space-y-3">
               <div>
-                <label className="text-[12px] font-semibold mb-1 block" style={{ color: "var(--grey-700)" }}>Patient Name *</label>
+                <label className="text-[14px] font-semibold mb-1 block" style={{ color: "var(--grey-700)" }}>Patient Name *</label>
                 <input
                   value={walkinName}
                   onChange={(e) => setWalkinName(e.target.value)}
                   placeholder="Enter patient name"
-                  className="w-full px-3 py-2 text-[13px]"
+                  className="w-full px-3 py-2 text-[15px]"
                   style={inputStyle}
                   autoFocus
                 />
               </div>
               <div>
-                <label className="text-[12px] font-semibold mb-1 block" style={{ color: "var(--grey-700)" }}>Phone Number *</label>
+                <label className="text-[14px] font-semibold mb-1 block" style={{ color: "var(--grey-700)" }}>Phone Number *</label>
                 <input
                   value={walkinPhone}
                   onChange={(e) => setWalkinPhone(e.target.value)}
                   placeholder="Enter phone number"
-                  className="w-full px-3 py-2 text-[13px]"
+                  className="w-full px-3 py-2 text-[15px]"
                   style={inputStyle}
                 />
               </div>
               <div>
-                <label className="text-[12px] font-semibold mb-1 block" style={{ color: "var(--grey-700)" }}>Gender</label>
+                <label className="text-[14px] font-semibold mb-1 block" style={{ color: "var(--grey-700)" }}>Gender</label>
                 <div className="flex gap-4">
                   {["male", "female"].map((g) => (
-                    <label key={g} className="flex items-center gap-1.5 text-[13px] cursor-pointer" style={{ color: "var(--grey-800)" }}>
+                    <label key={g} className="flex items-center gap-1.5 text-[15px] cursor-pointer" style={{ color: "var(--grey-800)" }}>
                       <input
                         type="radio"
                         name="walkinGender"
@@ -630,12 +631,12 @@ function QuickBookModal({
                   ))}
                 </div>
                 {bookingFor === "therapy" && !walkinGender && (
-                  <p className="text-[10px] mt-1" style={{ color: "var(--orange, #37845e)" }}>Select gender to see matching therapists</p>
+                  <p className="text-[12px] mt-1" style={{ color: "var(--orange, #37845e)" }}>Select gender to see matching therapists</p>
                 )}
               </div>
               <div className="flex items-center gap-2 px-3 py-2 rounded" style={{ background: "#f0faf4", border: "1px solid #6bc792" }}>
                 <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="#37845e" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                <p className="text-[11px]" style={{ color: "#14532d" }}>
+                <p className="text-[13px]" style={{ color: "#14532d" }}>
                   Walk-in patient — register them when they arrive at the clinic
                 </p>
               </div>
@@ -644,13 +645,13 @@ function QuickBookModal({
 
           {/* Doctor / Therapist */}
           <div>
-            <label className="text-[12px] font-semibold mb-1 block" style={{ color: "var(--grey-700)" }}>
+            <label className="text-[14px] font-semibold mb-1 block" style={{ color: "var(--grey-700)" }}>
               {bookingFor === "consultation" ? "Ayurveda Doctor *" : "Therapist *"}
             </label>
             <select
               value={doctorId}
               onChange={(e) => setDoctorId(e.target.value)}
-              className="w-full px-3 py-2 text-[13px]"
+              className="w-full px-3 py-2 text-[15px]"
               style={inputStyle}
             >
               <option value="">{bookingFor === "consultation" ? "Select Doctor" : "Select Therapist"}</option>
@@ -680,13 +681,13 @@ function QuickBookModal({
               )}
             </select>
             {bookingFor === "therapy" && patientGender && genderMatchedPractitioners.length > 0 && (
-              <p className="text-[10px] mt-1 flex items-center gap-1" style={{ color: "#2e7d32" }}>
+              <p className="text-[12px] mt-1 flex items-center gap-1" style={{ color: "#2e7d32" }}>
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4" /></svg>
                 Gender-matched therapists shown first for {patientGender} patient
               </p>
             )}
             {filteredPractitioners.length === 0 && (
-              <p className="text-[11px] mt-1" style={{ color: "var(--red)" }}>
+              <p className="text-[13px] mt-1" style={{ color: "var(--red)" }}>
                 No {bookingFor === "consultation" ? "doctors" : "therapists"} available. Add one in the Admin panel first.
               </p>
             )}
@@ -700,7 +701,7 @@ function QuickBookModal({
                 return (
                   <div className="flex items-center gap-2 mt-2 px-3 py-2 rounded" style={{ background: "#d1f2e0", border: "1px solid #6bc792" }}>
                     <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="#37845e" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>
-                    <p className="text-[11px] font-medium" style={{ color: "#14532d" }}>
+                    <p className="text-[13px] font-medium" style={{ color: "#14532d" }}>
                       <strong>Gender mismatch:</strong> {selectedDoctor.gender === "male" ? "Male" : "Female"} therapist selected for {patientGender === "male" ? "male" : "female"} patient. In Ayurveda, same-gender therapist is recommended.
                     </p>
                   </div>
@@ -708,7 +709,7 @@ function QuickBookModal({
               }
               if (!patientGender && selectedDoctor.gender) {
                 return (
-                  <p className="text-[11px] mt-1 flex items-center gap-1" style={{ color: "var(--grey-500)" }}>
+                  <p className="text-[13px] mt-1 flex items-center gap-1" style={{ color: "var(--grey-500)" }}>
                     <span>ℹ️</span> {selectedDoctor.gender === "male" ? "Male" : "Female"} therapist — ensure patient gender matches for therapy
                   </p>
                 );
@@ -720,8 +721,8 @@ function QuickBookModal({
           {/* Type + Duration row */}
           <div className="flex gap-3">
             <div className="flex-1">
-              <label className="text-[12px] font-semibold mb-1 block" style={{ color: "var(--grey-700)" }}>Type</label>
-              <select value={aptType} onChange={(e) => setAptType(e.target.value)} className="w-full px-3 py-2 text-[13px]" style={inputStyle}>
+              <label className="text-[14px] font-semibold mb-1 block" style={{ color: "var(--grey-700)" }}>Type</label>
+              <select value={aptType} onChange={(e) => setAptType(e.target.value)} className="w-full px-3 py-2 text-[15px]" style={inputStyle}>
                 {bookingFor === "consultation" ? (
                   <>
                     <option value="consultation">Consultation</option>
@@ -744,8 +745,8 @@ function QuickBookModal({
               </select>
             </div>
             <div className="w-[100px]">
-              <label className="text-[12px] font-semibold mb-1 block" style={{ color: "var(--grey-700)" }}>Duration</label>
-              <select value={duration} onChange={(e) => setDuration(Number(e.target.value))} className="w-full px-3 py-2 text-[13px]" style={inputStyle}>
+              <label className="text-[14px] font-semibold mb-1 block" style={{ color: "var(--grey-700)" }}>Duration</label>
+              <select value={duration} onChange={(e) => setDuration(Number(e.target.value))} className="w-full px-3 py-2 text-[15px]" style={inputStyle}>
                 {bookingFor === "consultation"
                   ? [15, 20, 30, 45, 60].map(m => <option key={m} value={m}>{m} min</option>)
                   : [30, 45, 60, 90, 120].map(m => <option key={m} value={m}>{m} min</option>)
@@ -757,20 +758,20 @@ function QuickBookModal({
           {/* Treatment Selection (therapy only) */}
           {bookingFor === "therapy" && (
             <div>
-              <label className="text-[12px] font-semibold mb-1 block" style={{ color: "var(--grey-700)" }}>Treatment</label>
+              <label className="text-[14px] font-semibold mb-1 block" style={{ color: "var(--grey-700)" }}>Treatment</label>
               {loadingTreatments ? (
                 <div className="flex items-center gap-2 py-2">
                   <div className="w-4 h-4 border-2 rounded-full animate-spin" style={{ borderColor: "var(--grey-300)", borderTopColor: "var(--blue-500)" }} />
-                  <span className="text-[12px]" style={{ color: "var(--grey-500)" }}>Loading treatments...</span>
+                  <span className="text-[14px]" style={{ color: "var(--grey-500)" }}>Loading treatments...</span>
                 </div>
               ) : treatments.length === 0 ? (
-                <p className="text-[11px] py-1" style={{ color: "var(--grey-500)" }}>No treatments configured. <a href="/admin/treatments" className="underline" style={{ color: "var(--blue-500)" }}>Add treatments</a></p>
+                <p className="text-[13px] py-1" style={{ color: "var(--grey-500)" }}>No treatments configured. <a href="/admin/treatments" className="underline" style={{ color: "var(--blue-500)" }}>Add treatments</a></p>
               ) : (
                 <>
                   <select
                     value={selectedTreatmentId}
                     onChange={(e) => { setSelectedTreatmentId(e.target.value); setSelectedPricingTier("single"); }}
-                    className="w-full px-3 py-2 text-[13px]"
+                    className="w-full px-3 py-2 text-[15px]"
                     style={inputStyle}
                   >
                     <option value="">Select Treatment (optional)</option>
@@ -782,13 +783,13 @@ function QuickBookModal({
                   {/* Package / pricing tier selection */}
                   {selectedTreatment && (
                     <div className="mt-2 space-y-1.5">
-                      <label className="text-[11px] font-bold uppercase tracking-wider block" style={{ color: "var(--grey-500)" }}>Pricing</label>
+                      <label className="text-[13px] font-bold uppercase tracking-wider block" style={{ color: "var(--grey-500)" }}>Pricing</label>
                       {/* Single session */}
                       <label className="flex items-center gap-2 p-2 rounded cursor-pointer transition-all" style={{ background: selectedPricingTier === "single" ? "#e3f2fd" : "var(--grey-50)", border: selectedPricingTier === "single" ? "1.5px solid var(--blue-500)" : "1px solid var(--grey-200)" }}>
                         <input type="radio" name="pricingTier" checked={selectedPricingTier === "single"} onChange={() => setSelectedPricingTier("single")} className="w-3.5 h-3.5" />
                         <div className="flex-1 flex justify-between">
-                          <span className="text-[12px] font-semibold" style={{ color: "var(--grey-900)" }}>Single Session</span>
-                          <span className="text-[12px] font-bold" style={{ color: "var(--grey-900)" }}>S${selectedTreatment.basePrice.toFixed(2)}</span>
+                          <span className="text-[14px] font-semibold" style={{ color: "var(--grey-900)" }}>Single Session</span>
+                          <span className="text-[14px] font-bold" style={{ color: "var(--grey-900)" }}>S${selectedTreatment.basePrice.toFixed(2)}</span>
                         </div>
                       </label>
                       {/* Package tiers */}
@@ -799,13 +800,13 @@ function QuickBookModal({
                             <input type="radio" name="pricingTier" checked={selectedPricingTier === pkg.id} onChange={() => !disabled && setSelectedPricingTier(pkg.id)} disabled={disabled} className="w-3.5 h-3.5" />
                             <div className="flex-1">
                               <div className="flex justify-between">
-                                <span className="text-[12px] font-semibold" style={{ color: "var(--grey-900)" }}>
+                                <span className="text-[14px] font-semibold" style={{ color: "var(--grey-900)" }}>
                                   {pkg.name}
-                                  <span className="ml-1.5 text-[10px] font-bold px-1 py-0.5 rounded" style={{ background: "#c8e6c9", color: "#2e7d32" }}>{pkg.discountPercent}% OFF</span>
+                                  <span className="ml-1.5 text-[12px] font-bold px-1 py-0.5 rounded" style={{ background: "#c8e6c9", color: "#2e7d32" }}>{pkg.discountPercent}% OFF</span>
                                 </span>
-                                <span className="text-[12px] font-bold" style={{ color: "var(--grey-900)" }}>S${pkg.totalPrice.toFixed(2)}</span>
+                                <span className="text-[14px] font-bold" style={{ color: "var(--grey-900)" }}>S${pkg.totalPrice.toFixed(2)}</span>
                               </div>
-                              <div className="flex justify-between text-[10px] mt-0.5" style={{ color: "var(--grey-500)" }}>
+                              <div className="flex justify-between text-[12px] mt-0.5" style={{ color: "var(--grey-500)" }}>
                                 <span>{pkg.sessionCount} sessions</span>
                                 <span>S${pkg.pricePerSession.toFixed(2)}/session</span>
                               </div>
@@ -816,7 +817,7 @@ function QuickBookModal({
                       {isWalkinFirstTime && selectedTreatment.packages.length > 0 && (
                         <div className="flex items-center gap-2 px-2 py-1.5 rounded" style={{ background: "#f0faf4", border: "1px solid #6bc792" }}>
                           <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="#37845e" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                          <p className="text-[10px]" style={{ color: "#14532d" }}>Packages unavailable for first-time walk-ins. Available after first completed session.</p>
+                          <p className="text-[12px]" style={{ color: "#14532d" }}>Packages unavailable for first-time walk-ins. Available after first completed session.</p>
                         </div>
                       )}
                     </div>
@@ -835,33 +836,33 @@ function QuickBookModal({
                 onChange={(e) => setIsRecurring(e.target.checked)}
                 className="w-4 h-4 rounded"
               />
-              <span className="text-[12px] font-semibold" style={{ color: "var(--grey-700)" }}>Recurring Appointment</span>
+              <span className="text-[14px] font-semibold" style={{ color: "var(--grey-700)" }}>Recurring Appointment</span>
             </label>
             {isRecurring && (
               <div className="mt-2 p-3 rounded-md space-y-2" style={{ background: "var(--grey-50)", border: "1px solid var(--grey-200)" }}>
                 <div className="flex gap-2">
                   <div className="flex-1">
-                    <label className="text-[10px] font-bold uppercase tracking-wide block mb-1" style={{ color: "var(--grey-500)" }}>Frequency</label>
-                    <select value={recurFrequency} onChange={(e) => setRecurFrequency(e.target.value as "weekly" | "biweekly" | "monthly")} className="w-full px-2 py-1.5 text-[12px]" style={inputStyle}>
+                    <label className="text-[12px] font-bold uppercase tracking-wide block mb-1" style={{ color: "var(--grey-500)" }}>Frequency</label>
+                    <select value={recurFrequency} onChange={(e) => setRecurFrequency(e.target.value as "weekly" | "biweekly" | "monthly")} className="w-full px-2 py-1.5 text-[14px]" style={inputStyle}>
                       <option value="weekly">Weekly</option>
                       <option value="biweekly">Every 2 Weeks</option>
                       <option value="monthly">Monthly</option>
                     </select>
                   </div>
                   <div className="w-[80px]">
-                    <label className="text-[10px] font-bold uppercase tracking-wide block mb-1" style={{ color: "var(--grey-500)" }}>Sessions</label>
+                    <label className="text-[12px] font-bold uppercase tracking-wide block mb-1" style={{ color: "var(--grey-500)" }}>Sessions</label>
                     <input
                       type="number"
                       min={2}
                       max={52}
                       value={recurCount}
                       onChange={(e) => setRecurCount(Math.max(2, Math.min(52, parseInt(e.target.value) || 2)))}
-                      className="w-full px-2 py-1.5 text-[12px]"
+                      className="w-full px-2 py-1.5 text-[14px]"
                       style={inputStyle}
                     />
                   </div>
                 </div>
-                <p className="text-[10px]" style={{ color: "var(--grey-500)" }}>
+                <p className="text-[12px]" style={{ color: "var(--grey-500)" }}>
                   Will create {recurCount} appointments, {recurFrequency === "weekly" ? "every week" : recurFrequency === "biweekly" ? "every 2 weeks" : "every month"} starting {formatDateLabel(date)}.
                 </p>
               </div>
@@ -876,35 +877,35 @@ function QuickBookModal({
               onChange={(e) => setSendReminder(e.target.checked)}
               className="w-4 h-4 rounded"
             />
-            <span className="text-[12px] font-semibold" style={{ color: "var(--grey-700)" }}>Send 24hr reminder (WhatsApp)</span>
+            <span className="text-[14px] font-semibold" style={{ color: "var(--grey-700)" }}>Send 24hr reminder (WhatsApp)</span>
           </label>
 
           {/* Reason */}
           <div>
-            <label className="text-[12px] font-semibold mb-1 block" style={{ color: "var(--grey-700)" }}>Reason (optional)</label>
+            <label className="text-[14px] font-semibold mb-1 block" style={{ color: "var(--grey-700)" }}>Reason (optional)</label>
             <input
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               placeholder="Brief reason for visit"
-              className="w-full px-3 py-2 text-[13px]"
+              className="w-full px-3 py-2 text-[15px]"
               style={inputStyle}
             />
           </div>
 
           {/* Error */}
           {error && (
-            <p className="text-[12px] font-semibold px-3 py-2 rounded" style={{ color: "var(--red)", background: "#fef2f2" }}>{error}</p>
+            <p className="text-[14px] font-semibold px-3 py-2 rounded" style={{ color: "var(--red)", background: "#fef2f2" }}>{error}</p>
           )}
 
           {/* Price summary */}
           {displayPrice != null && selectedTreatment && (
             <div className="p-3 rounded" style={{ background: "var(--grey-50)", border: "1px solid var(--grey-200)" }}>
-              <div className="flex justify-between text-[12px]">
+              <div className="flex justify-between text-[14px]">
                 <span style={{ color: "var(--grey-600)" }}>{selectedTreatment.name}</span>
                 <span className="font-bold" style={{ color: "var(--grey-900)" }}>S${displayPrice.toFixed(2)}{selectedPackage ? "/session" : ""}</span>
               </div>
               {selectedPackage && (
-                <div className="flex justify-between text-[11px] mt-1" style={{ color: "var(--green)" }}>
+                <div className="flex justify-between text-[13px] mt-1" style={{ color: "var(--green)" }}>
                   <span>{selectedPackage.name} total</span>
                   <span className="font-bold">S${displayPackageTotal?.toFixed(2)}</span>
                 </div>
@@ -916,7 +917,7 @@ function QuickBookModal({
           <div className="flex justify-end gap-2 pt-2">
             <button
               onClick={onClose}
-              className="px-4 py-2 text-[13px] font-semibold rounded"
+              className="px-4 py-2 text-[15px] font-semibold rounded"
               style={{ border: "1px solid var(--grey-300)", color: "var(--grey-700)" }}
             >
               Cancel
@@ -924,7 +925,7 @@ function QuickBookModal({
             <button
               onClick={handleBook}
               disabled={saving}
-              className="px-5 py-2 text-[13px] font-bold text-white rounded flex items-center gap-2"
+              className="px-5 py-2 text-[15px] font-bold text-white rounded flex items-center gap-2"
               style={{ background: saving ? "var(--grey-400)" : "var(--blue-500)" }}
             >
               {saving && <div className="w-3.5 h-3.5 border-2 rounded-full animate-spin" style={{ borderColor: "rgba(255,255,255,0.3)", borderTopColor: "#fff" }} />}
@@ -1153,6 +1154,23 @@ export default function AppointmentsPage() {
         />
       )}
 
+      {/* ─── Getting Started Guide ─── */}
+      <div className="px-4 pt-3">
+        <PageGuide
+          storageKey="appointments"
+          title="Appointments Guide"
+          subtitle="Schedule, manage, and track patient appointments."
+          steps={[
+            { icon: "📅", title: "Book Appointment", description: "Click on any empty time slot in the calendar to quickly book an appointment. Or use the '+ New' button." },
+            { icon: "👁️", title: "View Modes", description: "Switch between Day, 5-Day, Week, and Month views using the toolbar buttons." },
+            { icon: "🔄", title: "Appointment Status", description: "Scheduled > Confirmed > In Progress > Completed. Click an appointment to change its status or cancel it." },
+            { icon: "🚶", title: "Walk-in Patients", description: "For walk-in patients without a registration, tick 'Walk-in' when booking — no patient record required." },
+            { icon: "👨‍⚕️", title: "Filter by Doctor", description: "Use the doctor sidebar (left) to filter appointments by specific doctor or therapist." },
+            { icon: "📊", title: "Status Summary", description: "The right sidebar shows today's appointment counts by status for a quick overview." },
+          ]}
+        />
+      </div>
+
       {/* ─── Toolbar Row 1: Date + Today + View Toggles + Nav + Schedule Title ─── */}
       <div className="flex items-center gap-0 border-b" style={{ background: "#f8f8f8", borderColor: "var(--grey-300)", height: 52 }}>
         {/* Left nav arrow */}
@@ -1163,7 +1181,7 @@ export default function AppointmentsPage() {
         {/* Date display with calendar icon */}
         <div className="h-full flex items-center gap-2 px-4" style={{ borderRight: "1px solid var(--grey-300)" }}>
           <svg className="w-4 h-4" fill="none" stroke="var(--grey-600)" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-          <span className="text-[14px] font-bold" style={{ color: "var(--grey-900)" }}>
+          <span className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>
             {viewMode === "Day" && formatDateLabel(selectedDate)}
             {viewMode === "Week" && `${formatDateShort(viewDates[0])} – ${formatDateShort(viewDates[6])}, ${viewDates[0].getFullYear()}`}
             {viewMode === "5 Days" && `${formatDateShort(viewDates[0])} – ${formatDateShort(viewDates[4])}, ${viewDates[0].getFullYear()}`}
@@ -1174,7 +1192,7 @@ export default function AppointmentsPage() {
         {/* Today button */}
         <button
           onClick={() => setSelectedDate(new Date())}
-          className="h-full px-5 text-[13px] font-bold transition-colors hover:bg-gray-200"
+          className="h-full px-5 text-[15px] font-bold transition-colors hover:bg-gray-200"
           style={{ color: "var(--grey-800)", borderRight: "1px solid var(--grey-300)" }}
         >
           Today
@@ -1186,7 +1204,7 @@ export default function AppointmentsPage() {
             <button
               key={mode}
               onClick={() => setViewMode(mode)}
-              className="h-full px-4 text-[13px] font-semibold transition-colors"
+              className="h-full px-4 text-[15px] font-semibold transition-colors"
               style={{
                 background: viewMode === mode ? "var(--white)" : "transparent",
                 color: viewMode === mode ? "#2d6a4f" : "var(--grey-600)",
@@ -1213,7 +1231,7 @@ export default function AppointmentsPage() {
 
         {/* Schedule title on right */}
         <div className="h-full flex items-center px-5" style={{ borderLeft: "1px solid var(--grey-300)" }}>
-          <span className="text-[14px] font-bold" style={{ color: "var(--grey-900)" }}>
+          <span className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>
             {selectedDate.toLocaleDateString("en-SG", { month: "short", day: "numeric" })}&apos;s Schedule
           </span>
         </div>
@@ -1231,7 +1249,7 @@ export default function AppointmentsPage() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search patient, doctor, reason..."
-            className="w-full pl-10 pr-4 py-2 text-[13px]"
+            className="w-full pl-10 pr-4 py-2 text-[15px]"
             style={{
               border: "1.5px solid var(--grey-300)",
               borderRadius: 6,
@@ -1259,8 +1277,8 @@ export default function AppointmentsPage() {
                     setPopup({ apt, x: window.innerWidth / 2, y: 200 });
                   }}
                 >
-                  <div className="text-[13px] font-semibold" style={{ color: "var(--grey-900)" }}>{getPatientName(apt)}</div>
-                  <div className="text-[11px] flex items-center gap-2 mt-0.5" style={{ color: "var(--grey-500)" }}>
+                  <div className="text-[15px] font-semibold" style={{ color: "var(--grey-900)" }}>{getPatientName(apt)}</div>
+                  <div className="text-[13px] flex items-center gap-2 mt-0.5" style={{ color: "var(--grey-500)" }}>
                     <span>{new Date(apt.date).toLocaleDateString("en-SG", { day: "numeric", month: "short" })}</span>
                     <span>{formatTime12(apt.time)}</span>
                     <span className="font-semibold" style={{ color: STATUS_COLORS[apt.status] || "var(--grey-500)" }}>{apt.status}</span>
@@ -1272,7 +1290,7 @@ export default function AppointmentsPage() {
           )}
           {searchQuery && searchQuery.length >= 2 && searchResults.length === 0 && (
             <div className="absolute top-full left-0 right-0 mt-1 p-3 rounded shadow-lg text-center" style={{ background: "var(--white)", border: "1px solid var(--grey-300)" }}>
-              <p className="text-[12px]" style={{ color: "var(--grey-500)" }}>No appointments found</p>
+              <p className="text-[14px]" style={{ color: "var(--grey-500)" }}>No appointments found</p>
             </div>
           )}
         </div>
@@ -1281,7 +1299,7 @@ export default function AppointmentsPage() {
         <select
           value={selectedDoctor}
           onChange={(e) => setSelectedDoctor(e.target.value)}
-          className="hidden md:block px-3 py-2 text-[13px] font-medium"
+          className="hidden md:block px-3 py-2 text-[15px] font-medium"
           style={{ border: "1.5px solid var(--grey-300)", borderRadius: 6, color: "var(--grey-900)", background: "var(--white)" }}
         >
           <option value="all">All Staff</option>
@@ -1291,7 +1309,7 @@ export default function AppointmentsPage() {
         {/* + add walk in appointment button */}
         <button
           onClick={() => setBookModal({ date: new Date(), time: minutesToTime(Math.ceil((new Date().getHours() * 60 + new Date().getMinutes()) / 15) * 15) })}
-          className="flex items-center gap-2 px-4 py-2 text-[13px] font-semibold transition-colors hover:opacity-90"
+          className="flex items-center gap-2 px-4 py-2 text-[15px] font-semibold transition-colors hover:opacity-90"
           style={{ background: "#2d6a4f", color: "#fff", borderRadius: 6 }}
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
@@ -1311,14 +1329,14 @@ export default function AppointmentsPage() {
           <div className="border-t px-3 py-2" style={{ borderColor: "var(--grey-200)" }}>
             <button
               onClick={() => setSelectedDoctor("all")}
-              className="flex items-center justify-between w-full py-2 px-2 text-[12px] font-bold rounded-sm transition-colors"
+              className="flex items-center justify-between w-full py-2 px-2 text-[14px] font-bold rounded-sm transition-colors"
               style={{
                 color: selectedDoctor === "all" ? "var(--blue-500)" : "var(--grey-800)",
                 background: selectedDoctor === "all" ? "var(--blue-50)" : "transparent",
               }}
             >
               <span>All Staff</span>
-              <span className="text-[11px] font-bold" style={{ color: "var(--grey-500)" }}>({appointments.length})</span>
+              <span className="text-[13px] font-bold" style={{ color: "var(--grey-500)" }}>({appointments.length})</span>
             </button>
 
             {doctors.map(doc => {
@@ -1328,7 +1346,7 @@ export default function AppointmentsPage() {
                 <button
                   key={doc.id}
                   onClick={() => setSelectedDoctor(doc.id)}
-                  className="flex items-center justify-between w-full py-2 px-2 text-[12px] font-semibold rounded-sm transition-colors"
+                  className="flex items-center justify-between w-full py-2 px-2 text-[14px] font-semibold rounded-sm transition-colors"
                   style={{
                     color: isActive ? "var(--blue-500)" : "var(--grey-700)",
                     background: isActive ? "var(--blue-50)" : "transparent",
@@ -1344,7 +1362,7 @@ export default function AppointmentsPage() {
                       {doc.role === "therapist" ? "T" : "D"}{doc.gender ? (doc.gender === "male" ? "♂" : "♀") : ""}
                     </span>
                   </div>
-                  <span className="text-[11px] ml-1" style={{ color: "var(--grey-500)" }}>({count})</span>
+                  <span className="text-[13px] ml-1" style={{ color: "var(--grey-500)" }}>({count})</span>
                 </button>
               );
             })}
@@ -1354,7 +1372,7 @@ export default function AppointmentsPage() {
           <div className="mt-auto border-t p-3" style={{ borderColor: "var(--grey-200)" }}>
             <button
               onClick={() => setBookModal({ date: selectedDate, time: "09:00" })}
-              className="flex items-center justify-center gap-2 w-full py-2 text-[12px] font-bold text-white"
+              className="flex items-center justify-center gap-2 w-full py-2 text-[14px] font-bold text-white"
               style={{ background: "var(--blue-500)", borderRadius: "var(--radius-sm)" }}
             >
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
@@ -1387,10 +1405,10 @@ export default function AppointmentsPage() {
                   const ampm = h < 12 ? "am" : "pm";
                   return (
                     <div key={h} className="relative" style={{ height: HOUR_HEIGHT }}>
-                      <span className="absolute -top-[9px] right-3 text-[11px] font-bold" style={{ color: "var(--grey-700)" }}>
+                      <span className="absolute -top-[9px] right-3 text-[13px] font-bold" style={{ color: "var(--grey-700)" }}>
                         {hour12}:00 {ampm}
                       </span>
-                      <span className="absolute right-3 text-[10px] font-medium" style={{ color: "var(--grey-400)", top: HOUR_HEIGHT / 2 - 7 }}>
+                      <span className="absolute right-3 text-[12px] font-medium" style={{ color: "var(--grey-400)", top: HOUR_HEIGHT / 2 - 7 }}>
                         {hour12}:30
                       </span>
                     </div>
@@ -1412,7 +1430,7 @@ export default function AppointmentsPage() {
                         borderColor: "var(--grey-300)",
                       }}
                     >
-                      <span className="text-[13px] font-bold" style={{ color: isToday ? "#2d6a4f" : "var(--grey-700)" }}>
+                      <span className="text-[15px] font-bold" style={{ color: isToday ? "#2d6a4f" : "var(--grey-700)" }}>
                         {["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][date.getDay()]} {date.getDate()}{date.getDate() === 1 || date.getDate() === 21 || date.getDate() === 31 ? "st" : date.getDate() === 2 || date.getDate() === 22 ? "nd" : date.getDate() === 3 || date.getDate() === 23 ? "rd" : "th"} {["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][date.getMonth()]}
                       </span>
                     </div>
@@ -1491,14 +1509,14 @@ export default function AppointmentsPage() {
         <div className="hidden xl:flex flex-col w-[300px] border-l overflow-y-auto flex-shrink-0" style={{ background: "var(--white)", borderColor: "var(--grey-200)" }}>
           <div className="p-4 border-b" style={{ borderColor: "var(--grey-200)" }}>
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-[14px] font-bold" style={{ color: "var(--grey-900)" }}>Today&apos;s Schedule</h2>
-              <span className="text-[11px] font-bold px-2 py-0.5 rounded-full" style={{ background: "var(--blue-50)", color: "var(--blue-500)" }}>{todaysSchedule.length}</span>
+              <h2 className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>Today&apos;s Schedule</h2>
+              <span className="text-[13px] font-bold px-2 py-0.5 rounded-full" style={{ background: "var(--blue-50)", color: "var(--blue-500)" }}>{todaysSchedule.length}</span>
             </div>
 
             {/* Walk-in button */}
             <button
               onClick={() => setBookModal({ date: new Date(), time: minutesToTime(Math.ceil((new Date().getHours() * 60 + new Date().getMinutes()) / 15) * 15) })}
-              className="flex items-center justify-center gap-1.5 w-full py-2 mb-4 text-[12px] font-semibold rounded-md transition-colors hover:bg-gray-50"
+              className="flex items-center justify-center gap-1.5 w-full py-2 mb-4 text-[14px] font-semibold rounded-md transition-colors hover:bg-gray-50"
               style={{ border: "1px solid var(--grey-300)", color: "var(--grey-700)" }}
             >
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
@@ -1526,11 +1544,11 @@ export default function AppointmentsPage() {
           {/* No-Show Follow-up Section */}
           {statusCounts["no-show"] > 0 && (
             <div className="px-4 py-3 border-b" style={{ borderColor: "var(--grey-200)", background: "#fdf2f8" }}>
-              <p className="text-[10px] font-bold uppercase tracking-wide mb-2" style={{ color: "#b125c0" }}>
+              <p className="text-[12px] font-bold uppercase tracking-wide mb-2" style={{ color: "#b125c0" }}>
                 No-Show Follow-up Required
               </p>
               {todaysSchedule.filter(a => a.status === "no-show").map(apt => (
-                <div key={apt.id} className="flex items-center justify-between py-1.5 text-[11px]">
+                <div key={apt.id} className="flex items-center justify-between py-1.5 text-[13px]">
                   <div>
                     <span className="font-bold" style={{ color: "var(--grey-900)" }}>{getPatientName(apt)}</span>
                     <span className="ml-1" style={{ color: "var(--grey-500)" }}>{formatTime12(apt.time)}</span>
@@ -1565,7 +1583,7 @@ export default function AppointmentsPage() {
           <div className="flex-1 overflow-y-auto">
             {todaysSchedule.length === 0 ? (
               <div className="p-6 text-center">
-                <p className="text-[12px]" style={{ color: "var(--grey-500)" }}>No appointments today</p>
+                <p className="text-[14px]" style={{ color: "var(--grey-500)" }}>No appointments today</p>
               </div>
             ) : (
               todaysSchedule.map(apt => (
@@ -1577,11 +1595,11 @@ export default function AppointmentsPage() {
                 >
                   {/* Compact row: time + name + status */}
                   <div className="flex items-center gap-2">
-                    <span className="text-[11px] font-black flex-shrink-0 w-[56px]" style={{ color: "var(--blue-500)" }}>
+                    <span className="text-[13px] font-black flex-shrink-0 w-[56px]" style={{ color: "var(--blue-500)" }}>
                       {formatTime12(apt.time)}
                     </span>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[11px] font-bold truncate" style={{ color: "var(--grey-900)" }}>
+                      <p className="text-[13px] font-bold truncate" style={{ color: "var(--grey-900)" }}>
                         {getPatientName(apt)}
                       </p>
                     </div>
@@ -1648,11 +1666,11 @@ export default function AppointmentsPage() {
             }}
           >
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-[14px] font-bold" style={{ color: "var(--grey-900)" }}>Appointment Details</h3>
+              <h3 className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>Appointment Details</h3>
               <button onClick={() => setPopup(null)} className="text-[16px]" style={{ color: "var(--grey-500)" }}>&times;</button>
             </div>
 
-            <div className="space-y-2 text-[12px]">
+            <div className="space-y-2 text-[14px]">
               <div>
                 <span className="font-bold" style={{ color: "var(--grey-900)" }}>Patient: </span>
                 {popup.apt.isWalkin ? (
@@ -1702,7 +1720,7 @@ export default function AppointmentsPage() {
                 <div>
                   <span className="font-bold" style={{ color: "var(--grey-900)" }}>Treatment: </span>
                   <span style={{ color: "var(--grey-700)" }}>{popup.apt.treatmentName}</span>
-                  {popup.apt.packageName && <span className="ml-1 text-[10px] px-1.5 py-0.5 rounded font-bold" style={{ background: "#c8e6c9", color: "#2e7d32" }}>{popup.apt.packageName}</span>}
+                  {popup.apt.packageName && <span className="ml-1 text-[12px] px-1.5 py-0.5 rounded font-bold" style={{ background: "#c8e6c9", color: "#2e7d32" }}>{popup.apt.packageName}</span>}
                 </div>
               )}
               {popup.apt.sessionPrice != null && (
@@ -1716,7 +1734,7 @@ export default function AppointmentsPage() {
               {popup.apt.status === "completed" && (
                 <Link
                   href={`/billing/new?appointmentId=${popup.apt.id}`}
-                  className="flex items-center justify-center gap-1.5 w-full py-2 mt-2 text-[12px] font-bold rounded transition-colors"
+                  className="flex items-center justify-center gap-1.5 w-full py-2 mt-2 text-[14px] font-bold rounded transition-colors"
                   style={{ background: "#e8f5e9", color: "#2e7d32", border: "1px solid #a5d6a7" }}
                 >
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" /></svg>
@@ -1728,7 +1746,7 @@ export default function AppointmentsPage() {
               {popup.apt.isWalkin && !popup.apt.patientId && (
                 <Link
                   href={`/patients/new?walkinName=${encodeURIComponent(popup.apt.walkinName || "")}&walkinPhone=${encodeURIComponent(popup.apt.walkinPhone || "")}&appointmentId=${popup.apt.id}`}
-                  className="flex items-center justify-center gap-1 w-full py-2 mt-2 text-[12px] font-bold rounded"
+                  className="flex items-center justify-center gap-1 w-full py-2 mt-2 text-[14px] font-bold rounded"
                   style={{ background: "#d1f2e0", color: "#14532d", border: "1px solid #6bc792" }}
                 >
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
@@ -1742,7 +1760,7 @@ export default function AppointmentsPage() {
                 <select
                   value={popup.apt.status}
                   onChange={(e) => { updateStatus(popup.apt.id, e.target.value); setPopup(null); }}
-                  className="flex-1 px-2 py-1 text-[12px] font-semibold"
+                  className="flex-1 px-2 py-1 text-[14px] font-semibold"
                   style={{ border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)" }}
                 >
                   {["scheduled", "confirmed", "in-progress", "completed", "cancelled", "no-show"].map(s => (
@@ -1760,7 +1778,7 @@ export default function AppointmentsPage() {
         <select
           value={selectedDoctor}
           onChange={(e) => setSelectedDoctor(e.target.value)}
-          className="flex-1 px-2 py-2 text-[12px]"
+          className="flex-1 px-2 py-2 text-[14px]"
           style={{ border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)" }}
         >
           <option value="all">All Staff</option>
@@ -1768,7 +1786,7 @@ export default function AppointmentsPage() {
         </select>
         <button
           onClick={() => setBookModal({ date: selectedDate, time: "09:00" })}
-          className="px-4 py-2 text-[12px] font-bold text-white"
+          className="px-4 py-2 text-[14px] font-bold text-white"
           style={{ background: "var(--blue-500)", borderRadius: "var(--radius-sm)" }}
         >
           + Book
@@ -1815,7 +1833,7 @@ function MonthView({
     <div className="p-2">
       <div className="grid grid-cols-7 border-l border-t" style={{ borderColor: "var(--grey-300)" }}>
         {["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].map(d => (
-          <div key={d} className="p-2 text-[11px] font-bold text-center border-r border-b" style={{ borderColor: "var(--grey-300)", color: "var(--grey-500)", background: "var(--grey-50)" }}>
+          <div key={d} className="p-2 text-[13px] font-bold text-center border-r border-b" style={{ borderColor: "var(--grey-300)", color: "var(--grey-500)", background: "var(--grey-50)" }}>
             {d}
           </div>
         ))}
@@ -1833,9 +1851,9 @@ function MonthView({
             >
               {day && (
                 <>
-                  <div className="text-[12px] font-bold mb-0.5" style={{ color: isToday ? "var(--blue-500)" : "var(--grey-700)" }}>{day}</div>
+                  <div className="text-[14px] font-bold mb-0.5" style={{ color: isToday ? "var(--blue-500)" : "var(--grey-700)" }}>{day}</div>
                   {dayAppts.slice(0, 3).map(a => (
-                    <div key={a.id} className="text-[10px] truncate px-1 py-0.5 mb-0.5 rounded" style={{ background: a.isWalkin ? "#d1f2e0" : "var(--blue-50)", color: a.isWalkin ? "#14532d" : "var(--blue-500)" }}>
+                    <div key={a.id} className="text-[12px] truncate px-1 py-0.5 mb-0.5 rounded" style={{ background: a.isWalkin ? "#d1f2e0" : "var(--blue-50)", color: a.isWalkin ? "#14532d" : "var(--blue-500)" }}>
                       {a.time} {getPatientName(a)}
                     </div>
                   ))}

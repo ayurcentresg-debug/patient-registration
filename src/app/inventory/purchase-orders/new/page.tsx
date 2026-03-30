@@ -50,7 +50,7 @@ function Toast({ message, type, onClose }: { message: string; type: "success" | 
 
   return (
     <div
-      className="fixed top-6 right-6 z-50 px-5 py-3 text-[13px] font-semibold text-white yoda-slide-in-right"
+      className="fixed top-6 right-6 z-50 px-5 py-3 text-[15px] font-semibold text-white yoda-slide-in-right"
       style={{ background: type === "success" ? "var(--green)" : "var(--red)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-lg)" }}
     >
       {message}
@@ -238,23 +238,23 @@ export default function NewPurchaseOrderPage() {
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
       {/* ── Back Button ──────────────────────────────────────────── */}
-      <Link href="/inventory/purchase-orders" className="inline-flex items-center gap-1 text-[13px] font-semibold hover:underline mb-4" style={{ color: "var(--blue-500)" }}>
+      <Link href="/inventory/purchase-orders" className="inline-flex items-center gap-1 text-[15px] font-semibold hover:underline mb-4" style={{ color: "var(--blue-500)" }}>
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
         Back to Purchase Orders
       </Link>
 
-      <h1 className="text-[22px] font-bold tracking-tight mb-6" style={{ color: "var(--grey-900)" }}>New Purchase Order</h1>
+      <h1 className="text-[24px] font-bold tracking-tight mb-6" style={{ color: "var(--grey-900)" }}>New Purchase Order</h1>
 
       {/* ── Supplier Selection ───────────────────────────────────── */}
       <div className="p-5 mb-4" style={cardStyle}>
-        <h3 className="text-[12px] font-bold uppercase tracking-wider mb-3" style={{ color: "var(--grey-600)" }}>Supplier</h3>
+        <h3 className="text-[14px] font-bold uppercase tracking-wider mb-3" style={{ color: "var(--grey-600)" }}>Supplier</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-[12px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Select Existing Supplier</label>
+            <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Select Existing Supplier</label>
             <select
               value={supplierId}
               onChange={(e) => { setSupplierId(e.target.value); if (e.target.value) setNewSupplierName(""); }}
-              className="w-full px-3 py-2 text-[13px]"
+              className="w-full px-3 py-2 text-[15px]"
               style={inputStyle}
             >
               <option value="">Choose supplier...</option>
@@ -262,13 +262,13 @@ export default function NewPurchaseOrderPage() {
             </select>
           </div>
           <div>
-            <label className="block text-[12px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Or Enter New Supplier Name</label>
+            <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Or Enter New Supplier Name</label>
             <input
               type="text"
               value={newSupplierName}
               onChange={(e) => { setNewSupplierName(e.target.value); if (e.target.value) setSupplierId(""); }}
               placeholder="New supplier name..."
-              className="w-full px-3 py-2 text-[13px]"
+              className="w-full px-3 py-2 text-[15px]"
               style={inputStyle}
             />
           </div>
@@ -279,23 +279,23 @@ export default function NewPurchaseOrderPage() {
       <div className="p-5 mb-4" style={cardStyle}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-[12px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Expected Delivery Date</label>
+            <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Expected Delivery Date</label>
             <input
               type="date"
               value={expectedDate}
               onChange={(e) => setExpectedDate(e.target.value)}
-              className="w-full px-3 py-2 text-[13px]"
+              className="w-full px-3 py-2 text-[15px]"
               style={inputStyle}
             />
           </div>
           <div>
-            <label className="block text-[12px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Notes</label>
+            <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Notes</label>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Optional notes..."
               rows={2}
-              className="w-full px-3 py-2 text-[13px] resize-none"
+              className="w-full px-3 py-2 text-[15px] resize-none"
               style={inputStyle}
             />
           </div>
@@ -305,10 +305,10 @@ export default function NewPurchaseOrderPage() {
       {/* ── Line Items ───────────────────────────────────────────── */}
       <div className="mb-4" style={cardStyle}>
         <div className="px-5 py-3 flex items-center justify-between" style={{ borderBottom: "1px solid var(--grey-200)" }}>
-          <h3 className="text-[14px] font-semibold" style={{ color: "var(--grey-900)" }}>Items</h3>
+          <h3 className="text-[16px] font-semibold" style={{ color: "var(--grey-900)" }}>Items</h3>
           <button
             onClick={addLineItem}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-semibold text-white transition-colors duration-150"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[14px] font-semibold text-white transition-colors duration-150"
             style={btnPrimary}
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
@@ -318,7 +318,7 @@ export default function NewPurchaseOrderPage() {
 
         {lineItems.length === 0 ? (
           <div className="text-center py-10">
-            <p className="text-[13px]" style={{ color: "var(--grey-500)" }}>No items added yet. Click &quot;Add Item&quot; to begin.</p>
+            <p className="text-[15px]" style={{ color: "var(--grey-500)" }}>No items added yet. Click &quot;Add Item&quot; to begin.</p>
           </div>
         ) : (
           <>
@@ -327,11 +327,11 @@ export default function NewPurchaseOrderPage() {
               <table className="w-full">
                 <thead style={{ borderBottom: "1px solid var(--grey-200)", background: "var(--grey-50)" }}>
                   <tr>
-                    <th className="text-left px-4 py-2.5 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Inventory Item</th>
-                    <th className="text-center px-4 py-2.5 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)", width: 100 }}>Qty</th>
-                    <th className="text-right px-4 py-2.5 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)", width: 140 }}>Unit Price</th>
-                    <th className="text-right px-4 py-2.5 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)", width: 90 }}>GST%</th>
-                    <th className="text-right px-4 py-2.5 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)", width: 140 }}>Line Total</th>
+                    <th className="text-left px-4 py-2.5 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Inventory Item</th>
+                    <th className="text-center px-4 py-2.5 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)", width: 100 }}>Qty</th>
+                    <th className="text-right px-4 py-2.5 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)", width: 140 }}>Unit Price</th>
+                    <th className="text-right px-4 py-2.5 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)", width: 90 }}>GST%</th>
+                    <th className="text-right px-4 py-2.5 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)", width: 140 }}>Line Total</th>
                     <th className="px-4 py-2.5" style={{ width: 40 }} />
                   </tr>
                 </thead>
@@ -346,7 +346,7 @@ export default function NewPurchaseOrderPage() {
                           <select
                             value={li.inventoryItemId}
                             onChange={(e) => updateLineItem(li.tempId, "inventoryItemId", e.target.value)}
-                            className="w-full px-2 py-1.5 text-[13px]"
+                            className="w-full px-2 py-1.5 text-[15px]"
                             style={inputStyle}
                           >
                             <option value="">Select item...</option>
@@ -359,7 +359,7 @@ export default function NewPurchaseOrderPage() {
                             min={1}
                             value={li.quantity}
                             onChange={(e) => updateLineItem(li.tempId, "quantity", parseInt(e.target.value) || 1)}
-                            className="w-full px-2 py-1.5 text-[13px] text-center"
+                            className="w-full px-2 py-1.5 text-[15px] text-center"
                             style={inputStyle}
                           />
                         </td>
@@ -370,7 +370,7 @@ export default function NewPurchaseOrderPage() {
                             step={0.01}
                             value={li.unitPrice}
                             onChange={(e) => updateLineItem(li.tempId, "unitPrice", parseFloat(e.target.value) || 0)}
-                            className="w-full px-2 py-1.5 text-[13px] text-right"
+                            className="w-full px-2 py-1.5 text-[15px] text-right"
                             style={inputStyle}
                           />
                         </td>
@@ -381,11 +381,11 @@ export default function NewPurchaseOrderPage() {
                             max={100}
                             value={li.gstPercent}
                             onChange={(e) => updateLineItem(li.tempId, "gstPercent", parseFloat(e.target.value) || 0)}
-                            className="w-full px-2 py-1.5 text-[13px] text-right"
+                            className="w-full px-2 py-1.5 text-[15px] text-right"
                             style={inputStyle}
                           />
                         </td>
-                        <td className="px-4 py-3 text-right text-[13px] font-semibold" style={{ color: "var(--grey-900)" }}>
+                        <td className="px-4 py-3 text-right text-[15px] font-semibold" style={{ color: "var(--grey-900)" }}>
                           {formatCurrency(lineTotal)}
                         </td>
                         <td className="px-4 py-3">
@@ -418,7 +418,7 @@ export default function NewPurchaseOrderPage() {
                       <select
                         value={li.inventoryItemId}
                         onChange={(e) => updateLineItem(li.tempId, "inventoryItemId", e.target.value)}
-                        className="flex-1 px-2 py-1.5 text-[13px]"
+                        className="flex-1 px-2 py-1.5 text-[15px]"
                         style={inputStyle}
                       >
                         <option value="">Select item...</option>
@@ -430,19 +430,19 @@ export default function NewPurchaseOrderPage() {
                     </div>
                     <div className="grid grid-cols-3 gap-2">
                       <div>
-                        <label className="text-[10px] font-semibold uppercase" style={{ color: "var(--grey-500)" }}>Qty</label>
-                        <input type="number" min={1} value={li.quantity} onChange={(e) => updateLineItem(li.tempId, "quantity", parseInt(e.target.value) || 1)} className="w-full px-2 py-1.5 text-[13px] text-center" style={inputStyle} />
+                        <label className="text-[12px] font-semibold uppercase" style={{ color: "var(--grey-500)" }}>Qty</label>
+                        <input type="number" min={1} value={li.quantity} onChange={(e) => updateLineItem(li.tempId, "quantity", parseInt(e.target.value) || 1)} className="w-full px-2 py-1.5 text-[15px] text-center" style={inputStyle} />
                       </div>
                       <div>
-                        <label className="text-[10px] font-semibold uppercase" style={{ color: "var(--grey-500)" }}>Price</label>
-                        <input type="number" min={0} step={0.01} value={li.unitPrice} onChange={(e) => updateLineItem(li.tempId, "unitPrice", parseFloat(e.target.value) || 0)} className="w-full px-2 py-1.5 text-[13px] text-right" style={inputStyle} />
+                        <label className="text-[12px] font-semibold uppercase" style={{ color: "var(--grey-500)" }}>Price</label>
+                        <input type="number" min={0} step={0.01} value={li.unitPrice} onChange={(e) => updateLineItem(li.tempId, "unitPrice", parseFloat(e.target.value) || 0)} className="w-full px-2 py-1.5 text-[15px] text-right" style={inputStyle} />
                       </div>
                       <div>
-                        <label className="text-[10px] font-semibold uppercase" style={{ color: "var(--grey-500)" }}>GST%</label>
-                        <input type="number" min={0} max={100} value={li.gstPercent} onChange={(e) => updateLineItem(li.tempId, "gstPercent", parseFloat(e.target.value) || 0)} className="w-full px-2 py-1.5 text-[13px] text-right" style={inputStyle} />
+                        <label className="text-[12px] font-semibold uppercase" style={{ color: "var(--grey-500)" }}>GST%</label>
+                        <input type="number" min={0} max={100} value={li.gstPercent} onChange={(e) => updateLineItem(li.tempId, "gstPercent", parseFloat(e.target.value) || 0)} className="w-full px-2 py-1.5 text-[15px] text-right" style={inputStyle} />
                       </div>
                     </div>
-                    <p className="text-right text-[13px] font-semibold" style={{ color: "var(--grey-900)" }}>Line Total: {formatCurrency(lineTotal)}</p>
+                    <p className="text-right text-[15px] font-semibold" style={{ color: "var(--grey-900)" }}>Line Total: {formatCurrency(lineTotal)}</p>
                   </div>
                 );
               })}
@@ -454,15 +454,15 @@ export default function NewPurchaseOrderPage() {
         {lineItems.length > 0 && (
           <div className="px-5 py-4" style={{ borderTop: "1px solid var(--grey-200)", background: "var(--grey-50)" }}>
             <div className="max-w-xs ml-auto space-y-1.5">
-              <div className="flex justify-between text-[13px]" style={{ color: "var(--grey-600)" }}>
+              <div className="flex justify-between text-[15px]" style={{ color: "var(--grey-600)" }}>
                 <span>Subtotal</span>
                 <span style={{ color: "var(--grey-800)" }}>{formatCurrency(subtotal)}</span>
               </div>
-              <div className="flex justify-between text-[13px]" style={{ color: "var(--grey-600)" }}>
+              <div className="flex justify-between text-[15px]" style={{ color: "var(--grey-600)" }}>
                 <span>GST</span>
                 <span style={{ color: "var(--grey-800)" }}>{formatCurrency(gstTotal)}</span>
               </div>
-              <div className="flex justify-between text-[15px] font-bold pt-1.5" style={{ borderTop: "1px solid var(--grey-300)", color: "var(--grey-900)" }}>
+              <div className="flex justify-between text-[17px] font-bold pt-1.5" style={{ borderTop: "1px solid var(--grey-300)", color: "var(--grey-900)" }}>
                 <span>Grand Total</span>
                 <span>{formatCurrency(grandTotal)}</span>
               </div>
@@ -475,7 +475,7 @@ export default function NewPurchaseOrderPage() {
       <div className="flex flex-col sm:flex-row justify-end gap-3">
         <Link
           href="/inventory/purchase-orders"
-          className="px-5 py-2.5 text-[13px] font-semibold text-center transition-colors duration-150"
+          className="px-5 py-2.5 text-[15px] font-semibold text-center transition-colors duration-150"
           style={{ borderRadius: "var(--radius-sm)", border: "1px solid var(--grey-300)", color: "var(--grey-700)" }}
         >
           Cancel
@@ -483,7 +483,7 @@ export default function NewPurchaseOrderPage() {
         <button
           onClick={() => handleSubmit(true)}
           disabled={submitting}
-          className="px-5 py-2.5 text-[13px] font-semibold transition-colors duration-150 disabled:opacity-50"
+          className="px-5 py-2.5 text-[15px] font-semibold transition-colors duration-150 disabled:opacity-50"
           style={{ borderRadius: "var(--radius-sm)", border: "1px solid var(--grey-300)", color: "var(--grey-700)", background: "var(--white)" }}
         >
           {submitting ? "Saving..." : "Save as Draft"}
@@ -491,7 +491,7 @@ export default function NewPurchaseOrderPage() {
         <button
           onClick={() => handleSubmit(false)}
           disabled={submitting}
-          className="px-5 py-2.5 text-[13px] font-semibold text-white transition-colors duration-150 disabled:opacity-50"
+          className="px-5 py-2.5 text-[15px] font-semibold text-white transition-colors duration-150 disabled:opacity-50"
           style={btnPrimary}
         >
           {submitting ? "Submitting..." : "Submit"}

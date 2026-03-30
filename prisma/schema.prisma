@@ -59,6 +59,7 @@ model Patient {
   reminders      Reminder[]
   treatmentPlans TreatmentPlan[]
   prescriptions  Prescription[]
+  patientPackages PatientPackage[]
 }
 
 model FamilyMember {
@@ -194,6 +195,7 @@ model Treatment {
 
   packages        TreatmentPackage[]
   appointments    Appointment[]
+  patientPackages PatientPackage[]
 }
 
 model TreatmentPackage {
@@ -210,6 +212,7 @@ model TreatmentPackage {
 
   treatment       Treatment @relation(fields: [treatmentId], references: [id], onDelete: Cascade)
   appointments    Appointment[]
+  patientPackages PatientPackage[]
 }
 
 // ─── Inventory Management ─────────────────────────────────────────────────
@@ -221,8 +224,10 @@ model InventoryItem {
   category        String   @default("medicine") // medicine | herb | oil | consumable | equipment
   subcategory     String?  // e.g. "Kashayam", "Arishtam", "Choornam", "Thailam", "Ghritam", "Leham"
   unit            String   @default("nos") // nos | ml | gm | kg | litre | bottle | packet | box
-  unitPrice       Float    @default(0)     // selling price
-  costPrice       Float    @default(0)     // purchase/cost price
+  packing         String?  // e.g. "450ML", "10GM", "100Nos" — actual size/packing from manufacturer
+  manufacturerCode String? // Kottakkal/manufacturer product code e.g. "FGA001"
+  unitPrice       Float    @default(0)     // selling price (MRP)
+  costPrice       Float    @default(0)     // purchase/cost price (Basic Price)
   currentStock    Int      @default(0)
   reorderLevel    Int      @default(10)    // alert when stock falls below
   expiryDate      DateTime?
@@ -238,11 +243,29 @@ model InventoryItem {
   updatedAt       DateTime @updatedAt
 
   transactions    StockTransaction[]
+  variants        InventoryVariant[]
+}
+
+model InventoryVariant {
+  id              String   @id @default(cuid())
+  itemId          String
+  manufacturerCode String? // Kottakkal code for this specific variant
+  packing         String   // e.g. "200ML", "50GM"
+  unitPrice       Float    @default(0)     // MRP for this variant
+  costPrice       Float    @default(0)     // Basic Price for this variant
+  currentStock    Int      @default(0)
+  gstPercent      Float    @default(0)
+  status          String   @default("active")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  item            InventoryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
 }
 
 model StockTransaction {
   id              String   @id @default(cuid())
   itemId          String
+  variantId       String?  // linked to specific variant if applicable
   type            String   // purchase | sale | adjustment | return | expired | damaged
   quantity        Int      // positive = stock in, negative = stock out
   unitPrice       Float    @default(0)
@@ -342,6 +365,7 @@ model InvoiceItem {
   description     String
   hsnSacCode      String?  // HSN/SAC code for GST classification
   inventoryItemId String?  // linked to inventory for medicines
+  variantId       String?  // linked to specific variant if applicable
   quantity        Int      @default(1)
   unitPrice       Float    @default(0)
   discount        Float    @default(0)
@@ -465,6 +489,7 @@ model PurchaseOrderItem {
   id              String   @id @default(cuid())
   purchaseOrderId String
   inventoryItemId String?
+  variantId       String?  // linked to specific variant if applicable
   itemName        String
   sku             String?
   quantity        Int
@@ -651,6 +676,132 @@ model Branch {
   operatingHours String   @default("{}") // JSON
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+}
+
+// ─── Patient Packages ────────────────────────────────────────────────────
+
+model PatientPackage {
+  id                String   @id @default(cuid())
+  packageNumber     String   @unique // PKG-YYYYMM-XXXX
+  patientId         String
+  treatmentId       String?
+  treatmentPackageId String?
+
+  // Denormalized for display
+  treatmentName     String
+  packageName       String   // e.g. "10-Session Abhyangam Package"
+
+  // Session tracking
+  totalSessions     Int
+  usedSessions      Int      @default(0)
+  remainingSessions Int      // calculated: totalSessions - usedSessions
+
+  // Pricing
+  totalPrice        Float    @default(0)
+  paidAmount        Float    @default(0)
+  balanceAmount     Float    @default(0)
+  pricePerSession   Float    @default(0) // totalPrice / totalSessions
+
+  // Dates
+  purchaseDate      DateTime @default(now())
+  expiryDate        DateTime // default 12 months from purchase, admin configurable
+  firstSessionDate  DateTime? // tracks when first session was used (for refund policy)
+
+  // Status
+  status            String   @default("active") // active | completed | expired | cancelled | refunded | frozen
+
+  // Sharing
+  maxSharedUsers    Int      @default(0) // 0 = no sharing allowed
+
+  // Consultation fee policy
+  consultationFeePolicy String @default("doctor_decides") // included | per_visit | doctor_decides
+
+  // Branch & staff
+  purchaseBranchId  String?
+  soldById          String?  // userId who sold
+
+  // Billing link
+  invoiceId         String?  // linked invoice for this package purchase
+
+  notes             String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  patient           Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  treatment         Treatment? @relation(fields: [treatmentId], references: [id], onDelete: SetNull)
+  treatmentPackage  TreatmentPackage? @relation(fields: [treatmentPackageId], references: [id], onDelete: SetNull)
+  sessions          PackageSession[]
+  shares            PackageShare[]
+  refunds           PackageRefund[]
+}
+
+model PackageSession {
+  id                String   @id @default(cuid())
+  patientPackageId  String
+  appointmentId     String?  // linked to actual appointment
+  sessionNumber     Int      // 1, 2, 3...
+
+  // Who used this session (for shared packages)
+  usedByPatientId   String?
+  usedByName        String?  // denormalized
+
+  // Details
+  date              DateTime
+  doctorName        String?
+  branchId          String?
+
+  status            String   @default("completed") // completed | cancelled | no_show
+  notes             String?
+  createdAt         DateTime @default(now())
+
+  patientPackage    PatientPackage @relation(fields: [patientPackageId], references: [id], onDelete: Cascade)
+}
+
+model PackageShare {
+  id                String   @id @default(cuid())
+  patientPackageId  String
+  sharedWithPatientId String
+  sharedByPatientId String   // original package owner
+
+  // Denormalized
+  sharedWithName    String
+  relation          String   @default("other") // family | friend | transfer
+
+  isActive          Boolean  @default(true)
+  createdAt         DateTime @default(now())
+
+  patientPackage    PatientPackage @relation(fields: [patientPackageId], references: [id], onDelete: Cascade)
+}
+
+model PackageRefund {
+  id                String   @id @default(cuid())
+  patientPackageId  String
+  refundNumber      String   @unique // REF-YYYYMM-XXXX
+
+  // CaseTrust policy tracking
+  refundType        String   // cooling_off | after_cooling_off_within_5days | beyond_5days
+  purchaseDate      DateTime
+  firstTreatmentDate DateTime?
+  requestDate       DateTime @default(now())
+
+  // Calculation
+  totalPackagePrice Float
+  completedSessionsValue Float @default(0)
+  adminFee          Float    @default(0) // S$100 after cooling-off period
+  refundAmount      Float    @default(0)
+
+  // Status
+  status            String   @default("pending") // pending | approved | processed | rejected
+  processedBy       String?
+  processedAt       DateTime?
+  creditNoteId      String?  // link to CreditNote
+
+  reason            String?
+  notes             String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  patientPackage    PatientPackage @relation(fields: [patientPackageId], references: [id], onDelete: Cascade)
 }
 
 // ─── Audit Log ───────────────────────────────────────────────────────────

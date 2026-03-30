@@ -130,9 +130,9 @@ function StatCard({ label, value, sub, color, icon }: { label: string; value: st
           </svg>
         </div>
         <div className="min-w-0">
-          <p className="text-[11px] font-medium uppercase tracking-wide" style={{ color: "var(--grey-500)" }}>{label}</p>
+          <p className="text-[13px] font-medium uppercase tracking-wide" style={{ color: "var(--grey-500)" }}>{label}</p>
           <p className="text-[20px] font-bold leading-tight" style={{ color: "var(--grey-900)" }}>{value}</p>
-          {sub && <p className="text-[11px] font-medium mt-0.5" style={{ color }}>{sub}</p>}
+          {sub && <p className="text-[13px] font-medium mt-0.5" style={{ color }}>{sub}</p>}
         </div>
       </div>
     </div>
@@ -143,7 +143,7 @@ function StatCard({ label, value, sub, color, icon }: { label: string; value: st
 function ChangeBadge({ value }: { value: number }) {
   const up = value >= 0;
   return (
-    <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[11px] font-bold rounded-full"
+    <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[13px] font-bold rounded-full"
       style={{ background: up ? "#dcfce7" : "#fee2e2", color: up ? "#16a34a" : "#dc2626" }}>
       {up ? "\u2191" : "\u2193"} {Math.abs(value)}%
     </span>
@@ -156,16 +156,16 @@ function Bar({ value, max, color, label, subLabel }: { value: number; max: numbe
   return (
     <div className="flex items-center gap-3 py-1.5">
       <div className="w-28 text-right flex-shrink-0">
-        <p className="text-[12px] font-semibold capitalize truncate" style={{ color: "var(--grey-800)" }}>{label}</p>
-        {subLabel && <p className="text-[10px]" style={{ color: "var(--grey-500)" }}>{subLabel}</p>}
+        <p className="text-[14px] font-semibold capitalize truncate" style={{ color: "var(--grey-800)" }}>{label}</p>
+        {subLabel && <p className="text-[12px]" style={{ color: "var(--grey-500)" }}>{subLabel}</p>}
       </div>
       <div className="flex-1 h-6 rounded-full overflow-hidden" style={{ background: "var(--grey-100)" }}>
         <div className="h-full rounded-full transition-all duration-500 flex items-center justify-end pr-2"
           style={{ width: `${Math.max(pct, 2)}%`, background: color }}>
-          {pct > 15 && <span className="text-[10px] font-bold text-white">{formatCurrency(value)}</span>}
+          {pct > 15 && <span className="text-[12px] font-bold text-white">{formatCurrency(value)}</span>}
         </div>
       </div>
-      {pct <= 15 && <span className="text-[11px] font-semibold flex-shrink-0" style={{ color: "var(--grey-700)" }}>{formatCurrency(value)}</span>}
+      {pct <= 15 && <span className="text-[13px] font-semibold flex-shrink-0" style={{ color: "var(--grey-700)" }}>{formatCurrency(value)}</span>}
     </div>
   );
 }
@@ -176,22 +176,22 @@ function CountBar({ value, max, color, label }: { value: number; max: number; co
   return (
     <div className="flex items-center gap-3 py-1.5">
       <div className="w-28 text-right flex-shrink-0">
-        <p className="text-[12px] font-semibold capitalize truncate" style={{ color: "var(--grey-800)" }}>{label}</p>
+        <p className="text-[14px] font-semibold capitalize truncate" style={{ color: "var(--grey-800)" }}>{label}</p>
       </div>
       <div className="flex-1 h-6 rounded-full overflow-hidden" style={{ background: "var(--grey-100)" }}>
         <div className="h-full rounded-full transition-all duration-500 flex items-center justify-end pr-2"
           style={{ width: `${Math.max(pct, 2)}%`, background: color }}>
-          {pct > 15 && <span className="text-[10px] font-bold text-white">{value}</span>}
+          {pct > 15 && <span className="text-[12px] font-bold text-white">{value}</span>}
         </div>
       </div>
-      {pct <= 15 && <span className="text-[11px] font-semibold flex-shrink-0" style={{ color: "var(--grey-700)" }}>{value}</span>}
+      {pct <= 15 && <span className="text-[13px] font-semibold flex-shrink-0" style={{ color: "var(--grey-700)" }}>{value}</span>}
     </div>
   );
 }
 
 /* ─── Mini bar chart (daily trend) ─── */
 function TrendChart({ data, valueKey, labelKey, color, height = 120 }: { data: Array<Record<string, unknown>>; valueKey: string; labelKey: string; color: string; height?: number }) {
-  if (data.length === 0) return <p className="text-[12px] text-center py-6" style={{ color: "var(--grey-400)" }}>No data for this period</p>;
+  if (data.length === 0) return <p className="text-[14px] text-center py-6" style={{ color: "var(--grey-400)" }}>No data for this period</p>;
   const max = Math.max(...data.map(d => (d[valueKey] as number) || 0), 1);
   const barW = Math.max(Math.min(Math.floor(600 / data.length) - 2, 32), 4);
   return (
@@ -235,7 +235,7 @@ function Sparkline({ data, color, width = 80, height = 24 }: { data: number[]; c
 /* ─── Donut slice for simple pie-like display ─── */
 function DonutBreakdown({ items, colors }: { items: Array<{ label: string; value: number }>; colors: Record<string, string> }) {
   const total = items.reduce((s, i) => s + i.value, 0);
-  if (total === 0) return <p className="text-[12px] text-center py-4" style={{ color: "var(--grey-400)" }}>No data</p>;
+  if (total === 0) return <p className="text-[14px] text-center py-4" style={{ color: "var(--grey-400)" }}>No data</p>;
   return (
     <div className="space-y-1.5">
       {items.map((item) => {
@@ -244,9 +244,9 @@ function DonutBreakdown({ items, colors }: { items: Array<{ label: string; value
         return (
           <div key={item.label} className="flex items-center gap-2">
             <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: c }} />
-            <span className="text-[12px] font-medium capitalize flex-1" style={{ color: "var(--grey-700)" }}>{item.label.replace("_", " ")}</span>
-            <span className="text-[12px] font-bold" style={{ color: "var(--grey-800)" }}>{formatCurrency(item.value)}</span>
-            <span className="text-[10px] font-medium w-10 text-right" style={{ color: "var(--grey-500)" }}>{pct.toFixed(0)}%</span>
+            <span className="text-[14px] font-medium capitalize flex-1" style={{ color: "var(--grey-700)" }}>{item.label.replace("_", " ")}</span>
+            <span className="text-[14px] font-bold" style={{ color: "var(--grey-800)" }}>{formatCurrency(item.value)}</span>
+            <span className="text-[12px] font-medium w-10 text-right" style={{ color: "var(--grey-500)" }}>{pct.toFixed(0)}%</span>
           </div>
         );
       })}
@@ -267,7 +267,7 @@ function CircularProgress({ value, color, size = 80, strokeWidth = 6 }: { value:
           strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round"
           style={{ transition: "stroke-dashoffset 0.5s ease" }} />
       </svg>
-      <span className="absolute text-[14px] font-bold" style={{ color: "var(--grey-900)" }}>{Math.round(value)}%</span>
+      <span className="absolute text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>{Math.round(value)}%</span>
     </div>
   );
 }
@@ -280,7 +280,7 @@ function Section({ title, children, onExportCSV }: { title: string; children: Re
         <h2 className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>{title}</h2>
         {onExportCSV && (
           <button onClick={onExportCSV}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-semibold transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-semibold transition-colors"
             style={{ background: "var(--white)", color: "var(--grey-600)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)" }}>
             <span>\u2193</span> Export CSV
           </button>
@@ -331,7 +331,7 @@ function PeakHoursHeatmap({ data }: { data: Array<{ day: number; hour: number; c
         {/* Grid rows */}
         {days.map((dayLabel, dayIndex) => (
           <div key={dayLabel} className="flex items-center gap-[2px] mb-[2px]">
-            <div className="w-10 text-[10px] font-semibold text-right pr-2 flex-shrink-0" style={{ color: "var(--grey-600)" }}>
+            <div className="w-10 text-[12px] font-semibold text-right pr-2 flex-shrink-0" style={{ color: "var(--grey-600)" }}>
               {dayLabel}
             </div>
             {hours.map(hour => {
@@ -614,15 +614,15 @@ export default function ReportsPage() {
     <div className="p-6 flex items-center justify-center min-h-[60vh]">
       <div className="text-center">
         <div className="w-8 h-8 border-3 border-t-transparent rounded-full animate-spin mx-auto mb-3" style={{ borderColor: "var(--blue-500)", borderTopColor: "transparent" }} />
-        <p className="text-[13px] font-medium" style={{ color: "var(--grey-500)" }}>Loading reports...</p>
+        <p className="text-[15px] font-medium" style={{ color: "var(--grey-500)" }}>Loading reports...</p>
       </div>
     </div>
   );
 
   if (!data) return (
     <div className="p-6 text-center">
-      <p className="text-[14px]" style={{ color: "var(--grey-500)" }}>Failed to load reports. Please try again.</p>
-      <button onClick={fetchReport} className="mt-3 px-4 py-2 text-[13px] font-semibold text-white" style={{ background: "var(--blue-500)", borderRadius: "var(--radius-sm)" }}>Retry</button>
+      <p className="text-[16px]" style={{ color: "var(--grey-500)" }}>Failed to load reports. Please try again.</p>
+      <button onClick={fetchReport} className="mt-3 px-4 py-2 text-[15px] font-semibold text-white" style={{ background: "var(--blue-500)", borderRadius: "var(--radius-sm)" }}>Retry</button>
     </div>
   );
 
@@ -639,8 +639,8 @@ export default function ReportsPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-5">
         <div>
-          <h1 className="text-[22px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>Reports & Analytics</h1>
-          <p className="text-[13px] mt-0.5" style={{ color: "var(--grey-500)" }}>
+          <h1 className="text-[24px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>Reports & Analytics</h1>
+          <p className="text-[15px] mt-0.5" style={{ color: "var(--grey-500)" }}>
             {new Date(data.period.from).toLocaleDateString("en-SG", { day: "numeric", month: "short", year: "numeric" })}
             {" \u2014 "}
             {new Date(data.period.to).toLocaleDateString("en-SG", { day: "numeric", month: "short", year: "numeric" })}
@@ -648,13 +648,13 @@ export default function ReportsPage() {
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <button onClick={handlePrint}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-semibold transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-[14px] font-semibold transition-colors"
             style={{ background: "var(--white)", color: "var(--grey-600)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)" }}>
             Print Report
           </button>
           {PERIOD_OPTIONS.map((opt) => (
             <button key={opt.value} onClick={() => setPeriod(opt.value)}
-              className="px-3 py-1.5 text-[12px] font-semibold transition-colors"
+              className="px-3 py-1.5 text-[14px] font-semibold transition-colors"
               style={{
                 background: period === opt.value ? "var(--blue-500)" : "var(--white)",
                 color: period === opt.value ? "#fff" : "var(--grey-600)",
@@ -671,11 +671,11 @@ export default function ReportsPage() {
       {period === "custom" && (
         <div className="flex items-center gap-3 mb-4">
           <input type="date" value={customFrom} onChange={(e) => setCustomFrom(e.target.value)}
-            className="px-3 py-1.5 text-[13px]" style={{ border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", color: "var(--grey-800)" }} />
-          <span className="text-[13px]" style={{ color: "var(--grey-500)" }}>to</span>
+            className="px-3 py-1.5 text-[15px]" style={{ border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", color: "var(--grey-800)" }} />
+          <span className="text-[15px]" style={{ color: "var(--grey-500)" }}>to</span>
           <input type="date" value={customTo} onChange={(e) => setCustomTo(e.target.value)}
-            className="px-3 py-1.5 text-[13px]" style={{ border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", color: "var(--grey-800)" }} />
-          <button onClick={fetchReport} className="px-3 py-1.5 text-[12px] font-semibold text-white" style={{ background: "var(--blue-500)", borderRadius: "var(--radius-sm)" }}>Apply</button>
+            className="px-3 py-1.5 text-[15px]" style={{ border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", color: "var(--grey-800)" }} />
+          <button onClick={fetchReport} className="px-3 py-1.5 text-[14px] font-semibold text-white" style={{ background: "var(--blue-500)", borderRadius: "var(--radius-sm)" }}>Apply</button>
         </div>
       )}
 
@@ -683,7 +683,7 @@ export default function ReportsPage() {
       <div className="flex gap-1 mb-5 overflow-x-auto pb-1">
         {SECTIONS.map((s) => (
           <button key={s.id} onClick={() => setActiveSection(s.id)}
-            className="px-3 py-1.5 text-[12px] font-semibold whitespace-nowrap transition-colors"
+            className="px-3 py-1.5 text-[14px] font-semibold whitespace-nowrap transition-colors"
             style={{
               background: activeSection === s.id ? "var(--grey-900)" : "transparent",
               color: activeSection === s.id ? "#fff" : "var(--grey-600)",
@@ -702,7 +702,7 @@ export default function ReportsPage() {
             <div className="p-4" style={{ background: "var(--white)", border: "1px solid var(--grey-200)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-sm)" }}>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-[11px] font-medium uppercase tracking-wide" style={{ color: "var(--grey-500)" }}>Total Revenue</p>
+                  <p className="text-[13px] font-medium uppercase tracking-wide" style={{ color: "var(--grey-500)" }}>Total Revenue</p>
                   <p className="text-[20px] font-bold leading-tight" style={{ color: "var(--grey-900)" }}>{formatCurrency(data.revenue.total)}</p>
                   {data.revenue.change !== 0 && <ChangeBadge value={data.revenue.change} />}
                 </div>
@@ -735,27 +735,27 @@ export default function ReportsPage() {
           {/* Quick summary cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card>
-              <h3 className="text-[13px] font-bold mb-3" style={{ color: "var(--grey-800)" }}>Revenue Trend (Last 7)</h3>
+              <h3 className="text-[15px] font-bold mb-3" style={{ color: "var(--grey-800)" }}>Revenue Trend (Last 7)</h3>
               <TrendChart data={data.revenue.trend.slice(-7) as unknown as Array<Record<string, unknown>>} valueKey="amount" labelKey="date" color="#2d6a4f" height={100} />
             </Card>
             <Card>
-              <h3 className="text-[13px] font-bold mb-3" style={{ color: "var(--grey-800)" }}>Payment Methods</h3>
+              <h3 className="text-[15px] font-bold mb-3" style={{ color: "var(--grey-800)" }}>Payment Methods</h3>
               <DonutBreakdown
                 items={data.revenue.paymentMethods.map(p => ({ label: p.method, value: p.total }))}
                 colors={METHOD_COLORS}
               />
             </Card>
             <Card>
-              <h3 className="text-[13px] font-bold mb-3" style={{ color: "var(--grey-800)" }}>Appointment Status</h3>
+              <h3 className="text-[15px] font-bold mb-3" style={{ color: "var(--grey-800)" }}>Appointment Status</h3>
               <div className="space-y-2">
                 {data.appointments.byStatus.map((s) => {
                   const pct = data.appointments.total > 0 ? (s.count / data.appointments.total) * 100 : 0;
                   return (
                     <div key={s.status} className="flex items-center gap-2">
                       <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: STATUS_COLORS[s.status] || "#6b7280" }} />
-                      <span className="text-[12px] font-medium capitalize flex-1" style={{ color: "var(--grey-700)" }}>{s.status.replace("-", " ")}</span>
-                      <span className="text-[12px] font-bold" style={{ color: "var(--grey-800)" }}>{s.count}</span>
-                      <span className="text-[10px] w-10 text-right" style={{ color: "var(--grey-500)" }}>{pct.toFixed(0)}%</span>
+                      <span className="text-[14px] font-medium capitalize flex-1" style={{ color: "var(--grey-700)" }}>{s.status.replace("-", " ")}</span>
+                      <span className="text-[14px] font-bold" style={{ color: "var(--grey-800)" }}>{s.count}</span>
+                      <span className="text-[12px] w-10 text-right" style={{ color: "var(--grey-500)" }}>{pct.toFixed(0)}%</span>
                     </div>
                   );
                 })}
@@ -786,47 +786,47 @@ export default function ReportsPage() {
           {/* GST Summary + Collection Efficiency */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             <Card>
-              <h3 className="text-[13px] font-bold mb-3" style={{ color: "var(--grey-800)" }}>GST Summary</h3>
+              <h3 className="text-[15px] font-bold mb-3" style={{ color: "var(--grey-800)" }}>GST Summary</h3>
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <span className="text-[12px] font-medium" style={{ color: "var(--grey-600)" }}>CGST (4.5%)</span>
-                  <span className="text-[13px] font-bold" style={{ color: "var(--grey-800)" }}>{formatCurrency(cgst)}</span>
+                  <span className="text-[14px] font-medium" style={{ color: "var(--grey-600)" }}>CGST (4.5%)</span>
+                  <span className="text-[15px] font-bold" style={{ color: "var(--grey-800)" }}>{formatCurrency(cgst)}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-[12px] font-medium" style={{ color: "var(--grey-600)" }}>SGST (4.5%)</span>
-                  <span className="text-[13px] font-bold" style={{ color: "var(--grey-800)" }}>{formatCurrency(sgst)}</span>
+                  <span className="text-[14px] font-medium" style={{ color: "var(--grey-600)" }}>SGST (4.5%)</span>
+                  <span className="text-[15px] font-bold" style={{ color: "var(--grey-800)" }}>{formatCurrency(sgst)}</span>
                 </div>
                 <div className="pt-2 mt-2" style={{ borderTop: "2px solid var(--grey-200)" }}>
                   <div className="flex justify-between items-center">
-                    <span className="text-[12px] font-bold" style={{ color: "var(--grey-700)" }}>Total GST</span>
-                    <span className="text-[15px] font-bold" style={{ color: "#2d6a4f" }}>{formatCurrency(estimatedGST)}</span>
+                    <span className="text-[14px] font-bold" style={{ color: "var(--grey-700)" }}>Total GST</span>
+                    <span className="text-[17px] font-bold" style={{ color: "#2d6a4f" }}>{formatCurrency(estimatedGST)}</span>
                   </div>
                 </div>
               </div>
             </Card>
 
             <Card className="flex flex-col items-center justify-center">
-              <h3 className="text-[13px] font-bold mb-3" style={{ color: "var(--grey-800)" }}>Collection Efficiency</h3>
+              <h3 className="text-[15px] font-bold mb-3" style={{ color: "var(--grey-800)" }}>Collection Efficiency</h3>
               <CircularProgress value={collectionEfficiency} color={collectionEfficiency >= 80 ? "#16a34a" : collectionEfficiency >= 60 ? "#f59e0b" : "#dc2626"} size={90} strokeWidth={7} />
-              <p className="text-[11px] font-medium mt-2" style={{ color: "var(--grey-500)" }}>
+              <p className="text-[13px] font-medium mt-2" style={{ color: "var(--grey-500)" }}>
                 {formatCurrency(data.revenue.total)} of {formatCurrency(data.revenue.billed)} collected
               </p>
             </Card>
 
             <Card>
-              <h3 className="text-[13px] font-bold mb-3" style={{ color: "var(--grey-800)" }}>Revenue Summary</h3>
+              <h3 className="text-[15px] font-bold mb-3" style={{ color: "var(--grey-800)" }}>Revenue Summary</h3>
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <span className="text-[12px] font-medium" style={{ color: "var(--grey-600)" }}>Invoices</span>
-                  <span className="text-[13px] font-bold" style={{ color: "var(--grey-800)" }}>{data.revenue.invoiceCount}</span>
+                  <span className="text-[14px] font-medium" style={{ color: "var(--grey-600)" }}>Invoices</span>
+                  <span className="text-[15px] font-bold" style={{ color: "var(--grey-800)" }}>{data.revenue.invoiceCount}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-[12px] font-medium" style={{ color: "var(--grey-600)" }}>Discounts</span>
-                  <span className="text-[13px] font-bold" style={{ color: "#dc2626" }}>{formatCurrency(data.revenue.discount)}</span>
+                  <span className="text-[14px] font-medium" style={{ color: "var(--grey-600)" }}>Discounts</span>
+                  <span className="text-[15px] font-bold" style={{ color: "#dc2626" }}>{formatCurrency(data.revenue.discount)}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-[12px] font-medium" style={{ color: "var(--grey-600)" }}>Avg Invoice</span>
-                  <span className="text-[13px] font-bold" style={{ color: "var(--grey-800)" }}>{formatCurrency(avgInvoiceValue)}</span>
+                  <span className="text-[14px] font-medium" style={{ color: "var(--grey-600)" }}>Avg Invoice</span>
+                  <span className="text-[15px] font-bold" style={{ color: "var(--grey-800)" }}>{formatCurrency(avgInvoiceValue)}</span>
                 </div>
               </div>
             </Card>
@@ -835,13 +835,13 @@ export default function ReportsPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Revenue trend */}
             <Card className="md:col-span-2">
-              <h3 className="text-[13px] font-bold mb-3" style={{ color: "var(--grey-800)" }}>Daily Revenue Trend</h3>
+              <h3 className="text-[15px] font-bold mb-3" style={{ color: "var(--grey-800)" }}>Daily Revenue Trend</h3>
               <TrendChart data={data.revenue.trend as unknown as Array<Record<string, unknown>>} valueKey="amount" labelKey="date" color="#3b82f6" height={140} />
             </Card>
 
             {/* Payment methods */}
             <Card>
-              <h3 className="text-[13px] font-bold mb-3" style={{ color: "var(--grey-800)" }}>Payment Methods</h3>
+              <h3 className="text-[15px] font-bold mb-3" style={{ color: "var(--grey-800)" }}>Payment Methods</h3>
               <DonutBreakdown
                 items={data.revenue.paymentMethods.map(p => ({ label: p.method, value: p.total }))}
                 colors={METHOD_COLORS}
@@ -852,7 +852,7 @@ export default function ReportsPage() {
           {/* Revenue by category */}
           {data.revenue.byCategory.length > 0 && (
             <Card className="mt-4">
-              <h3 className="text-[13px] font-bold mb-3" style={{ color: "var(--grey-800)" }}>Revenue by Service Type</h3>
+              <h3 className="text-[15px] font-bold mb-3" style={{ color: "var(--grey-800)" }}>Revenue by Service Type</h3>
               {data.revenue.byCategory.map((cat) => (
                 <Bar key={cat.type} label={cat.type} value={cat.revenue}
                   max={Math.max(...data.revenue.byCategory.map(c => c.revenue))}
@@ -868,7 +868,7 @@ export default function ReportsPage() {
       {activeSection === "doctors" && (
         <Section title="Doctor & Therapist Performance" onExportCSV={exportDoctorsCSV}>
           {data.doctors.length === 0 ? (
-            <Card><p className="text-[13px] text-center py-4" style={{ color: "var(--grey-400)" }}>No appointment data for this period</p></Card>
+            <Card><p className="text-[15px] text-center py-4" style={{ color: "var(--grey-400)" }}>No appointment data for this period</p></Card>
           ) : (
             <div className="space-y-3">
               {data.doctors.map((doc) => {
@@ -878,13 +878,13 @@ export default function ReportsPage() {
                     <div className="flex flex-col md:flex-row md:items-center gap-3">
                       {/* Doctor info */}
                       <div className="flex items-center gap-3 md:w-56 flex-shrink-0">
-                        <div className="w-10 h-10 rounded-full flex items-center justify-center text-[13px] font-bold text-white flex-shrink-0"
+                        <div className="w-10 h-10 rounded-full flex items-center justify-center text-[15px] font-bold text-white flex-shrink-0"
                           style={{ background: doc.role === "therapist" ? "#d946ef" : "var(--blue-500)" }}>
                           {doc.name.charAt(0)}
                         </div>
                         <div>
-                          <p className="text-[13px] font-bold" style={{ color: "var(--grey-900)" }}>{doc.name}</p>
-                          <p className="text-[11px] capitalize" style={{ color: "var(--grey-500)" }}>{doc.role} · {doc.specialization}</p>
+                          <p className="text-[15px] font-bold" style={{ color: "var(--grey-900)" }}>{doc.name}</p>
+                          <p className="text-[13px] capitalize" style={{ color: "var(--grey-500)" }}>{doc.role} · {doc.specialization}</p>
                         </div>
                       </div>
 
@@ -892,27 +892,27 @@ export default function ReportsPage() {
                       <div className="flex-1 grid grid-cols-3 md:grid-cols-6 gap-3">
                         <div className="text-center">
                           <p className="text-[18px] font-bold" style={{ color: "var(--grey-900)" }}>{doc.totalAppointments}</p>
-                          <p className="text-[10px] uppercase tracking-wide" style={{ color: "var(--grey-500)" }}>Total</p>
+                          <p className="text-[12px] uppercase tracking-wide" style={{ color: "var(--grey-500)" }}>Total</p>
                         </div>
                         <div className="text-center">
                           <p className="text-[18px] font-bold" style={{ color: "#16a34a" }}>{doc.completed}</p>
-                          <p className="text-[10px] uppercase tracking-wide" style={{ color: "var(--grey-500)" }}>Done</p>
+                          <p className="text-[12px] uppercase tracking-wide" style={{ color: "var(--grey-500)" }}>Done</p>
                         </div>
                         <div className="text-center">
                           <p className="text-[18px] font-bold" style={{ color: "#dc2626" }}>{doc.cancelled + doc.noShow}</p>
-                          <p className="text-[10px] uppercase tracking-wide" style={{ color: "var(--grey-500)" }}>Cancel/NS</p>
+                          <p className="text-[12px] uppercase tracking-wide" style={{ color: "var(--grey-500)" }}>Cancel/NS</p>
                         </div>
                         <div className="text-center">
                           <p className="text-[18px] font-bold" style={{ color: "#3b82f6" }}>{doc.uniquePatients}</p>
-                          <p className="text-[10px] uppercase tracking-wide" style={{ color: "var(--grey-500)" }}>Patients</p>
+                          <p className="text-[12px] uppercase tracking-wide" style={{ color: "var(--grey-500)" }}>Patients</p>
                         </div>
                         <div className="text-center">
                           <p className="text-[18px] font-bold" style={{ color: "var(--grey-900)" }}>{completionRate}%</p>
-                          <p className="text-[10px] uppercase tracking-wide" style={{ color: "var(--grey-500)" }}>Rate</p>
+                          <p className="text-[12px] uppercase tracking-wide" style={{ color: "var(--grey-500)" }}>Rate</p>
                         </div>
                         <div className="text-center">
                           <p className="text-[18px] font-bold" style={{ color: "#16a34a" }}>{formatCurrency(doc.revenue)}</p>
-                          <p className="text-[10px] uppercase tracking-wide" style={{ color: "var(--grey-500)" }}>Revenue</p>
+                          <p className="text-[12px] uppercase tracking-wide" style={{ color: "var(--grey-500)" }}>Revenue</p>
                         </div>
                       </div>
                     </div>
@@ -949,32 +949,32 @@ export default function ReportsPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card>
-              <h3 className="text-[13px] font-bold mb-2" style={{ color: "var(--grey-800)" }}>Patient Growth</h3>
+              <h3 className="text-[15px] font-bold mb-2" style={{ color: "var(--grey-800)" }}>Patient Growth</h3>
               <div className="flex items-center gap-4 py-4">
                 <div className="text-center flex-1">
-                  <p className="text-[28px] font-bold" style={{ color: "var(--blue-500)" }}>{data.patients.new}</p>
-                  <p className="text-[11px] font-medium" style={{ color: "var(--grey-500)" }}>New patients</p>
+                  <p className="text-[30px] font-bold" style={{ color: "var(--blue-500)" }}>{data.patients.new}</p>
+                  <p className="text-[13px] font-medium" style={{ color: "var(--grey-500)" }}>New patients</p>
                 </div>
                 <div className="text-center flex-1">
                   <ChangeBadge value={data.patients.growth} />
-                  <p className="text-[11px] font-medium mt-1" style={{ color: "var(--grey-500)" }}>vs previous period</p>
+                  <p className="text-[13px] font-medium mt-1" style={{ color: "var(--grey-500)" }}>vs previous period</p>
                 </div>
                 <div className="text-center flex-1">
-                  <p className="text-[28px] font-bold" style={{ color: "var(--grey-800)" }}>{data.patients.total}</p>
-                  <p className="text-[11px] font-medium" style={{ color: "var(--grey-500)" }}>Total registered</p>
+                  <p className="text-[30px] font-bold" style={{ color: "var(--grey-800)" }}>{data.patients.total}</p>
+                  <p className="text-[13px] font-medium" style={{ color: "var(--grey-500)" }}>Total registered</p>
                 </div>
               </div>
             </Card>
             <Card>
-              <h3 className="text-[13px] font-bold mb-2" style={{ color: "var(--grey-800)" }}>Revenue Per Patient</h3>
+              <h3 className="text-[15px] font-bold mb-2" style={{ color: "var(--grey-800)" }}>Revenue Per Patient</h3>
               <div className="flex items-center gap-4 py-4">
                 <div className="text-center flex-1">
-                  <p className="text-[28px] font-bold" style={{ color: "#16a34a" }}>{formatCurrency(data.revenue.total)}</p>
-                  <p className="text-[11px] font-medium" style={{ color: "var(--grey-500)" }}>Total collected</p>
+                  <p className="text-[30px] font-bold" style={{ color: "#16a34a" }}>{formatCurrency(data.revenue.total)}</p>
+                  <p className="text-[13px] font-medium" style={{ color: "var(--grey-500)" }}>Total collected</p>
                 </div>
                 <div className="text-center flex-1">
-                  <p className="text-[28px] font-bold" style={{ color: "#8b5cf6" }}>{formatCurrency(data.patients.total > 0 ? data.revenue.total / data.patients.total : 0)}</p>
-                  <p className="text-[11px] font-medium" style={{ color: "var(--grey-500)" }}>Per patient (all time)</p>
+                  <p className="text-[30px] font-bold" style={{ color: "#8b5cf6" }}>{formatCurrency(data.patients.total > 0 ? data.revenue.total / data.patients.total : 0)}</p>
+                  <p className="text-[13px] font-medium" style={{ color: "var(--grey-500)" }}>Per patient (all time)</p>
                 </div>
               </div>
             </Card>
@@ -986,19 +986,19 @@ export default function ReportsPage() {
       {activeSection === "treatments" && (
         <Section title="Treatment Popularity" onExportCSV={exportTreatmentsCSV}>
           {data.treatments.length === 0 ? (
-            <Card><p className="text-[13px] text-center py-4" style={{ color: "var(--grey-400)" }}>No treatment data for this period</p></Card>
+            <Card><p className="text-[15px] text-center py-4" style={{ color: "var(--grey-400)" }}>No treatment data for this period</p></Card>
           ) : (
             <Card>
               <div className="overflow-x-auto">
                 <table className="w-full" style={{ borderCollapse: "separate", borderSpacing: 0 }}>
                   <thead>
                     <tr>
-                      <th className="text-left text-[11px] font-bold uppercase tracking-wide py-2 px-3" style={{ color: "var(--grey-500)", borderBottom: "2px solid var(--grey-200)" }}>#</th>
-                      <th className="text-left text-[11px] font-bold uppercase tracking-wide py-2 px-3" style={{ color: "var(--grey-500)", borderBottom: "2px solid var(--grey-200)" }}>Treatment</th>
-                      <th className="text-left text-[11px] font-bold uppercase tracking-wide py-2 px-3" style={{ color: "var(--grey-500)", borderBottom: "2px solid var(--grey-200)" }}>Category</th>
-                      <th className="text-center text-[11px] font-bold uppercase tracking-wide py-2 px-3" style={{ color: "var(--grey-500)", borderBottom: "2px solid var(--grey-200)" }}>Sessions</th>
-                      <th className="text-right text-[11px] font-bold uppercase tracking-wide py-2 px-3" style={{ color: "var(--grey-500)", borderBottom: "2px solid var(--grey-200)" }}>Revenue</th>
-                      <th className="text-left text-[11px] font-bold uppercase tracking-wide py-2 px-3" style={{ color: "var(--grey-500)", borderBottom: "2px solid var(--grey-200)" }}>Popularity</th>
+                      <th className="text-left text-[13px] font-bold uppercase tracking-wide py-2 px-3" style={{ color: "var(--grey-500)", borderBottom: "2px solid var(--grey-200)" }}>#</th>
+                      <th className="text-left text-[13px] font-bold uppercase tracking-wide py-2 px-3" style={{ color: "var(--grey-500)", borderBottom: "2px solid var(--grey-200)" }}>Treatment</th>
+                      <th className="text-left text-[13px] font-bold uppercase tracking-wide py-2 px-3" style={{ color: "var(--grey-500)", borderBottom: "2px solid var(--grey-200)" }}>Category</th>
+                      <th className="text-center text-[13px] font-bold uppercase tracking-wide py-2 px-3" style={{ color: "var(--grey-500)", borderBottom: "2px solid var(--grey-200)" }}>Sessions</th>
+                      <th className="text-right text-[13px] font-bold uppercase tracking-wide py-2 px-3" style={{ color: "var(--grey-500)", borderBottom: "2px solid var(--grey-200)" }}>Revenue</th>
+                      <th className="text-left text-[13px] font-bold uppercase tracking-wide py-2 px-3" style={{ color: "var(--grey-500)", borderBottom: "2px solid var(--grey-200)" }}>Popularity</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1006,16 +1006,16 @@ export default function ReportsPage() {
                       const maxCount = data.treatments[0]?.count || 1;
                       return (
                         <tr key={t.name} className="hover:bg-[var(--grey-50)]">
-                          <td className="py-2.5 px-3 text-[13px] font-bold" style={{ color: "var(--grey-400)", borderBottom: "1px solid var(--grey-100)" }}>{i + 1}</td>
-                          <td className="py-2.5 px-3 text-[13px] font-semibold" style={{ color: "var(--grey-900)", borderBottom: "1px solid var(--grey-100)" }}>{t.name}</td>
+                          <td className="py-2.5 px-3 text-[15px] font-bold" style={{ color: "var(--grey-400)", borderBottom: "1px solid var(--grey-100)" }}>{i + 1}</td>
+                          <td className="py-2.5 px-3 text-[15px] font-semibold" style={{ color: "var(--grey-900)", borderBottom: "1px solid var(--grey-100)" }}>{t.name}</td>
                           <td className="py-2.5 px-3" style={{ borderBottom: "1px solid var(--grey-100)" }}>
-                            <span className="px-2 py-0.5 text-[10px] font-bold uppercase rounded-full"
+                            <span className="px-2 py-0.5 text-[12px] font-bold uppercase rounded-full"
                               style={{ background: `${TYPE_COLORS[t.category] || "#6b7280"}15`, color: TYPE_COLORS[t.category] || "#6b7280" }}>
                               {t.category}
                             </span>
                           </td>
-                          <td className="py-2.5 px-3 text-[13px] font-bold text-center" style={{ color: "var(--grey-800)", borderBottom: "1px solid var(--grey-100)" }}>{t.count}</td>
-                          <td className="py-2.5 px-3 text-[13px] font-bold text-right" style={{ color: "#16a34a", borderBottom: "1px solid var(--grey-100)" }}>{formatCurrency(t.revenue)}</td>
+                          <td className="py-2.5 px-3 text-[15px] font-bold text-center" style={{ color: "var(--grey-800)", borderBottom: "1px solid var(--grey-100)" }}>{t.count}</td>
+                          <td className="py-2.5 px-3 text-[15px] font-bold text-right" style={{ color: "#16a34a", borderBottom: "1px solid var(--grey-100)" }}>{formatCurrency(t.revenue)}</td>
                           <td className="py-2.5 px-3" style={{ borderBottom: "1px solid var(--grey-100)", width: 160 }}>
                             <div className="h-2 rounded-full overflow-hidden" style={{ background: "var(--grey-100)" }}>
                               <div className="h-full rounded-full" style={{ width: `${(t.count / maxCount) * 100}%`, background: TYPE_COLORS[t.category] || "var(--blue-500)" }} />
@@ -1039,11 +1039,11 @@ export default function ReportsPage() {
             <div className="flex items-center justify-center py-12">
               <div className="text-center">
                 <div className="w-8 h-8 border-3 border-t-transparent rounded-full animate-spin mx-auto mb-3" style={{ borderColor: "var(--blue-500)", borderTopColor: "transparent" }} />
-                <p className="text-[13px] font-medium" style={{ color: "var(--grey-500)" }}>Loading inventory data...</p>
+                <p className="text-[15px] font-medium" style={{ color: "var(--grey-500)" }}>Loading inventory data...</p>
               </div>
             </div>
           ) : !inventoryData ? (
-            <Card><p className="text-[13px] text-center py-4" style={{ color: "var(--grey-400)" }}>No inventory data available.</p></Card>
+            <Card><p className="text-[15px] text-center py-4" style={{ color: "var(--grey-400)" }}>No inventory data available.</p></Card>
           ) : (
             <>
               {/* Stat cards */}
@@ -1063,16 +1063,16 @@ export default function ReportsPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 {/* Low stock alert table */}
                 <Card>
-                  <h3 className="text-[13px] font-bold mb-3" style={{ color: "var(--grey-800)" }}>Low Stock Alerts</h3>
+                  <h3 className="text-[15px] font-bold mb-3" style={{ color: "var(--grey-800)" }}>Low Stock Alerts</h3>
                   {inventoryData.lowStockItems.length === 0 ? (
-                    <p className="text-[12px] text-center py-4" style={{ color: "var(--grey-400)" }}>All items adequately stocked</p>
+                    <p className="text-[14px] text-center py-4" style={{ color: "var(--grey-400)" }}>All items adequately stocked</p>
                   ) : (
                     <div className="overflow-x-auto">
                       <table className="w-full" style={{ borderCollapse: "separate", borderSpacing: 0 }}>
                         <thead>
                           <tr>
                             {["Item", "Category", "Stock", "Min", "Status"].map(h => (
-                              <th key={h} className="text-left text-[10px] font-bold uppercase tracking-wide py-2 px-2" style={{ color: "var(--grey-500)", borderBottom: "2px solid var(--grey-200)" }}>{h}</th>
+                              <th key={h} className="text-left text-[12px] font-bold uppercase tracking-wide py-2 px-2" style={{ color: "var(--grey-500)", borderBottom: "2px solid var(--grey-200)" }}>{h}</th>
                             ))}
                           </tr>
                         </thead>
@@ -1083,10 +1083,10 @@ export default function ReportsPage() {
                             const isAmber = ratio <= 0.5 && !isRed;
                             return (
                               <tr key={item.id} className="hover:bg-[var(--grey-50)]">
-                                <td className="py-2 px-2 text-[12px] font-semibold" style={{ color: "var(--grey-900)", borderBottom: "1px solid var(--grey-100)" }}>{item.name}</td>
-                                <td className="py-2 px-2 text-[11px] capitalize" style={{ color: "var(--grey-600)", borderBottom: "1px solid var(--grey-100)" }}>{item.category}</td>
-                                <td className="py-2 px-2 text-[12px] font-bold" style={{ color: isRed ? "#dc2626" : isAmber ? "#f59e0b" : "var(--grey-800)", borderBottom: "1px solid var(--grey-100)" }}>{item.currentStock} {item.unit}</td>
-                                <td className="py-2 px-2 text-[12px]" style={{ color: "var(--grey-500)", borderBottom: "1px solid var(--grey-100)" }}>{item.minStock}</td>
+                                <td className="py-2 px-2 text-[14px] font-semibold" style={{ color: "var(--grey-900)", borderBottom: "1px solid var(--grey-100)" }}>{item.name}</td>
+                                <td className="py-2 px-2 text-[13px] capitalize" style={{ color: "var(--grey-600)", borderBottom: "1px solid var(--grey-100)" }}>{item.category}</td>
+                                <td className="py-2 px-2 text-[14px] font-bold" style={{ color: isRed ? "#dc2626" : isAmber ? "#f59e0b" : "var(--grey-800)", borderBottom: "1px solid var(--grey-100)" }}>{item.currentStock} {item.unit}</td>
+                                <td className="py-2 px-2 text-[14px]" style={{ color: "var(--grey-500)", borderBottom: "1px solid var(--grey-100)" }}>{item.minStock}</td>
                                 <td className="py-2 px-2" style={{ borderBottom: "1px solid var(--grey-100)" }}>
                                   <span className="inline-block w-2.5 h-2.5 rounded-full" style={{ background: isRed ? "#dc2626" : isAmber ? "#f59e0b" : "#16a34a" }} />
                                 </td>
@@ -1101,29 +1101,29 @@ export default function ReportsPage() {
 
                 {/* Expiring items table */}
                 <Card>
-                  <h3 className="text-[13px] font-bold mb-3" style={{ color: "var(--grey-800)" }}>Expiring Items</h3>
+                  <h3 className="text-[15px] font-bold mb-3" style={{ color: "var(--grey-800)" }}>Expiring Items</h3>
                   {inventoryData.expiringItems.length === 0 ? (
-                    <p className="text-[12px] text-center py-4" style={{ color: "var(--grey-400)" }}>No items expiring soon</p>
+                    <p className="text-[14px] text-center py-4" style={{ color: "var(--grey-400)" }}>No items expiring soon</p>
                   ) : (
                     <div className="overflow-x-auto">
                       <table className="w-full" style={{ borderCollapse: "separate", borderSpacing: 0 }}>
                         <thead>
                           <tr>
                             {["Item", "Qty", "Expiry", "Days Left"].map(h => (
-                              <th key={h} className="text-left text-[10px] font-bold uppercase tracking-wide py-2 px-2" style={{ color: "var(--grey-500)", borderBottom: "2px solid var(--grey-200)" }}>{h}</th>
+                              <th key={h} className="text-left text-[12px] font-bold uppercase tracking-wide py-2 px-2" style={{ color: "var(--grey-500)", borderBottom: "2px solid var(--grey-200)" }}>{h}</th>
                             ))}
                           </tr>
                         </thead>
                         <tbody>
                           {[...inventoryData.expiringItems].sort((a, b) => a.daysUntilExpiry - b.daysUntilExpiry).map((item) => (
                             <tr key={item.id} className="hover:bg-[var(--grey-50)]">
-                              <td className="py-2 px-2 text-[12px] font-semibold" style={{ color: "var(--grey-900)", borderBottom: "1px solid var(--grey-100)" }}>{item.name}</td>
-                              <td className="py-2 px-2 text-[12px]" style={{ color: "var(--grey-700)", borderBottom: "1px solid var(--grey-100)" }}>{item.quantity}</td>
-                              <td className="py-2 px-2 text-[12px]" style={{ color: "var(--grey-600)", borderBottom: "1px solid var(--grey-100)" }}>
+                              <td className="py-2 px-2 text-[14px] font-semibold" style={{ color: "var(--grey-900)", borderBottom: "1px solid var(--grey-100)" }}>{item.name}</td>
+                              <td className="py-2 px-2 text-[14px]" style={{ color: "var(--grey-700)", borderBottom: "1px solid var(--grey-100)" }}>{item.quantity}</td>
+                              <td className="py-2 px-2 text-[14px]" style={{ color: "var(--grey-600)", borderBottom: "1px solid var(--grey-100)" }}>
                                 {new Date(item.expiryDate).toLocaleDateString("en-SG", { day: "numeric", month: "short" })}
                               </td>
                               <td className="py-2 px-2" style={{ borderBottom: "1px solid var(--grey-100)" }}>
-                                <span className="px-2 py-0.5 text-[10px] font-bold rounded-full"
+                                <span className="px-2 py-0.5 text-[12px] font-bold rounded-full"
                                   style={{
                                     background: item.daysUntilExpiry <= 7 ? "#fee2e2" : item.daysUntilExpiry <= 30 ? "#d1f2e0" : "#dcfce7",
                                     color: item.daysUntilExpiry <= 7 ? "#dc2626" : item.daysUntilExpiry <= 30 ? "#37845e" : "#16a34a",
@@ -1143,9 +1143,9 @@ export default function ReportsPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Top selling items */}
                 <Card>
-                  <h3 className="text-[13px] font-bold mb-3" style={{ color: "var(--grey-800)" }}>Top Selling Items</h3>
+                  <h3 className="text-[15px] font-bold mb-3" style={{ color: "var(--grey-800)" }}>Top Selling Items</h3>
                   {inventoryData.topSelling.length === 0 ? (
-                    <p className="text-[12px] text-center py-4" style={{ color: "var(--grey-400)" }}>No sales data</p>
+                    <p className="text-[14px] text-center py-4" style={{ color: "var(--grey-400)" }}>No sales data</p>
                   ) : (
                     <div>
                       {inventoryData.topSelling.map((item) => (
@@ -1159,9 +1159,9 @@ export default function ReportsPage() {
 
                 {/* Category breakdown */}
                 <Card>
-                  <h3 className="text-[13px] font-bold mb-3" style={{ color: "var(--grey-800)" }}>Category Breakdown</h3>
+                  <h3 className="text-[15px] font-bold mb-3" style={{ color: "var(--grey-800)" }}>Category Breakdown</h3>
                   {inventoryData.categoryBreakdown.length === 0 ? (
-                    <p className="text-[12px] text-center py-4" style={{ color: "var(--grey-400)" }}>No category data</p>
+                    <p className="text-[14px] text-center py-4" style={{ color: "var(--grey-400)" }}>No category data</p>
                   ) : (
                     <div className="space-y-2">
                       {inventoryData.categoryBreakdown.map((cat, i) => {
@@ -1172,8 +1172,8 @@ export default function ReportsPage() {
                         return (
                           <div key={cat.category}>
                             <div className="flex justify-between items-center mb-1">
-                              <span className="text-[12px] font-semibold capitalize" style={{ color: "var(--grey-700)" }}>{cat.category}</span>
-                              <span className="text-[11px] font-bold" style={{ color: "var(--grey-800)" }}>{cat.count} items · {formatCurrency(cat.value)}</span>
+                              <span className="text-[14px] font-semibold capitalize" style={{ color: "var(--grey-700)" }}>{cat.category}</span>
+                              <span className="text-[13px] font-bold" style={{ color: "var(--grey-800)" }}>{cat.count} items · {formatCurrency(cat.value)}</span>
                             </div>
                             <div className="h-3 rounded-full overflow-hidden" style={{ background: "var(--grey-100)" }}>
                               <div className="h-full rounded-full transition-all duration-500" style={{ width: `${Math.max(pct, 2)}%`, background: barColor }} />
@@ -1197,11 +1197,11 @@ export default function ReportsPage() {
             <div className="flex items-center justify-center py-12">
               <div className="text-center">
                 <div className="w-8 h-8 border-3 border-t-transparent rounded-full animate-spin mx-auto mb-3" style={{ borderColor: "var(--blue-500)", borderTopColor: "transparent" }} />
-                <p className="text-[13px] font-medium" style={{ color: "var(--grey-500)" }}>Loading insurance data...</p>
+                <p className="text-[15px] font-medium" style={{ color: "var(--grey-500)" }}>Loading insurance data...</p>
               </div>
             </div>
           ) : !insuranceData ? (
-            <Card><p className="text-[13px] text-center py-4" style={{ color: "var(--grey-400)" }}>No insurance data available.</p></Card>
+            <Card><p className="text-[15px] text-center py-4" style={{ color: "var(--grey-400)" }}>No insurance data available.</p></Card>
           ) : (
             <>
               {/* Stat cards */}
@@ -1221,7 +1221,7 @@ export default function ReportsPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 {/* Claims pipeline funnel */}
                 <Card>
-                  <h3 className="text-[13px] font-bold mb-4" style={{ color: "var(--grey-800)" }}>Claims Pipeline</h3>
+                  <h3 className="text-[15px] font-bold mb-4" style={{ color: "var(--grey-800)" }}>Claims Pipeline</h3>
                   <div className="space-y-2">
                     {[
                       { label: "Submitted", value: insuranceData.pipeline.submitted, color: "#3b82f6" },
@@ -1233,13 +1233,13 @@ export default function ReportsPage() {
                       return (
                         <div key={stage.label}>
                           <div className="flex justify-between items-center mb-1">
-                            <span className="text-[11px] font-semibold" style={{ color: "var(--grey-600)" }}>{stage.label}</span>
-                            <span className="text-[12px] font-bold" style={{ color: "var(--grey-800)" }}>{stage.value}</span>
+                            <span className="text-[13px] font-semibold" style={{ color: "var(--grey-600)" }}>{stage.label}</span>
+                            <span className="text-[14px] font-bold" style={{ color: "var(--grey-800)" }}>{stage.value}</span>
                           </div>
                           <div className="flex justify-center">
                             <div className="h-10 rounded-lg flex items-center justify-center transition-all duration-500"
                               style={{ width: `${widthPct}%`, background: stage.color, minWidth: 40 }}>
-                              <span className="text-[10px] font-bold text-white">{stage.value}</span>
+                              <span className="text-[12px] font-bold text-white">{stage.value}</span>
                             </div>
                           </div>
                           {i < 2 && (
@@ -1257,7 +1257,7 @@ export default function ReportsPage() {
 
                 {/* Monthly trend */}
                 <Card>
-                  <h3 className="text-[13px] font-bold mb-3" style={{ color: "var(--grey-800)" }}>Monthly Trend (Last 6 Months)</h3>
+                  <h3 className="text-[15px] font-bold mb-3" style={{ color: "var(--grey-800)" }}>Monthly Trend (Last 6 Months)</h3>
                   <TrendChart
                     data={insuranceData.monthlyTrend as unknown as Array<Record<string, unknown>>}
                     valueKey="amount" labelKey="month" color="#8b5cf6" height={140}
@@ -1268,27 +1268,27 @@ export default function ReportsPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Provider performance */}
                 <Card>
-                  <h3 className="text-[13px] font-bold mb-3" style={{ color: "var(--grey-800)" }}>Provider Performance</h3>
+                  <h3 className="text-[15px] font-bold mb-3" style={{ color: "var(--grey-800)" }}>Provider Performance</h3>
                   {insuranceData.providers.length === 0 ? (
-                    <p className="text-[12px] text-center py-4" style={{ color: "var(--grey-400)" }}>No provider data</p>
+                    <p className="text-[14px] text-center py-4" style={{ color: "var(--grey-400)" }}>No provider data</p>
                   ) : (
                     <div className="overflow-x-auto">
                       <table className="w-full" style={{ borderCollapse: "separate", borderSpacing: 0 }}>
                         <thead>
                           <tr>
                             {["Provider", "Claims", "Approved", "Rate", "Amount"].map(h => (
-                              <th key={h} className="text-left text-[10px] font-bold uppercase tracking-wide py-2 px-2" style={{ color: "var(--grey-500)", borderBottom: "2px solid var(--grey-200)" }}>{h}</th>
+                              <th key={h} className="text-left text-[12px] font-bold uppercase tracking-wide py-2 px-2" style={{ color: "var(--grey-500)", borderBottom: "2px solid var(--grey-200)" }}>{h}</th>
                             ))}
                           </tr>
                         </thead>
                         <tbody>
                           {insuranceData.providers.map((p) => (
                             <tr key={p.name} className="hover:bg-[var(--grey-50)]">
-                              <td className="py-2 px-2 text-[12px] font-semibold" style={{ color: "var(--grey-900)", borderBottom: "1px solid var(--grey-100)" }}>{p.name}</td>
-                              <td className="py-2 px-2 text-[12px] font-bold" style={{ color: "var(--grey-800)", borderBottom: "1px solid var(--grey-100)" }}>{p.claims}</td>
-                              <td className="py-2 px-2 text-[12px] font-bold" style={{ color: "#16a34a", borderBottom: "1px solid var(--grey-100)" }}>{p.approved}</td>
+                              <td className="py-2 px-2 text-[14px] font-semibold" style={{ color: "var(--grey-900)", borderBottom: "1px solid var(--grey-100)" }}>{p.name}</td>
+                              <td className="py-2 px-2 text-[14px] font-bold" style={{ color: "var(--grey-800)", borderBottom: "1px solid var(--grey-100)" }}>{p.claims}</td>
+                              <td className="py-2 px-2 text-[14px] font-bold" style={{ color: "#16a34a", borderBottom: "1px solid var(--grey-100)" }}>{p.approved}</td>
                               <td className="py-2 px-2" style={{ borderBottom: "1px solid var(--grey-100)" }}>
-                                <span className="px-2 py-0.5 text-[10px] font-bold rounded-full"
+                                <span className="px-2 py-0.5 text-[12px] font-bold rounded-full"
                                   style={{
                                     background: p.approvalRate >= 80 ? "#dcfce7" : p.approvalRate >= 60 ? "#d1f2e0" : "#fee2e2",
                                     color: p.approvalRate >= 80 ? "#16a34a" : p.approvalRate >= 60 ? "#37845e" : "#dc2626",
@@ -1296,7 +1296,7 @@ export default function ReportsPage() {
                                   {p.approvalRate}%
                                 </span>
                               </td>
-                              <td className="py-2 px-2 text-[12px] font-bold" style={{ color: "var(--grey-800)", borderBottom: "1px solid var(--grey-100)" }}>{formatCurrency(p.totalAmount)}</td>
+                              <td className="py-2 px-2 text-[14px] font-bold" style={{ color: "var(--grey-800)", borderBottom: "1px solid var(--grey-100)" }}>{formatCurrency(p.totalAmount)}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -1307,19 +1307,19 @@ export default function ReportsPage() {
 
                 {/* Recent claims */}
                 <Card>
-                  <h3 className="text-[13px] font-bold mb-3" style={{ color: "var(--grey-800)" }}>Recent Claims</h3>
+                  <h3 className="text-[15px] font-bold mb-3" style={{ color: "var(--grey-800)" }}>Recent Claims</h3>
                   {insuranceData.recentClaims.length === 0 ? (
-                    <p className="text-[12px] text-center py-4" style={{ color: "var(--grey-400)" }}>No recent claims</p>
+                    <p className="text-[14px] text-center py-4" style={{ color: "var(--grey-400)" }}>No recent claims</p>
                   ) : (
                     <div className="space-y-2">
                       {insuranceData.recentClaims.map((claim) => (
                         <div key={claim.id} className="flex items-center gap-3 p-2 rounded-lg" style={{ background: "var(--grey-50)" }}>
                           <div className="flex-1 min-w-0">
-                            <p className="text-[12px] font-semibold truncate" style={{ color: "var(--grey-900)" }}>{claim.patientName}</p>
-                            <p className="text-[10px]" style={{ color: "var(--grey-500)" }}>{claim.provider} · {new Date(claim.date).toLocaleDateString("en-SG", { day: "numeric", month: "short" })}</p>
+                            <p className="text-[14px] font-semibold truncate" style={{ color: "var(--grey-900)" }}>{claim.patientName}</p>
+                            <p className="text-[12px]" style={{ color: "var(--grey-500)" }}>{claim.provider} · {new Date(claim.date).toLocaleDateString("en-SG", { day: "numeric", month: "short" })}</p>
                           </div>
                           <div className="text-right flex-shrink-0">
-                            <p className="text-[12px] font-bold" style={{ color: "var(--grey-800)" }}>{formatCurrency(claim.amount)}</p>
+                            <p className="text-[14px] font-bold" style={{ color: "var(--grey-800)" }}>{formatCurrency(claim.amount)}</p>
                             <span className="px-1.5 py-0.5 text-[9px] font-bold uppercase rounded-full"
                               style={{
                                 background: claim.status === "settled" ? "#dcfce7" : claim.status === "approved" ? "#dbeafe" : claim.status === "rejected" ? "#fee2e2" : "#d1f2e0",
@@ -1359,7 +1359,7 @@ export default function ReportsPage() {
           {/* Aging bar */}
           {data.aging.summary.total > 0 && (
             <Card className="mb-4">
-              <h3 className="text-[13px] font-bold mb-2" style={{ color: "var(--grey-800)" }}>Aging Distribution</h3>
+              <h3 className="text-[15px] font-bold mb-2" style={{ color: "var(--grey-800)" }}>Aging Distribution</h3>
               <div className="h-8 rounded-lg overflow-hidden flex" style={{ background: "var(--grey-100)" }}>
                 {[
                   { label: "0-30d", value: data.aging.summary.current, color: "#f59e0b" },
@@ -1371,7 +1371,7 @@ export default function ReportsPage() {
                   if (pct === 0) return null;
                   return (
                     <div key={seg.label} className="h-full flex items-center justify-center" style={{ width: `${pct}%`, background: seg.color }} title={`${seg.label}: ${formatCurrency(seg.value)}`}>
-                      {pct > 10 && <span className="text-[10px] font-bold text-white">{seg.label}</span>}
+                      {pct > 10 && <span className="text-[12px] font-bold text-white">{seg.label}</span>}
                     </div>
                   );
                 })}
@@ -1382,28 +1382,28 @@ export default function ReportsPage() {
           {/* Outstanding invoices table */}
           {data.aging.invoices.length > 0 ? (
             <Card>
-              <h3 className="text-[13px] font-bold mb-2" style={{ color: "var(--grey-800)" }}>Unpaid Invoices ({data.aging.invoices.length})</h3>
+              <h3 className="text-[15px] font-bold mb-2" style={{ color: "var(--grey-800)" }}>Unpaid Invoices ({data.aging.invoices.length})</h3>
               <div className="overflow-x-auto">
                 <table className="w-full" style={{ borderCollapse: "separate", borderSpacing: 0 }}>
                   <thead>
                     <tr>
                       {["Invoice", "Patient", "Total", "Balance", "Age", "Bucket"].map((h) => (
-                        <th key={h} className="text-left text-[11px] font-bold uppercase tracking-wide py-2 px-3" style={{ color: "var(--grey-500)", borderBottom: "2px solid var(--grey-200)" }}>{h}</th>
+                        <th key={h} className="text-left text-[13px] font-bold uppercase tracking-wide py-2 px-3" style={{ color: "var(--grey-500)", borderBottom: "2px solid var(--grey-200)" }}>{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
                     {data.aging.invoices.map((inv) => (
                       <tr key={inv.id} className="hover:bg-[var(--grey-50)]">
-                        <td className="py-2 px-3 text-[12px]" style={{ borderBottom: "1px solid var(--grey-100)" }}>
+                        <td className="py-2 px-3 text-[14px]" style={{ borderBottom: "1px solid var(--grey-100)" }}>
                           <Link href={`/billing/${inv.id}`} className="font-semibold hover:underline" style={{ color: "var(--blue-500)" }}>{inv.invoiceNumber}</Link>
                         </td>
-                        <td className="py-2 px-3 text-[12px] font-medium" style={{ color: "var(--grey-800)", borderBottom: "1px solid var(--grey-100)" }}>{inv.patientName}</td>
-                        <td className="py-2 px-3 text-[12px] font-medium" style={{ color: "var(--grey-700)", borderBottom: "1px solid var(--grey-100)" }}>{formatCurrency(inv.totalAmount)}</td>
-                        <td className="py-2 px-3 text-[12px] font-bold" style={{ color: "#dc2626", borderBottom: "1px solid var(--grey-100)" }}>{formatCurrency(inv.balanceAmount)}</td>
-                        <td className="py-2 px-3 text-[12px] font-medium" style={{ color: "var(--grey-700)", borderBottom: "1px solid var(--grey-100)" }}>{inv.daysOverdue}d</td>
+                        <td className="py-2 px-3 text-[14px] font-medium" style={{ color: "var(--grey-800)", borderBottom: "1px solid var(--grey-100)" }}>{inv.patientName}</td>
+                        <td className="py-2 px-3 text-[14px] font-medium" style={{ color: "var(--grey-700)", borderBottom: "1px solid var(--grey-100)" }}>{formatCurrency(inv.totalAmount)}</td>
+                        <td className="py-2 px-3 text-[14px] font-bold" style={{ color: "#dc2626", borderBottom: "1px solid var(--grey-100)" }}>{formatCurrency(inv.balanceAmount)}</td>
+                        <td className="py-2 px-3 text-[14px] font-medium" style={{ color: "var(--grey-700)", borderBottom: "1px solid var(--grey-100)" }}>{inv.daysOverdue}d</td>
                         <td className="py-2 px-3" style={{ borderBottom: "1px solid var(--grey-100)" }}>
-                          <span className="px-2 py-0.5 text-[10px] font-bold rounded-full"
+                          <span className="px-2 py-0.5 text-[12px] font-bold rounded-full"
                             style={{ background: inv.daysOverdue > 90 ? "#fee2e2" : inv.daysOverdue > 60 ? "#ffedd5" : inv.daysOverdue > 30 ? "#d1f2e0" : "#fefce8",
                               color: inv.daysOverdue > 90 ? "#dc2626" : inv.daysOverdue > 60 ? "#ea580c" : inv.daysOverdue > 30 ? "#37845e" : "#ca8a04" }}>
                             {inv.bucket}
@@ -1416,7 +1416,7 @@ export default function ReportsPage() {
               </div>
             </Card>
           ) : (
-            <Card><p className="text-[13px] text-center py-4" style={{ color: "#16a34a" }}>No outstanding payments! All invoices are settled.</p></Card>
+            <Card><p className="text-[15px] text-center py-4" style={{ color: "#16a34a" }}>No outstanding payments! All invoices are settled.</p></Card>
           )}
         </Section>
       )}
@@ -1441,22 +1441,22 @@ export default function ReportsPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Appointment trend */}
             <Card className="md:col-span-2">
-              <h3 className="text-[13px] font-bold mb-3" style={{ color: "var(--grey-800)" }}>Daily Appointments</h3>
+              <h3 className="text-[15px] font-bold mb-3" style={{ color: "var(--grey-800)" }}>Daily Appointments</h3>
               <TrendChart data={data.appointments.trend as unknown as Array<Record<string, unknown>>} valueKey="count" labelKey="date" color="#8b5cf6" height={140} />
             </Card>
 
             {/* By Status */}
             <Card>
-              <h3 className="text-[13px] font-bold mb-3" style={{ color: "var(--grey-800)" }}>By Status</h3>
+              <h3 className="text-[15px] font-bold mb-3" style={{ color: "var(--grey-800)" }}>By Status</h3>
               <div className="space-y-2">
                 {data.appointments.byStatus.map((s) => {
                   const pct = data.appointments.total > 0 ? (s.count / data.appointments.total) * 100 : 0;
                   return (
                     <div key={s.status} className="flex items-center gap-2">
                       <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: STATUS_COLORS[s.status] || "#6b7280" }} />
-                      <span className="text-[12px] font-medium capitalize flex-1" style={{ color: "var(--grey-700)" }}>{s.status.replace("-", " ")}</span>
-                      <span className="text-[12px] font-bold" style={{ color: "var(--grey-800)" }}>{s.count}</span>
-                      <span className="text-[10px] w-10 text-right" style={{ color: "var(--grey-500)" }}>{pct.toFixed(0)}%</span>
+                      <span className="text-[14px] font-medium capitalize flex-1" style={{ color: "var(--grey-700)" }}>{s.status.replace("-", " ")}</span>
+                      <span className="text-[14px] font-bold" style={{ color: "var(--grey-800)" }}>{s.count}</span>
+                      <span className="text-[12px] w-10 text-right" style={{ color: "var(--grey-500)" }}>{pct.toFixed(0)}%</span>
                     </div>
                   );
                 })}
@@ -1467,12 +1467,12 @@ export default function ReportsPage() {
           {/* By Type */}
           {data.appointments.byType.length > 0 && (
             <Card className="mt-4">
-              <h3 className="text-[13px] font-bold mb-3" style={{ color: "var(--grey-800)" }}>By Appointment Type</h3>
+              <h3 className="text-[15px] font-bold mb-3" style={{ color: "var(--grey-800)" }}>By Appointment Type</h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 {data.appointments.byType.map((t) => (
                   <div key={t.type} className="text-center p-3 rounded-lg" style={{ background: "var(--grey-50)" }}>
                     <p className="text-[24px] font-bold" style={{ color: TYPE_COLORS[t.type] || "var(--grey-800)" }}>{t.count}</p>
-                    <p className="text-[11px] font-medium capitalize" style={{ color: "var(--grey-500)" }}>{t.type.replace("-", " ")}</p>
+                    <p className="text-[13px] font-medium capitalize" style={{ color: "var(--grey-500)" }}>{t.type.replace("-", " ")}</p>
                   </div>
                 ))}
               </div>
@@ -1482,12 +1482,12 @@ export default function ReportsPage() {
           {/* Peak Hours Heatmap */}
           {data.appointments.peakHours && data.appointments.peakHours.length > 0 && (
             <Card className="mt-4">
-              <h3 className="text-[13px] font-bold mb-3" style={{ color: "var(--grey-800)" }}>Peak Hours</h3>
+              <h3 className="text-[15px] font-bold mb-3" style={{ color: "var(--grey-800)" }}>Peak Hours</h3>
               <PeakHoursHeatmap data={data.appointments.peakHours} />
 
               {/* Hourly distribution bar chart */}
               <div className="mt-4 pt-4" style={{ borderTop: "1px solid var(--grey-200)" }}>
-                <h4 className="text-[12px] font-bold mb-2" style={{ color: "var(--grey-700)" }}>Hourly Distribution</h4>
+                <h4 className="text-[14px] font-bold mb-2" style={{ color: "var(--grey-700)" }}>Hourly Distribution</h4>
                 {(() => {
                   const hourlyTotals: Record<number, number> = {};
                   data.appointments.peakHours!.forEach(d => {

@@ -5,6 +5,17 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
+interface InventoryVariant {
+  id: string;
+  manufacturerCode: string | null;
+  packing: string;
+  unitPrice: number;
+  costPrice: number;
+  currentStock: number;
+  gstPercent: number;
+  status: string;
+}
+
 interface InventoryItem {
   id: string;
   sku: string;
@@ -12,6 +23,8 @@ interface InventoryItem {
   category: string;
   subcategory: string | null;
   unit: string;
+  packing: string | null;
+  manufacturerCode: string | null;
   batchNumber: string | null;
   manufacturer: string | null;
   supplier: string | null;
@@ -19,7 +32,7 @@ interface InventoryItem {
   hsnCode: string | null;
   description: string | null;
   costPrice: number | null;
-  sellingPrice: number | null;
+  unitPrice: number | null;
   gstPercent: number | null;
   currentStock: number;
   reorderLevel: number;
@@ -27,6 +40,7 @@ interface InventoryItem {
   status: string;
   createdAt: string;
   updatedAt: string;
+  variants?: InventoryVariant[];
 }
 
 interface Transaction {
@@ -34,10 +48,13 @@ interface Transaction {
   type: string;
   quantity: number;
   unitPrice: number | null;
-  stockAfter: number;
+  totalAmount: number | null;
+  previousStock: number;
+  newStock: number;
   reference: string | null;
   notes: string | null;
-  createdBy: string | null;
+  performedBy: string | null;
+  date: string;
   createdAt: string;
 }
 
@@ -53,18 +70,18 @@ const CATEGORIES = [
 ];
 
 const SUBCATEGORIES: Record<string, string[]> = {
-  medicine: ["Kashayam", "Arishtam", "Choornam", "Thailam", "Ghritam", "Leham", "Gulika", "Vatika", "Bhasmam", "Rasayanam", "Other"],
-  herb: [], oil: [], consumable: [], equipment: [],
+  medicine: ["Arishtam", "Asavam", "Bhasmam", "Bhasmam & Ksharam", "Churnam", "Classical Tablet", "Cream", "Gel", "Ghritam", "Ghritam & Sneham", "Granule", "Gulika", "Gulika & Tablet", "Gutika", "Kashayam", "Ksharam", "Kuzhampu", "Lehyam", "Lehyam & Rasayanam", "Liniment", "Mashi", "Oil", "Oil & Tailam", "Ointment", "Proprietary Medicine", "Proprietary Syrup", "Proprietary Tablet", "Rasakriya", "Rasayanam", "Sneham", "Soft Gel", "Tailam", "Other"],
+  herb: [], oil: ["Tailam", "Oil & Tailam", "Sneham"], consumable: [], equipment: [],
 };
 
-const UNITS = ["nos", "ml", "gm", "kg", "litre", "bottle", "packet", "box"];
+const UNITS = ["bottle", "nos", "jar", "pkt", "container", "tube", "ml", "gm", "kg", "litre", "box"];
 
 // ─── YODA Design Tokens ─────────────────────────────────────────────────────
-const inputStyle = { border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)", fontSize: "13px" };
+const inputStyle = { border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)", fontSize: "15px" };
 const inputErrorStyle = { ...inputStyle, border: "1px solid var(--red)", background: "#fff5f5" };
 const cardStyle = { background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius)" as const, boxShadow: "var(--shadow-card)" as const };
-const sectionTitle = { color: "var(--grey-900)", fontSize: "15px", fontWeight: 700 as const };
-const chipBase = "inline-flex px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide";
+const sectionTitle = { color: "var(--grey-900)", fontSize: "17px", fontWeight: 700 as const };
+const chipBase = "inline-flex px-2 py-0.5 text-[12px] font-bold uppercase tracking-wide";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 function formatDate(dateStr: string): string {
@@ -103,16 +120,20 @@ function getStockPercent(stock: number, reorderLevel: number): number {
 
 const TXN_TYPE_CONFIG: Record<string, { label: string; color: string; bg: string; sign: string }> = {
   purchase: { label: "Purchase", color: "var(--green)", bg: "#e8f5e9", sign: "+" },
+  sale: { label: "Sale", color: "var(--red)", bg: "#ffebee", sign: "" },
   issue: { label: "Issue/Sale", color: "var(--red)", bg: "#ffebee", sign: "-" },
+  adjustment: { label: "Adjustment", color: "#f57c00", bg: "#fff3e0", sign: "" },
   adjust: { label: "Adjustment", color: "#f57c00", bg: "#fff3e0", sign: "" },
   return: { label: "Return", color: "var(--blue-500)", bg: "#e3f2fd", sign: "+" },
+  expired: { label: "Expired", color: "#7b1fa2", bg: "#f3e5f5", sign: "" },
+  damaged: { label: "Damaged", color: "var(--red)", bg: "#ffebee", sign: "" },
 };
 
 // ─── Toast ──────────────────────────────────────────────────────────────────
 function Toast({ message, type, onClose }: { message: string; type: "success" | "error"; onClose: () => void }) {
   useEffect(() => { const t = setTimeout(onClose, 3500); return () => clearTimeout(t); }, [onClose]);
   return (
-    <div className="fixed top-5 right-5 z-[100] flex items-center gap-2 px-4 py-3 text-[13px] font-semibold yoda-slide-in" role="alert"
+    <div className="fixed top-5 right-5 z-[100] flex items-center gap-2 px-4 py-3 text-[15px] font-semibold yoda-slide-in" role="alert"
       style={{ background: type === "success" ? "var(--green)" : "var(--red)", color: "#fff", borderRadius: "var(--radius-sm)", boxShadow: "0 4px 20px rgba(0,0,0,0.15)", minWidth: 260 }}>
       <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         {type === "success" ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /> : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />}
@@ -128,8 +149,8 @@ function ProfileRow({ label, value }: { label: string; value: string | number | 
   if (value === null || value === undefined || value === "") return null;
   return (
     <tr>
-      <td className="py-[8px] pr-4 text-[13px] font-normal text-right whitespace-nowrap align-top" style={{ color: "var(--grey-600)", width: 180 }}>{label} :</td>
-      <td className="py-[8px] pl-2 text-[13px] font-medium align-top" style={{ color: "var(--grey-900)" }}>{String(value)}</td>
+      <td className="py-[8px] pr-4 text-[15px] font-normal text-right whitespace-nowrap align-top" style={{ color: "var(--grey-600)", width: 180 }}>{label} :</td>
+      <td className="py-[8px] pl-2 text-[15px] font-medium align-top" style={{ color: "var(--grey-900)" }}>{String(value)}</td>
     </tr>
   );
 }
@@ -138,12 +159,12 @@ function ProfileRow({ label, value }: { label: string; value: string | number | 
 function FormRow({ label, required, children, error }: { label: string; required?: boolean; children: React.ReactNode; error?: string }) {
   return (
     <tr>
-      <td className="py-[8px] pr-4 text-[13px] font-normal text-right whitespace-nowrap align-top" style={{ color: "var(--grey-600)", width: 180 }}>
+      <td className="py-[8px] pr-4 text-[15px] font-normal text-right whitespace-nowrap align-top" style={{ color: "var(--grey-600)", width: 180 }}>
         {label}{required && <span style={{ color: "var(--red)" }}> *</span>} :
       </td>
       <td className="py-[8px] pl-2">
         {children}
-        {error && <p className="mt-0.5 text-[11px] font-medium" style={{ color: "var(--red)" }}>{error}</p>}
+        {error && <p className="mt-0.5 text-[13px] font-medium" style={{ color: "var(--red)" }}>{error}</p>}
       </td>
     </tr>
   );
@@ -170,6 +191,7 @@ export default function InventoryDetailPage() {
 
   // Stock action
   const [activeAction, setActiveAction] = useState<StockActionType | null>(null);
+  const [actionVariantId, setActionVariantId] = useState("");
   const [actionQty, setActionQty] = useState("");
   const [actionUnitPrice, setActionUnitPrice] = useState("");
   const [actionReference, setActionReference] = useState("");
@@ -213,7 +235,7 @@ export default function InventoryDetailPage() {
       hsnCode: item.hsnCode || "",
       description: item.description || "",
       costPrice: item.costPrice != null ? String(item.costPrice) : "",
-      sellingPrice: item.sellingPrice != null ? String(item.sellingPrice) : "",
+      unitPrice: item.unitPrice != null ? String(item.unitPrice) : "",
       gstPercent: item.gstPercent != null ? String(item.gstPercent) : "",
       currentStock: String(item.currentStock),
       reorderLevel: String(item.reorderLevel),
@@ -236,7 +258,7 @@ export default function InventoryDetailPage() {
     if (!editForm.category) errors.category = "Required";
     if (!editForm.unit) errors.unit = "Required";
     if (editForm.costPrice && (isNaN(Number(editForm.costPrice)) || Number(editForm.costPrice) < 0)) errors.costPrice = "Must be a positive number";
-    if (editForm.sellingPrice && (isNaN(Number(editForm.sellingPrice)) || Number(editForm.sellingPrice) < 0)) errors.sellingPrice = "Must be a positive number";
+    if (editForm.unitPrice && (isNaN(Number(editForm.unitPrice)) || Number(editForm.unitPrice) < 0)) errors.unitPrice = "Must be a positive number";
     setEditErrors(errors);
     return Object.keys(errors).length === 0;
   }
@@ -257,7 +279,7 @@ export default function InventoryDetailPage() {
         hsnCode: editForm.hsnCode.trim() || null,
         description: editForm.description.trim() || null,
         costPrice: editForm.costPrice ? Number(editForm.costPrice) : null,
-        sellingPrice: editForm.sellingPrice ? Number(editForm.sellingPrice) : null,
+        unitPrice: editForm.unitPrice ? Number(editForm.unitPrice) : null,
         gstPercent: editForm.gstPercent ? Number(editForm.gstPercent) : null,
         currentStock: Number(editForm.currentStock),
         reorderLevel: editForm.reorderLevel ? Number(editForm.reorderLevel) : 0,
@@ -279,6 +301,7 @@ export default function InventoryDetailPage() {
   // ─── Stock Actions ────────────────────────────────────────────────────────
   function openAction(type: StockActionType) {
     setActiveAction(type);
+    setActionVariantId("");
     setActionQty("");
     setActionUnitPrice("");
     setActionReference("");
@@ -292,13 +315,18 @@ export default function InventoryDetailPage() {
     }
     setActionSubmitting(true);
     try {
-      const body = {
-        type: activeAction,
+      // Map UI action types to API types
+      const typeMap: Record<string, string> = { purchase: "purchase", issue: "sale", adjust: "adjustment", return: "return" };
+      const body: Record<string, unknown> = {
+        type: typeMap[activeAction!] || activeAction,
         quantity: Number(actionQty),
         unitPrice: actionUnitPrice ? Number(actionUnitPrice) : null,
         reference: actionReference.trim() || null,
         notes: actionNotes.trim() || null,
       };
+      if (actionVariantId) {
+        body.variantId = actionVariantId;
+      }
       const res = await fetch(`/api/inventory/${id}/transactions`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
       if (!res.ok) throw new Error("Failed");
       setToast({ message: "Stock updated successfully!", type: "success" });
@@ -357,10 +385,10 @@ export default function InventoryDetailPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
           </div>
-          <p className="text-[14px] font-semibold" style={{ color: "var(--grey-700)" }}>{error || "Item not found"}</p>
-          <button onClick={fetchItem} className="text-[12px] font-semibold mt-2 hover:underline" style={{ color: "var(--blue-500)" }}>Retry</button>
+          <p className="text-[16px] font-semibold" style={{ color: "var(--grey-700)" }}>{error || "Item not found"}</p>
+          <button onClick={fetchItem} className="text-[14px] font-semibold mt-2 hover:underline" style={{ color: "var(--blue-500)" }}>Retry</button>
           <div className="mt-3">
-            <Link href="/inventory" className="text-[12px] font-semibold hover:underline" style={{ color: "var(--grey-500)" }}>Back to Inventory</Link>
+            <Link href="/inventory" className="text-[14px] font-semibold hover:underline" style={{ color: "var(--grey-500)" }}>Back to Inventory</Link>
           </div>
         </div>
       </div>
@@ -388,14 +416,14 @@ export default function InventoryDetailPage() {
           </Link>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-[22px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>{item.name}</h1>
+              <h1 className="text-[24px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>{item.name}</h1>
               <span className={chipBase} style={{
                 borderRadius: "var(--radius-sm)",
                 background: item.status === "active" ? "#e8f5e9" : item.status === "discontinued" ? "#ffebee" : "var(--grey-200)",
                 color: item.status === "active" ? "var(--green)" : item.status === "discontinued" ? "var(--red)" : "var(--grey-600)",
               }}>{item.status}</span>
             </div>
-            <p className="text-[13px] mt-0.5" style={{ color: "var(--grey-600)" }}>
+            <p className="text-[15px] mt-0.5" style={{ color: "var(--grey-600)" }}>
               SKU: {item.sku} &middot; {CATEGORIES.find(c => c.value === item.category)?.label || item.category}
               {item.subcategory && ` / ${item.subcategory}`}
             </p>
@@ -406,7 +434,7 @@ export default function InventoryDetailPage() {
             <>
               <button
                 onClick={enterEditMode}
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-semibold transition-colors"
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-[15px] font-semibold transition-colors"
                 style={{ borderRadius: "var(--radius-sm)", border: "1px solid var(--grey-300)", color: "var(--grey-700)" }}
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
@@ -414,7 +442,7 @@ export default function InventoryDetailPage() {
               </button>
               <button
                 onClick={() => setShowDeleteConfirm(true)}
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-semibold transition-colors"
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-[15px] font-semibold transition-colors"
                 style={{ borderRadius: "var(--radius-sm)", border: "1px solid #ffcdd2", color: "var(--red)" }}
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
@@ -426,14 +454,14 @@ export default function InventoryDetailPage() {
               <button
                 onClick={handleEditSubmit}
                 disabled={saving}
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-semibold text-white transition-opacity disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-[15px] font-semibold text-white transition-opacity disabled:opacity-50"
                 style={{ borderRadius: "var(--radius-sm)", background: "var(--blue-500)" }}
               >
                 {saving ? "Saving..." : "Save Changes"}
               </button>
               <button
                 onClick={() => setEditMode(false)}
-                className="px-4 py-2 text-[13px] font-semibold transition-colors"
+                className="px-4 py-2 text-[15px] font-semibold transition-colors"
                 style={{ borderRadius: "var(--radius-sm)", border: "1px solid var(--grey-300)", color: "var(--grey-600)" }}
               >
                 Cancel
@@ -446,12 +474,12 @@ export default function InventoryDetailPage() {
       {/* ── Delete Confirmation ──────────────────────────────────── */}
       {showDeleteConfirm && (
         <div className="mb-4 p-4 flex items-center justify-between" style={{ background: "#ffebee", borderRadius: "var(--radius-sm)", border: "1px solid #ffcdd2" }}>
-          <p className="text-[13px] font-medium" style={{ color: "var(--red)" }}>Are you sure you want to delete this item? This action cannot be undone.</p>
+          <p className="text-[15px] font-medium" style={{ color: "var(--red)" }}>Are you sure you want to delete this item? This action cannot be undone.</p>
           <div className="flex gap-2 ml-4 flex-shrink-0">
-            <button onClick={handleDelete} disabled={deleting} className="px-3 py-1.5 text-[12px] font-semibold text-white" style={{ background: "var(--red)", borderRadius: "var(--radius-sm)" }}>
+            <button onClick={handleDelete} disabled={deleting} className="px-3 py-1.5 text-[14px] font-semibold text-white" style={{ background: "var(--red)", borderRadius: "var(--radius-sm)" }}>
               {deleting ? "Deleting..." : "Yes, Delete"}
             </button>
-            <button onClick={() => setShowDeleteConfirm(false)} className="px-3 py-1.5 text-[12px] font-semibold" style={{ border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", color: "var(--grey-600)" }}>
+            <button onClick={() => setShowDeleteConfirm(false)} className="px-3 py-1.5 text-[14px] font-semibold" style={{ border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", color: "var(--grey-600)" }}>
               Cancel
             </button>
           </div>
@@ -465,11 +493,11 @@ export default function InventoryDetailPage() {
             {/* Stock Level Indicator */}
             <div className="mb-5 pb-5" style={{ borderBottom: "1px solid var(--grey-200)" }}>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-[13px] font-semibold" style={{ color: "var(--grey-700)" }}>Stock Level</span>
-                <span className="text-[14px] font-bold" style={{ color: stockColor }}>
+                <span className="text-[15px] font-semibold" style={{ color: "var(--grey-700)" }}>Stock Level</span>
+                <span className="text-[16px] font-bold" style={{ color: stockColor }}>
                   {item.currentStock} {item.unit}
                   {item.reorderLevel > 0 && (
-                    <span className="text-[11px] font-normal ml-1" style={{ color: "var(--grey-500)" }}>(reorder at {item.reorderLevel})</span>
+                    <span className="text-[13px] font-normal ml-1" style={{ color: "var(--grey-500)" }}>(reorder at {item.reorderLevel})</span>
                   )}
                 </span>
               </div>
@@ -477,7 +505,7 @@ export default function InventoryDetailPage() {
                 <div style={{ width: `${stockPercent}%`, height: "100%", background: stockColor, borderRadius: 6, transition: "width 0.5s ease" }} />
               </div>
               {expiryDays !== null && (
-                <p className="mt-2 text-[12px] font-medium" style={{ color: expiryDays <= 30 ? "var(--red)" : expiryDays <= 90 ? "#f57c00" : "var(--grey-600)" }}>
+                <p className="mt-2 text-[14px] font-medium" style={{ color: expiryDays <= 30 ? "var(--red)" : expiryDays <= 90 ? "#f57c00" : "var(--grey-600)" }}>
                   {expiryDays <= 0 ? "EXPIRED" : `Expires in ${expiryDays} day${expiryDays !== 1 ? "s" : ""}`}
                   {item.expiryDate && ` (${formatDate(item.expiryDate)})`}
                 </p>
@@ -488,9 +516,11 @@ export default function InventoryDetailPage() {
             <table className="w-full" style={{ borderCollapse: "collapse" }}>
               <tbody>
                 <ProfileRow label="SKU" value={item.sku} />
+                {item.manufacturerCode && <ProfileRow label="Mfr. Code" value={item.manufacturerCode} />}
                 <ProfileRow label="Category" value={CATEGORIES.find(c => c.value === item.category)?.label || item.category} />
                 {item.subcategory && <ProfileRow label="Subcategory" value={item.subcategory} />}
                 <ProfileRow label="Unit" value={item.unit} />
+                {item.packing && <ProfileRow label="Packing" value={item.packing} />}
                 <ProfileRow label="Batch Number" value={item.batchNumber} />
                 <ProfileRow label="Manufacturer" value={item.manufacturer} />
                 <ProfileRow label="Supplier" value={item.supplier} />
@@ -498,7 +528,7 @@ export default function InventoryDetailPage() {
                 <ProfileRow label="HSN Code" value={item.hsnCode} />
                 <ProfileRow label="Description" value={item.description} />
                 <ProfileRow label="Cost Price" value={item.costPrice != null ? `S$${item.costPrice.toLocaleString("en-SG")}` : null} />
-                <ProfileRow label="Selling Price" value={item.sellingPrice != null ? `S$${item.sellingPrice.toLocaleString("en-SG")}` : null} />
+                <ProfileRow label="Selling Price" value={item.unitPrice != null ? `S$${item.unitPrice.toLocaleString("en-SG")}` : null} />
                 <ProfileRow label="GST" value={item.gstPercent != null ? `${item.gstPercent}%` : null} />
                 <ProfileRow label="Created" value={formatDate(item.createdAt)} />
                 <ProfileRow label="Last Updated" value={formatDate(item.updatedAt)} />
@@ -512,69 +542,75 @@ export default function InventoryDetailPage() {
             <table className="w-full" style={{ borderCollapse: "collapse" }}>
               <tbody>
                 <FormRow label="Name" required error={editErrors.name}>
-                  <input type="text" value={editForm.name || ""} onChange={(e) => updateEditField("name", e.target.value)} className="w-full max-w-md px-2.5 py-1.5 text-[13px]" style={editErrors.name ? inputErrorStyle : inputStyle} />
+                  <input type="text" value={editForm.name || ""} onChange={(e) => updateEditField("name", e.target.value)} className="w-full max-w-md px-2.5 py-1.5 text-[15px]" style={editErrors.name ? inputErrorStyle : inputStyle} />
                 </FormRow>
                 <FormRow label="Category" required error={editErrors.category}>
-                  <select value={editForm.category || ""} onChange={(e) => { updateEditField("category", e.target.value); updateEditField("subcategory", ""); }} className="w-full max-w-md px-2.5 py-1.5 text-[13px]" style={inputStyle}>
+                  <select value={editForm.category || ""} onChange={(e) => { updateEditField("category", e.target.value); updateEditField("subcategory", ""); }} className="w-full max-w-md px-2.5 py-1.5 text-[15px]" style={inputStyle}>
                     <option value="">Select</option>
                     {CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
                   </select>
                 </FormRow>
                 {editSubcategoryOptions.length > 0 && (
                   <FormRow label="Subcategory">
-                    <select value={editForm.subcategory || ""} onChange={(e) => updateEditField("subcategory", e.target.value)} className="w-full max-w-md px-2.5 py-1.5 text-[13px]" style={inputStyle}>
+                    <select value={editForm.subcategory || ""} onChange={(e) => updateEditField("subcategory", e.target.value)} className="w-full max-w-md px-2.5 py-1.5 text-[15px]" style={inputStyle}>
                       <option value="">Select</option>
                       {editSubcategoryOptions.map((s) => <option key={s} value={s}>{s}</option>)}
                     </select>
                   </FormRow>
                 )}
                 <FormRow label="Unit" required error={editErrors.unit}>
-                  <select value={editForm.unit || ""} onChange={(e) => updateEditField("unit", e.target.value)} className="w-full max-w-md px-2.5 py-1.5 text-[13px]" style={inputStyle}>
+                  <select value={editForm.unit || ""} onChange={(e) => updateEditField("unit", e.target.value)} className="w-full max-w-md px-2.5 py-1.5 text-[15px]" style={inputStyle}>
                     <option value="">Select</option>
                     {UNITS.map((u) => <option key={u} value={u}>{u}</option>)}
                   </select>
                 </FormRow>
+                <FormRow label="Packing">
+                  <input type="text" value={editForm.packing || ""} onChange={(e) => updateEditField("packing", e.target.value)} placeholder="e.g., 450ML, 10GM, 100Nos" className="w-full max-w-md px-2.5 py-1.5 text-[15px]" style={inputStyle} />
+                </FormRow>
+                <FormRow label="Mfr. Code">
+                  <input type="text" value={editForm.manufacturerCode || ""} onChange={(e) => updateEditField("manufacturerCode", e.target.value)} placeholder="e.g., FGA001" className="w-full max-w-md px-2.5 py-1.5 text-[15px]" style={inputStyle} />
+                </FormRow>
                 <FormRow label="Batch Number">
-                  <input type="text" value={editForm.batchNumber || ""} onChange={(e) => updateEditField("batchNumber", e.target.value)} className="w-full max-w-md px-2.5 py-1.5 text-[13px]" style={inputStyle} />
+                  <input type="text" value={editForm.batchNumber || ""} onChange={(e) => updateEditField("batchNumber", e.target.value)} className="w-full max-w-md px-2.5 py-1.5 text-[15px]" style={inputStyle} />
                 </FormRow>
                 <FormRow label="Manufacturer">
-                  <input type="text" value={editForm.manufacturer || ""} onChange={(e) => updateEditField("manufacturer", e.target.value)} className="w-full max-w-md px-2.5 py-1.5 text-[13px]" style={inputStyle} />
+                  <input type="text" value={editForm.manufacturer || ""} onChange={(e) => updateEditField("manufacturer", e.target.value)} className="w-full max-w-md px-2.5 py-1.5 text-[15px]" style={inputStyle} />
                 </FormRow>
                 <FormRow label="Supplier">
-                  <input type="text" value={editForm.supplier || ""} onChange={(e) => updateEditField("supplier", e.target.value)} className="w-full max-w-md px-2.5 py-1.5 text-[13px]" style={inputStyle} />
+                  <input type="text" value={editForm.supplier || ""} onChange={(e) => updateEditField("supplier", e.target.value)} className="w-full max-w-md px-2.5 py-1.5 text-[15px]" style={inputStyle} />
                 </FormRow>
                 <FormRow label="Location">
-                  <input type="text" value={editForm.location || ""} onChange={(e) => updateEditField("location", e.target.value)} className="w-full max-w-md px-2.5 py-1.5 text-[13px]" style={inputStyle} />
+                  <input type="text" value={editForm.location || ""} onChange={(e) => updateEditField("location", e.target.value)} className="w-full max-w-md px-2.5 py-1.5 text-[15px]" style={inputStyle} />
                 </FormRow>
                 <FormRow label="HSN Code">
-                  <input type="text" value={editForm.hsnCode || ""} onChange={(e) => updateEditField("hsnCode", e.target.value)} className="w-full max-w-md px-2.5 py-1.5 text-[13px]" style={inputStyle} />
+                  <input type="text" value={editForm.hsnCode || ""} onChange={(e) => updateEditField("hsnCode", e.target.value)} className="w-full max-w-md px-2.5 py-1.5 text-[15px]" style={inputStyle} />
                 </FormRow>
                 <FormRow label="Description">
-                  <textarea value={editForm.description || ""} onChange={(e) => updateEditField("description", e.target.value)} rows={3} className="w-full max-w-md px-2.5 py-1.5 text-[13px] resize-y" style={inputStyle} />
+                  <textarea value={editForm.description || ""} onChange={(e) => updateEditField("description", e.target.value)} rows={3} className="w-full max-w-md px-2.5 py-1.5 text-[15px] resize-y" style={inputStyle} />
                 </FormRow>
                 <FormRow label="Cost Price" error={editErrors.costPrice}>
                   <div className="relative max-w-[200px]">
-                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[13px]" style={{ color: "var(--grey-500)" }}>{"\u20B9"}</span>
-                    <input type="text" value={editForm.costPrice || ""} onChange={(e) => updateEditField("costPrice", e.target.value)} className="w-full pl-7 pr-2.5 py-1.5 text-[13px]" style={inputStyle} />
+                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[15px]" style={{ color: "var(--grey-500)" }}>{"\u20B9"}</span>
+                    <input type="text" value={editForm.costPrice || ""} onChange={(e) => updateEditField("costPrice", e.target.value)} className="w-full pl-7 pr-2.5 py-1.5 text-[15px]" style={inputStyle} />
                   </div>
                 </FormRow>
-                <FormRow label="Selling Price" error={editErrors.sellingPrice}>
+                <FormRow label="Selling Price" error={editErrors.unitPrice}>
                   <div className="relative max-w-[200px]">
-                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[13px]" style={{ color: "var(--grey-500)" }}>{"\u20B9"}</span>
-                    <input type="text" value={editForm.sellingPrice || ""} onChange={(e) => updateEditField("sellingPrice", e.target.value)} className="w-full pl-7 pr-2.5 py-1.5 text-[13px]" style={inputStyle} />
+                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[15px]" style={{ color: "var(--grey-500)" }}>{"\u20B9"}</span>
+                    <input type="text" value={editForm.unitPrice || ""} onChange={(e) => updateEditField("unitPrice", e.target.value)} className="w-full pl-7 pr-2.5 py-1.5 text-[15px]" style={inputStyle} />
                   </div>
                 </FormRow>
                 <FormRow label="GST %">
-                  <input type="text" value={editForm.gstPercent || ""} onChange={(e) => updateEditField("gstPercent", e.target.value)} className="max-w-[120px] px-2.5 py-1.5 text-[13px]" style={inputStyle} />
+                  <input type="text" value={editForm.gstPercent || ""} onChange={(e) => updateEditField("gstPercent", e.target.value)} className="max-w-[120px] px-2.5 py-1.5 text-[15px]" style={inputStyle} />
                 </FormRow>
                 <FormRow label="Reorder Level">
-                  <input type="text" value={editForm.reorderLevel || ""} onChange={(e) => updateEditField("reorderLevel", e.target.value)} className="max-w-[150px] px-2.5 py-1.5 text-[13px]" style={inputStyle} />
+                  <input type="text" value={editForm.reorderLevel || ""} onChange={(e) => updateEditField("reorderLevel", e.target.value)} className="max-w-[150px] px-2.5 py-1.5 text-[15px]" style={inputStyle} />
                 </FormRow>
                 <FormRow label="Expiry Date">
-                  <input type="date" value={editForm.expiryDate || ""} onChange={(e) => updateEditField("expiryDate", e.target.value)} className="max-w-[200px] px-2.5 py-1.5 text-[13px]" style={inputStyle} />
+                  <input type="date" value={editForm.expiryDate || ""} onChange={(e) => updateEditField("expiryDate", e.target.value)} className="max-w-[200px] px-2.5 py-1.5 text-[15px]" style={inputStyle} />
                 </FormRow>
                 <FormRow label="Status">
-                  <select value={editForm.status || ""} onChange={(e) => updateEditField("status", e.target.value)} className="max-w-[200px] px-2.5 py-1.5 text-[13px]" style={inputStyle}>
+                  <select value={editForm.status || ""} onChange={(e) => updateEditField("status", e.target.value)} className="max-w-[200px] px-2.5 py-1.5 text-[15px]" style={inputStyle}>
                     <option value="active">Active</option>
                     <option value="inactive">Inactive</option>
                     <option value="discontinued">Discontinued</option>
@@ -586,6 +622,41 @@ export default function InventoryDetailPage() {
         )}
       </div>
 
+      {/* ── Variants ──────────────────────────────────────────────── */}
+      {!editMode && item.variants && item.variants.length > 0 && (
+        <div className="mb-6 p-6" style={cardStyle}>
+          <h2 className="mb-4 pb-3" style={{ ...sectionTitle, borderBottom: "1px solid var(--grey-200)" }}>
+            Size Variants <span className="text-[14px] font-normal" style={{ color: "var(--grey-500)" }}>({item.variants.length})</span>
+          </h2>
+          <div className="overflow-x-auto">
+            <table className="w-full" style={{ borderCollapse: "collapse" }}>
+              <thead>
+                <tr style={{ borderBottom: "2px solid var(--grey-200)" }}>
+                  <th className="text-left px-3 py-2 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Packing</th>
+                  <th className="text-left px-3 py-2 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Mfr. Code</th>
+                  <th className="text-right px-3 py-2 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>MRP</th>
+                  <th className="text-right px-3 py-2 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Cost</th>
+                  <th className="text-right px-3 py-2 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>GST</th>
+                  <th className="text-right px-3 py-2 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Stock</th>
+                </tr>
+              </thead>
+              <tbody>
+                {item.variants.map((v, i) => (
+                  <tr key={v.id} style={{ borderBottom: i < item.variants!.length - 1 ? "1px solid var(--grey-200)" : "none" }}>
+                    <td className="px-3 py-2 text-[15px] font-semibold" style={{ color: "var(--grey-900)" }}>{v.packing}</td>
+                    <td className="px-3 py-2 text-[14px] font-mono" style={{ color: "var(--grey-600)" }}>{v.manufacturerCode || "\u2014"}</td>
+                    <td className="px-3 py-2 text-[15px] text-right" style={{ color: "var(--grey-800)" }}>S${v.unitPrice.toLocaleString("en-SG")}</td>
+                    <td className="px-3 py-2 text-[14px] text-right" style={{ color: "var(--grey-600)" }}>S${v.costPrice.toLocaleString("en-SG")}</td>
+                    <td className="px-3 py-2 text-[14px] text-right" style={{ color: "var(--grey-600)" }}>{v.gstPercent}%</td>
+                    <td className="px-3 py-2 text-[15px] text-right font-semibold" style={{ color: "var(--grey-800)" }}>{v.currentStock}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
       {/* ── Stock Actions ────────────────────────────────────────── */}
       {!editMode && (
         <div className="mb-6 p-6" style={cardStyle}>
@@ -593,7 +664,7 @@ export default function InventoryDetailPage() {
           <div className="flex flex-wrap gap-2 mb-4">
             <button
               onClick={() => openAction("purchase")}
-              className="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-semibold transition-colors"
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-[15px] font-semibold transition-colors"
               style={{
                 borderRadius: "var(--radius-sm)",
                 border: activeAction === "purchase" ? "1.5px solid var(--green)" : "1px solid var(--grey-300)",
@@ -605,7 +676,7 @@ export default function InventoryDetailPage() {
             </button>
             <button
               onClick={() => openAction("issue")}
-              className="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-semibold transition-colors"
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-[15px] font-semibold transition-colors"
               style={{
                 borderRadius: "var(--radius-sm)",
                 border: activeAction === "issue" ? "1.5px solid var(--red)" : "1px solid var(--grey-300)",
@@ -617,7 +688,7 @@ export default function InventoryDetailPage() {
             </button>
             <button
               onClick={() => openAction("adjust")}
-              className="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-semibold transition-colors"
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-[15px] font-semibold transition-colors"
               style={{
                 borderRadius: "var(--radius-sm)",
                 border: activeAction === "adjust" ? "1.5px solid #f57c00" : "1px solid var(--grey-300)",
@@ -629,7 +700,7 @@ export default function InventoryDetailPage() {
             </button>
             <button
               onClick={() => openAction("return")}
-              className="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-semibold transition-colors"
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-[15px] font-semibold transition-colors"
               style={{
                 borderRadius: "var(--radius-sm)",
                 border: activeAction === "return" ? "1.5px solid var(--blue-500)" : "1px solid var(--grey-300)",
@@ -645,39 +716,50 @@ export default function InventoryDetailPage() {
           {activeAction && (
             <div className="p-4 mb-2" style={{ background: "var(--grey-50)", borderRadius: "var(--radius-sm)", border: "1px solid var(--grey-200)" }}>
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-[13px] font-bold" style={{ color: "var(--grey-900)" }}>
+                <h3 className="text-[15px] font-bold" style={{ color: "var(--grey-900)" }}>
                   {activeAction === "purchase" && "Purchase Stock"}
                   {activeAction === "issue" && "Issue / Sale"}
                   {activeAction === "adjust" && "Adjust Stock"}
                   {activeAction === "return" && "Return Stock"}
                 </h3>
-                <button onClick={() => setActiveAction(null)} className="text-[11px] font-semibold" style={{ color: "var(--grey-500)" }}>Cancel</button>
+                <button onClick={() => setActiveAction(null)} className="text-[13px] font-semibold" style={{ color: "var(--grey-500)" }}>Cancel</button>
               </div>
+              {item.variants && item.variants.length > 0 && (
+                <div className="mb-3">
+                  <label className="block text-[13px] font-semibold mb-1" style={{ color: "var(--grey-600)" }}>Select Size</label>
+                  <select value={actionVariantId} onChange={(e) => setActionVariantId(e.target.value)} className="w-full max-w-xs px-2.5 py-1.5 text-[15px]" style={inputStyle}>
+                    <option value="">Base — {item.packing || "Standard"} (Stock: {item.currentStock})</option>
+                    {item.variants.map((v) => (
+                      <option key={v.id} value={v.id}>{v.packing} (Stock: {v.currentStock})</option>
+                    ))}
+                  </select>
+                </div>
+              )}
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
                 <div>
-                  <label className="block text-[11px] font-semibold mb-1" style={{ color: "var(--grey-600)" }}>Quantity *</label>
-                  <input type="number" value={actionQty} onChange={(e) => setActionQty(e.target.value)} placeholder="0" min="1" className="w-full px-2.5 py-1.5 text-[13px]" style={inputStyle} />
+                  <label className="block text-[13px] font-semibold mb-1" style={{ color: "var(--grey-600)" }}>Quantity *</label>
+                  <input type="number" value={actionQty} onChange={(e) => setActionQty(e.target.value)} placeholder="0" min="1" className="w-full px-2.5 py-1.5 text-[15px]" style={inputStyle} />
                 </div>
                 {activeAction === "purchase" && (
                   <div>
-                    <label className="block text-[11px] font-semibold mb-1" style={{ color: "var(--grey-600)" }}>Unit Price ({"\u20B9"})</label>
-                    <input type="number" value={actionUnitPrice} onChange={(e) => setActionUnitPrice(e.target.value)} placeholder="0.00" step="0.01" className="w-full px-2.5 py-1.5 text-[13px]" style={inputStyle} />
+                    <label className="block text-[13px] font-semibold mb-1" style={{ color: "var(--grey-600)" }}>Unit Price ({"\u20B9"})</label>
+                    <input type="number" value={actionUnitPrice} onChange={(e) => setActionUnitPrice(e.target.value)} placeholder="0.00" step="0.01" className="w-full px-2.5 py-1.5 text-[15px]" style={inputStyle} />
                   </div>
                 )}
                 <div>
-                  <label className="block text-[11px] font-semibold mb-1" style={{ color: "var(--grey-600)" }}>Reference</label>
-                  <input type="text" value={actionReference} onChange={(e) => setActionReference(e.target.value)} placeholder="Invoice/PO number" className="w-full px-2.5 py-1.5 text-[13px]" style={inputStyle} />
+                  <label className="block text-[13px] font-semibold mb-1" style={{ color: "var(--grey-600)" }}>Reference</label>
+                  <input type="text" value={actionReference} onChange={(e) => setActionReference(e.target.value)} placeholder="Invoice/PO number" className="w-full px-2.5 py-1.5 text-[15px]" style={inputStyle} />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-semibold mb-1" style={{ color: "var(--grey-600)" }}>Notes</label>
-                  <input type="text" value={actionNotes} onChange={(e) => setActionNotes(e.target.value)} placeholder="Optional notes" className="w-full px-2.5 py-1.5 text-[13px]" style={inputStyle} />
+                  <label className="block text-[13px] font-semibold mb-1" style={{ color: "var(--grey-600)" }}>Notes</label>
+                  <input type="text" value={actionNotes} onChange={(e) => setActionNotes(e.target.value)} placeholder="Optional notes" className="w-full px-2.5 py-1.5 text-[15px]" style={inputStyle} />
                 </div>
               </div>
               <div className="mt-3">
                 <button
                   onClick={submitStockAction}
                   disabled={actionSubmitting}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-semibold text-white transition-opacity disabled:opacity-50"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 text-[15px] font-semibold text-white transition-opacity disabled:opacity-50"
                   style={{ borderRadius: "var(--radius-sm)", background: "var(--blue-500)" }}
                 >
                   {actionSubmitting ? "Submitting..." : "Submit"}
@@ -695,7 +777,7 @@ export default function InventoryDetailPage() {
 
           {transactions.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-[13px]" style={{ color: "var(--grey-500)" }}>No transactions recorded yet</p>
+              <p className="text-[15px]" style={{ color: "var(--grey-500)" }}>No transactions recorded yet</p>
             </div>
           ) : (
             <>
@@ -704,13 +786,13 @@ export default function InventoryDetailPage() {
                 <table className="w-full" role="table">
                   <thead style={{ borderBottom: "1px solid var(--grey-200)" }}>
                     <tr>
-                      <th className="text-left px-4 py-2 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Date</th>
-                      <th className="text-left px-4 py-2 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Type</th>
-                      <th className="text-left px-4 py-2 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Qty</th>
-                      <th className="text-left px-4 py-2 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Stock After</th>
-                      <th className="text-left px-4 py-2 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Reference</th>
-                      <th className="text-left px-4 py-2 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Notes</th>
-                      <th className="text-left px-4 py-2 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>By</th>
+                      <th className="text-left px-4 py-2 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Date</th>
+                      <th className="text-left px-4 py-2 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Type</th>
+                      <th className="text-left px-4 py-2 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Qty</th>
+                      <th className="text-left px-4 py-2 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Stock After</th>
+                      <th className="text-left px-4 py-2 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Reference</th>
+                      <th className="text-left px-4 py-2 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Notes</th>
+                      <th className="text-left px-4 py-2 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>By</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -718,20 +800,20 @@ export default function InventoryDetailPage() {
                       const cfg = TXN_TYPE_CONFIG[txn.type] || TXN_TYPE_CONFIG.adjust;
                       return (
                         <tr key={txn.id} style={{ borderBottom: i < transactions.length - 1 ? "1px solid var(--grey-100)" : "none" }}>
-                          <td className="px-4 py-2.5 text-[12px]" style={{ color: "var(--grey-700)" }}>{formatDateTime(txn.createdAt)}</td>
+                          <td className="px-4 py-2.5 text-[14px]" style={{ color: "var(--grey-700)" }}>{formatDateTime(txn.createdAt)}</td>
                           <td className="px-4 py-2.5">
                             <span className={chipBase} style={{ borderRadius: "var(--radius-sm)", background: cfg.bg, color: cfg.color }}>{cfg.label}</span>
                           </td>
-                          <td className="px-4 py-2.5 text-[13px] font-bold" style={{ color: cfg.color }}>
+                          <td className="px-4 py-2.5 text-[15px] font-bold" style={{ color: cfg.color }}>
                             {cfg.sign}{txn.quantity} {item.unit}
                             {txn.unitPrice != null && (
-                              <span className="text-[11px] font-normal ml-1" style={{ color: "var(--grey-500)" }}>@ {"\u20B9"}{txn.unitPrice}</span>
+                              <span className="text-[13px] font-normal ml-1" style={{ color: "var(--grey-500)" }}>@ {"\u20B9"}{txn.unitPrice}</span>
                             )}
                           </td>
-                          <td className="px-4 py-2.5 text-[13px] font-medium" style={{ color: "var(--grey-800)" }}>{txn.stockAfter}</td>
-                          <td className="px-4 py-2.5 text-[12px]" style={{ color: "var(--grey-600)" }}>{txn.reference || "\u2014"}</td>
-                          <td className="px-4 py-2.5 text-[12px]" style={{ color: "var(--grey-600)" }}>{txn.notes || "\u2014"}</td>
-                          <td className="px-4 py-2.5 text-[12px]" style={{ color: "var(--grey-600)" }}>{txn.createdBy || "\u2014"}</td>
+                          <td className="px-4 py-2.5 text-[15px] font-medium" style={{ color: "var(--grey-800)" }}>{txn.newStock}</td>
+                          <td className="px-4 py-2.5 text-[14px]" style={{ color: "var(--grey-600)" }}>{txn.reference || "\u2014"}</td>
+                          <td className="px-4 py-2.5 text-[14px]" style={{ color: "var(--grey-600)" }}>{txn.notes || "\u2014"}</td>
+                          <td className="px-4 py-2.5 text-[14px]" style={{ color: "var(--grey-600)" }}>{txn.performedBy || "\u2014"}</td>
                         </tr>
                       );
                     })}
@@ -747,14 +829,14 @@ export default function InventoryDetailPage() {
                     <div key={txn.id} className="p-3" style={{ background: "var(--grey-50)", borderRadius: "var(--radius-sm)", border: "1px solid var(--grey-100)" }}>
                       <div className="flex items-center justify-between mb-1">
                         <span className={chipBase} style={{ borderRadius: "var(--radius-sm)", background: cfg.bg, color: cfg.color }}>{cfg.label}</span>
-                        <span className="text-[11px]" style={{ color: "var(--grey-500)" }}>{formatDateTime(txn.createdAt)}</span>
+                        <span className="text-[13px]" style={{ color: "var(--grey-500)" }}>{formatDateTime(txn.createdAt)}</span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-[14px] font-bold" style={{ color: cfg.color }}>{cfg.sign}{txn.quantity} {item.unit}</span>
-                        <span className="text-[12px]" style={{ color: "var(--grey-600)" }}>Stock: {txn.stockAfter}</span>
+                        <span className="text-[16px] font-bold" style={{ color: cfg.color }}>{cfg.sign}{txn.quantity} {item.unit}</span>
+                        <span className="text-[14px]" style={{ color: "var(--grey-600)" }}>Stock: {txn.newStock}</span>
                       </div>
-                      {txn.reference && <p className="text-[11px] mt-1" style={{ color: "var(--grey-500)" }}>Ref: {txn.reference}</p>}
-                      {txn.notes && <p className="text-[11px]" style={{ color: "var(--grey-500)" }}>{txn.notes}</p>}
+                      {txn.reference && <p className="text-[13px] mt-1" style={{ color: "var(--grey-500)" }}>Ref: {txn.reference}</p>}
+                      {txn.notes && <p className="text-[13px]" style={{ color: "var(--grey-500)" }}>{txn.notes}</p>}
                     </div>
                   );
                 })}

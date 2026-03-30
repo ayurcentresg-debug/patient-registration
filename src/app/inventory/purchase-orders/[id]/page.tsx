@@ -72,7 +72,7 @@ function Toast({ message, type, onClose }: { message: string; type: "success" | 
 
   return (
     <div
-      className="fixed top-6 right-6 z-50 px-5 py-3 text-[13px] font-semibold text-white yoda-slide-in-right"
+      className="fixed top-6 right-6 z-50 px-5 py-3 text-[15px] font-semibold text-white yoda-slide-in-right"
       style={{ background: type === "success" ? "var(--green)" : "var(--red)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-lg)" }}
     >
       {message}
@@ -216,14 +216,14 @@ export default function PurchaseOrderDetailPage() {
   if (error || !order) {
     return (
       <div className="p-6 md:p-8">
-        <Link href="/inventory/purchase-orders" className="inline-flex items-center gap-1 text-[13px] font-semibold hover:underline mb-4" style={{ color: "var(--blue-500)" }}>
+        <Link href="/inventory/purchase-orders" className="inline-flex items-center gap-1 text-[15px] font-semibold hover:underline mb-4" style={{ color: "var(--blue-500)" }}>
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
           Back to Purchase Orders
         </Link>
         <div className="text-center py-16">
-          <p className="text-[14px] font-semibold" style={{ color: "var(--red)" }}>Failed to load purchase order</p>
-          <p className="text-[12px] mt-1" style={{ color: "var(--grey-500)" }}>{error}</p>
-          <button onClick={fetchOrder} className="text-[12px] font-semibold mt-2 hover:underline" style={{ color: "var(--blue-500)" }}>Retry</button>
+          <p className="text-[16px] font-semibold" style={{ color: "var(--red)" }}>Failed to load purchase order</p>
+          <p className="text-[14px] mt-1" style={{ color: "var(--grey-500)" }}>{error}</p>
+          <button onClick={fetchOrder} className="text-[14px] font-semibold mt-2 hover:underline" style={{ color: "var(--blue-500)" }}>Retry</button>
         </div>
       </div>
     );
@@ -236,7 +236,7 @@ export default function PurchaseOrderDetailPage() {
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
       {/* ── Back Button ──────────────────────────────────────────── */}
-      <Link href="/inventory/purchase-orders" className="inline-flex items-center gap-1 text-[13px] font-semibold hover:underline mb-4" style={{ color: "var(--blue-500)" }}>
+      <Link href="/inventory/purchase-orders" className="inline-flex items-center gap-1 text-[15px] font-semibold hover:underline mb-4" style={{ color: "var(--blue-500)" }}>
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
         Back to Purchase Orders
       </Link>
@@ -244,8 +244,8 @@ export default function PurchaseOrderDetailPage() {
       {/* ── Header ───────────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div className="flex items-center gap-3">
-          <h1 className="text-[22px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>{order.poNumber}</h1>
-          <span className="inline-flex px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide" style={{ borderRadius: "var(--radius-sm)", background: statusStyle.bg, color: statusStyle.color }}>
+          <h1 className="text-[24px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>{order.poNumber}</h1>
+          <span className="inline-flex px-2.5 py-0.5 text-[13px] font-bold uppercase tracking-wide" style={{ borderRadius: "var(--radius-sm)", background: statusStyle.bg, color: statusStyle.color }}>
             {order.status}
           </span>
         </div>
@@ -253,25 +253,25 @@ export default function PurchaseOrderDetailPage() {
         <div className="flex flex-wrap gap-2">
           {order.status === "draft" && (
             <>
-              <button onClick={() => handleAction("submit")} disabled={actionLoading} className="px-4 py-2 text-[13px] font-semibold text-white disabled:opacity-50" style={btnPrimary}>Submit</button>
-              <Link href={`/inventory/purchase-orders/${id}/edit`} className="px-4 py-2 text-[13px] font-semibold" style={{ borderRadius: "var(--radius-sm)", border: "1px solid var(--grey-300)", color: "var(--grey-700)" }}>Edit</Link>
-              <button onClick={handleDelete} disabled={actionLoading} className="px-4 py-2 text-[13px] font-semibold disabled:opacity-50" style={{ borderRadius: "var(--radius-sm)", border: "1px solid #fecaca", color: "var(--red)", background: "#fef2f2" }}>Delete</button>
+              <button onClick={() => handleAction("submit")} disabled={actionLoading} className="px-4 py-2 text-[15px] font-semibold text-white disabled:opacity-50" style={btnPrimary}>Submit</button>
+              <Link href={`/inventory/purchase-orders/${id}/edit`} className="px-4 py-2 text-[15px] font-semibold" style={{ borderRadius: "var(--radius-sm)", border: "1px solid var(--grey-300)", color: "var(--grey-700)" }}>Edit</Link>
+              <button onClick={handleDelete} disabled={actionLoading} className="px-4 py-2 text-[15px] font-semibold disabled:opacity-50" style={{ borderRadius: "var(--radius-sm)", border: "1px solid #fecaca", color: "var(--red)", background: "#fef2f2" }}>Delete</button>
             </>
           )}
           {order.status === "submitted" && (
             <>
-              <button onClick={() => setShowReceive(true)} disabled={actionLoading} className="px-4 py-2 text-[13px] font-semibold text-white disabled:opacity-50" style={btnPrimary}>Receive Items</button>
-              <button onClick={() => handleAction("cancel")} disabled={actionLoading} className="px-4 py-2 text-[13px] font-semibold disabled:opacity-50" style={{ borderRadius: "var(--radius-sm)", border: "1px solid #fecaca", color: "var(--red)", background: "#fef2f2" }}>Cancel</button>
+              <button onClick={() => setShowReceive(true)} disabled={actionLoading} className="px-4 py-2 text-[15px] font-semibold text-white disabled:opacity-50" style={btnPrimary}>Receive Items</button>
+              <button onClick={() => handleAction("cancel")} disabled={actionLoading} className="px-4 py-2 text-[15px] font-semibold disabled:opacity-50" style={{ borderRadius: "var(--radius-sm)", border: "1px solid #fecaca", color: "var(--red)", background: "#fef2f2" }}>Cancel</button>
             </>
           )}
           {order.status === "partial" && (
             <>
-              <button onClick={() => setShowReceive(true)} disabled={actionLoading} className="px-4 py-2 text-[13px] font-semibold text-white disabled:opacity-50" style={btnPrimary}>Receive More</button>
-              <button onClick={() => handleAction("complete")} disabled={actionLoading} className="px-4 py-2 text-[13px] font-semibold disabled:opacity-50" style={{ borderRadius: "var(--radius-sm)", border: "1px solid var(--grey-300)", color: "var(--grey-700)" }}>Mark Complete</button>
+              <button onClick={() => setShowReceive(true)} disabled={actionLoading} className="px-4 py-2 text-[15px] font-semibold text-white disabled:opacity-50" style={btnPrimary}>Receive More</button>
+              <button onClick={() => handleAction("complete")} disabled={actionLoading} className="px-4 py-2 text-[15px] font-semibold disabled:opacity-50" style={{ borderRadius: "var(--radius-sm)", border: "1px solid var(--grey-300)", color: "var(--grey-700)" }}>Mark Complete</button>
             </>
           )}
           {order.status === "received" && (
-            <button onClick={() => window.print()} className="px-4 py-2 text-[13px] font-semibold" style={{ borderRadius: "var(--radius-sm)", border: "1px solid var(--grey-300)", color: "var(--grey-700)" }}>
+            <button onClick={() => window.print()} className="px-4 py-2 text-[15px] font-semibold" style={{ borderRadius: "var(--radius-sm)", border: "1px solid var(--grey-300)", color: "var(--grey-700)" }}>
               <span className="inline-flex items-center gap-1.5">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
                 Print
@@ -284,33 +284,33 @@ export default function PurchaseOrderDetailPage() {
       {/* ── Supplier Info + Dates ────────────────────────────────── */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <div className="p-5" style={cardStyle}>
-          <h3 className="text-[12px] font-bold uppercase tracking-wider mb-3" style={{ color: "var(--grey-600)" }}>Supplier</h3>
-          <p className="text-[15px] font-semibold" style={{ color: "var(--grey-900)" }}>{order.supplierName}</p>
-          {order.supplierContact && <p className="text-[13px] mt-1" style={{ color: "var(--grey-700)" }}>{order.supplierContact}</p>}
-          {order.supplierPhone && <p className="text-[13px] mt-0.5" style={{ color: "var(--grey-600)" }}>{order.supplierPhone}</p>}
-          {order.supplierEmail && <p className="text-[13px] mt-0.5" style={{ color: "var(--grey-600)" }}>{order.supplierEmail}</p>}
-          {order.supplierAddress && <p className="text-[13px] mt-1" style={{ color: "var(--grey-500)" }}>{order.supplierAddress}</p>}
+          <h3 className="text-[14px] font-bold uppercase tracking-wider mb-3" style={{ color: "var(--grey-600)" }}>Supplier</h3>
+          <p className="text-[17px] font-semibold" style={{ color: "var(--grey-900)" }}>{order.supplierName}</p>
+          {order.supplierContact && <p className="text-[15px] mt-1" style={{ color: "var(--grey-700)" }}>{order.supplierContact}</p>}
+          {order.supplierPhone && <p className="text-[15px] mt-0.5" style={{ color: "var(--grey-600)" }}>{order.supplierPhone}</p>}
+          {order.supplierEmail && <p className="text-[15px] mt-0.5" style={{ color: "var(--grey-600)" }}>{order.supplierEmail}</p>}
+          {order.supplierAddress && <p className="text-[15px] mt-1" style={{ color: "var(--grey-500)" }}>{order.supplierAddress}</p>}
         </div>
         <div className="p-5" style={cardStyle}>
-          <h3 className="text-[12px] font-bold uppercase tracking-wider mb-3" style={{ color: "var(--grey-600)" }}>Dates</h3>
+          <h3 className="text-[14px] font-bold uppercase tracking-wider mb-3" style={{ color: "var(--grey-600)" }}>Dates</h3>
           <div className="space-y-2">
             <div className="flex justify-between">
-              <span className="text-[13px]" style={{ color: "var(--grey-600)" }}>Order Date</span>
-              <span className="text-[13px] font-semibold" style={{ color: "var(--grey-900)" }}>{formatDate(order.orderDate)}</span>
+              <span className="text-[15px]" style={{ color: "var(--grey-600)" }}>Order Date</span>
+              <span className="text-[15px] font-semibold" style={{ color: "var(--grey-900)" }}>{formatDate(order.orderDate)}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-[13px]" style={{ color: "var(--grey-600)" }}>Expected Date</span>
-              <span className="text-[13px] font-semibold" style={{ color: "var(--grey-900)" }}>{order.expectedDate ? formatDate(order.expectedDate) : "\u2014"}</span>
+              <span className="text-[15px]" style={{ color: "var(--grey-600)" }}>Expected Date</span>
+              <span className="text-[15px] font-semibold" style={{ color: "var(--grey-900)" }}>{order.expectedDate ? formatDate(order.expectedDate) : "\u2014"}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-[13px]" style={{ color: "var(--grey-600)" }}>Received Date</span>
-              <span className="text-[13px] font-semibold" style={{ color: "var(--grey-900)" }}>{order.receivedDate ? formatDate(order.receivedDate) : "\u2014"}</span>
+              <span className="text-[15px]" style={{ color: "var(--grey-600)" }}>Received Date</span>
+              <span className="text-[15px] font-semibold" style={{ color: "var(--grey-900)" }}>{order.receivedDate ? formatDate(order.receivedDate) : "\u2014"}</span>
             </div>
           </div>
           {order.notes && (
             <div className="mt-4 pt-3" style={{ borderTop: "1px solid var(--grey-200)" }}>
-              <p className="text-[12px] font-semibold mb-1" style={{ color: "var(--grey-600)" }}>Notes</p>
-              <p className="text-[13px]" style={{ color: "var(--grey-700)" }}>{order.notes}</p>
+              <p className="text-[14px] font-semibold mb-1" style={{ color: "var(--grey-600)" }}>Notes</p>
+              <p className="text-[15px]" style={{ color: "var(--grey-700)" }}>{order.notes}</p>
             </div>
           )}
         </div>
@@ -319,20 +319,20 @@ export default function PurchaseOrderDetailPage() {
       {/* ── Items Table ──────────────────────────────────────────── */}
       <div className="mb-6" style={cardStyle}>
         <div className="px-5 py-3" style={{ borderBottom: "1px solid var(--grey-200)" }}>
-          <h3 className="text-[14px] font-semibold" style={{ color: "var(--grey-900)" }}>Order Items</h3>
+          <h3 className="text-[16px] font-semibold" style={{ color: "var(--grey-900)" }}>Order Items</h3>
         </div>
         {/* Desktop Table */}
         <div className="hidden md:block overflow-x-auto">
           <table className="w-full">
             <thead style={{ borderBottom: "1px solid var(--grey-200)", background: "var(--grey-50)" }}>
               <tr>
-                <th className="text-left px-4 py-2.5 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Item Name</th>
-                <th className="text-left px-4 py-2.5 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>SKU</th>
-                <th className="text-center px-4 py-2.5 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Qty Ordered</th>
-                <th className="text-center px-4 py-2.5 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Qty Received</th>
-                <th className="text-right px-4 py-2.5 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Unit Price</th>
-                <th className="text-right px-4 py-2.5 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>GST%</th>
-                <th className="text-right px-4 py-2.5 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Total</th>
+                <th className="text-left px-4 py-2.5 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Item Name</th>
+                <th className="text-left px-4 py-2.5 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>SKU</th>
+                <th className="text-center px-4 py-2.5 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Qty Ordered</th>
+                <th className="text-center px-4 py-2.5 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Qty Received</th>
+                <th className="text-right px-4 py-2.5 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Unit Price</th>
+                <th className="text-right px-4 py-2.5 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>GST%</th>
+                <th className="text-right px-4 py-2.5 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Total</th>
               </tr>
             </thead>
             <tbody>
@@ -343,12 +343,12 @@ export default function PurchaseOrderDetailPage() {
                 return (
                   <tr key={item.id} style={{ borderBottom: i < order.items.length - 1 ? "1px solid var(--grey-200)" : "none" }}>
                     <td className="px-4 py-3">
-                      <p className="text-[13px] font-semibold" style={{ color: "var(--grey-900)" }}>{item.itemName}</p>
+                      <p className="text-[15px] font-semibold" style={{ color: "var(--grey-900)" }}>{item.itemName}</p>
                     </td>
-                    <td className="px-4 py-3 text-[12px] font-mono" style={{ color: "var(--grey-600)" }}>{item.sku}</td>
-                    <td className="px-4 py-3 text-center text-[13px]" style={{ color: "var(--grey-800)" }}>{item.quantity}</td>
+                    <td className="px-4 py-3 text-[14px] font-mono" style={{ color: "var(--grey-600)" }}>{item.sku}</td>
+                    <td className="px-4 py-3 text-center text-[15px]" style={{ color: "var(--grey-800)" }}>{item.quantity}</td>
                     <td className="px-4 py-3 text-center">
-                      <span className="text-[13px] font-semibold" style={{ color: receivePct >= 100 ? "var(--green)" : "var(--grey-800)" }}>{item.receivedQty}</span>
+                      <span className="text-[15px] font-semibold" style={{ color: receivePct >= 100 ? "var(--green)" : "var(--grey-800)" }}>{item.receivedQty}</span>
                       <div className="w-full h-1.5 mt-1 mx-auto max-w-[80px]" style={{ background: "var(--grey-200)", borderRadius: "var(--radius-pill)" }}>
                         <div style={{
                           width: `${Math.min(100, receivePct)}%`,
@@ -359,9 +359,9 @@ export default function PurchaseOrderDetailPage() {
                         }} />
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-right text-[13px]" style={{ color: "var(--grey-800)" }}>{formatCurrency(item.unitPrice)}</td>
-                    <td className="px-4 py-3 text-right text-[12px]" style={{ color: "var(--grey-600)" }}>{item.gstPercent}%</td>
-                    <td className="px-4 py-3 text-right text-[13px] font-semibold" style={{ color: "var(--grey-900)" }}>{formatCurrency(lineTotal + lineGst)}</td>
+                    <td className="px-4 py-3 text-right text-[15px]" style={{ color: "var(--grey-800)" }}>{formatCurrency(item.unitPrice)}</td>
+                    <td className="px-4 py-3 text-right text-[14px]" style={{ color: "var(--grey-600)" }}>{item.gstPercent}%</td>
+                    <td className="px-4 py-3 text-right text-[15px] font-semibold" style={{ color: "var(--grey-900)" }}>{formatCurrency(lineTotal + lineGst)}</td>
                   </tr>
                 );
               })}
@@ -378,12 +378,12 @@ export default function PurchaseOrderDetailPage() {
               <div key={item.id} className="p-4 space-y-2">
                 <div className="flex justify-between">
                   <div>
-                    <p className="text-[13px] font-semibold" style={{ color: "var(--grey-900)" }}>{item.itemName}</p>
-                    <p className="text-[11px] font-mono" style={{ color: "var(--grey-500)" }}>{item.sku}</p>
+                    <p className="text-[15px] font-semibold" style={{ color: "var(--grey-900)" }}>{item.itemName}</p>
+                    <p className="text-[13px] font-mono" style={{ color: "var(--grey-500)" }}>{item.sku}</p>
                   </div>
-                  <p className="text-[13px] font-bold" style={{ color: "var(--grey-900)" }}>{formatCurrency(lineTotal + lineGst)}</p>
+                  <p className="text-[15px] font-bold" style={{ color: "var(--grey-900)" }}>{formatCurrency(lineTotal + lineGst)}</p>
                 </div>
-                <div className="flex gap-4 text-[12px]" style={{ color: "var(--grey-600)" }}>
+                <div className="flex gap-4 text-[14px]" style={{ color: "var(--grey-600)" }}>
                   <span>Ordered: {item.quantity}</span>
                   <span>Received: {item.receivedQty}</span>
                   <span>{formatCurrency(item.unitPrice)} ea</span>
@@ -399,20 +399,20 @@ export default function PurchaseOrderDetailPage() {
         {/* ── Totals ──────────────────────────────────────────────── */}
         <div className="px-5 py-4" style={{ borderTop: "1px solid var(--grey-200)", background: "var(--grey-50)" }}>
           <div className="max-w-xs ml-auto space-y-1.5">
-            <div className="flex justify-between text-[13px]" style={{ color: "var(--grey-600)" }}>
+            <div className="flex justify-between text-[15px]" style={{ color: "var(--grey-600)" }}>
               <span>Subtotal</span>
               <span style={{ color: "var(--grey-800)" }}>{formatCurrency(order.subtotal || 0)}</span>
             </div>
-            <div className="flex justify-between text-[13px]" style={{ color: "var(--grey-600)" }}>
+            <div className="flex justify-between text-[15px]" style={{ color: "var(--grey-600)" }}>
               <span>GST</span>
               <span style={{ color: "var(--grey-800)" }}>{formatCurrency(order.gstTotal || 0)}</span>
             </div>
-            <div className="flex justify-between text-[14px] font-bold pt-1.5" style={{ borderTop: "1px solid var(--grey-300)", color: "var(--grey-900)" }}>
+            <div className="flex justify-between text-[16px] font-bold pt-1.5" style={{ borderTop: "1px solid var(--grey-300)", color: "var(--grey-900)" }}>
               <span>Total</span>
               <span>{formatCurrency(order.totalAmount || 0)}</span>
             </div>
             {order.paidAmount > 0 && (
-              <div className="flex justify-between text-[13px]" style={{ color: "var(--green)" }}>
+              <div className="flex justify-between text-[15px]" style={{ color: "var(--green)" }}>
                 <span>Paid</span>
                 <span>{formatCurrency(order.paidAmount)}</span>
               </div>
@@ -437,8 +437,8 @@ export default function PurchaseOrderDetailPage() {
                 return (
                   <div key={item.id} className="flex items-center gap-4 p-3" style={{ background: "var(--grey-50)", borderRadius: "var(--radius-sm)" }}>
                     <div className="flex-1">
-                      <p className="text-[13px] font-semibold" style={{ color: "var(--grey-900)" }}>{item.itemName}</p>
-                      <p className="text-[11px]" style={{ color: "var(--grey-500)" }}>
+                      <p className="text-[15px] font-semibold" style={{ color: "var(--grey-900)" }}>{item.itemName}</p>
+                      <p className="text-[13px]" style={{ color: "var(--grey-500)" }}>
                         Ordered: {item.quantity} | Received: {item.receivedQty} | Remaining: {remaining}
                       </p>
                     </div>
@@ -448,19 +448,19 @@ export default function PurchaseOrderDetailPage() {
                       max={remaining}
                       value={receiveQtys[item.id] || 0}
                       onChange={(e) => setReceiveQtys((prev) => ({ ...prev, [item.id]: Math.min(remaining, Math.max(0, parseInt(e.target.value) || 0)) }))}
-                      className="w-20 px-3 py-1.5 text-[13px] text-center"
+                      className="w-20 px-3 py-1.5 text-[15px] text-center"
                       style={{ border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)" }}
                     />
                   </div>
                 );
               })}
               {order.items.filter((item) => item.receivedQty < item.quantity).length === 0 && (
-                <p className="text-[13px] text-center py-4" style={{ color: "var(--grey-500)" }}>All items have been fully received.</p>
+                <p className="text-[15px] text-center py-4" style={{ color: "var(--grey-500)" }}>All items have been fully received.</p>
               )}
             </div>
             <div className="px-5 py-4 flex justify-end gap-2" style={{ borderTop: "1px solid var(--grey-200)" }}>
-              <button onClick={() => setShowReceive(false)} className="px-4 py-2 text-[13px] font-semibold" style={{ borderRadius: "var(--radius-sm)", border: "1px solid var(--grey-300)", color: "var(--grey-700)" }}>Cancel</button>
-              <button onClick={handleReceiveItems} disabled={actionLoading} className="px-4 py-2 text-[13px] font-semibold text-white disabled:opacity-50" style={btnPrimary}>
+              <button onClick={() => setShowReceive(false)} className="px-4 py-2 text-[15px] font-semibold" style={{ borderRadius: "var(--radius-sm)", border: "1px solid var(--grey-300)", color: "var(--grey-700)" }}>Cancel</button>
+              <button onClick={handleReceiveItems} disabled={actionLoading} className="px-4 py-2 text-[15px] font-semibold text-white disabled:opacity-50" style={btnPrimary}>
                 {actionLoading ? "Receiving..." : "Confirm Receipt"}
               </button>
             </div>

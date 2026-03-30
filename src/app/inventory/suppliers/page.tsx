@@ -47,7 +47,7 @@ function Toast({ message, type, onClose }: { message: string; type: "success" | 
 
   return (
     <div
-      className="fixed top-6 right-6 z-50 px-5 py-3 text-[13px] font-semibold text-white yoda-slide-in-right"
+      className="fixed top-6 right-6 z-50 px-5 py-3 text-[15px] font-semibold text-white yoda-slide-in-right"
       style={{ background: type === "success" ? "var(--green)" : "var(--red)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-lg)" }}
     >
       {message}
@@ -177,8 +177,8 @@ export default function SuppliersPage() {
 
       {/* ── Header ──────────────────────────────────────────────── */}
       <div className="mb-6">
-        <h1 className="text-[22px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>Inventory</h1>
-        <p className="text-[13px] mt-0.5" style={{ color: "var(--grey-600)" }}>Manage stock and supplies</p>
+        <h1 className="text-[24px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>Inventory</h1>
+        <p className="text-[15px] mt-0.5" style={{ color: "var(--grey-600)" }}>Manage stock and supplies</p>
       </div>
 
       <InventoryTabs />
@@ -187,11 +187,11 @@ export default function SuppliersPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
           <h2 className="text-[18px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>Suppliers</h2>
-          <p className="text-[13px] mt-0.5" style={{ color: "var(--grey-600)" }}>{suppliers.length} supplier{suppliers.length !== 1 ? "s" : ""}</p>
+          <p className="text-[15px] mt-0.5" style={{ color: "var(--grey-600)" }}>{suppliers.length} supplier{suppliers.length !== 1 ? "s" : ""}</p>
         </div>
         <button
           onClick={openAddForm}
-          className="inline-flex items-center justify-center gap-2 text-white px-5 py-2 text-[13px] font-semibold transition-colors duration-150"
+          className="inline-flex items-center justify-center gap-2 text-white px-5 py-2 text-[15px] font-semibold transition-colors duration-150"
           style={btnPrimary}
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -204,8 +204,8 @@ export default function SuppliersPage() {
       {/* ── Error State ──────────────────────────────────────────── */}
       {error && (
         <div className="mb-4 px-4 py-3 flex items-center justify-between" style={{ background: "#ffebee", color: "var(--red)", borderRadius: "var(--radius-sm)" }}>
-          <p className="text-[13px] font-medium">Failed to load suppliers: {error}</p>
-          <button onClick={fetchSuppliers} className="text-[12px] font-semibold underline">Retry</button>
+          <p className="text-[15px] font-medium">Failed to load suppliers: {error}</p>
+          <button onClick={fetchSuppliers} className="text-[14px] font-semibold underline">Retry</button>
         </div>
       )}
 
@@ -223,8 +223,8 @@ export default function SuppliersPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
             </svg>
           </div>
-          <p className="text-[14px] font-semibold" style={{ color: "var(--grey-700)" }}>No suppliers found</p>
-          <button onClick={openAddForm} className="text-[12px] font-semibold mt-2 hover:underline" style={{ color: "var(--blue-500)" }}>
+          <p className="text-[16px] font-semibold" style={{ color: "var(--grey-700)" }}>No suppliers found</p>
+          <button onClick={openAddForm} className="text-[14px] font-semibold mt-2 hover:underline" style={{ color: "var(--blue-500)" }}>
             Add your first supplier
           </button>
         </div>
@@ -234,11 +234,11 @@ export default function SuppliersPage() {
             <div key={supplier.id} className="p-5 transition-shadow duration-150 hover:shadow-md" style={{ ...cardStyle, boxShadow: "var(--shadow-sm)" }}>
               <div className="flex items-start justify-between mb-3">
                 <div>
-                  <p className="text-[15px] font-bold" style={{ color: "var(--grey-900)" }}>{supplier.name}</p>
-                  {supplier.contactPerson && <p className="text-[13px] mt-0.5" style={{ color: "var(--grey-700)" }}>{supplier.contactPerson}</p>}
+                  <p className="text-[17px] font-bold" style={{ color: "var(--grey-900)" }}>{supplier.name}</p>
+                  {supplier.contactPerson && <p className="text-[15px] mt-0.5" style={{ color: "var(--grey-700)" }}>{supplier.contactPerson}</p>}
                 </div>
                 <span
-                  className="inline-flex px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide"
+                  className="inline-flex px-2 py-0.5 text-[12px] font-bold uppercase tracking-wide"
                   style={{
                     borderRadius: "var(--radius-sm)",
                     background: supplier.status === "active" ? "#dcfce7" : "var(--grey-200)",
@@ -251,13 +251,13 @@ export default function SuppliersPage() {
 
               <div className="space-y-1 mb-3">
                 {supplier.phone && (
-                  <div className="flex items-center gap-2 text-[12px]" style={{ color: "var(--grey-600)" }}>
+                  <div className="flex items-center gap-2 text-[14px]" style={{ color: "var(--grey-600)" }}>
                     <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
                     {supplier.phone}
                   </div>
                 )}
                 {supplier.email && (
-                  <div className="flex items-center gap-2 text-[12px]" style={{ color: "var(--grey-600)" }}>
+                  <div className="flex items-center gap-2 text-[14px]" style={{ color: "var(--grey-600)" }}>
                     <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                     {supplier.email}
                   </div>
@@ -267,12 +267,12 @@ export default function SuppliersPage() {
               {/* Stats */}
               <div className="flex gap-4 mb-3 py-2" style={{ borderTop: "1px solid var(--grey-200)", borderBottom: "1px solid var(--grey-200)" }}>
                 <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: "var(--grey-500)" }}>Orders</p>
-                  <p className="text-[14px] font-bold" style={{ color: "var(--grey-900)" }}>{supplier.totalOrders || 0}</p>
+                  <p className="text-[12px] font-semibold uppercase tracking-wider" style={{ color: "var(--grey-500)" }}>Orders</p>
+                  <p className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>{supplier.totalOrders || 0}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: "var(--grey-500)" }}>Total Value</p>
-                  <p className="text-[14px] font-bold" style={{ color: "var(--grey-900)" }}>{formatCurrency(supplier.totalValue || 0)}</p>
+                  <p className="text-[12px] font-semibold uppercase tracking-wider" style={{ color: "var(--grey-500)" }}>Total Value</p>
+                  <p className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>{formatCurrency(supplier.totalValue || 0)}</p>
                 </div>
               </div>
 
@@ -280,7 +280,7 @@ export default function SuppliersPage() {
               <div className="flex gap-2">
                 <button
                   onClick={() => openEditForm(supplier)}
-                  className="flex-1 px-3 py-1.5 text-[12px] font-semibold text-center transition-colors duration-150"
+                  className="flex-1 px-3 py-1.5 text-[14px] font-semibold text-center transition-colors duration-150"
                   style={{ borderRadius: "var(--radius-sm)", border: "1px solid var(--grey-300)", color: "var(--grey-700)" }}
                 >
                   Edit
@@ -288,7 +288,7 @@ export default function SuppliersPage() {
                 <button
                   onClick={() => handleDeactivate(supplier)}
                   disabled={actionLoading}
-                  className="flex-1 px-3 py-1.5 text-[12px] font-semibold text-center transition-colors duration-150 disabled:opacity-50"
+                  className="flex-1 px-3 py-1.5 text-[14px] font-semibold text-center transition-colors duration-150 disabled:opacity-50"
                   style={{
                     borderRadius: "var(--radius-sm)",
                     border: supplier.status === "active" ? "1px solid #fecaca" : "1px solid #bbf7d0",
@@ -318,77 +318,77 @@ export default function SuppliersPage() {
             </div>
             <div className="p-5 space-y-4">
               <div>
-                <label className="block text-[12px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Name *</label>
+                <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Name *</label>
                 <input
                   type="text"
                   value={form.name}
                   onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                   placeholder="Supplier name"
-                  className="w-full px-3 py-2 text-[13px]"
+                  className="w-full px-3 py-2 text-[15px]"
                   style={inputStyle}
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[12px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Contact Person</label>
+                  <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Contact Person</label>
                   <input
                     type="text"
                     value={form.contactPerson}
                     onChange={(e) => setForm((f) => ({ ...f, contactPerson: e.target.value }))}
                     placeholder="Contact name"
-                    className="w-full px-3 py-2 text-[13px]"
+                    className="w-full px-3 py-2 text-[15px]"
                     style={inputStyle}
                   />
                 </div>
                 <div>
-                  <label className="block text-[12px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Phone</label>
+                  <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Phone</label>
                   <input
                     type="tel"
                     value={form.phone}
                     onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
                     placeholder="+65 xxxx xxxx"
-                    className="w-full px-3 py-2 text-[13px]"
+                    className="w-full px-3 py-2 text-[15px]"
                     style={inputStyle}
                   />
                 </div>
               </div>
               <div>
-                <label className="block text-[12px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Email</label>
+                <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Email</label>
                 <input
                   type="email"
                   value={form.email}
                   onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
                   placeholder="supplier@example.com"
-                  className="w-full px-3 py-2 text-[13px]"
+                  className="w-full px-3 py-2 text-[15px]"
                   style={inputStyle}
                 />
               </div>
               <div>
-                <label className="block text-[12px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Address</label>
+                <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Address</label>
                 <textarea
                   value={form.address}
                   onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
                   placeholder="Full address"
                   rows={2}
-                  className="w-full px-3 py-2 text-[13px] resize-none"
+                  className="w-full px-3 py-2 text-[15px] resize-none"
                   style={inputStyle}
                 />
               </div>
               <div>
-                <label className="block text-[12px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>GST Registration Number</label>
+                <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>GST Registration Number</label>
                 <input
                   type="text"
                   value={form.gstNumber}
                   onChange={(e) => setForm((f) => ({ ...f, gstNumber: e.target.value }))}
                   placeholder="GST number"
-                  className="w-full px-3 py-2 text-[13px]"
+                  className="w-full px-3 py-2 text-[15px]"
                   style={inputStyle}
                 />
               </div>
             </div>
             <div className="px-5 py-4 flex justify-end gap-2" style={{ borderTop: "1px solid var(--grey-200)" }}>
-              <button onClick={closeForm} className="px-4 py-2 text-[13px] font-semibold" style={{ borderRadius: "var(--radius-sm)", border: "1px solid var(--grey-300)", color: "var(--grey-700)" }}>Cancel</button>
-              <button onClick={handleSave} disabled={actionLoading} className="px-4 py-2 text-[13px] font-semibold text-white disabled:opacity-50" style={btnPrimary}>
+              <button onClick={closeForm} className="px-4 py-2 text-[15px] font-semibold" style={{ borderRadius: "var(--radius-sm)", border: "1px solid var(--grey-300)", color: "var(--grey-700)" }}>Cancel</button>
+              <button onClick={handleSave} disabled={actionLoading} className="px-4 py-2 text-[15px] font-semibold text-white disabled:opacity-50" style={btnPrimary}>
                 {actionLoading ? "Saving..." : editingId ? "Update" : "Add Supplier"}
               </button>
             </div>

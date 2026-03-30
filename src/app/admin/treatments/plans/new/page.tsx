@@ -220,19 +220,19 @@ export default function NewTreatmentPlanPage() {
       {/* Toast */}
       {toast && (
         <div className="fixed top-5 right-5 z-[200] px-4 py-3 rounded shadow-lg yoda-slide-in" style={{ background: toast.type === "success" ? "#e8f5e9" : "#ffebee", color: toast.type === "success" ? "#2e7d32" : "var(--red)", border: `1px solid ${toast.type === "success" ? "#a5d6a7" : "#ef9a9a"}` }}>
-          <p className="text-[13px] font-semibold">{toast.message}</p>
+          <p className="text-[15px] font-semibold">{toast.message}</p>
         </div>
       )}
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-[22px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>New Treatment Plan</h1>
-          <p className="text-[13px] mt-0.5" style={{ color: "var(--grey-600)" }}>
+          <h1 className="text-[24px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>New Treatment Plan</h1>
+          <p className="text-[15px] mt-0.5" style={{ color: "var(--grey-600)" }}>
             Create a new treatment program for a patient
           </p>
         </div>
-        <button onClick={() => router.push("/admin/treatments/plans")} className="inline-flex items-center gap-2 px-4 py-2 text-[13px] font-semibold rounded" style={{ ...inputStyle, color: "var(--grey-700)" }}>
+        <button onClick={() => router.push("/admin/treatments/plans")} className="inline-flex items-center gap-2 px-4 py-2 text-[15px] font-semibold rounded" style={{ ...inputStyle, color: "var(--grey-700)" }}>
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
           Back to Plans
         </button>
@@ -243,17 +243,17 @@ export default function NewTreatmentPlanPage() {
 
       {/* ─── Plan Details Card ──────────────────────────────────────────────── */}
       <div className="mb-6 p-5" style={cardStyle}>
-        <h2 className="text-[15px] font-bold mb-4" style={{ color: "var(--grey-900)" }}>Plan Details</h2>
+        <h2 className="text-[17px] font-bold mb-4" style={{ color: "var(--grey-900)" }}>Plan Details</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Plan Name */}
           <div>
-            <label className="block text-[12px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Plan Name <span style={{ color: "var(--red)" }}>*</span></label>
-            <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Physiotherapy Recovery Plan" className="w-full px-3 py-2 text-[13px]" style={inputStyle} />
+            <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Plan Name <span style={{ color: "var(--red)" }}>*</span></label>
+            <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Physiotherapy Recovery Plan" className="w-full px-3 py-2 text-[15px]" style={inputStyle} />
           </div>
 
           {/* Patient (searchable dropdown) */}
           <div ref={dropdownRef} className="relative">
-            <label className="block text-[12px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Patient <span style={{ color: "var(--red)" }}>*</span></label>
+            <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Patient <span style={{ color: "var(--red)" }}>*</span></label>
             <input
               type="text"
               value={patientId ? patientDisplay : patientSearch}
@@ -265,25 +265,25 @@ export default function NewTreatmentPlanPage() {
               }}
               onFocus={() => { if (patientSearch.length >= 2) setShowDropdown(true); }}
               placeholder="Search by name or ID..."
-              className="w-full px-3 py-2 text-[13px]"
+              className="w-full px-3 py-2 text-[15px]"
               style={inputStyle}
             />
             {patientId && (
-              <button onClick={() => { setPatientId(""); setPatientDisplay(""); setPatientSearch(""); }} className="absolute right-2 top-[30px] text-[12px]" style={{ color: "var(--grey-500)" }}>
+              <button onClick={() => { setPatientId(""); setPatientDisplay(""); setPatientSearch(""); }} className="absolute right-2 top-[30px] text-[14px]" style={{ color: "var(--grey-500)" }}>
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             )}
             {showDropdown && !patientId && (
               <div className="absolute z-50 mt-1 w-full max-h-48 overflow-y-auto" style={{ ...cardStyle, boxShadow: "0 4px 12px rgba(0,0,0,.12)" }}>
                 {patientLoading ? (
-                  <div className="px-3 py-2 text-[12px]" style={{ color: "var(--grey-500)" }}>Searching...</div>
+                  <div className="px-3 py-2 text-[14px]" style={{ color: "var(--grey-500)" }}>Searching...</div>
                 ) : patientResults.length === 0 ? (
-                  <div className="px-3 py-2 text-[12px]" style={{ color: "var(--grey-500)" }}>{patientSearch.length < 2 ? "Type at least 2 characters" : "No patients found"}</div>
+                  <div className="px-3 py-2 text-[14px]" style={{ color: "var(--grey-500)" }}>{patientSearch.length < 2 ? "Type at least 2 characters" : "No patients found"}</div>
                 ) : (
                   patientResults.map(p => (
                     <button
                       key={p.id}
-                      className="w-full text-left px-3 py-2 text-[13px] hover:bg-gray-50 transition-colors"
+                      className="w-full text-left px-3 py-2 text-[15px] hover:bg-gray-50 transition-colors"
                       style={{ color: "var(--grey-900)" }}
                       onClick={() => {
                         setPatientId(p.id);
@@ -293,7 +293,7 @@ export default function NewTreatmentPlanPage() {
                       }}
                     >
                       <span className="font-semibold">{p.firstName} {p.lastName}</span>
-                      <span className="ml-2 text-[11px]" style={{ color: "var(--grey-500)" }}>{p.patientIdNumber}</span>
+                      <span className="ml-2 text-[13px]" style={{ color: "var(--grey-500)" }}>{p.patientIdNumber}</span>
                     </button>
                   ))
                 )}
@@ -303,26 +303,26 @@ export default function NewTreatmentPlanPage() {
 
           {/* Doctor Name */}
           <div>
-            <label className="block text-[12px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Doctor Name <span style={{ color: "var(--red)" }}>*</span></label>
-            <input type="text" value={doctorName} onChange={e => setDoctorName(e.target.value)} placeholder="Dr. ..." className="w-full px-3 py-2 text-[13px]" style={inputStyle} />
+            <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Doctor Name <span style={{ color: "var(--red)" }}>*</span></label>
+            <input type="text" value={doctorName} onChange={e => setDoctorName(e.target.value)} placeholder="Dr. ..." className="w-full px-3 py-2 text-[15px]" style={inputStyle} />
           </div>
 
           {/* Start Date */}
           <div>
-            <label className="block text-[12px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Start Date</label>
-            <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="w-full px-3 py-2 text-[13px]" style={inputStyle} />
+            <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Start Date</label>
+            <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="w-full px-3 py-2 text-[15px]" style={inputStyle} />
           </div>
 
           {/* Diagnosis (full width) */}
           <div className="md:col-span-2">
-            <label className="block text-[12px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Diagnosis</label>
-            <input type="text" value={diagnosis} onChange={e => setDiagnosis(e.target.value)} placeholder="Primary diagnosis or condition" className="w-full px-3 py-2 text-[13px]" style={inputStyle} />
+            <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Diagnosis</label>
+            <input type="text" value={diagnosis} onChange={e => setDiagnosis(e.target.value)} placeholder="Primary diagnosis or condition" className="w-full px-3 py-2 text-[15px]" style={inputStyle} />
           </div>
 
           {/* Goals (full width, textarea) */}
           <div className="md:col-span-2">
-            <label className="block text-[12px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Goals</label>
-            <textarea value={goals} onChange={e => setGoals(e.target.value)} rows={3} placeholder="Treatment goals and expected outcomes..." className="w-full px-3 py-2 text-[13px] resize-y" style={inputStyle} />
+            <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Goals</label>
+            <textarea value={goals} onChange={e => setGoals(e.target.value)} rows={3} placeholder="Treatment goals and expected outcomes..." className="w-full px-3 py-2 text-[15px] resize-y" style={inputStyle} />
           </div>
         </div>
       </div>
@@ -330,8 +330,8 @@ export default function NewTreatmentPlanPage() {
       {/* ─── Treatment Items Card ───────────────────────────────────────────── */}
       <div className="mb-6 p-5" style={cardStyle}>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-[15px] font-bold" style={{ color: "var(--grey-900)" }}>Treatment Items</h2>
-          <button onClick={addItem} className="inline-flex items-center gap-1 px-3 py-1.5 text-[12px] font-semibold rounded text-white" style={{ background: "#2d6a4f", borderRadius: "var(--radius-sm)" }}>
+          <h2 className="text-[17px] font-bold" style={{ color: "var(--grey-900)" }}>Treatment Items</h2>
+          <button onClick={addItem} className="inline-flex items-center gap-1 px-3 py-1.5 text-[14px] font-semibold rounded text-white" style={{ background: "#2d6a4f", borderRadius: "var(--radius-sm)" }}>
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
             Add Item
           </button>
@@ -340,7 +340,7 @@ export default function NewTreatmentPlanPage() {
         {/* Header row */}
         <div className="hidden md:grid md:grid-cols-12 gap-2 mb-2 px-1">
           {["Treatment Name *", "Category", "Sessions", "Price/Session", "Total", ""].map((h, i) => (
-            <div key={h || i} className={`text-[11px] font-semibold uppercase tracking-wider ${i === 0 ? "col-span-3" : i === 1 ? "col-span-3" : i === 4 ? "col-span-2" : "col-span-1"}`} style={{ color: "var(--grey-600)" }}>
+            <div key={h || i} className={`text-[13px] font-semibold uppercase tracking-wider ${i === 0 ? "col-span-3" : i === 1 ? "col-span-3" : i === 4 ? "col-span-2" : "col-span-1"}`} style={{ color: "var(--grey-600)" }}>
               {h}
             </div>
           ))}
@@ -351,31 +351,31 @@ export default function NewTreatmentPlanPage() {
             <div key={item.key} className="grid grid-cols-1 md:grid-cols-12 gap-2 items-start p-3 rounded" style={{ background: "var(--grey-50)", border: "1px solid var(--grey-200)", borderRadius: "var(--radius-sm)" }}>
               {/* Treatment Name */}
               <div className="md:col-span-3">
-                <label className="md:hidden text-[11px] font-semibold mb-0.5 block" style={{ color: "var(--grey-600)" }}>Treatment Name</label>
-                <input type="text" value={item.treatmentName} onChange={e => updateItem(item.key, "treatmentName", e.target.value)} placeholder="Treatment name" className="w-full px-2 py-1.5 text-[13px]" style={inputStyle} />
+                <label className="md:hidden text-[13px] font-semibold mb-0.5 block" style={{ color: "var(--grey-600)" }}>Treatment Name</label>
+                <input type="text" value={item.treatmentName} onChange={e => updateItem(item.key, "treatmentName", e.target.value)} placeholder="Treatment name" className="w-full px-2 py-1.5 text-[15px]" style={inputStyle} />
               </div>
               {/* Category */}
               <div className="md:col-span-3">
-                <label className="md:hidden text-[11px] font-semibold mb-0.5 block" style={{ color: "var(--grey-600)" }}>Category</label>
-                <input type="text" value={item.category} onChange={e => updateItem(item.key, "category", e.target.value)} placeholder="e.g. Physical Therapy" className="w-full px-2 py-1.5 text-[13px]" style={inputStyle} />
+                <label className="md:hidden text-[13px] font-semibold mb-0.5 block" style={{ color: "var(--grey-600)" }}>Category</label>
+                <input type="text" value={item.category} onChange={e => updateItem(item.key, "category", e.target.value)} placeholder="e.g. Physical Therapy" className="w-full px-2 py-1.5 text-[15px]" style={inputStyle} />
               </div>
               {/* Sessions */}
               <div className="md:col-span-1">
-                <label className="md:hidden text-[11px] font-semibold mb-0.5 block" style={{ color: "var(--grey-600)" }}>Sessions</label>
-                <input type="number" min={1} value={item.totalSessions} onChange={e => updateItem(item.key, "totalSessions", Math.max(1, parseInt(e.target.value) || 1))} className="w-full px-2 py-1.5 text-[13px] text-center" style={inputStyle} />
+                <label className="md:hidden text-[13px] font-semibold mb-0.5 block" style={{ color: "var(--grey-600)" }}>Sessions</label>
+                <input type="number" min={1} value={item.totalSessions} onChange={e => updateItem(item.key, "totalSessions", Math.max(1, parseInt(e.target.value) || 1))} className="w-full px-2 py-1.5 text-[15px] text-center" style={inputStyle} />
               </div>
               {/* Price per Session */}
               <div className="md:col-span-2">
-                <label className="md:hidden text-[11px] font-semibold mb-0.5 block" style={{ color: "var(--grey-600)" }}>Price/Session</label>
+                <label className="md:hidden text-[13px] font-semibold mb-0.5 block" style={{ color: "var(--grey-600)" }}>Price/Session</label>
                 <div className="relative">
-                  <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[12px]" style={{ color: "var(--grey-500)" }}>S$</span>
-                  <input type="number" min={0} step={0.01} value={item.sessionPrice || ""} onChange={e => updateItem(item.key, "sessionPrice", parseFloat(e.target.value) || 0)} className="w-full pl-8 pr-2 py-1.5 text-[13px]" style={inputStyle} />
+                  <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[14px]" style={{ color: "var(--grey-500)" }}>S$</span>
+                  <input type="number" min={0} step={0.01} value={item.sessionPrice || ""} onChange={e => updateItem(item.key, "sessionPrice", parseFloat(e.target.value) || 0)} className="w-full pl-8 pr-2 py-1.5 text-[15px]" style={inputStyle} />
                 </div>
               </div>
               {/* Total */}
               <div className="md:col-span-2 flex items-center">
-                <label className="md:hidden text-[11px] font-semibold mb-0.5 block mr-2" style={{ color: "var(--grey-600)" }}>Total:</label>
-                <span className="text-[13px] font-bold py-1.5" style={{ color: "var(--grey-900)" }}>{formatCurrency(itemCost(item))}</span>
+                <label className="md:hidden text-[13px] font-semibold mb-0.5 block mr-2" style={{ color: "var(--grey-600)" }}>Total:</label>
+                <span className="text-[15px] font-bold py-1.5" style={{ color: "var(--grey-900)" }}>{formatCurrency(itemCost(item))}</span>
               </div>
               {/* Remove */}
               <div className="md:col-span-1 flex items-center justify-end">
@@ -390,7 +390,7 @@ export default function NewTreatmentPlanPage() {
         {/* Grand Total */}
         <div className="flex justify-end mt-4 pt-4" style={{ borderTop: "2px solid var(--grey-200)" }}>
           <div className="text-right">
-            <span className="text-[12px] font-semibold uppercase tracking-wider mr-4" style={{ color: "var(--grey-600)" }}>Grand Total</span>
+            <span className="text-[14px] font-semibold uppercase tracking-wider mr-4" style={{ color: "var(--grey-600)" }}>Grand Total</span>
             <span className="text-[20px] font-bold" style={{ color: "var(--grey-900)" }}>{formatCurrency(grandTotal)}</span>
           </div>
         </div>
@@ -399,8 +399,8 @@ export default function NewTreatmentPlanPage() {
       {/* ─── Milestones Card ────────────────────────────────────────────────── */}
       <div className="mb-6 p-5" style={cardStyle}>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-[15px] font-bold" style={{ color: "var(--grey-900)" }}>Milestones</h2>
-          <button onClick={addMilestone} className="inline-flex items-center gap-1 px-3 py-1.5 text-[12px] font-semibold rounded text-white" style={{ background: "#2d6a4f", borderRadius: "var(--radius-sm)" }}>
+          <h2 className="text-[17px] font-bold" style={{ color: "var(--grey-900)" }}>Milestones</h2>
+          <button onClick={addMilestone} className="inline-flex items-center gap-1 px-3 py-1.5 text-[14px] font-semibold rounded text-white" style={{ background: "#2d6a4f", borderRadius: "var(--radius-sm)" }}>
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
             Add Milestone
           </button>
@@ -408,30 +408,30 @@ export default function NewTreatmentPlanPage() {
 
         {milestones.length === 0 ? (
           <div className="text-center py-8">
-            <p className="text-[13px]" style={{ color: "var(--grey-500)" }}>No milestones yet. Add milestones to track progress.</p>
+            <p className="text-[15px]" style={{ color: "var(--grey-500)" }}>No milestones yet. Add milestones to track progress.</p>
           </div>
         ) : (
           <div className="space-y-3">
             {milestones.map((m, idx) => (
               <div key={m.key} className="p-3 rounded" style={{ background: "var(--grey-50)", border: "1px solid var(--grey-200)", borderRadius: "var(--radius-sm)" }}>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: "var(--grey-500)" }}>Milestone {idx + 1}</span>
+                  <span className="text-[13px] font-semibold uppercase tracking-wider" style={{ color: "var(--grey-500)" }}>Milestone {idx + 1}</span>
                   <button onClick={() => removeMilestone(m.key)} className="p-1 rounded" style={{ color: "var(--red)" }} title="Remove milestone">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                   </button>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   <div>
-                    <label className="block text-[11px] font-semibold mb-0.5" style={{ color: "var(--grey-600)" }}>Title *</label>
-                    <input type="text" value={m.title} onChange={e => updateMilestone(m.key, "title", e.target.value)} placeholder="Milestone title" className="w-full px-2 py-1.5 text-[13px]" style={inputStyle} />
+                    <label className="block text-[13px] font-semibold mb-0.5" style={{ color: "var(--grey-600)" }}>Title *</label>
+                    <input type="text" value={m.title} onChange={e => updateMilestone(m.key, "title", e.target.value)} placeholder="Milestone title" className="w-full px-2 py-1.5 text-[15px]" style={inputStyle} />
                   </div>
                   <div>
-                    <label className="block text-[11px] font-semibold mb-0.5" style={{ color: "var(--grey-600)" }}>Description</label>
-                    <input type="text" value={m.description} onChange={e => updateMilestone(m.key, "description", e.target.value)} placeholder="Short description" className="w-full px-2 py-1.5 text-[13px]" style={inputStyle} />
+                    <label className="block text-[13px] font-semibold mb-0.5" style={{ color: "var(--grey-600)" }}>Description</label>
+                    <input type="text" value={m.description} onChange={e => updateMilestone(m.key, "description", e.target.value)} placeholder="Short description" className="w-full px-2 py-1.5 text-[15px]" style={inputStyle} />
                   </div>
                   <div>
-                    <label className="block text-[11px] font-semibold mb-0.5" style={{ color: "var(--grey-600)" }}>Target Date</label>
-                    <input type="date" value={m.targetDate} onChange={e => updateMilestone(m.key, "targetDate", e.target.value)} className="w-full px-2 py-1.5 text-[13px]" style={inputStyle} />
+                    <label className="block text-[13px] font-semibold mb-0.5" style={{ color: "var(--grey-600)" }}>Target Date</label>
+                    <input type="date" value={m.targetDate} onChange={e => updateMilestone(m.key, "targetDate", e.target.value)} className="w-full px-2 py-1.5 text-[15px]" style={inputStyle} />
                   </div>
                 </div>
               </div>
@@ -445,7 +445,7 @@ export default function NewTreatmentPlanPage() {
         <button
           onClick={() => handleSubmit("draft")}
           disabled={submitting}
-          className="px-5 py-2.5 text-[13px] font-semibold rounded transition-opacity"
+          className="px-5 py-2.5 text-[15px] font-semibold rounded transition-opacity"
           style={{ ...inputStyle, color: "var(--grey-700)", opacity: submitting ? 0.6 : 1, cursor: submitting ? "not-allowed" : "pointer" }}
         >
           {submitting ? "Saving..." : "Save as Draft"}
@@ -453,7 +453,7 @@ export default function NewTreatmentPlanPage() {
         <button
           onClick={() => handleSubmit("active")}
           disabled={submitting}
-          className="px-5 py-2.5 text-[13px] font-semibold rounded text-white transition-opacity"
+          className="px-5 py-2.5 text-[15px] font-semibold rounded text-white transition-opacity"
           style={{ background: "#2d6a4f", borderRadius: "var(--radius-sm)", opacity: submitting ? 0.6 : 1, cursor: submitting ? "not-allowed" : "pointer" }}
         >
           {submitting ? "Creating..." : "Create Plan"}

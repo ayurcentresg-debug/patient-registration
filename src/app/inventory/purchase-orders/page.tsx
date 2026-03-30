@@ -121,8 +121,8 @@ export default function PurchaseOrdersPage() {
     <div className="p-6 md:p-8 yoda-fade-in">
       {/* ── Header ──────────────────────────────────────────────── */}
       <div className="mb-6">
-        <h1 className="text-[22px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>Inventory</h1>
-        <p className="text-[13px] mt-0.5" style={{ color: "var(--grey-600)" }}>Manage stock and supplies</p>
+        <h1 className="text-[24px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>Inventory</h1>
+        <p className="text-[15px] mt-0.5" style={{ color: "var(--grey-600)" }}>Manage stock and supplies</p>
       </div>
 
       <InventoryTabs />
@@ -131,11 +131,11 @@ export default function PurchaseOrdersPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
           <h2 className="text-[18px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>Purchase Orders</h2>
-          <p className="text-[13px] mt-0.5" style={{ color: "var(--grey-600)" }}>{stats.total} order{stats.total !== 1 ? "s" : ""}</p>
+          <p className="text-[15px] mt-0.5" style={{ color: "var(--grey-600)" }}>{stats.total} order{stats.total !== 1 ? "s" : ""}</p>
         </div>
         <Link
           href="/inventory/purchase-orders/new"
-          className="inline-flex items-center justify-center gap-2 text-white px-5 py-2 text-[13px] font-semibold transition-colors duration-150"
+          className="inline-flex items-center justify-center gap-2 text-white px-5 py-2 text-[15px] font-semibold transition-colors duration-150"
           style={btnPrimary}
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -148,24 +148,24 @@ export default function PurchaseOrdersPage() {
       {/* ── Stats Cards ──────────────────────────────────────────── */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
         <div className="p-4" style={{ ...cardStyle, boxShadow: "var(--shadow-sm)" }}>
-          <p className="text-[12px] font-semibold uppercase tracking-wide" style={{ color: "var(--grey-600)" }}>Total POs</p>
-          <p className="text-[28px] font-bold mt-1 tracking-tight" style={{ color: "var(--grey-900)" }}>{stats.total}</p>
+          <p className="text-[14px] font-semibold uppercase tracking-wide" style={{ color: "var(--grey-600)" }}>Total POs</p>
+          <p className="text-[30px] font-bold mt-1 tracking-tight" style={{ color: "var(--grey-900)" }}>{stats.total}</p>
         </div>
         <div className="p-4" style={{ ...cardStyle, boxShadow: "var(--shadow-sm)" }}>
-          <p className="text-[12px] font-semibold uppercase tracking-wide" style={{ color: "var(--grey-600)" }}>Draft</p>
-          <p className="text-[28px] font-bold mt-1 tracking-tight" style={{ color: "var(--grey-700)" }}>{stats.draft}</p>
+          <p className="text-[14px] font-semibold uppercase tracking-wide" style={{ color: "var(--grey-600)" }}>Draft</p>
+          <p className="text-[30px] font-bold mt-1 tracking-tight" style={{ color: "var(--grey-700)" }}>{stats.draft}</p>
         </div>
         <div className="p-4" style={{ ...cardStyle, boxShadow: "var(--shadow-sm)" }}>
-          <p className="text-[12px] font-semibold uppercase tracking-wide" style={{ color: "var(--grey-600)" }}>Submitted</p>
-          <p className="text-[28px] font-bold mt-1 tracking-tight" style={{ color: "#1d4ed8" }}>{stats.submitted}</p>
+          <p className="text-[14px] font-semibold uppercase tracking-wide" style={{ color: "var(--grey-600)" }}>Submitted</p>
+          <p className="text-[30px] font-bold mt-1 tracking-tight" style={{ color: "#1d4ed8" }}>{stats.submitted}</p>
         </div>
         <div className="p-4" style={{ ...cardStyle, boxShadow: "var(--shadow-sm)" }}>
-          <p className="text-[12px] font-semibold uppercase tracking-wide" style={{ color: "var(--grey-600)" }}>Received</p>
-          <p className="text-[28px] font-bold mt-1 tracking-tight" style={{ color: "var(--green)" }}>{stats.received}</p>
+          <p className="text-[14px] font-semibold uppercase tracking-wide" style={{ color: "var(--grey-600)" }}>Received</p>
+          <p className="text-[30px] font-bold mt-1 tracking-tight" style={{ color: "var(--green)" }}>{stats.received}</p>
         </div>
         <div className="p-4" style={{ ...cardStyle, boxShadow: "var(--shadow-sm)" }}>
-          <p className="text-[12px] font-semibold uppercase tracking-wide" style={{ color: "var(--grey-600)" }}>Total Value</p>
-          <p className="text-[22px] font-bold mt-1 tracking-tight" style={{ color: "var(--grey-900)" }}>{formatCurrency(stats.totalValue)}</p>
+          <p className="text-[14px] font-semibold uppercase tracking-wide" style={{ color: "var(--grey-600)" }}>Total Value</p>
+          <p className="text-[24px] font-bold mt-1 tracking-tight" style={{ color: "var(--grey-900)" }}>{formatCurrency(stats.totalValue)}</p>
         </div>
       </div>
 
@@ -174,7 +174,7 @@ export default function PurchaseOrdersPage() {
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-3 py-2 text-[13px]"
+          className="px-3 py-2 text-[15px]"
           style={{ border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)", minWidth: 140 }}
         >
           <option value="all">All Status</option>
@@ -194,7 +194,7 @@ export default function PurchaseOrdersPage() {
             placeholder="Search PO number, supplier..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 text-[13px]"
+            className="w-full pl-10 pr-4 py-2 text-[15px]"
             style={{ border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)" }}
           />
         </div>
@@ -203,7 +203,7 @@ export default function PurchaseOrdersPage() {
           type="date"
           value={dateFrom}
           onChange={(e) => setDateFrom(e.target.value)}
-          className="px-3 py-2 text-[13px]"
+          className="px-3 py-2 text-[15px]"
           style={{ border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)" }}
           placeholder="From"
         />
@@ -211,7 +211,7 @@ export default function PurchaseOrdersPage() {
           type="date"
           value={dateTo}
           onChange={(e) => setDateTo(e.target.value)}
-          className="px-3 py-2 text-[13px]"
+          className="px-3 py-2 text-[15px]"
           style={{ border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)" }}
           placeholder="To"
         />
@@ -220,8 +220,8 @@ export default function PurchaseOrdersPage() {
       {/* ── Error State ──────────────────────────────────────────── */}
       {error && (
         <div className="mb-4 px-4 py-3 flex items-center justify-between" style={{ background: "#ffebee", color: "var(--red)", borderRadius: "var(--radius-sm)" }}>
-          <p className="text-[13px] font-medium">Failed to load purchase orders: {error}</p>
-          <button onClick={fetchOrders} className="text-[12px] font-semibold underline">Retry</button>
+          <p className="text-[15px] font-medium">Failed to load purchase orders: {error}</p>
+          <button onClick={fetchOrders} className="text-[14px] font-semibold underline">Retry</button>
         </div>
       )}
 
@@ -239,8 +239,8 @@ export default function PurchaseOrdersPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
           </div>
-          <p className="text-[14px] font-semibold" style={{ color: "var(--grey-700)" }}>No purchase orders found</p>
-          <Link href="/inventory/purchase-orders/new" className="text-[12px] font-semibold mt-2 inline-block hover:underline" style={{ color: "var(--blue-500)" }}>
+          <p className="text-[16px] font-semibold" style={{ color: "var(--grey-700)" }}>No purchase orders found</p>
+          <Link href="/inventory/purchase-orders/new" className="text-[14px] font-semibold mt-2 inline-block hover:underline" style={{ color: "var(--blue-500)" }}>
             Create your first purchase order
           </Link>
         </div>
@@ -251,14 +251,14 @@ export default function PurchaseOrdersPage() {
             <table className="w-full">
               <thead style={{ borderBottom: "1px solid var(--grey-300)", background: "var(--grey-50)" }}>
                 <tr>
-                  <th className="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>PO Number</th>
-                  <th className="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Supplier</th>
-                  <th className="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Date</th>
-                  <th className="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Expected</th>
-                  <th className="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Items</th>
-                  <th className="text-right px-4 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Total</th>
-                  <th className="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Status</th>
-                  <th className="text-right px-4 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Actions</th>
+                  <th className="text-left px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>PO Number</th>
+                  <th className="text-left px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Supplier</th>
+                  <th className="text-left px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Date</th>
+                  <th className="text-left px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Expected</th>
+                  <th className="text-left px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Items</th>
+                  <th className="text-right px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Total</th>
+                  <th className="text-left px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Status</th>
+                  <th className="text-right px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -273,19 +273,19 @@ export default function PurchaseOrdersPage() {
                       onMouseEnter={(e) => { e.currentTarget.style.background = "var(--grey-50)"; }}
                       onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
                     >
-                      <td className="px-4 py-3 text-[13px] font-semibold" style={{ color: "var(--blue-500)" }}>{order.poNumber}</td>
-                      <td className="px-4 py-3 text-[13px]" style={{ color: "var(--grey-900)" }}>{order.supplierName}</td>
-                      <td className="px-4 py-3 text-[12px]" style={{ color: "var(--grey-600)" }}>{formatDate(order.orderDate)}</td>
-                      <td className="px-4 py-3 text-[12px]" style={{ color: "var(--grey-600)" }}>{order.expectedDate ? formatDate(order.expectedDate) : "\u2014"}</td>
-                      <td className="px-4 py-3 text-[13px]" style={{ color: "var(--grey-700)" }}>{order.items?.length || 0}</td>
-                      <td className="px-4 py-3 text-[13px] font-semibold text-right" style={{ color: "var(--grey-900)" }}>{formatCurrency(order.totalAmount || 0)}</td>
+                      <td className="px-4 py-3 text-[15px] font-semibold" style={{ color: "var(--blue-500)" }}>{order.poNumber}</td>
+                      <td className="px-4 py-3 text-[15px]" style={{ color: "var(--grey-900)" }}>{order.supplierName}</td>
+                      <td className="px-4 py-3 text-[14px]" style={{ color: "var(--grey-600)" }}>{formatDate(order.orderDate)}</td>
+                      <td className="px-4 py-3 text-[14px]" style={{ color: "var(--grey-600)" }}>{order.expectedDate ? formatDate(order.expectedDate) : "\u2014"}</td>
+                      <td className="px-4 py-3 text-[15px]" style={{ color: "var(--grey-700)" }}>{order.items?.length || 0}</td>
+                      <td className="px-4 py-3 text-[15px] font-semibold text-right" style={{ color: "var(--grey-900)" }}>{formatCurrency(order.totalAmount || 0)}</td>
                       <td className="px-4 py-3">
-                        <span className="inline-flex px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide" style={{ borderRadius: "var(--radius-sm)", background: statusStyle.bg, color: statusStyle.color }}>
+                        <span className="inline-flex px-2 py-0.5 text-[12px] font-bold uppercase tracking-wide" style={{ borderRadius: "var(--radius-sm)", background: statusStyle.bg, color: statusStyle.color }}>
                           {order.status}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-right">
-                        <Link href={`/inventory/purchase-orders/${order.id}`} className="text-[12px] font-semibold hover:underline" style={{ color: "var(--blue-500)" }} onClick={(e) => e.stopPropagation()}>
+                        <Link href={`/inventory/purchase-orders/${order.id}`} className="text-[14px] font-semibold hover:underline" style={{ color: "var(--blue-500)" }} onClick={(e) => e.stopPropagation()}>
                           View
                         </Link>
                       </td>
@@ -309,19 +309,19 @@ export default function PurchaseOrdersPage() {
                 >
                   <div className="flex items-start justify-between mb-2">
                     <div>
-                      <p className="text-[14px] font-semibold" style={{ color: "var(--blue-500)" }}>{order.poNumber}</p>
-                      <p className="text-[12px]" style={{ color: "var(--grey-700)" }}>{order.supplierName}</p>
+                      <p className="text-[16px] font-semibold" style={{ color: "var(--blue-500)" }}>{order.poNumber}</p>
+                      <p className="text-[14px]" style={{ color: "var(--grey-700)" }}>{order.supplierName}</p>
                     </div>
-                    <span className="inline-flex px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide" style={{ borderRadius: "var(--radius-sm)", background: statusStyle.bg, color: statusStyle.color }}>
+                    <span className="inline-flex px-2 py-0.5 text-[12px] font-bold uppercase tracking-wide" style={{ borderRadius: "var(--radius-sm)", background: statusStyle.bg, color: statusStyle.color }}>
                       {order.status}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <div className="flex gap-3 text-[11px]" style={{ color: "var(--grey-500)" }}>
+                    <div className="flex gap-3 text-[13px]" style={{ color: "var(--grey-500)" }}>
                       <span>{formatDate(order.orderDate)}</span>
                       <span>{order.items?.length || 0} items</span>
                     </div>
-                    <p className="text-[13px] font-bold" style={{ color: "var(--grey-900)" }}>{formatCurrency(order.totalAmount || 0)}</p>
+                    <p className="text-[15px] font-bold" style={{ color: "var(--grey-900)" }}>{formatCurrency(order.totalAmount || 0)}</p>
                   </div>
                 </Link>
               );

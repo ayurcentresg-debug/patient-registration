@@ -54,12 +54,12 @@ interface Doctor {
 }
 
 // ─── YODA Styles ────────────────────────────────────────────────────────────
-const inputStyle = { border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)", fontSize: "13px" };
+const inputStyle = { border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)", fontSize: "15px" };
 const inputErrorStyle = { ...inputStyle, border: "1px solid var(--red)", background: "#fff5f5" };
 const cardStyle = { background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius)" as const, boxShadow: "var(--shadow-card)" as const };
-const sectionTitle = { color: "var(--grey-900)", fontSize: "15px", fontWeight: 700 as const };
-const labelStyle = { color: "var(--grey-600)", fontSize: "13px", fontWeight: 400 as const };
-const chipBase = "inline-flex px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide";
+const sectionTitle = { color: "var(--grey-900)", fontSize: "17px", fontWeight: 700 as const };
+const labelStyle = { color: "var(--grey-600)", fontSize: "15px", fontWeight: 400 as const };
+const chipBase = "inline-flex px-2 py-0.5 text-[12px] font-bold uppercase tracking-wide";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 function formatDate(dateStr: string): string {
@@ -78,13 +78,13 @@ function formatTime(time: string): string {
 
 function FieldError({ error }: { error?: string }) {
   if (!error) return null;
-  return <p className="mt-0.5 text-[11px] font-medium" style={{ color: "var(--red)" }}>{error}</p>;
+  return <p className="mt-0.5 text-[13px] font-medium" style={{ color: "var(--red)" }}>{error}</p>;
 }
 
 function Toast({ message, type, onClose }: { message: string; type: "success" | "error"; onClose: () => void }) {
   useEffect(() => { const t = setTimeout(onClose, 3500); return () => clearTimeout(t); }, [onClose]);
   return (
-    <div className="fixed top-5 right-5 z-[100] flex items-center gap-2 px-4 py-3 text-[13px] font-semibold yoda-slide-in" role="alert"
+    <div className="fixed top-5 right-5 z-[100] flex items-center gap-2 px-4 py-3 text-[15px] font-semibold yoda-slide-in" role="alert"
       style={{ background: type === "success" ? "var(--green)" : "var(--red)", color: "#fff", borderRadius: "var(--radius-sm)", boxShadow: "0 4px 20px rgba(0,0,0,0.15)", minWidth: 260 }}>
       <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         {type === "success" ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /> : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />}
@@ -99,8 +99,8 @@ function Toast({ message, type, onClose }: { message: string; type: "success" | 
 function ProfileRow({ label, value, href }: { label: string; value: string | null | undefined; href?: string }) {
   return (
     <tr>
-      <td className="py-[8px] pr-4 text-[13px] font-normal text-right whitespace-nowrap align-top" style={{ color: "var(--grey-600)", width: 180 }}>{label} :</td>
-      <td className="py-[8px] pl-2 text-[13px] font-medium align-top" style={{ color: value ? "var(--grey-900)" : "var(--grey-400)" }}>
+      <td className="py-[8px] pr-4 text-[15px] font-normal text-right whitespace-nowrap align-top" style={{ color: "var(--grey-600)", width: 180 }}>{label} :</td>
+      <td className="py-[8px] pl-2 text-[15px] font-medium align-top" style={{ color: value ? "var(--grey-900)" : "var(--grey-400)" }}>
         {href && value ? <a href={href} className="hover:underline" style={{ color: "var(--blue-500)" }}>{value}</a> : (value || "\u2014")}
       </td>
     </tr>
@@ -307,10 +307,10 @@ export default function DoctorDetailPage() {
     return (
       <div className="p-6 md:p-8 yoda-fade-in">
         <div className="text-center py-16">
-          <p className="text-[14px] font-semibold" style={{ color: "var(--grey-700)" }}>
+          <p className="text-[16px] font-semibold" style={{ color: "var(--grey-700)" }}>
             {error || "Doctor not found"}
           </p>
-          <Link href="/doctors" className="text-[12px] font-semibold mt-2 inline-block hover:underline" style={{ color: "var(--blue-500)" }}>
+          <Link href="/doctors" className="text-[14px] font-semibold mt-2 inline-block hover:underline" style={{ color: "var(--blue-500)" }}>
             Back to Doctors
           </Link>
         </div>
@@ -329,13 +329,13 @@ export default function DoctorDetailPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.4)" }}>
           <div className="mx-4 p-6 w-full max-w-sm yoda-slide-in" style={{ ...cardStyle, boxShadow: "var(--shadow-lg)" }}>
             <h3 className="text-[16px] font-bold mb-2" style={{ color: "var(--grey-900)" }}>Delete Doctor</h3>
-            <p className="text-[13px] mb-5" style={{ color: "var(--grey-600)" }}>
+            <p className="text-[15px] mb-5" style={{ color: "var(--grey-600)" }}>
               Are you sure you want to delete <strong>{doctor.name}</strong>? This action cannot be undone.
             </p>
             <div className="flex gap-3 justify-end">
               <button
                 onClick={() => setShowDeleteConfirm(false)}
-                className="px-4 py-2 text-[13px] font-semibold"
+                className="px-4 py-2 text-[15px] font-semibold"
                 style={{ color: "var(--grey-600)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)" }}
               >
                 Cancel
@@ -343,7 +343,7 @@ export default function DoctorDetailPage() {
               <button
                 onClick={handleDelete}
                 disabled={deleting}
-                className="px-4 py-2 text-[13px] font-semibold text-white disabled:opacity-60"
+                className="px-4 py-2 text-[15px] font-semibold text-white disabled:opacity-60"
                 style={{ background: "var(--red)", borderRadius: "var(--radius-sm)" }}
               >
                 {deleting ? "Deleting..." : "Delete"}
@@ -366,22 +366,22 @@ export default function DoctorDetailPage() {
           </svg>
         </Link>
         <div className="flex-1">
-          <h1 className="text-[22px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>{doctor.name}</h1>
-          <p className="text-[13px]" style={{ color: "var(--grey-600)" }}>{doctor.specialization} &middot; {doctor.department}</p>
+          <h1 className="text-[24px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>{doctor.name}</h1>
+          <p className="text-[15px]" style={{ color: "var(--grey-600)" }}>{doctor.specialization} &middot; {doctor.department}</p>
         </div>
         <div className="flex items-center gap-2">
           {!editing ? (
             <>
               <button
                 onClick={() => { setEditing(true); populateEditForm(doctor); }}
-                className="px-4 py-2 text-[13px] font-semibold text-white"
+                className="px-4 py-2 text-[15px] font-semibold text-white"
                 style={{ background: "var(--blue-500)", borderRadius: "var(--radius-sm)" }}
               >
                 Edit
               </button>
               <button
                 onClick={() => setShowDeleteConfirm(true)}
-                className="px-4 py-2 text-[13px] font-semibold"
+                className="px-4 py-2 text-[15px] font-semibold"
                 style={{ color: "var(--red)", border: "1px solid var(--red)", borderRadius: "var(--radius-sm)" }}
               >
                 Delete
@@ -391,7 +391,7 @@ export default function DoctorDetailPage() {
             <>
               <button
                 onClick={() => { setEditing(false); setFieldErrors({}); }}
-                className="px-4 py-2 text-[13px] font-semibold"
+                className="px-4 py-2 text-[15px] font-semibold"
                 style={{ color: "var(--grey-600)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)" }}
               >
                 Cancel
@@ -399,7 +399,7 @@ export default function DoctorDetailPage() {
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="px-5 py-2 text-[13px] font-semibold text-white disabled:opacity-60"
+                className="px-5 py-2 text-[15px] font-semibold text-white disabled:opacity-60"
                 style={{ background: "var(--blue-500)", borderRadius: "var(--radius-sm)" }}
               >
                 {saving ? "Saving..." : "Save Changes"}
@@ -503,7 +503,7 @@ export default function DoctorDetailPage() {
                 <td className="py-[8px] pr-4 text-right whitespace-nowrap align-top" style={{ ...labelStyle, width: 180 }}>Consultation Fee :</td>
                 <td className="py-[8px] pl-2">
                   <div className="flex items-center gap-1 max-w-[200px]">
-                    <span className="text-[13px] font-medium" style={{ color: "var(--grey-600)" }}>$</span>
+                    <span className="text-[15px] font-medium" style={{ color: "var(--grey-600)" }}>$</span>
                     <input type="number" value={editFee} onChange={(e) => { setEditFee(e.target.value); setFieldErrors((p) => ({ ...p, consultationFee: "" })); }}
                       className="w-full px-2.5 py-1.5" style={fieldErrors.consultationFee ? inputErrorStyle : inputStyle} min="0" step="0.01" />
                   </div>
@@ -527,11 +527,11 @@ export default function DoctorDetailPage() {
                   <div className="flex items-center gap-4">
                     <label className="flex items-center gap-1.5 cursor-pointer">
                       <input type="radio" name="editStatus" value="active" checked={editStatus === "active"} onChange={() => setEditStatus("active")} />
-                      <span className="text-[13px] font-medium" style={{ color: "var(--green)" }}>Active</span>
+                      <span className="text-[15px] font-medium" style={{ color: "var(--green)" }}>Active</span>
                     </label>
                     <label className="flex items-center gap-1.5 cursor-pointer">
                       <input type="radio" name="editStatus" value="inactive" checked={editStatus === "inactive"} onChange={() => setEditStatus("inactive")} />
-                      <span className="text-[13px] font-medium" style={{ color: "var(--grey-600)" }}>Inactive</span>
+                      <span className="text-[15px] font-medium" style={{ color: "var(--grey-600)" }}>Inactive</span>
                     </label>
                   </div>
                 </td>
@@ -562,7 +562,7 @@ export default function DoctorDetailPage() {
                   }}
                 >
                   <span
-                    className="text-[13px] font-semibold w-24 flex-shrink-0 pt-0.5"
+                    className="text-[15px] font-semibold w-24 flex-shrink-0 pt-0.5"
                     style={{ color: isEnabled ? "var(--grey-900)" : "var(--grey-400)" }}
                   >
                     {day}
@@ -572,7 +572,7 @@ export default function DoctorDetailPage() {
                       {dayData.blocks.map((block, idx) => (
                         <span
                           key={idx}
-                          className="inline-flex items-center px-2.5 py-1 text-[12px] font-medium"
+                          className="inline-flex items-center px-2.5 py-1 text-[14px] font-medium"
                           style={{ background: "var(--blue-50)", color: "var(--blue-500)", borderRadius: "var(--radius-sm)" }}
                         >
                           {formatTime(block.start)} \u2013 {formatTime(block.end)}
@@ -580,7 +580,7 @@ export default function DoctorDetailPage() {
                       ))}
                     </div>
                   ) : (
-                    <span className="text-[12px] pt-0.5" style={{ color: "var(--grey-400)" }}>Closed</span>
+                    <span className="text-[14px] pt-0.5" style={{ color: "var(--grey-400)" }}>Closed</span>
                   )}
                 </div>
               );
@@ -616,14 +616,14 @@ export default function DoctorDetailPage() {
                         style={{ transform: daySchedule.enabled ? "translateX(16px)" : "translateX(0)" }}
                       />
                     </button>
-                    <span className="text-[13px] font-semibold w-24" style={{ color: daySchedule.enabled ? "var(--grey-900)" : "var(--grey-500)" }}>
+                    <span className="text-[15px] font-semibold w-24" style={{ color: daySchedule.enabled ? "var(--grey-900)" : "var(--grey-500)" }}>
                       {day}
                     </span>
                     {daySchedule.enabled && (
                       <button
                         type="button"
                         onClick={() => addBlock(day)}
-                        className="text-[11px] font-semibold px-2 py-0.5"
+                        className="text-[13px] font-semibold px-2 py-0.5"
                         style={{ color: "var(--blue-500)", border: "1px solid var(--blue-500)", borderRadius: "var(--radius-sm)" }}
                       >
                         + Add Block
@@ -635,10 +635,10 @@ export default function DoctorDetailPage() {
                       {daySchedule.blocks.map((block, idx) => (
                         <div key={idx} className="flex items-center gap-2">
                           <input type="time" value={block.start} onChange={(e) => updateBlock(day, idx, "start", e.target.value)}
-                            className="px-2 py-1 text-[12px]" style={inputStyle} />
-                          <span className="text-[12px]" style={{ color: "var(--grey-500)" }}>to</span>
+                            className="px-2 py-1 text-[14px]" style={inputStyle} />
+                          <span className="text-[14px]" style={{ color: "var(--grey-500)" }}>to</span>
                           <input type="time" value={block.end} onChange={(e) => updateBlock(day, idx, "end", e.target.value)}
-                            className="px-2 py-1 text-[12px]" style={inputStyle} />
+                            className="px-2 py-1 text-[14px]" style={inputStyle} />
                           {daySchedule.blocks.length > 1 && (
                             <button type="button" onClick={() => removeBlock(day, idx)}
                               className="w-6 h-6 flex items-center justify-center" style={{ color: "var(--red)" }}>
@@ -667,20 +667,20 @@ export default function DoctorDetailPage() {
             <table className="w-full">
               <thead style={{ background: "var(--grey-50)", borderBottom: "1px solid var(--grey-200)" }}>
                 <tr>
-                  <th className="text-left px-4 py-2 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Date</th>
-                  <th className="text-left px-4 py-2 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Time</th>
-                  <th className="text-left px-4 py-2 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Patient</th>
-                  <th className="text-left px-4 py-2 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Reason</th>
-                  <th className="text-left px-4 py-2 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Status</th>
+                  <th className="text-left px-4 py-2 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Date</th>
+                  <th className="text-left px-4 py-2 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Time</th>
+                  <th className="text-left px-4 py-2 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Patient</th>
+                  <th className="text-left px-4 py-2 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Reason</th>
+                  <th className="text-left px-4 py-2 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Status</th>
                 </tr>
               </thead>
               <tbody>
                 {doctor.appointments.map((appt, i) => (
                   <tr key={appt.id} style={{ borderBottom: i < doctor.appointments.length - 1 ? "1px solid var(--grey-200)" : "none" }}>
-                    <td className="px-4 py-2.5 text-[13px]" style={{ color: "var(--grey-900)" }}>{formatDate(appt.date)}</td>
-                    <td className="px-4 py-2.5 text-[13px]" style={{ color: "var(--grey-800)" }}>{appt.time}</td>
-                    <td className="px-4 py-2.5 text-[13px] font-medium" style={{ color: "var(--grey-900)" }}>{appt.patientName}</td>
-                    <td className="px-4 py-2.5 text-[13px]" style={{ color: "var(--grey-600)" }}>{appt.reason || "\u2014"}</td>
+                    <td className="px-4 py-2.5 text-[15px]" style={{ color: "var(--grey-900)" }}>{formatDate(appt.date)}</td>
+                    <td className="px-4 py-2.5 text-[15px]" style={{ color: "var(--grey-800)" }}>{appt.time}</td>
+                    <td className="px-4 py-2.5 text-[15px] font-medium" style={{ color: "var(--grey-900)" }}>{appt.patientName}</td>
+                    <td className="px-4 py-2.5 text-[15px]" style={{ color: "var(--grey-600)" }}>{appt.reason || "\u2014"}</td>
                     <td className="px-4 py-2.5">
                       <span
                         className={chipBase}
@@ -705,7 +705,7 @@ export default function DoctorDetailPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
             </div>
-            <p className="text-[13px]" style={{ color: "var(--grey-500)" }}>No upcoming appointments</p>
+            <p className="text-[15px]" style={{ color: "var(--grey-500)" }}>No upcoming appointments</p>
           </div>
         )}
       </div>

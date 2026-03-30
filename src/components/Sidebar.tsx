@@ -12,6 +12,7 @@ const navItems = [
   { href: "/patients", label: "Patients", icon: "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z", access: "all" },
   { href: "/patients/new", label: "Register", icon: "M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z", access: "admin" },
   { href: "/appointments", label: "Appointments", icon: "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z", access: "all" },
+  { href: "/packages", label: "Packages", icon: "M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10", access: "admin" },
   { href: "/inventory", label: "Inventory", icon: "M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4", access: "admin" },
   { href: "/billing", label: "Billing", icon: "M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z", access: "admin" },
   { href: "/reports", label: "Reports", icon: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z", access: "admin" },
@@ -195,7 +196,7 @@ export default function Sidebar() {
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.icon} />
                 </svg>
-                <span className="mt-0.5 text-[10px] font-semibold tracking-tight">{item.label}</span>
+                <span className="mt-0.5 text-[12px] font-semibold tracking-tight">{item.label}</span>
               </Link>
             );
           })}
@@ -258,8 +259,8 @@ export default function Sidebar() {
               minWidth: 0,
             }}
           >
-            <h1 className="text-[13px] font-bold text-white tracking-tight">Ayur Centre</h1>
-            <p className="text-[10px] font-medium" style={{ color: "rgba(255,255,255,0.45)" }}>Ayurveda Clinic</p>
+            <h1 className="text-[15px] font-bold text-white tracking-tight">Ayur Centre</h1>
+            <p className="text-[12px] font-medium" style={{ color: "rgba(255,255,255,0.45)" }}>Ayurveda Clinic</p>
           </div>
 
           {/* Notification Bell */}
@@ -720,7 +721,7 @@ export default function Sidebar() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d={item.icon} />
                   </svg>
                   <span
-                    className="text-[13px] font-semibold whitespace-nowrap overflow-hidden"
+                    className="text-[15px] font-semibold whitespace-nowrap overflow-hidden"
                     style={{
                       opacity: expanded ? 1 : 0,
                       width: expanded ? "auto" : 0,
@@ -760,7 +761,7 @@ export default function Sidebar() {
             <svg className="flex-shrink-0" style={{ width: 24, height: 24 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
             </svg>
-            <span className="text-[13px] font-semibold whitespace-nowrap overflow-hidden" style={{ opacity: expanded ? 1 : 0, width: expanded ? "auto" : 0, transition: "opacity 0.15s ease" }}>
+            <span className="text-[15px] font-semibold whitespace-nowrap overflow-hidden" style={{ opacity: expanded ? 1 : 0, width: expanded ? "auto" : 0, transition: "opacity 0.15s ease" }}>
               Logout
             </span>
           </button>
@@ -772,7 +773,7 @@ export default function Sidebar() {
           style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}
         >
           {expanded ? (
-            <p className="text-[10px] font-medium whitespace-nowrap" style={{ color: "rgba(255,255,255,0.35)" }}>
+            <p className="text-[12px] font-medium whitespace-nowrap" style={{ color: "rgba(255,255,255,0.35)" }}>
               YODA Design v1.0
             </p>
           ) : (

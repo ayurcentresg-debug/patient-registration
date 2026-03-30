@@ -27,8 +27,8 @@ export default function StatsCard({ title, value, icon, color }: StatsCardProps)
     >
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-[12px] font-semibold uppercase tracking-wide" style={{ color: "var(--grey-600)" }}>{title}</p>
-          <p className="text-[28px] font-bold mt-1 tracking-tight" style={{ color: "var(--grey-900)" }}>{value}</p>
+          <p className="text-[14px] font-semibold uppercase tracking-wide" style={{ color: "var(--grey-600)" }}>{title}</p>
+          <p className="text-[30px] font-bold mt-1 tracking-tight" style={{ color: "var(--grey-900)" }}>{value}</p>
         </div>
         <div
           className="w-11 h-11 flex items-center justify-center"

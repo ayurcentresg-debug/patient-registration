@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import ConfirmDialog from "@/components/ConfirmDialog";
 
-const inputStyle = { border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)", fontSize: "13px" };
+const inputStyle = { border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)", fontSize: "15px" };
 const cardStyle = { background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-card)" };
 const drName = (name: string) => name.match(/^Dr\.?\s/i) ? name : `Dr. ${name}`;
 
@@ -77,7 +77,7 @@ const DOC_CATEGORIES = [
 function Toast({ message, type, onClose }: { message: string; type: "success" | "error"; onClose: () => void }) {
   useEffect(() => { const t = setTimeout(onClose, 3500); return () => clearTimeout(t); }, [onClose]);
   return (
-    <div className="fixed top-5 right-5 z-[100] flex items-center gap-2 px-4 py-3 text-[13px] font-semibold yoda-slide-in" role="alert"
+    <div className="fixed top-5 right-5 z-[100] flex items-center gap-2 px-4 py-3 text-[15px] font-semibold yoda-slide-in" role="alert"
       style={{ background: type === "success" ? "var(--green)" : "var(--red)", color: "#fff", borderRadius: "var(--radius-sm)", boxShadow: "0 4px 20px rgba(0,0,0,0.15)", minWidth: 260 }}>
       <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         {type === "success" ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /> : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />}
@@ -93,8 +93,8 @@ function ProfileRow({ label, value, href, always }: { label: string; value: stri
   if (!value && !always) return null;
   return (
     <tr>
-      <td className="py-[8px] pr-4 text-[13px] font-normal text-right whitespace-nowrap align-top" style={{ color: "var(--grey-600)", width: 180 }}>{label} :</td>
-      <td className="py-[8px] pl-2 text-[13px] font-medium align-top" style={{ color: value ? "var(--grey-900)" : "var(--grey-400)" }}>
+      <td className="py-[8px] pr-4 text-[15px] font-normal text-right whitespace-nowrap align-top" style={{ color: "var(--grey-600)", width: 180 }}>{label} :</td>
+      <td className="py-[8px] pl-2 text-[15px] font-medium align-top" style={{ color: value ? "var(--grey-900)" : "var(--grey-400)" }}>
         {href && value ? <a href={href} className="hover:underline" style={{ color: "#2d6a4f" }}>{value}</a> : (value || "—")}
       </td>
     </tr>
@@ -105,8 +105,8 @@ function ProfileRow({ label, value, href, always }: { label: string; value: stri
 function EditRow({ label, name, value, type = "text", onChange }: { label: string; name: string; value: string; type?: string; onChange: (n: string, v: string) => void }) {
   return (
     <tr>
-      <td className="py-[8px] pr-4 text-[13px] font-normal text-right whitespace-nowrap align-middle" style={{ color: "var(--grey-600)", width: 180 }}>{label} :</td>
-      <td className="py-[8px] pl-2"><input type={type} value={value} onChange={(e) => onChange(name, e.target.value)} className="w-full max-w-sm px-2.5 py-1.5 text-[13px]" style={inputStyle} /></td>
+      <td className="py-[8px] pr-4 text-[15px] font-normal text-right whitespace-nowrap align-middle" style={{ color: "var(--grey-600)", width: 180 }}>{label} :</td>
+      <td className="py-[8px] pl-2"><input type={type} value={value} onChange={(e) => onChange(name, e.target.value)} className="w-full max-w-sm px-2.5 py-1.5 text-[15px]" style={inputStyle} /></td>
     </tr>
   );
 }
@@ -151,17 +151,26 @@ function calcAge(dob: string | null): string {
 
 /* ═══ Sidebar nav ═══ */
 const sidebarNav = [
+  // ── Patient ──
   { key: "profile", label: "Profile", icon: "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z", group: "Patient" },
   { key: "appointments", label: "Appointments", icon: "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z", group: "Patient" },
-  { key: "timeline", label: "Timeline", icon: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z", group: "Patient" },
-  { key: "vitals", label: "Vitals", icon: "M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z", group: "Patient" },
-  { key: "visit-summary", label: "Visit Summary", icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4", group: "Patient" },
   { key: "communications", label: "Communications", icon: "M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z", group: "Patient" },
-  { key: "prescriptions", label: "Prescriptions", icon: "M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z", group: "Medical" },
-  { key: "clinical", label: "Clinical Notes", icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01", group: "Medical" },
-  { key: "documents", label: "Documents", icon: "M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z", group: "Medical" },
-  { key: "emergency", label: "Emergency Contact", icon: "M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0z", group: "Medical" },
-  { key: "allergies", label: "Allergies & Notes", icon: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z", group: "Medical" },
+  // ── EMR ──
+  { key: "clinical", label: "Clinical Notes", icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01", group: "EMR" },
+  { key: "treatment-plans", label: "Treatment Plans", icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4", group: "EMR" },
+  { key: "completed-procedures", label: "Completed Procedures", icon: "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z", group: "EMR" },
+  { key: "documents", label: "Files", icon: "M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z", group: "EMR" },
+  { key: "prescriptions", label: "Prescriptions", icon: "M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z", group: "EMR" },
+  { key: "vitals", label: "Vitals", icon: "M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z", group: "EMR" },
+  { key: "timeline", label: "Timeline", icon: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z", group: "EMR" },
+  { key: "allergies", label: "Allergies & Notes", icon: "M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z", group: "EMR" },
+  { key: "emergency", label: "Emergency Contact", icon: "M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z", group: "EMR" },
+  { key: "visit-summary", label: "Visit Summary", icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2", group: "EMR" },
+  // ── Billing ──
+  { key: "invoices", label: "Invoices", icon: "M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z", group: "Billing" },
+  { key: "payments", label: "Payments", icon: "M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z", group: "Billing" },
+  { key: "packages", label: "Packages", icon: "M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4", group: "Billing" },
+  { key: "ledger", label: "Ledger", icon: "M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253", group: "Billing" },
 ];
 
 export default function PatientDetailPage() {
@@ -241,6 +250,71 @@ export default function PatientDetailPage() {
 
   // Treatment Progress state
   const [treatmentPackages, setTreatmentPackages] = useState<Array<{ packageId: string; treatmentName: string; packageName: string; sessionsCompleted: number; sessionsTotal: number }>>([]);
+
+  // Patient Packages state
+  interface PatientPkg {
+    id: string; packageNumber: string; treatmentName: string; packageName: string;
+    totalSessions: number; usedSessions: number; remainingSessions: number;
+    totalPrice: number; paidAmount: number; balanceAmount: number; pricePerSession: number;
+    purchaseDate: string; expiryDate: string; status: string; daysUntilExpiry: number;
+    isExpiringSoon: boolean; consultationFeePolicy: string; maxSharedUsers: number;
+    sessions: Array<{ id: string; sessionNumber: number; date: string; doctorName: string | null; status: string; usedByName: string | null }>;
+    shares: Array<{ id: string; sharedWithName: string; relation: string; isActive: boolean }>;
+  }
+  const [patientPackages, setPatientPackages] = useState<PatientPkg[]>([]);
+  const [packagesLoading, setPackagesLoading] = useState(false);
+
+  // Treatment Plans state
+  interface TreatmentPlanRecord {
+    id: string; planNumber: string; name: string; doctorName: string; diagnosis: string | null;
+    status: string; startDate: string; endDate: string | null; totalSessions: number;
+    completedSessions: number; totalCost: number; notes: string | null; createdAt: string;
+    _count?: { items: number };
+  }
+  const [treatmentPlans, setTreatmentPlans] = useState<TreatmentPlanRecord[]>([]);
+  const [treatmentPlansLoading, setTreatmentPlansLoading] = useState(false);
+  const [treatmentPlansFetched, setTreatmentPlansFetched] = useState(false);
+
+  // Completed Procedures state
+  interface CompletedProcedure {
+    id: string; date: string; time: string; doctor: string; department: string | null;
+    treatmentName: string | null; status: string; reason: string | null; notes: string | null;
+    sessionPrice: number | null; packageName: string | null;
+  }
+  const [completedProcedures, setCompletedProcedures] = useState<CompletedProcedure[]>([]);
+  const [completedProceduresLoading, setCompletedProceduresLoading] = useState(false);
+  const [completedProceduresFetched, setCompletedProceduresFetched] = useState(false);
+
+  // Patient Invoices state
+  interface PatientInvoice {
+    id: string; invoiceNumber: string; date: string; patientName: string; totalAmount: number;
+    paidAmount: number; balanceAmount: number; status: string; paymentMethod: string | null;
+    notes: string | null; _count?: { payments: number }; isPackageSale?: boolean;
+    packageInfo?: { id: string; packageNumber: string; packageName: string } | null;
+    items?: Array<{ id: string; treatmentName: string; quantity: number; unitPrice: number; total: number }>;
+  }
+  const [patientInvoices, setPatientInvoices] = useState<PatientInvoice[]>([]);
+  const [invoicesLoading, setInvoicesLoading] = useState(false);
+  const [invoicesFetched, setInvoicesFetched] = useState(false);
+
+  // Patient Payments state
+  interface PatientPayment {
+    id: string; receiptNumber: string | null; amount: number; method: string;
+    reference: string | null; notes: string | null; date: string;
+    invoice: { id: string; invoiceNumber: string; patientName: string; totalAmount: number };
+  }
+  const [patientPayments, setPatientPayments] = useState<PatientPayment[]>([]);
+  const [paymentsLoading, setPaymentsLoading] = useState(false);
+  const [paymentsFetched, setPaymentsFetched] = useState(false);
+
+  // Ledger state
+  interface LedgerEntry {
+    id: string; date: string; type: "invoice" | "payment" | "refund" | "credit";
+    description: string; reference: string; debit: number; credit: number; balance: number;
+  }
+  const [ledgerEntries, setLedgerEntries] = useState<LedgerEntry[]>([]);
+  const [ledgerLoading, setLedgerLoading] = useState(false);
+  const [ledgerFetched, setLedgerFetched] = useState(false);
 
   // Document viewer state
   const [viewingDoc, setViewingDoc] = useState<PatientDocument | null>(null);
@@ -732,6 +806,123 @@ export default function PatientDetailPage() {
   }, [id]);
 
   useEffect(() => { if (activeSection === "prescriptions" && prescriptions.length === 0 && !prescriptionsLoading) fetchPrescriptions(); }, [activeSection, prescriptions.length, prescriptionsLoading, fetchPrescriptions]);
+
+  // Fetch patient packages
+  const [packagesFetched, setPackagesFetched] = useState(false);
+  const fetchPatientPackages = useCallback(async () => {
+    setPackagesLoading(true);
+    try {
+      const r = await fetch(`/api/patient-packages?patientId=${id}`);
+      if (r.ok) { const data = await r.json(); setPatientPackages(Array.isArray(data) ? data : []); }
+    } catch { /* ignore */ }
+    finally { setPackagesLoading(false); setPackagesFetched(true); }
+  }, [id]);
+
+  useEffect(() => { if (activeSection === "packages" && !packagesFetched && !packagesLoading) fetchPatientPackages(); }, [activeSection, packagesFetched, packagesLoading, fetchPatientPackages]);
+
+  // Fetch treatment plans
+  const fetchTreatmentPlans = useCallback(async () => {
+    setTreatmentPlansLoading(true);
+    try {
+      const r = await fetch(`/api/treatment-plans?patientId=${id}&limit=100`);
+      if (r.ok) { const data = await r.json(); setTreatmentPlans(Array.isArray(data) ? data : data.plans || []); }
+    } catch { /* ignore */ }
+    finally { setTreatmentPlansLoading(false); setTreatmentPlansFetched(true); }
+  }, [id]);
+  useEffect(() => { if (activeSection === "treatment-plans" && !treatmentPlansFetched && !treatmentPlansLoading) fetchTreatmentPlans(); }, [activeSection, treatmentPlansFetched, treatmentPlansLoading, fetchTreatmentPlans]);
+
+  // Fetch completed procedures (completed appointments with treatment info)
+  const fetchCompletedProcedures = useCallback(async () => {
+    setCompletedProceduresLoading(true);
+    try {
+      const r = await fetch(`/api/appointments?patientId=${id}&status=completed&limit=200`);
+      if (r.ok) {
+        const data = await r.json();
+        const appts = Array.isArray(data) ? data : data.appointments || [];
+        setCompletedProcedures(appts.filter((a: CompletedProcedure) => a.status === "completed"));
+      }
+    } catch { /* ignore */ }
+    finally { setCompletedProceduresLoading(false); setCompletedProceduresFetched(true); }
+  }, [id]);
+  useEffect(() => { if (activeSection === "completed-procedures" && !completedProceduresFetched && !completedProceduresLoading) fetchCompletedProcedures(); }, [activeSection, completedProceduresFetched, completedProceduresLoading, fetchCompletedProcedures]);
+
+  // Fetch patient invoices
+  const fetchPatientInvoices = useCallback(async () => {
+    setInvoicesLoading(true);
+    try {
+      const r = await fetch(`/api/invoices?patientId=${id}`);
+      if (r.ok) { const data = await r.json(); setPatientInvoices(Array.isArray(data) ? data : []); }
+    } catch { /* ignore */ }
+    finally { setInvoicesLoading(false); setInvoicesFetched(true); }
+  }, [id]);
+  useEffect(() => { if (activeSection === "invoices" && !invoicesFetched && !invoicesLoading) fetchPatientInvoices(); }, [activeSection, invoicesFetched, invoicesLoading, fetchPatientInvoices]);
+
+  // Fetch patient payments (from all invoices)
+  const fetchPatientPayments = useCallback(async () => {
+    setPaymentsLoading(true);
+    try {
+      // Get invoices first, then payments for each
+      const ir = await fetch(`/api/invoices?patientId=${id}`);
+      if (ir.ok) {
+        const invoices = await ir.json();
+        const allPayments: PatientPayment[] = [];
+        for (const inv of (Array.isArray(invoices) ? invoices : [])) {
+          const pr = await fetch(`/api/invoices/${inv.id}/payments`);
+          if (pr.ok) {
+            const pays = await pr.json();
+            for (const p of (Array.isArray(pays) ? pays : [])) {
+              allPayments.push({ ...p, invoice: { id: inv.id, invoiceNumber: inv.invoiceNumber, patientName: inv.patientName, totalAmount: inv.totalAmount } });
+            }
+          }
+        }
+        allPayments.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        setPatientPayments(allPayments);
+      }
+    } catch { /* ignore */ }
+    finally { setPaymentsLoading(false); setPaymentsFetched(true); }
+  }, [id]);
+  useEffect(() => { if (activeSection === "payments" && !paymentsFetched && !paymentsLoading) fetchPatientPayments(); }, [activeSection, paymentsFetched, paymentsLoading, fetchPatientPayments]);
+
+  // Build ledger entries from invoices and payments
+  const fetchLedger = useCallback(async () => {
+    setLedgerLoading(true);
+    try {
+      const ir = await fetch(`/api/invoices?patientId=${id}`);
+      if (ir.ok) {
+        const invoices = await ir.json();
+        const entries: LedgerEntry[] = [];
+        let runningBalance = 0;
+        // Collect all events
+        const events: Array<{ date: string; type: "invoice" | "payment"; data: Record<string, unknown> }> = [];
+        for (const inv of (Array.isArray(invoices) ? invoices : [])) {
+          events.push({ date: inv.date, type: "invoice", data: inv });
+          const pr = await fetch(`/api/invoices/${inv.id}/payments`);
+          if (pr.ok) {
+            const pays = await pr.json();
+            for (const p of (Array.isArray(pays) ? pays : [])) {
+              events.push({ date: p.date, type: "payment", data: { ...p, invoiceNumber: inv.invoiceNumber } });
+            }
+          }
+        }
+        // Sort chronologically
+        events.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        for (const ev of events) {
+          if (ev.type === "invoice") {
+            const inv = ev.data as Record<string, unknown>;
+            runningBalance += (inv.totalAmount as number) || 0;
+            entries.push({ id: inv.id as string, date: ev.date, type: "invoice", description: `Invoice for ${inv.patientName || "services"}`, reference: inv.invoiceNumber as string, debit: (inv.totalAmount as number) || 0, credit: 0, balance: runningBalance });
+          } else {
+            const pay = ev.data as Record<string, unknown>;
+            runningBalance -= (pay.amount as number) || 0;
+            entries.push({ id: pay.id as string, date: ev.date, type: "payment", description: `Payment via ${pay.method || "cash"}`, reference: (pay.receiptNumber as string) || (pay.invoiceNumber as string) || "", debit: 0, credit: (pay.amount as number) || 0, balance: runningBalance });
+          }
+        }
+        setLedgerEntries(entries);
+      }
+    } catch { /* ignore */ }
+    finally { setLedgerLoading(false); setLedgerFetched(true); }
+  }, [id]);
+  useEffect(() => { if (activeSection === "ledger" && !ledgerFetched && !ledgerLoading) fetchLedger(); }, [activeSection, ledgerFetched, ledgerLoading, fetchLedger]);
 
   const searchMedicines = useCallback(async (query: string) => {
     if (query.length < 2) { setMedicineSuggestions([]); return; }
@@ -1242,17 +1433,22 @@ export default function PatientDetailPage() {
       <div className="w-14 h-14 mx-auto mb-4 flex items-center justify-center" style={{ background: "var(--red-light)", borderRadius: "var(--radius-pill)" }}>
         <svg className="w-7 h-7" style={{ color: "var(--red)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>
       </div>
-      <p className="text-[14px] font-semibold" style={{ color: "var(--grey-700)" }}>{error}</p>
+      <p className="text-[16px] font-semibold" style={{ color: "var(--grey-700)" }}>{error}</p>
       <div className="flex justify-center gap-3 mt-4">
-        <button onClick={fetchPatient} className="px-4 py-2 text-[13px] font-semibold text-white" style={{ background: "#2d6a4f", borderRadius: "var(--radius-sm)" }}>Try Again</button>
-        <Link href="/patients" className="px-4 py-2 text-[13px] font-semibold" style={{ color: "#2d6a4f" }}>Back</Link>
+        <button onClick={fetchPatient} className="px-4 py-2 text-[15px] font-semibold text-white" style={{ background: "#2d6a4f", borderRadius: "var(--radius-sm)" }}>Try Again</button>
+        <Link href="/patients" className="px-4 py-2 text-[15px] font-semibold" style={{ color: "#2d6a4f" }}>Back</Link>
       </div>
     </div>
   );
 
   if (!patient) return null;
 
-  const sectionCounts: Record<string, number> = { appointments: patient.appointments.length, communications: patient.communications.length, clinical: clinicalNotes.length, documents: documents.length };
+  const sectionCounts: Record<string, number> = {
+    appointments: patient.appointments.length, communications: patient.communications.length,
+    clinical: clinicalNotes.length, documents: documents.length, packages: patientPackages.length,
+    "treatment-plans": treatmentPlans.length, "completed-procedures": completedProcedures.length,
+    invoices: patientInvoices.length, payments: patientPayments.length, prescriptions: prescriptions.length,
+  };
 
   return (
     <div className="yoda-fade-in flex flex-col" style={{ minHeight: "100vh" }}>
@@ -1274,7 +1470,7 @@ export default function PatientDetailPage() {
           <Link href="/patients" className="p-1 hover:bg-gray-100 rounded" style={{ color: "var(--grey-400)" }}>
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
           </Link>
-          <div className="w-9 h-9 flex items-center justify-center text-[13px] font-bold flex-shrink-0 overflow-hidden" style={{ background: "#f0faf4", color: "#2d6a4f", borderRadius: "var(--radius-pill)" }}>
+          <div className="w-9 h-9 flex items-center justify-center text-[15px] font-bold flex-shrink-0 overflow-hidden" style={{ background: "#f0faf4", color: "#2d6a4f", borderRadius: "var(--radius-pill)" }}>
             {patient.photoUrl ? (
               <img src={patient.photoUrl} alt="" className="w-full h-full object-cover" />
             ) : (
@@ -1283,14 +1479,14 @@ export default function PatientDetailPage() {
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-[15px] font-bold tracking-tight truncate" style={{ color: "var(--grey-900)" }}>{patient.firstName} {patient.lastName}</h1>
+              <h1 className="text-[17px] font-bold tracking-tight truncate" style={{ color: "var(--grey-900)" }}>{patient.firstName} {patient.lastName}</h1>
               <button onClick={toggleStatus} disabled={togglingStatus}
                 className="px-2 py-px text-[9px] font-bold uppercase tracking-wide cursor-pointer disabled:opacity-50 flex-shrink-0"
                 style={{ borderRadius: "var(--radius-pill)", background: patient.status === "active" ? "var(--green-light)" : "var(--grey-200)", color: patient.status === "active" ? "var(--green)" : "var(--grey-600)", border: "none" }}>
                 {togglingStatus ? "..." : patient.status}
               </button>
             </div>
-            <p className="text-[11px] truncate" style={{ color: "var(--grey-500)" }}>
+            <p className="text-[13px] truncate" style={{ color: "var(--grey-500)" }}>
               {patient.gender?.charAt(0).toUpperCase() + patient.gender?.slice(1)}{patient.dateOfBirth ? `, ${calcAge(patient.dateOfBirth)}` : ""} &nbsp;&middot;&nbsp; ID : {patient.patientIdNumber}
             </p>
           </div>
@@ -1298,61 +1494,61 @@ export default function PatientDetailPage() {
 
         <div className="flex items-center gap-2 print:hidden">
           {/* Primary actions — always visible */}
-          <a href={`tel:${patient.phone}`} className="inline-flex items-center gap-1 px-3 py-1.5 text-[11px] font-semibold" style={{ background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", color: "var(--grey-700)" }}>
+          <a href={`tel:${patient.phone}`} className="inline-flex items-center gap-1 px-3 py-1.5 text-[13px] font-semibold" style={{ background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", color: "var(--grey-700)" }}>
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>Call
           </a>
           <a href={`https://wa.me/${(patient.whatsapp || patient.phone).replace(/[^0-9]/g, "")}`} target="_blank" rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 px-3 py-1.5 text-[11px] font-semibold" style={{ background: "var(--green-light)", border: "1px solid var(--green)", borderRadius: "var(--radius-sm)", color: "var(--green)" }}>
+            className="inline-flex items-center gap-1 px-3 py-1.5 text-[13px] font-semibold" style={{ background: "var(--green-light)", border: "1px solid var(--green)", borderRadius: "var(--radius-sm)", color: "var(--green)" }}>
             <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" /></svg>WhatsApp
           </a>
           {!editing ? (
-            <button onClick={startEdit} className="inline-flex items-center gap-1 px-3 py-1.5 text-[11px] font-semibold text-white" style={{ background: "#2d6a4f", borderRadius: "var(--radius-sm)" }}>
+            <button onClick={startEdit} className="inline-flex items-center gap-1 px-3 py-1.5 text-[13px] font-semibold text-white" style={{ background: "#2d6a4f", borderRadius: "var(--radius-sm)" }}>
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>Edit Profile
             </button>
           ) : (
             <>
-              <button onClick={saveEdit} disabled={saving} className="px-3 py-1.5 text-[11px] font-semibold text-white disabled:opacity-50" style={{ background: "var(--green)", borderRadius: "var(--radius-sm)" }}>{saving ? "Saving..." : "Save Changes"}</button>
-              <button onClick={() => setEditing(false)} className="px-3 py-1.5 text-[11px] font-semibold" style={{ background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", color: "var(--grey-700)" }}>Cancel</button>
+              <button onClick={saveEdit} disabled={saving} className="px-3 py-1.5 text-[13px] font-semibold text-white disabled:opacity-50" style={{ background: "var(--green)", borderRadius: "var(--radius-sm)" }}>{saving ? "Saving..." : "Save Changes"}</button>
+              <button onClick={() => setEditing(false)} className="px-3 py-1.5 text-[13px] font-semibold" style={{ background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", color: "var(--grey-700)" }}>Cancel</button>
             </>
           )}
           {/* More actions dropdown */}
           <div className="relative" ref={moreMenuRef}>
-            <button onClick={() => setMoreMenuOpen(!moreMenuOpen)} className="inline-flex items-center gap-1 px-2 py-1.5 text-[11px] font-semibold" style={{ background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", color: "var(--grey-700)" }} title="More actions">
+            <button onClick={() => setMoreMenuOpen(!moreMenuOpen)} className="inline-flex items-center gap-1 px-2 py-1.5 text-[13px] font-semibold" style={{ background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", color: "var(--grey-700)" }} title="More actions">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" /></svg>
             </button>
             {moreMenuOpen && (
               <div className="absolute right-0 top-full mt-1 py-1 min-w-[180px] z-50" style={{ background: "var(--white)", border: "1px solid var(--grey-200)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-lg)" }}>
                 {patient.email && (
-                  <a href={`mailto:${patient.email}`} onClick={() => setMoreMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2 text-[12px] font-medium hover:bg-gray-50 transition-colors" style={{ color: "var(--grey-700)" }}>
+                  <a href={`mailto:${patient.email}`} onClick={() => setMoreMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2 text-[14px] font-medium hover:bg-gray-50 transition-colors" style={{ color: "var(--grey-700)" }}>
                     <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                     Send Email
                   </a>
                 )}
-                <button onClick={() => { handleShareWhatsApp(); setMoreMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[12px] font-medium hover:bg-gray-50 transition-colors text-left" style={{ color: "var(--grey-700)" }}>
+                <button onClick={() => { handleShareWhatsApp(); setMoreMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[14px] font-medium hover:bg-gray-50 transition-colors text-left" style={{ color: "var(--grey-700)" }}>
                   <svg className="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" /></svg>
                   Share via WhatsApp
                 </button>
                 <div style={{ height: 1, background: "var(--grey-200)", margin: "4px 0" }} />
                 <p className="px-3 pt-1.5 pb-0.5 text-[9px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-400)" }}>Export PDF</p>
-                <button onClick={() => { handlePrintSummary(); setMoreMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[12px] font-medium hover:bg-gray-50 transition-colors text-left" style={{ color: "var(--grey-700)" }}>
+                <button onClick={() => { handlePrintSummary(); setMoreMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[14px] font-medium hover:bg-gray-50 transition-colors text-left" style={{ color: "var(--grey-700)" }}>
                   <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                   Patient Summary
                 </button>
-                <button onClick={() => { handlePrintVisitHistory(); setMoreMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[12px] font-medium hover:bg-gray-50 transition-colors text-left" style={{ color: "var(--grey-700)" }}>
+                <button onClick={() => { handlePrintVisitHistory(); setMoreMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[14px] font-medium hover:bg-gray-50 transition-colors text-left" style={{ color: "var(--grey-700)" }}>
                   <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                   Visit History
                 </button>
-                <button onClick={() => { handlePrintBillingStatement(); setMoreMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[12px] font-medium hover:bg-gray-50 transition-colors text-left" style={{ color: "var(--grey-700)" }}>
+                <button onClick={() => { handlePrintBillingStatement(); setMoreMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[14px] font-medium hover:bg-gray-50 transition-colors text-left" style={{ color: "var(--grey-700)" }}>
                   <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                   Billing Statement
                 </button>
                 <div style={{ height: 1, background: "var(--grey-200)", margin: "4px 0" }} />
-                <button onClick={() => { window.print(); setMoreMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[12px] font-medium hover:bg-gray-50 transition-colors text-left" style={{ color: "var(--grey-700)" }}>
+                <button onClick={() => { window.print(); setMoreMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[14px] font-medium hover:bg-gray-50 transition-colors text-left" style={{ color: "var(--grey-700)" }}>
                   <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
                   Print Page
                 </button>
                 <div style={{ height: 1, background: "var(--grey-200)", margin: "4px 0" }} />
-                <button onClick={() => { handleDelete(); setMoreMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[12px] font-medium hover:bg-red-50 transition-colors text-left" style={{ color: "var(--red)" }}>
+                <button onClick={() => { handleDelete(); setMoreMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[14px] font-medium hover:bg-red-50 transition-colors text-left" style={{ color: "var(--red)" }}>
                   <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                   Delete Patient
                 </button>
@@ -1368,9 +1564,9 @@ export default function PatientDetailPage() {
         {/* ─── LEFT SIDEBAR ─── */}
         <aside className="hidden lg:flex lg:flex-col flex-shrink-0 overflow-y-auto" style={{ width: 210, background: "var(--white)", borderRight: "1px solid var(--grey-200)" }}>
           <nav className="py-3 flex-1">
-            {["Patient", "Medical"].map((group) => (
+            {["Patient", "EMR", "Billing"].map((group) => (
               <div key={group} className="mb-3">
-                <p className="px-4 pt-2 pb-1.5 text-[10px] font-bold uppercase tracking-wider select-none" style={{ color: group === "Patient" ? "#2d6a4f" : "var(--green)", letterSpacing: "0.08em" }}>{group === "Patient" ? "Overview" : "Clinical"}</p>
+                <p className="px-4 pt-2 pb-1.5 text-[12px] font-bold uppercase tracking-wider select-none" style={{ color: group === "Patient" ? "#b22222" : group === "EMR" ? "#2d6a4f" : "#8b6914", letterSpacing: "0.08em" }}>{group}</p>
                 {sidebarNav.filter((n) => n.group === group).map((item) => {
                   const active = activeSection === item.key;
                   const count = sectionCounts[item.key] || 0;
@@ -1380,7 +1576,7 @@ export default function PatientDetailPage() {
                       style={{ background: active ? "#f0faf4" : "transparent", color: active ? "#2d6a4f" : "var(--grey-700)", borderLeft: active ? "3px solid #2d6a4f" : "3px solid transparent" }}>
                       <svg className="w-[15px] h-[15px] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d={item.icon} /></svg>
                       <span className="flex-1 text-left truncate">{item.label}</span>
-                      {count > 0 && <span className="text-[10px] font-bold px-1.5 py-px" style={{ color: "var(--grey-500)", background: "var(--grey-100)", borderRadius: "var(--radius-sm)" }}>{count}</span>}
+                      {count > 0 && <span className="text-[12px] font-bold px-1.5 py-px" style={{ color: "var(--grey-500)", background: "var(--grey-100)", borderRadius: "var(--radius-sm)" }}>{count}</span>}
                     </button>
                   );
                 })}
@@ -1393,7 +1589,7 @@ export default function PatientDetailPage() {
         <div className="lg:hidden fixed bottom-[52px] left-0 right-0 z-40 px-3 py-2 overflow-x-auto flex gap-1.5" style={{ background: "var(--white)", borderTop: "1px solid var(--grey-200)", boxShadow: "0 -2px 8px rgba(0,0,0,0.04)" }}>
           {sidebarNav.map((item) => (
             <button key={item.key} onClick={() => setActiveSection(item.key)}
-              className="px-3 py-1.5 text-[11px] font-semibold whitespace-nowrap flex-shrink-0"
+              className="px-3 py-1.5 text-[13px] font-semibold whitespace-nowrap flex-shrink-0"
               style={{ borderRadius: "var(--radius-pill)", background: activeSection === item.key ? "#2d6a4f" : "var(--white)", color: activeSection === item.key ? "#fff" : "var(--grey-600)", border: activeSection === item.key ? "none" : "1px solid var(--grey-300)" }}>
               {item.label}
             </button>
@@ -1415,15 +1611,15 @@ export default function PatientDetailPage() {
                       <div className="flex items-center gap-2">
                         <svg className="w-5 h-5" style={{ color: "#b68d40" }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                         <div>
-                          <p className="text-[14px] font-bold" style={{ color: "#8b6914" }}>Pending Balance: {formatCurrency(pendingBalance.total)}</p>
-                          <p className="text-[11px]" style={{ color: "#b68d40" }}>{pendingBalance.invoices.length} unpaid invoice{pendingBalance.invoices.length !== 1 ? "s" : ""}</p>
+                          <p className="text-[16px] font-bold" style={{ color: "#8b6914" }}>Pending Balance: {formatCurrency(pendingBalance.total)}</p>
+                          <p className="text-[13px]" style={{ color: "#b68d40" }}>{pendingBalance.invoices.length} unpaid invoice{pendingBalance.invoices.length !== 1 ? "s" : ""}</p>
                         </div>
                       </div>
                       <div className="flex gap-1.5">
                         <button
                           onClick={() => sendPaymentReminder("whatsapp")}
                           disabled={sendingReminder}
-                          className="inline-flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-semibold disabled:opacity-50"
+                          className="inline-flex items-center gap-1 px-2.5 py-1.5 text-[13px] font-semibold disabled:opacity-50"
                           style={{ background: "#25d366", color: "#fff", borderRadius: "var(--radius-sm)" }}
                         >
                           <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" /></svg>
@@ -1433,7 +1629,7 @@ export default function PatientDetailPage() {
                           <button
                             onClick={() => sendPaymentReminder("email")}
                             disabled={sendingReminder}
-                            className="inline-flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-semibold disabled:opacity-50"
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 text-[13px] font-semibold disabled:opacity-50"
                             style={{ background: "#2d6a4f", color: "#fff", borderRadius: "var(--radius-sm)" }}
                           >
                             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
@@ -1446,7 +1642,7 @@ export default function PatientDetailPage() {
                   {pendingBalance.total > 0 && pendingBalance.invoices.length > 0 && (
                     <div className="space-y-1 mt-2">
                       {pendingBalance.invoices.map((inv) => (
-                        <Link key={inv.id} href={`/billing/${inv.id}`} className="flex items-center justify-between px-3 py-1.5 text-[11px] rounded hover:bg-white/60 transition-colors" style={{ background: "rgba(255,255,255,0.3)" }}>
+                        <Link key={inv.id} href={`/billing/${inv.id}`} className="flex items-center justify-between px-3 py-1.5 text-[13px] rounded hover:bg-white/60 transition-colors" style={{ background: "rgba(255,255,255,0.3)" }}>
                           <span className="font-semibold" style={{ color: "#8b6914" }}>{inv.invoiceNumber}</span>
                           <span style={{ color: "#b68d40" }}>Total: {formatCurrency(inv.totalAmount)} &middot; Paid: {formatCurrency(inv.paidAmount)} &middot; <strong>Due: {formatCurrency(inv.balanceAmount)}</strong></span>
                         </Link>
@@ -1455,9 +1651,9 @@ export default function PatientDetailPage() {
                   )}
                   {familyBalances.length > 0 && (
                     <div className={pendingBalance.total > 0 ? "mt-3 pt-3" : ""} style={pendingBalance.total > 0 ? { borderTop: "1px solid #ffcc80" } : {}}>
-                      <p className="text-[11px] font-bold uppercase tracking-wide mb-1.5" style={{ color: "#b68d40" }}>Family Members with Pending Balance</p>
+                      <p className="text-[13px] font-bold uppercase tracking-wide mb-1.5" style={{ color: "#b68d40" }}>Family Members with Pending Balance</p>
                       {familyBalances.map((fb) => (
-                        <div key={fb.patientId} className="flex items-center justify-between px-3 py-1.5 text-[12px] rounded mb-1" style={{ background: "rgba(255,255,255,0.3)" }}>
+                        <div key={fb.patientId} className="flex items-center justify-between px-3 py-1.5 text-[14px] rounded mb-1" style={{ background: "rgba(255,255,255,0.3)" }}>
                           <div>
                             <span className="font-semibold" style={{ color: "#8b6914" }}>{genderRelationLabel(fb.relation, null)}</span>
                             <span style={{ color: "#b68d40" }}> : </span>
@@ -1468,7 +1664,7 @@ export default function PatientDetailPage() {
                             <button
                               onClick={() => sendPaymentReminder("whatsapp", fb.patientId)}
                               disabled={sendingReminder}
-                              className="px-1.5 py-0.5 text-[10px] font-semibold disabled:opacity-50"
+                              className="px-1.5 py-0.5 text-[12px] font-semibold disabled:opacity-50"
                               style={{ background: "#25d366", color: "#fff", borderRadius: "var(--radius-sm)" }}
                               title="Send WhatsApp reminder"
                             >
@@ -1501,7 +1697,7 @@ export default function PatientDetailPage() {
                           <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                         </div>
                       </div>
-                      <button onClick={() => { setPhotoFile(null); setPhotoPreview(null); setShowPhotoModal(true); }} className="text-[11px] font-semibold mt-2 hover:underline" style={{ color: "#2d6a4f" }}>
+                      <button onClick={() => { setPhotoFile(null); setPhotoPreview(null); setShowPhotoModal(true); }} className="text-[13px] font-semibold mt-2 hover:underline" style={{ color: "#2d6a4f" }}>
                         {patient.photoUrl ? "Change Photo" : "Add Photo"}
                       </button>
                     </div>
@@ -1518,11 +1714,11 @@ export default function PatientDetailPage() {
                         <ProfileRow label="Blood Group" value={patient.bloodGroup} />
                         {familyMembers.length > 0 ? (
                           <tr>
-                            <td className="py-[8px] pr-4 text-[13px] font-normal text-right whitespace-nowrap align-top" style={{ color: "var(--grey-600)", width: 180 }}>Family :</td>
+                            <td className="py-[8px] pr-4 text-[15px] font-normal text-right whitespace-nowrap align-top" style={{ color: "var(--grey-600)", width: 180 }}>Family :</td>
                             <td className="py-[8px] pl-2">
                               <div className="space-y-1">
                                 {familyMembers.map((fm) => (
-                                  <div key={fm.id} className="text-[13px]">
+                                  <div key={fm.id} className="text-[15px]">
                                     <span className="font-semibold" style={{ color: "var(--grey-700)" }}>{genderRelationLabel(fm.relation, fm.memberGender)}</span>
                                     <span style={{ color: "var(--grey-500)" }}> : </span>
                                     {fm.linkedPatientId ? (
@@ -1546,7 +1742,7 @@ export default function PatientDetailPage() {
                   </div>
 
                   {/* Contact Details — Practo style heading */}
-                  <h4 className="text-[15px] font-semibold mt-6 mb-3 pt-4" style={{ color: "var(--grey-800)", borderTop: "1px solid var(--grey-200)" }}>Contact Details</h4>
+                  <h4 className="text-[17px] font-semibold mt-6 mb-3 pt-4" style={{ color: "var(--grey-800)", borderTop: "1px solid var(--grey-200)" }}>Contact Details</h4>
                   <table className="w-full" style={{ borderCollapse: "collapse" }}><tbody>
                     <ProfileRow label="Mobile" value={patient.phone} href={`tel:${patient.phone}`} always />
                     <ProfileRow label="Secondary Mobile" value={patient.secondaryMobile} href={patient.secondaryMobile ? `tel:${patient.secondaryMobile}` : undefined} />
@@ -1570,7 +1766,7 @@ export default function PatientDetailPage() {
               ) : (
                 /* Edit Mode */
                 <div className="px-6 py-5" style={{ background: "var(--white)", borderRadius: "var(--radius)" }}>
-                  <div className="mb-4 px-3 py-2 flex items-center gap-2 text-[12px] font-medium" style={{ background: "#f0faf4", color: "#2d6a4f", borderRadius: "var(--radius-sm)", border: "1px solid #a7e3bd" }}>
+                  <div className="mb-4 px-3 py-2 flex items-center gap-2 text-[14px] font-medium" style={{ background: "#f0faf4", color: "#2d6a4f", borderRadius: "var(--radius-sm)", border: "1px solid #a7e3bd" }}>
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                     Editing — click Save Changes when done
                   </div>
@@ -1580,9 +1776,9 @@ export default function PatientDetailPage() {
                     <EditRow label="Last Name *" name="lastName" value={editData.lastName} onChange={ec} />
                     <EditRow label="NRIC ID" name="nricId" value={editData.nricId} onChange={ec} />
                     <tr>
-                      <td className="py-[8px] pr-4 text-[13px] font-normal text-right align-middle" style={{ color: "var(--grey-600)", width: 180 }}>Gender :</td>
+                      <td className="py-[8px] pr-4 text-[15px] font-normal text-right align-middle" style={{ color: "var(--grey-600)", width: 180 }}>Gender :</td>
                       <td className="py-[8px] pl-2"><div className="flex gap-5">{["male", "female", "other"].map((g) => (
-                        <label key={g} className="flex items-center gap-1.5 text-[13px] cursor-pointer" style={{ color: "var(--grey-800)" }}>
+                        <label key={g} className="flex items-center gap-1.5 text-[15px] cursor-pointer" style={{ color: "var(--grey-800)" }}>
                           <input type="radio" checked={editData.gender === g} onChange={() => ec("gender", g)} /> {g.charAt(0).toUpperCase() + g.slice(1)}
                         </label>
                       ))}</div></td>
@@ -1591,14 +1787,14 @@ export default function PatientDetailPage() {
                     <EditRow label="Blood Group" name="bloodGroup" value={editData.bloodGroup} onChange={ec} />
                     <EditRow label="Referred by" name="referredBy" value={editData.referredBy} onChange={ec} />
                     <tr>
-                      <td className="py-[8px] pr-4 text-[13px] font-normal text-right whitespace-nowrap align-top" style={{ color: "var(--grey-600)", width: 180 }}>Family :</td>
+                      <td className="py-[8px] pr-4 text-[15px] font-normal text-right whitespace-nowrap align-top" style={{ color: "var(--grey-600)", width: 180 }}>Family :</td>
                       <td className="py-[8px] pl-2">
                         {familyMembers.length > 0 && (
                           <div className="space-y-1.5 mb-3">
                             {familyMembers.map((fm) => (
-                              <div key={fm.id} className="flex items-center gap-2 px-3 py-1.5 rounded text-[13px]" style={{ background: "var(--grey-50)", border: "1px solid var(--grey-200)" }}>
+                              <div key={fm.id} className="flex items-center gap-2 px-3 py-1.5 rounded text-[15px]" style={{ background: "var(--grey-50)", border: "1px solid var(--grey-200)" }}>
                                 {editingFamId === fm.id ? (
-                                  <select value={editFamRelation} onChange={(e) => setEditFamRelation(e.target.value)} className="px-1.5 py-0.5 text-[12px]" style={inputStyle}>
+                                  <select value={editFamRelation} onChange={(e) => setEditFamRelation(e.target.value)} className="px-1.5 py-0.5 text-[14px]" style={inputStyle}>
                                     {FAMILY_RELATIONS.map((r) => <option key={r} value={r}>{RELATION_LABELS[r]}</option>)}
                                   </select>
                                 ) : (
@@ -1613,11 +1809,11 @@ export default function PatientDetailPage() {
                                 ) : (
                                   <span className="font-medium flex-1" style={{ color: "#2d6a4f" }}>{fm.memberName}</span>
                                 )}
-                                {fm.memberPhone && <span className="text-[11px]" style={{ color: "var(--grey-500)" }}>{fm.memberPhone}</span>}
+                                {fm.memberPhone && <span className="text-[13px]" style={{ color: "var(--grey-500)" }}>{fm.memberPhone}</span>}
                                 {editingFamId === fm.id ? (
                                   <div className="flex gap-1">
-                                    <button type="button" onClick={() => updateFamilyRelation(fm.id, editFamRelation)} className="px-1.5 py-0.5 text-[11px] font-semibold text-white" style={{ background: "var(--green)", borderRadius: "var(--radius-sm)" }}>Save</button>
-                                    <button type="button" onClick={() => setEditingFamId(null)} className="px-1.5 py-0.5 text-[11px] font-semibold" style={{ color: "var(--grey-500)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)" }}>Cancel</button>
+                                    <button type="button" onClick={() => updateFamilyRelation(fm.id, editFamRelation)} className="px-1.5 py-0.5 text-[13px] font-semibold text-white" style={{ background: "var(--green)", borderRadius: "var(--radius-sm)" }}>Save</button>
+                                    <button type="button" onClick={() => setEditingFamId(null)} className="px-1.5 py-0.5 text-[13px] font-semibold" style={{ color: "var(--grey-500)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)" }}>Cancel</button>
                                   </div>
                                 ) : (
                                   <button type="button" onClick={async () => {
@@ -1631,7 +1827,7 @@ export default function PatientDetailPage() {
                           </div>
                         )}
                         <div className="flex gap-2 max-w-md" ref={famSearchRef}>
-                          <select value={famRelation} onChange={(e) => { setFamRelation(e.target.value); setFamSearch(""); setFamResults([]); }} className="w-1/3 px-2 py-1.5 text-[13px]" style={inputStyle}>
+                          <select value={famRelation} onChange={(e) => { setFamRelation(e.target.value); setFamSearch(""); setFamResults([]); }} className="w-1/3 px-2 py-1.5 text-[15px]" style={inputStyle}>
                             <option value="">Relation</option>
                             {FAMILY_RELATIONS.map((r) => <option key={r} value={r}>{RELATION_LABELS[r]}</option>)}
                           </select>
@@ -1642,25 +1838,25 @@ export default function PatientDetailPage() {
                               onFocus={() => { if (famResults.length > 0) setShowFamDropdown(true); }}
                               placeholder={famRelation ? "Search patient..." : "Select relation first"}
                               disabled={!famRelation}
-                              className="w-full px-2.5 py-1.5 text-[13px]"
+                              className="w-full px-2.5 py-1.5 text-[15px]"
                               style={inputStyle}
                               onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addFamilyManual(); } }}
                             />
                             {showFamDropdown && famRelation && famSearch.length >= 2 && (
                               <div className="absolute z-20 left-0 right-0 mt-1 max-h-48 overflow-y-auto" style={{ background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", boxShadow: "0 4px 16px rgba(0,0,0,0.1)" }}>
                                 {famSearchLoading ? (
-                                  <div className="px-3 py-2 text-[12px]" style={{ color: "var(--grey-500)" }}>Searching...</div>
+                                  <div className="px-3 py-2 text-[14px]" style={{ color: "var(--grey-500)" }}>Searching...</div>
                                 ) : famResults.length > 0 ? (
                                   famResults.map((p) => (
                                     <button key={p.id} type="button" onClick={() => addFamilyFromSearch(p)} className="w-full text-left px-3 py-2 hover:bg-green-50 transition-colors" style={{ borderBottom: "1px solid var(--grey-100)" }}>
-                                      <span className="text-[13px] font-semibold" style={{ color: "var(--grey-900)" }}>{p.firstName} {p.lastName}</span>
-                                      <span className="text-[11px] ml-2" style={{ color: "var(--grey-500)" }}>{p.patientIdNumber} · {p.phone}{p.gender ? ` · ${p.gender.charAt(0).toUpperCase() + p.gender.slice(1)}` : ""}</span>
+                                      <span className="text-[15px] font-semibold" style={{ color: "var(--grey-900)" }}>{p.firstName} {p.lastName}</span>
+                                      <span className="text-[13px] ml-2" style={{ color: "var(--grey-500)" }}>{p.patientIdNumber} · {p.phone}{p.gender ? ` · ${p.gender.charAt(0).toUpperCase() + p.gender.slice(1)}` : ""}</span>
                                     </button>
                                   ))
                                 ) : (
                                   <div className="px-3 py-2">
-                                    <p className="text-[12px]" style={{ color: "var(--grey-500)" }}>No patients found</p>
-                                    <button type="button" onClick={addFamilyManual} className="text-[12px] font-semibold mt-1" style={{ color: "#2d6a4f" }}>+ Add &quot;{famSearch}&quot; manually</button>
+                                    <p className="text-[14px]" style={{ color: "var(--grey-500)" }}>No patients found</p>
+                                    <button type="button" onClick={addFamilyManual} className="text-[14px] font-semibold mt-1" style={{ color: "#2d6a4f" }}>+ Add &quot;{famSearch}&quot; manually</button>
                                   </div>
                                 )}
                               </div>
@@ -1674,7 +1870,7 @@ export default function PatientDetailPage() {
                     <EditRow label="Occupation" name="occupation" value={editData.occupation} onChange={ec} />
                   </tbody></table>
 
-                  <h4 className="text-[15px] font-semibold mt-6 mb-3 pt-4" style={{ color: "var(--grey-800)", borderTop: "1px solid var(--grey-200)" }}>Contact Details</h4>
+                  <h4 className="text-[17px] font-semibold mt-6 mb-3 pt-4" style={{ color: "var(--grey-800)", borderTop: "1px solid var(--grey-200)" }}>Contact Details</h4>
                   <table className="w-full" style={{ borderCollapse: "collapse" }}><tbody>
                     <EditRow label="Mobile *" name="phone" value={editData.phone} type="tel" onChange={ec} />
                     <EditRow label="Secondary Mobile" name="secondaryMobile" value={editData.secondaryMobile} type="tel" onChange={ec} />
@@ -1682,7 +1878,7 @@ export default function PatientDetailPage() {
                     <EditRow label="Email Address" name="email" value={editData.email} type="email" onChange={ec} />
                   </tbody></table>
 
-                  <h4 className="text-[15px] font-semibold mt-6 mb-3 pt-4" style={{ color: "var(--grey-800)", borderTop: "1px solid var(--grey-200)" }}>Address</h4>
+                  <h4 className="text-[17px] font-semibold mt-6 mb-3 pt-4" style={{ color: "var(--grey-800)", borderTop: "1px solid var(--grey-200)" }}>Address</h4>
                   <table className="w-full" style={{ borderCollapse: "collapse" }}><tbody>
                     <EditRow label="Street Address" name="address" value={editData.address} onChange={ec} />
                     <EditRow label="Locality" name="locality" value={editData.locality} onChange={ec} />
@@ -1701,7 +1897,7 @@ export default function PatientDetailPage() {
               {/* Treatment Progress */}
               {treatmentPackages.length > 0 && (
                 <div className="mb-5">
-                  <h3 className="text-[13px] font-bold uppercase tracking-wide mb-3" style={{ color: "var(--grey-600)" }}>Treatment Progress</h3>
+                  <h3 className="text-[15px] font-bold uppercase tracking-wide mb-3" style={{ color: "var(--grey-600)" }}>Treatment Progress</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {treatmentPackages.map((pkg) => {
                       const pct = pkg.sessionsTotal > 0 ? Math.round((pkg.sessionsCompleted / pkg.sessionsTotal) * 100) : 0;
@@ -1710,10 +1906,10 @@ export default function PatientDetailPage() {
                       return (
                         <div key={pkg.packageId} className="p-4" style={{ background: "var(--white)", border: "1px solid var(--grey-200)", borderRadius: "var(--radius)" }}>
                           <div className="flex items-center justify-between mb-1">
-                            <p className="text-[13px] font-semibold" style={{ color: "var(--grey-900)" }}>{pkg.treatmentName}</p>
-                            <span className="text-[11px] font-bold" style={{ color: barColor }}>{pct}%</span>
+                            <p className="text-[15px] font-semibold" style={{ color: "var(--grey-900)" }}>{pkg.treatmentName}</p>
+                            <span className="text-[13px] font-bold" style={{ color: barColor }}>{pct}%</span>
                           </div>
-                          <p className="text-[11px] mb-2" style={{ color: "var(--grey-500)" }}>{pkg.packageName} &middot; {pkg.sessionsCompleted} / {pkg.sessionsTotal} sessions</p>
+                          <p className="text-[13px] mb-2" style={{ color: "var(--grey-500)" }}>{pkg.packageName} &middot; {pkg.sessionsCompleted} / {pkg.sessionsTotal} sessions</p>
                           <div style={{ height: 6, background: "var(--grey-100)", borderRadius: 3, overflow: "hidden" }}>
                             <div style={{ width: `${pct}%`, height: "100%", background: barColor, borderRadius: 3, transition: "width 0.3s ease" }} />
                           </div>
@@ -1726,21 +1922,21 @@ export default function PatientDetailPage() {
 
               {/* Header with Book button */}
               <div className="flex items-center justify-between mb-5">
-                <h2 className="text-[14px] font-bold" style={{ color: "var(--grey-900)" }}>Appointments</h2>
-                <button onClick={openBookingForm} className="px-3 py-1.5 text-[12px] font-semibold text-white" style={{ background: "#2d6a4f", borderRadius: "var(--radius-sm)" }}>+ Book Appointment</button>
+                <h2 className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>Appointments</h2>
+                <button onClick={openBookingForm} className="px-3 py-1.5 text-[14px] font-semibold text-white" style={{ background: "#2d6a4f", borderRadius: "var(--radius-sm)" }}>+ Book Appointment</button>
               </div>
 
               {/* Booking Form */}
               {showBookingForm && (
                 <div className="p-5 mb-4 yoda-slide-in" style={{ background: "var(--white)", border: "1px solid var(--grey-200)", borderRadius: "var(--radius)" }}>
-                  <h3 className="text-[14px] font-semibold mb-4" style={{ color: "var(--grey-800)" }}>Book New Appointment</h3>
+                  <h3 className="text-[16px] font-semibold mb-4" style={{ color: "var(--grey-800)" }}>Book New Appointment</h3>
                   <div className="space-y-4">
                     {/* Doctor Picker */}
                     <div>
-                      <label className="text-[12px] font-medium mb-1.5 block" style={{ color: "var(--grey-600)" }}>Doctor *</label>
+                      <label className="text-[14px] font-medium mb-1.5 block" style={{ color: "var(--grey-600)" }}>Doctor *</label>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         {doctors.length === 0 ? (
-                          <p className="text-[12px] col-span-2" style={{ color: "var(--grey-400)" }}>Loading doctors...</p>
+                          <p className="text-[14px] col-span-2" style={{ color: "var(--grey-400)" }}>Loading doctors...</p>
                         ) : doctors.map((doc) => (
                           <button key={doc.id} onClick={() => { setBookingDoctorId(doc.id); setBookingDoctor(doc.name); setBookingDept(doc.department || ""); if (bookingDate) fetchSlots(doc.id, bookingDate); }}
                             className="flex items-center gap-3 p-3 text-left transition-all"
@@ -1749,12 +1945,12 @@ export default function PatientDetailPage() {
                               border: bookingDoctorId === doc.id ? "2px solid #2d6a4f" : "1px solid var(--grey-200)",
                               background: bookingDoctorId === doc.id ? "#f0faf4" : "var(--white)",
                             }}>
-                            <div className="w-9 h-9 flex items-center justify-center flex-shrink-0" style={{ background: bookingDoctorId === doc.id ? "#2d6a4f" : "var(--grey-100)", color: bookingDoctorId === doc.id ? "#fff" : "var(--grey-500)", borderRadius: "var(--radius-pill)", fontSize: "11px", fontWeight: 700 }}>
+                            <div className="w-9 h-9 flex items-center justify-center flex-shrink-0" style={{ background: bookingDoctorId === doc.id ? "#2d6a4f" : "var(--grey-100)", color: bookingDoctorId === doc.id ? "#fff" : "var(--grey-500)", borderRadius: "var(--radius-pill)", fontSize: "13px", fontWeight: 700 }}>
                               {doc.name.replace(/^Dr\.?\s*/i, "").split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
                             </div>
                             <div className="min-w-0">
-                              <p className="text-[13px] font-semibold truncate" style={{ color: bookingDoctorId === doc.id ? "#2d6a4f" : "var(--grey-900)" }}>{drName(doc.name)}</p>
-                              {doc.specialization && <p className="text-[11px] truncate" style={{ color: "var(--grey-500)" }}>{doc.specialization}</p>}
+                              <p className="text-[15px] font-semibold truncate" style={{ color: bookingDoctorId === doc.id ? "#2d6a4f" : "var(--grey-900)" }}>{drName(doc.name)}</p>
+                              {doc.specialization && <p className="text-[13px] truncate" style={{ color: "var(--grey-500)" }}>{doc.specialization}</p>}
                             </div>
                           </button>
                         ))}
@@ -1763,25 +1959,25 @@ export default function PatientDetailPage() {
 
                     {/* Date Picker */}
                     <div>
-                      <label className="text-[12px] font-medium mb-1.5 block" style={{ color: "var(--grey-600)" }}>Date *</label>
+                      <label className="text-[14px] font-medium mb-1.5 block" style={{ color: "var(--grey-600)" }}>Date *</label>
                       <input type="date" value={bookingDate} min={new Date().toISOString().split("T")[0]}
                         onChange={(e) => { setBookingDate(e.target.value); if (bookingDoctorId) fetchSlots(bookingDoctorId, e.target.value); }}
-                        className="w-full max-w-xs px-3 py-2 text-[13px]" style={inputStyle} />
+                        className="w-full max-w-xs px-3 py-2 text-[15px]" style={inputStyle} />
                     </div>
 
                     {/* Time Slots */}
                     {bookingDoctorId && bookingDate && (
                       <div>
-                        <label className="text-[12px] font-medium mb-1.5 block" style={{ color: "var(--grey-600)" }}>Time Slot *</label>
+                        <label className="text-[14px] font-medium mb-1.5 block" style={{ color: "var(--grey-600)" }}>Time Slot *</label>
                         {slotsLoading ? (
-                          <div className="flex items-center gap-2 py-3"><div className="w-4 h-4 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: "#2d6a4f", borderTopColor: "transparent" }} /><span className="text-[12px]" style={{ color: "var(--grey-500)" }}>Loading slots...</span></div>
+                          <div className="flex items-center gap-2 py-3"><div className="w-4 h-4 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: "#2d6a4f", borderTopColor: "transparent" }} /><span className="text-[14px]" style={{ color: "var(--grey-500)" }}>Loading slots...</span></div>
                         ) : bookingSlots.length === 0 ? (
-                          <p className="text-[12px] py-2" style={{ color: "var(--grey-400)" }}>No slots available for this date. The doctor may not have a schedule set for this day.</p>
+                          <p className="text-[14px] py-2" style={{ color: "var(--grey-400)" }}>No slots available for this date. The doctor may not have a schedule set for this day.</p>
                         ) : (
                           <div className="flex flex-wrap gap-1.5 max-h-44 overflow-y-auto py-1">
                             {bookingSlots.map((slot) => (
                               <button key={slot.time} disabled={!slot.available} onClick={() => setBookingTime(slot.time)}
-                                className="px-3 py-1.5 text-[12px] font-medium transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                                className="px-3 py-1.5 text-[14px] font-medium transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                                 style={{
                                   borderRadius: "var(--radius-sm)",
                                   border: bookingTime === slot.time ? "2px solid #2d6a4f" : "1px solid var(--grey-200)",
@@ -1794,7 +1990,7 @@ export default function PatientDetailPage() {
                           </div>
                         )}
                         {bookingSlots.length > 0 && (
-                          <p className="text-[10px] mt-1" style={{ color: "var(--grey-400)" }}>
+                          <p className="text-[12px] mt-1" style={{ color: "var(--grey-400)" }}>
                             {bookingSlots.filter(s => s.available).length} of {bookingSlots.length} slots available
                           </p>
                         )}
@@ -1804,17 +2000,17 @@ export default function PatientDetailPage() {
                     {/* Type & Reason */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div>
-                        <label className="text-[12px] font-medium mb-1.5 block" style={{ color: "var(--grey-600)" }}>Type</label>
+                        <label className="text-[14px] font-medium mb-1.5 block" style={{ color: "var(--grey-600)" }}>Type</label>
                         <div className="flex flex-wrap gap-1.5">
                           {[{ v: "consultation", l: "Consultation" }, { v: "follow-up", l: "Follow-up" }, { v: "procedure", l: "Procedure" }, { v: "emergency", l: "Emergency" }].map((t) => (
-                            <button key={t.v} onClick={() => setBookingType(t.v)} className="px-2.5 py-1 text-[11px] font-semibold transition-all"
+                            <button key={t.v} onClick={() => setBookingType(t.v)} className="px-2.5 py-1 text-[13px] font-semibold transition-all"
                               style={{ borderRadius: "var(--radius-sm)", border: bookingType === t.v ? "2px solid #2d6a4f" : "1px solid var(--grey-200)", background: bookingType === t.v ? "#f0faf4" : "var(--white)", color: bookingType === t.v ? "#2d6a4f" : "var(--grey-600)" }}>{t.l}</button>
                           ))}
                         </div>
                       </div>
                       <div>
-                        <label className="text-[12px] font-medium mb-1.5 block" style={{ color: "var(--grey-600)" }}>Reason (optional)</label>
-                        <input type="text" value={bookingReason} onChange={(e) => setBookingReason(e.target.value)} placeholder="e.g. Back pain, therapy session..." className="w-full px-3 py-2 text-[13px]" style={inputStyle} />
+                        <label className="text-[14px] font-medium mb-1.5 block" style={{ color: "var(--grey-600)" }}>Reason (optional)</label>
+                        <input type="text" value={bookingReason} onChange={(e) => setBookingReason(e.target.value)} placeholder="e.g. Back pain, therapy session..." className="w-full px-3 py-2 text-[15px]" style={inputStyle} />
                       </div>
                     </div>
 
@@ -1822,7 +2018,7 @@ export default function PatientDetailPage() {
                     {bookingDoctorId && bookingDate && bookingTime && (
                       <div className="px-4 py-3 flex items-center gap-3" style={{ background: "#f0faf4", borderRadius: "var(--radius-sm)", border: "1px solid #a7e3bd" }}>
                         <svg className="w-5 h-5 flex-shrink-0" style={{ color: "#2d6a4f" }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        <div className="text-[12px]" style={{ color: "#2d6a4f" }}>
+                        <div className="text-[14px]" style={{ color: "#2d6a4f" }}>
                           <strong>{drName(bookingDoctor)}</strong> &middot; {new Date(bookingDate + "T00:00").toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", year: "numeric" })} at <strong>{bookingTime}</strong>
                           {bookingReason && <span> &middot; {bookingReason}</span>}
                         </div>
@@ -1831,10 +2027,10 @@ export default function PatientDetailPage() {
 
                     <div className="flex gap-2 pt-1">
                       <button onClick={submitBooking} disabled={bookingSaving || !bookingDoctorId || !bookingDate || !bookingTime}
-                        className="px-5 py-2 text-[12px] font-semibold text-white disabled:opacity-50" style={{ background: "#2d6a4f", borderRadius: "var(--radius-sm)" }}>
+                        className="px-5 py-2 text-[14px] font-semibold text-white disabled:opacity-50" style={{ background: "#2d6a4f", borderRadius: "var(--radius-sm)" }}>
                         {bookingSaving ? "Booking..." : "Confirm Booking"}
                       </button>
-                      <button onClick={() => setShowBookingForm(false)} className="px-4 py-2 text-[12px] font-semibold" style={{ border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", color: "var(--grey-700)" }}>Cancel</button>
+                      <button onClick={() => setShowBookingForm(false)} className="px-4 py-2 text-[14px] font-semibold" style={{ border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", color: "var(--grey-700)" }}>Cancel</button>
                     </div>
                   </div>
                 </div>
@@ -1844,9 +2040,9 @@ export default function PatientDetailPage() {
               {patient.appointments.length === 0 && !showBookingForm ? (
                 <div className="py-16 text-center">
                   <svg className="w-10 h-10 mx-auto mb-3" style={{ color: "var(--grey-300)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                  <p className="text-[13px] font-medium" style={{ color: "var(--grey-500)" }}>No appointments scheduled</p>
-                  <p className="text-[11px] mt-1 mb-3" style={{ color: "var(--grey-400)" }}>Get started by booking this patient&apos;s first appointment</p>
-                  <button onClick={openBookingForm} className="px-4 py-2 text-[12px] font-semibold text-white" style={{ background: "#2d6a4f", borderRadius: "var(--radius-sm)" }}>+ Book Appointment</button>
+                  <p className="text-[15px] font-medium" style={{ color: "var(--grey-500)" }}>No appointments scheduled</p>
+                  <p className="text-[13px] mt-1 mb-3" style={{ color: "var(--grey-400)" }}>Get started by booking this patient&apos;s first appointment</p>
+                  <button onClick={openBookingForm} className="px-4 py-2 text-[14px] font-semibold text-white" style={{ background: "#2d6a4f", borderRadius: "var(--radius-sm)" }}>+ Book Appointment</button>
                 </div>
               ) : patient.appointments.length > 0 && (
                 <div className="space-y-2">{patient.appointments.map((a) => {
@@ -1860,18 +2056,18 @@ export default function PatientDetailPage() {
                             <svg className="w-4 h-4" style={{ color: isUpcoming ? "#2d6a4f" : "var(--grey-400)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                           </div>
                           <div>
-                            <p className="text-[13px] font-semibold" style={{ color: "var(--grey-900)" }}>{drName(a.doctor)}</p>
-                            {a.department && <p className="text-[11px]" style={{ color: "var(--grey-500)" }}>{a.department}</p>}
+                            <p className="text-[15px] font-semibold" style={{ color: "var(--grey-900)" }}>{drName(a.doctor)}</p>
+                            {a.department && <p className="text-[13px]" style={{ color: "var(--grey-500)" }}>{a.department}</p>}
                           </div>
                         </div>
-                        <span className="text-[10px] font-bold uppercase px-2 py-0.5" style={{
+                        <span className="text-[12px] font-bold uppercase px-2 py-0.5" style={{
                           borderRadius: "var(--radius-sm)",
                           background: a.status === "scheduled" ? "#f0faf4" : a.status === "completed" ? "var(--green-light)" : a.status === "cancelled" ? "var(--red-light, #fef2f2)" : "var(--grey-100)",
                           color: a.status === "scheduled" ? "#2d6a4f" : a.status === "completed" ? "var(--green)" : a.status === "cancelled" ? "var(--red)" : "var(--grey-600)",
                         }}>{a.status}</span>
                       </div>
                       <div className="ml-12 mt-1">
-                        <p className="text-[12px]" style={{ color: "var(--grey-600)" }}>
+                        <p className="text-[14px]" style={{ color: "var(--grey-600)" }}>
                           {formatDate(a.date)} at <strong>{a.time}</strong>
                           {a.reason && <span className="ml-1" style={{ color: "var(--grey-400)" }}>&middot; {a.reason}</span>}
                         </p>
@@ -1883,24 +2079,163 @@ export default function PatientDetailPage() {
             </div>
           )}
 
+          {/* ═══ PACKAGES ═══ */}
+          {activeSection === "packages" && (
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>Treatment Packages</h2>
+                <Link href={`/packages/new?patientId=${patient.id}&patientName=${encodeURIComponent(patient.firstName + " " + patient.lastName)}`}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-semibold text-white" style={{ background: "#2d6a4f", borderRadius: "var(--radius-sm)" }}>
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                  Buy Package
+                </Link>
+              </div>
+
+              {packagesLoading ? (
+                <div className="space-y-3">{[...Array(3)].map((_, i) => <div key={i} className="h-28 animate-pulse" style={{ background: "var(--grey-100)", borderRadius: "var(--radius)" }} />)}</div>
+              ) : patientPackages.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="w-14 h-14 mx-auto mb-3 flex items-center justify-center" style={{ background: "var(--grey-100)", borderRadius: "var(--radius-pill)" }}>
+                    <svg className="w-7 h-7" style={{ color: "var(--grey-400)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+                  </div>
+                  <p className="text-[15px] font-semibold" style={{ color: "var(--grey-600)" }}>No packages purchased yet</p>
+                  <Link href={`/packages/new?patientId=${patient.id}`} className="text-[14px] font-semibold mt-1 inline-block hover:underline" style={{ color: "#2d6a4f" }}>Buy a package</Link>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {patientPackages.map(pkg => {
+                    const progressPercent = pkg.totalSessions > 0 ? Math.round((pkg.usedSessions / pkg.totalSessions) * 100) : 0;
+                    const statusColors: Record<string, { bg: string; color: string }> = {
+                      active: { bg: "#e8f5e9", color: "var(--green)" },
+                      completed: { bg: "var(--grey-200)", color: "var(--grey-600)" },
+                      expired: { bg: "#ffebee", color: "var(--red)" },
+                      refunded: { bg: "#f3e5f5", color: "#7b1fa2" },
+                      cancelled: { bg: "#ffebee", color: "var(--red)" },
+                    };
+                    const sColor = statusColors[pkg.status] || statusColors.active;
+                    const isExpired = pkg.daysUntilExpiry <= 0;
+                    const isExpiringSoon = pkg.daysUntilExpiry > 0 && pkg.daysUntilExpiry <= 30;
+
+                    return (
+                      <div key={pkg.id} style={cardStyle}>
+                        {/* Package Header */}
+                        <div className="px-4 py-3 flex items-start justify-between" style={{ borderBottom: "1px solid var(--grey-200)" }}>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <Link href={`/packages/${pkg.id}`} className="text-[16px] font-bold hover:underline" style={{ color: "#2d6a4f" }}>
+                                {pkg.treatmentName}
+                              </Link>
+                              <span className="px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide" style={{ borderRadius: "var(--radius-sm)", background: sColor.bg, color: sColor.color }}>
+                                {pkg.status}
+                              </span>
+                            </div>
+                            <p className="text-[13px] mt-0.5" style={{ color: "var(--grey-500)" }}>
+                              {pkg.packageNumber} &middot; {pkg.packageName}
+                            </p>
+                          </div>
+                          <Link href={`/packages/${pkg.id}`} className="text-[13px] font-semibold hover:underline" style={{ color: "var(--blue-500)" }}>View Details</Link>
+                        </div>
+
+                        {/* Session Progress */}
+                        <div className="px-4 py-3">
+                          <div className="flex items-center justify-between mb-1.5">
+                            <span className="text-[14px] font-semibold" style={{ color: "var(--grey-700)" }}>Sessions Used</span>
+                            <span className="text-[15px] font-bold" style={{ color: "var(--grey-900)" }}>{pkg.usedSessions} / {pkg.totalSessions}</span>
+                          </div>
+                          <div className="w-full h-2.5 overflow-hidden" style={{ background: "var(--grey-200)", borderRadius: "var(--radius-pill)" }}>
+                            <div style={{ width: `${progressPercent}%`, height: "100%", background: pkg.status === "completed" ? "var(--grey-500)" : "#2d6a4f", borderRadius: "var(--radius-pill)", transition: "width 0.3s ease" }} />
+                          </div>
+                          <p className="text-[12px] mt-1" style={{ color: "var(--grey-500)" }}>
+                            {pkg.remainingSessions} session{pkg.remainingSessions !== 1 ? "s" : ""} remaining
+                          </p>
+                        </div>
+
+                        {/* Pricing & Expiry */}
+                        <div className="px-4 py-3 grid grid-cols-2 sm:grid-cols-4 gap-3" style={{ borderTop: "1px solid var(--grey-100)", background: "var(--grey-50)" }}>
+                          <div>
+                            <p className="text-[12px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-500)" }}>Package Price</p>
+                            <p className="text-[15px] font-bold" style={{ color: "var(--grey-900)" }}>S${pkg.totalPrice.toFixed(2)}</p>
+                          </div>
+                          <div>
+                            <p className="text-[12px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-500)" }}>Paid</p>
+                            <p className="text-[15px] font-bold" style={{ color: "var(--green)" }}>S${pkg.paidAmount.toFixed(2)}</p>
+                          </div>
+                          <div>
+                            <p className="text-[12px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-500)" }}>Balance</p>
+                            <p className="text-[15px] font-bold" style={{ color: pkg.balanceAmount > 0 ? "#f57c00" : "var(--grey-600)" }}>
+                              S${pkg.balanceAmount.toFixed(2)}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-[12px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-500)" }}>Expiry</p>
+                            <p className="text-[14px] font-semibold" style={{ color: isExpired ? "var(--red)" : isExpiringSoon ? "#f57c00" : "var(--grey-700)" }}>
+                              {new Date(pkg.expiryDate).toLocaleDateString("en-SG", { day: "2-digit", month: "short", year: "numeric" })}
+                              {isExpired && <span className="ml-1 text-[12px]">(Expired)</span>}
+                              {isExpiringSoon && <span className="ml-1 text-[12px]">({pkg.daysUntilExpiry}d left)</span>}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Recent Sessions */}
+                        {pkg.sessions.length > 0 && (
+                          <div className="px-4 py-2" style={{ borderTop: "1px solid var(--grey-100)" }}>
+                            <p className="text-[12px] font-bold uppercase tracking-wider mb-1.5" style={{ color: "var(--grey-500)" }}>Recent Sessions</p>
+                            <div className="space-y-1">
+                              {pkg.sessions.slice(-3).map(s => (
+                                <div key={s.id} className="flex items-center justify-between text-[13px]">
+                                  <span style={{ color: "var(--grey-700)" }}>
+                                    #{s.sessionNumber} &middot; {new Date(s.date).toLocaleDateString("en-SG", { day: "2-digit", month: "short" })}
+                                    {s.doctorName && <span style={{ color: "var(--grey-500)" }}> &middot; {s.doctorName}</span>}
+                                    {s.usedByName && <span style={{ color: "var(--blue-500)" }}> &middot; {s.usedByName}</span>}
+                                  </span>
+                                  <span className="px-1.5 py-px text-[9px] font-bold uppercase" style={{ borderRadius: "var(--radius-sm)", background: s.status === "completed" ? "#e8f5e9" : "#ffebee", color: s.status === "completed" ? "var(--green)" : "var(--red)" }}>
+                                    {s.status}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Sharing info */}
+                        {pkg.shares.length > 0 && (
+                          <div className="px-4 py-2" style={{ borderTop: "1px solid var(--grey-100)" }}>
+                            <p className="text-[12px] font-bold uppercase tracking-wider mb-1" style={{ color: "var(--grey-500)" }}>Shared With</p>
+                            <div className="flex flex-wrap gap-1.5">
+                              {pkg.shares.filter(s => s.isActive).map(s => (
+                                <span key={s.id} className="inline-flex items-center gap-1 px-2 py-0.5 text-[12px] font-semibold" style={{ background: "#e3f2fd", color: "var(--blue-500)", borderRadius: "var(--radius-pill)" }}>
+                                  {s.sharedWithName} <span style={{ color: "var(--grey-500)" }}>({s.relation})</span>
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* ═══ COMMUNICATIONS ═══ */}
           {activeSection === "communications" && (
             <div>
               <div className="mb-5">
-                <h2 className="text-[14px] font-bold" style={{ color: "var(--grey-900)" }}>Communications</h2>
-                <button onClick={() => setShowMsgForm(!showMsgForm)} className="px-3 py-1.5 text-[11px] font-semibold text-white" style={{ background: "#2d6a4f", borderRadius: "var(--radius-sm)" }}>+ New Message</button>
+                <h2 className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>Communications</h2>
+                <button onClick={() => setShowMsgForm(!showMsgForm)} className="px-3 py-1.5 text-[13px] font-semibold text-white" style={{ background: "#2d6a4f", borderRadius: "var(--radius-sm)" }}>+ New Message</button>
               </div>
               {showMsgForm && (
                 <div className="p-4 mb-4 yoda-slide-in" style={{ background: "var(--white)", border: "1px solid var(--grey-200)", borderRadius: "var(--radius)" }}>
                   <div className="space-y-3">
                     <div className="flex gap-2">{(["whatsapp", "email"] as const).map((t) => (
-                      <button key={t} onClick={() => setMsgType(t)} className="flex-1 px-3 py-2 text-[12px] font-semibold transition-all" style={{ borderRadius: "var(--radius-sm)", border: msgType === t ? `2px solid ${t === "whatsapp" ? "var(--green)" : "#2d6a4f"}` : "1px solid var(--grey-300)", background: msgType === t ? (t === "whatsapp" ? "var(--green-light)" : "#f0faf4") : "var(--white)", color: msgType === t ? (t === "whatsapp" ? "var(--green)" : "#2d6a4f") : "var(--grey-600)" }}>{t === "whatsapp" ? "WhatsApp" : "Email"}</button>
+                      <button key={t} onClick={() => setMsgType(t)} className="flex-1 px-3 py-2 text-[14px] font-semibold transition-all" style={{ borderRadius: "var(--radius-sm)", border: msgType === t ? `2px solid ${t === "whatsapp" ? "var(--green)" : "#2d6a4f"}` : "1px solid var(--grey-300)", background: msgType === t ? (t === "whatsapp" ? "var(--green-light)" : "#f0faf4") : "var(--white)", color: msgType === t ? (t === "whatsapp" ? "var(--green)" : "#2d6a4f") : "var(--grey-600)" }}>{t === "whatsapp" ? "WhatsApp" : "Email"}</button>
                     ))}</div>
                     {msgType === "email" && <input type="text" placeholder="Subject" value={msgSubject} onChange={(e) => setMsgSubject(e.target.value)} className="w-full px-3 py-2" style={inputStyle} />}
                     <textarea placeholder="Type your message..." value={msgBody} onChange={(e) => setMsgBody(e.target.value)} rows={3} className="w-full px-3 py-2" style={inputStyle} />
                     <div className="flex gap-2">
-                      <button onClick={sendMessage} disabled={sending || !msgBody.trim()} className="text-white px-4 py-1.5 text-[12px] font-semibold disabled:opacity-50" style={{ background: "#2d6a4f", borderRadius: "var(--radius-sm)" }}>{sending ? "Sending..." : "Send"}</button>
-                      <button onClick={() => setShowMsgForm(false)} className="px-4 py-1.5 text-[12px] font-semibold" style={{ border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", color: "var(--grey-700)" }}>Cancel</button>
+                      <button onClick={sendMessage} disabled={sending || !msgBody.trim()} className="text-white px-4 py-1.5 text-[14px] font-semibold disabled:opacity-50" style={{ background: "#2d6a4f", borderRadius: "var(--radius-sm)" }}>{sending ? "Sending..." : "Send"}</button>
+                      <button onClick={() => setShowMsgForm(false)} className="px-4 py-1.5 text-[14px] font-semibold" style={{ border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", color: "var(--grey-700)" }}>Cancel</button>
                     </div>
                   </div>
                 </div>
@@ -1908,8 +2243,8 @@ export default function PatientDetailPage() {
               {patient.communications.length === 0 ? (
                 <div className="py-16 text-center">
                   <svg className="w-10 h-10 mx-auto mb-3" style={{ color: "var(--grey-300)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
-                  <p className="text-[13px] font-medium" style={{ color: "var(--grey-500)" }}>No messages sent yet</p>
-                  <p className="text-[11px] mt-1" style={{ color: "var(--grey-400)" }}>Send a WhatsApp or email using &quot;+ New Message&quot; above</p>
+                  <p className="text-[15px] font-medium" style={{ color: "var(--grey-500)" }}>No messages sent yet</p>
+                  <p className="text-[13px] mt-1" style={{ color: "var(--grey-400)" }}>Send a WhatsApp or email using &quot;+ New Message&quot; above</p>
                 </div>
               ) : (
                 <div className="space-y-2">{patient.communications.map((c) => (
@@ -1917,12 +2252,12 @@ export default function PatientDetailPage() {
                     <div className="flex items-center justify-between mb-1">
                       <div className="flex items-center gap-2">
                         <span className="px-2 py-0.5 text-[9px] font-bold uppercase" style={{ borderRadius: "var(--radius-sm)", background: c.type === "whatsapp" ? "var(--green-light)" : "#f0faf4", color: c.type === "whatsapp" ? "var(--green)" : "#2d6a4f" }}>{c.type}</span>
-                        {c.subject && <span className="text-[12px] font-semibold" style={{ color: "var(--grey-900)" }}>{c.subject}</span>}
+                        {c.subject && <span className="text-[14px] font-semibold" style={{ color: "var(--grey-900)" }}>{c.subject}</span>}
                       </div>
                       <span className="text-[9px] font-bold uppercase" style={{ color: c.status === "sent" ? "var(--green)" : "var(--red)" }}>{c.status}</span>
                     </div>
-                    <p className="text-[12px] line-clamp-2" style={{ color: "var(--grey-700)" }}>{c.message}</p>
-                    <p className="text-[10px] mt-1" style={{ color: "var(--grey-400)" }}>{formatDate(c.sentAt)}</p>
+                    <p className="text-[14px] line-clamp-2" style={{ color: "var(--grey-700)" }}>{c.message}</p>
+                    <p className="text-[12px] mt-1" style={{ color: "var(--grey-400)" }}>{formatDate(c.sentAt)}</p>
                   </div>
                 ))}</div>
               )}
@@ -1933,23 +2268,23 @@ export default function PatientDetailPage() {
           {activeSection === "prescriptions" && (
             <div>
               <div className="flex items-center justify-between mb-5">
-                <h2 className="text-[15px] font-semibold" style={{ color: "var(--grey-800)" }}>Prescriptions</h2>
-                <button onClick={openRxForm} className="px-3 py-1.5 text-[12px] font-semibold text-white" style={{ background: "#2d6a4f", borderRadius: "var(--radius-sm)" }}>+ New Prescription</button>
+                <h2 className="text-[17px] font-semibold" style={{ color: "var(--grey-800)" }}>Prescriptions</h2>
+                <button onClick={openRxForm} className="px-3 py-1.5 text-[14px] font-semibold text-white" style={{ background: "#2d6a4f", borderRadius: "var(--radius-sm)" }}>+ New Prescription</button>
               </div>
 
               {/* Prescription Form */}
               {showRxForm && (
                 <div className="mb-6 p-5" style={cardStyle}>
-                  <h3 className="text-[14px] font-bold mb-4" style={{ color: "var(--grey-900)" }}>New Prescription</h3>
+                  <h3 className="text-[16px] font-bold mb-4" style={{ color: "var(--grey-900)" }}>New Prescription</h3>
 
                   {/* Doctor picker */}
                   <div className="grid grid-cols-2 gap-4 mb-4">
                     <div>
-                      <label className="text-[11px] font-medium mb-1 block" style={{ color: "var(--grey-600)" }}>Prescribing Doctor *</label>
+                      <label className="text-[13px] font-medium mb-1 block" style={{ color: "var(--grey-600)" }}>Prescribing Doctor *</label>
                       <div className="flex flex-wrap gap-1.5">
                         {doctors.map(doc => (
                           <button key={doc.id} onClick={() => { setRxDoctor(doc.name); setRxDoctorId(doc.id); }}
-                            className="px-2.5 py-1 text-[11px] font-medium transition-all"
+                            className="px-2.5 py-1 text-[13px] font-medium transition-all"
                             style={{
                               borderRadius: "var(--radius-sm)",
                               border: rxDoctorId === doc.id ? "2px solid #2d6a4f" : "1px solid var(--grey-200)",
@@ -1962,29 +2297,29 @@ export default function PatientDetailPage() {
                       </div>
                     </div>
                     <div>
-                      <label className="text-[11px] font-medium mb-1 block" style={{ color: "var(--grey-600)" }}>Diagnosis</label>
-                      <input value={rxDiagnosis} onChange={e => setRxDiagnosis(e.target.value)} placeholder="e.g. Lower back pain, Vata imbalance" className="w-full px-3 py-2 text-[13px]" style={inputStyle} />
+                      <label className="text-[13px] font-medium mb-1 block" style={{ color: "var(--grey-600)" }}>Diagnosis</label>
+                      <input value={rxDiagnosis} onChange={e => setRxDiagnosis(e.target.value)} placeholder="e.g. Lower back pain, Vata imbalance" className="w-full px-3 py-2 text-[15px]" style={inputStyle} />
                     </div>
                   </div>
 
                   {/* Medicine items */}
-                  <label className="text-[11px] font-medium mb-2 block" style={{ color: "var(--grey-600)" }}>Medicines *</label>
+                  <label className="text-[13px] font-medium mb-2 block" style={{ color: "var(--grey-600)" }}>Medicines *</label>
                   <div className="space-y-3 mb-4">
                     {rxItems.map((item, idx) => (
                       <div key={idx} className="p-3 relative" style={{ background: "var(--grey-50)", borderRadius: "var(--radius-sm)", border: "1px solid var(--grey-200)" }}>
                         <div className="flex items-center gap-2 mb-2">
-                          <span className="w-5 h-5 flex items-center justify-center text-[10px] font-bold flex-shrink-0" style={{ background: "#2d6a4f", color: "#fff", borderRadius: "var(--radius-pill)" }}>{idx + 1}</span>
+                          <span className="w-5 h-5 flex items-center justify-center text-[12px] font-bold flex-shrink-0" style={{ background: "#2d6a4f", color: "#fff", borderRadius: "var(--radius-pill)" }}>{idx + 1}</span>
                           <div className="flex-1 relative">
                             <input value={item.medicineName} placeholder="Medicine name..."
                               onChange={e => { updateRxItem(idx, "medicineName", e.target.value); setActiveMedIdx(idx); searchMedicines(e.target.value); }}
                               onFocus={() => setActiveMedIdx(idx)}
-                              className="w-full px-3 py-1.5 text-[13px] font-semibold" style={inputStyle} />
+                              className="w-full px-3 py-1.5 text-[15px] font-semibold" style={inputStyle} />
                             {activeMedIdx === idx && medicineSuggestions.length > 0 && (
                               <div className="absolute left-0 top-full mt-1 w-full z-50 py-1 max-h-32 overflow-y-auto" style={{ background: "var(--white)", border: "1px solid var(--grey-200)", borderRadius: "var(--radius-sm)", boxShadow: "var(--shadow-lg)" }}>
                                 {medicineSuggestions.map(s => (
                                   <button key={s.id} onClick={() => { updateRxItem(idx, "medicineName", s.name); updateRxItem(idx, "inventoryItemId" as keyof PrescriptionItem, s.id); setMedicineSuggestions([]); setActiveMedIdx(null); }}
-                                    className="w-full text-left px-3 py-1.5 text-[12px] hover:bg-gray-50 transition-colors" style={{ color: "var(--grey-700)" }}>
-                                    <span className="font-semibold">{s.name}</span> <span className="text-[10px]" style={{ color: "var(--grey-400)" }}>({s.unit})</span>
+                                    className="w-full text-left px-3 py-1.5 text-[14px] hover:bg-gray-50 transition-colors" style={{ color: "var(--grey-700)" }}>
+                                    <span className="font-semibold">{s.name}</span> <span className="text-[12px]" style={{ color: "var(--grey-400)" }}>({s.unit})</span>
                                   </button>
                                 ))}
                               </div>
@@ -1999,62 +2334,62 @@ export default function PatientDetailPage() {
                         <div className="grid grid-cols-5 gap-2">
                           <div>
                             <label className="text-[9px] font-medium uppercase" style={{ color: "var(--grey-500)" }}>Dosage *</label>
-                            <input value={item.dosage} onChange={e => updateRxItem(idx, "dosage", e.target.value)} placeholder="e.g. 10ml, 2 tabs" className="w-full px-2 py-1 text-[12px]" style={inputStyle} />
+                            <input value={item.dosage} onChange={e => updateRxItem(idx, "dosage", e.target.value)} placeholder="e.g. 10ml, 2 tabs" className="w-full px-2 py-1 text-[14px]" style={inputStyle} />
                           </div>
                           <div>
                             <label className="text-[9px] font-medium uppercase" style={{ color: "var(--grey-500)" }}>Frequency</label>
-                            <select value={item.frequency} onChange={e => updateRxItem(idx, "frequency", e.target.value)} className="w-full px-2 py-1 text-[12px]" style={inputStyle}>
+                            <select value={item.frequency} onChange={e => updateRxItem(idx, "frequency", e.target.value)} className="w-full px-2 py-1 text-[14px]" style={inputStyle}>
                               {FREQ_OPTIONS.map(f => <option key={f.value} value={f.value}>{f.short} — {f.label}</option>)}
                             </select>
                           </div>
                           <div>
                             <label className="text-[9px] font-medium uppercase" style={{ color: "var(--grey-500)" }}>Timing</label>
-                            <select value={item.timing} onChange={e => updateRxItem(idx, "timing", e.target.value)} className="w-full px-2 py-1 text-[12px]" style={inputStyle}>
+                            <select value={item.timing} onChange={e => updateRxItem(idx, "timing", e.target.value)} className="w-full px-2 py-1 text-[14px]" style={inputStyle}>
                               {TIMING_OPTIONS.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                             </select>
                           </div>
                           <div>
                             <label className="text-[9px] font-medium uppercase" style={{ color: "var(--grey-500)" }}>Duration *</label>
-                            <input value={item.duration} onChange={e => updateRxItem(idx, "duration", e.target.value)} placeholder="e.g. 7 days" className="w-full px-2 py-1 text-[12px]" style={inputStyle} />
+                            <input value={item.duration} onChange={e => updateRxItem(idx, "duration", e.target.value)} placeholder="e.g. 7 days" className="w-full px-2 py-1 text-[14px]" style={inputStyle} />
                           </div>
                           <div>
                             <label className="text-[9px] font-medium uppercase" style={{ color: "var(--grey-500)" }}>Qty</label>
-                            <input type="number" value={item.quantity ?? ""} onChange={e => updateRxItem(idx, "quantity", e.target.value ? parseInt(e.target.value) : null)} placeholder="—" className="w-full px-2 py-1 text-[12px]" style={inputStyle} />
+                            <input type="number" value={item.quantity ?? ""} onChange={e => updateRxItem(idx, "quantity", e.target.value ? parseInt(e.target.value) : null)} placeholder="—" className="w-full px-2 py-1 text-[14px]" style={inputStyle} />
                           </div>
                         </div>
                         <div className="mt-2">
-                          <input value={item.instructions} onChange={e => updateRxItem(idx, "instructions", e.target.value)} placeholder="Special instructions (optional)" className="w-full px-2 py-1 text-[11px]" style={{ ...inputStyle, border: "1px dashed var(--grey-300)" }} />
+                          <input value={item.instructions} onChange={e => updateRxItem(idx, "instructions", e.target.value)} placeholder="Special instructions (optional)" className="w-full px-2 py-1 text-[13px]" style={{ ...inputStyle, border: "1px dashed var(--grey-300)" }} />
                         </div>
                       </div>
                     ))}
-                    <button onClick={addRxItem} className="w-full py-2 text-[12px] font-medium border-2 border-dashed hover:bg-gray-50 transition-colors" style={{ borderColor: "var(--grey-300)", color: "var(--grey-500)", borderRadius: "var(--radius-sm)" }}>+ Add Medicine</button>
+                    <button onClick={addRxItem} className="w-full py-2 text-[14px] font-medium border-2 border-dashed hover:bg-gray-50 transition-colors" style={{ borderColor: "var(--grey-300)", color: "var(--grey-500)", borderRadius: "var(--radius-sm)" }}>+ Add Medicine</button>
                   </div>
 
                   {/* Notes */}
                   <div className="mb-4">
-                    <label className="text-[11px] font-medium mb-1 block" style={{ color: "var(--grey-600)" }}>Additional Notes</label>
-                    <textarea value={rxNotes} onChange={e => setRxNotes(e.target.value)} rows={2} placeholder="Dietary advice, lifestyle recommendations..." className="w-full px-3 py-2 text-[13px]" style={inputStyle} />
+                    <label className="text-[13px] font-medium mb-1 block" style={{ color: "var(--grey-600)" }}>Additional Notes</label>
+                    <textarea value={rxNotes} onChange={e => setRxNotes(e.target.value)} rows={2} placeholder="Dietary advice, lifestyle recommendations..." className="w-full px-3 py-2 text-[15px]" style={inputStyle} />
                   </div>
 
                   {/* Actions */}
                   <div className="flex items-center gap-2">
-                    <button onClick={saveRx} disabled={rxSaving} className="px-4 py-2 text-[12px] font-semibold text-white disabled:opacity-50" style={{ background: "#2d6a4f", borderRadius: "var(--radius-sm)" }}>
+                    <button onClick={saveRx} disabled={rxSaving} className="px-4 py-2 text-[14px] font-semibold text-white disabled:opacity-50" style={{ background: "#2d6a4f", borderRadius: "var(--radius-sm)" }}>
                       {rxSaving ? "Saving..." : "Save Prescription"}
                     </button>
-                    <button onClick={() => setShowRxForm(false)} className="px-4 py-2 text-[12px] font-semibold" style={{ background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", color: "var(--grey-700)" }}>Cancel</button>
+                    <button onClick={() => setShowRxForm(false)} className="px-4 py-2 text-[14px] font-semibold" style={{ background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", color: "var(--grey-700)" }}>Cancel</button>
                   </div>
                 </div>
               )}
 
               {/* Prescription List */}
               {prescriptionsLoading ? (
-                <div className="flex items-center gap-2 py-8 justify-center"><div className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: "#2d6a4f", borderTopColor: "transparent" }} /><span className="text-[12px]" style={{ color: "var(--grey-500)" }}>Loading prescriptions...</span></div>
+                <div className="flex items-center gap-2 py-8 justify-center"><div className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: "#2d6a4f", borderTopColor: "transparent" }} /><span className="text-[14px]" style={{ color: "var(--grey-500)" }}>Loading prescriptions...</span></div>
               ) : prescriptions.length === 0 && !showRxForm ? (
                 <div className="py-12 text-center" style={cardStyle}>
                   <svg className="w-10 h-10 mx-auto mb-3" style={{ color: "var(--grey-300)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.2} d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg>
-                  <p className="text-[13px] font-medium mb-1" style={{ color: "var(--grey-500)" }}>No prescriptions yet</p>
-                  <p className="text-[11px] mb-4" style={{ color: "var(--grey-400)" }}>Create a prescription with medicines, dosage, and frequency for this patient.</p>
-                  <button onClick={openRxForm} className="px-3 py-1.5 text-[12px] font-semibold text-white" style={{ background: "#2d6a4f", borderRadius: "var(--radius-sm)" }}>+ New Prescription</button>
+                  <p className="text-[15px] font-medium mb-1" style={{ color: "var(--grey-500)" }}>No prescriptions yet</p>
+                  <p className="text-[13px] mb-4" style={{ color: "var(--grey-400)" }}>Create a prescription with medicines, dosage, and frequency for this patient.</p>
+                  <button onClick={openRxForm} className="px-3 py-1.5 text-[14px] font-semibold text-white" style={{ background: "#2d6a4f", borderRadius: "var(--radius-sm)" }}>+ New Prescription</button>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -2067,8 +2402,8 @@ export default function PatientDetailPage() {
                             <svg className="w-4 h-4" style={{ color: rx.status === "active" ? "#059669" : "var(--grey-400)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" /></svg>
                           </div>
                           <div>
-                            <p className="text-[13px] font-bold" style={{ color: "var(--grey-900)" }}>{rx.prescriptionNo}</p>
-                            <p className="text-[11px]" style={{ color: "var(--grey-500)" }}>{drName(rx.doctorName)} &middot; {formatDate(rx.date)}</p>
+                            <p className="text-[15px] font-bold" style={{ color: "var(--grey-900)" }}>{rx.prescriptionNo}</p>
+                            <p className="text-[13px]" style={{ color: "var(--grey-500)" }}>{drName(rx.doctorName)} &middot; {formatDate(rx.date)}</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
@@ -2089,20 +2424,20 @@ export default function PatientDetailPage() {
                       {rx.diagnosis && (
                         <div className="px-4 py-2" style={{ background: "#faf3e6", borderBottom: "1px solid #f0e6cc" }}>
                           <span className="text-[9px] font-bold uppercase" style={{ color: "#8b6914" }}>Diagnosis: </span>
-                          <span className="text-[12px] font-semibold" style={{ color: "#5c4813" }}>{rx.diagnosis}</span>
+                          <span className="text-[14px] font-semibold" style={{ color: "#5c4813" }}>{rx.diagnosis}</span>
                         </div>
                       )}
                       {/* Medicine table */}
                       <div className="overflow-x-auto">
-                        <table className="w-full text-[12px]">
+                        <table className="w-full text-[14px]">
                           <thead>
                             <tr style={{ background: "var(--grey-50)" }}>
-                              <th className="text-left px-4 py-2 text-[10px] font-semibold uppercase" style={{ color: "var(--grey-500)" }}>#</th>
-                              <th className="text-left px-4 py-2 text-[10px] font-semibold uppercase" style={{ color: "var(--grey-500)" }}>Medicine</th>
-                              <th className="text-left px-4 py-2 text-[10px] font-semibold uppercase" style={{ color: "var(--grey-500)" }}>Dosage</th>
-                              <th className="text-left px-4 py-2 text-[10px] font-semibold uppercase" style={{ color: "var(--grey-500)" }}>Frequency</th>
-                              <th className="text-left px-4 py-2 text-[10px] font-semibold uppercase" style={{ color: "var(--grey-500)" }}>Timing</th>
-                              <th className="text-left px-4 py-2 text-[10px] font-semibold uppercase" style={{ color: "var(--grey-500)" }}>Duration</th>
+                              <th className="text-left px-4 py-2 text-[12px] font-semibold uppercase" style={{ color: "var(--grey-500)" }}>#</th>
+                              <th className="text-left px-4 py-2 text-[12px] font-semibold uppercase" style={{ color: "var(--grey-500)" }}>Medicine</th>
+                              <th className="text-left px-4 py-2 text-[12px] font-semibold uppercase" style={{ color: "var(--grey-500)" }}>Dosage</th>
+                              <th className="text-left px-4 py-2 text-[12px] font-semibold uppercase" style={{ color: "var(--grey-500)" }}>Frequency</th>
+                              <th className="text-left px-4 py-2 text-[12px] font-semibold uppercase" style={{ color: "var(--grey-500)" }}>Timing</th>
+                              <th className="text-left px-4 py-2 text-[12px] font-semibold uppercase" style={{ color: "var(--grey-500)" }}>Duration</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -2111,14 +2446,14 @@ export default function PatientDetailPage() {
                                 <td className="px-4 py-2 font-medium" style={{ color: "var(--grey-400)" }}>{i + 1}</td>
                                 <td className="px-4 py-2">
                                   <span className="font-semibold" style={{ color: "var(--grey-900)" }}>{item.medicineName}</span>
-                                  {item.instructions && <p className="text-[10px] mt-0.5" style={{ color: "var(--grey-400)" }}>{item.instructions}</p>}
+                                  {item.instructions && <p className="text-[12px] mt-0.5" style={{ color: "var(--grey-400)" }}>{item.instructions}</p>}
                                 </td>
                                 <td className="px-4 py-2 font-medium" style={{ color: "var(--grey-700)" }}>{item.dosage}</td>
                                 <td className="px-4 py-2">
-                                  <span className="px-1.5 py-0.5 text-[10px] font-bold" style={{ background: "#f0faf4", color: "#2d6a4f", borderRadius: "var(--radius-sm)" }}>{freqShort(item.frequency)}</span>
-                                  <span className="ml-1 text-[10px]" style={{ color: "var(--grey-400)" }}>{freqLabel(item.frequency)}</span>
+                                  <span className="px-1.5 py-0.5 text-[12px] font-bold" style={{ background: "#f0faf4", color: "#2d6a4f", borderRadius: "var(--radius-sm)" }}>{freqShort(item.frequency)}</span>
+                                  <span className="ml-1 text-[12px]" style={{ color: "var(--grey-400)" }}>{freqLabel(item.frequency)}</span>
                                 </td>
-                                <td className="px-4 py-2 text-[11px]" style={{ color: "var(--grey-600)" }}>{timingLabel(item.timing)}</td>
+                                <td className="px-4 py-2 text-[13px]" style={{ color: "var(--grey-600)" }}>{timingLabel(item.timing)}</td>
                                 <td className="px-4 py-2 font-medium" style={{ color: "var(--grey-700)" }}>{item.duration}</td>
                               </tr>
                             ))}
@@ -2128,7 +2463,7 @@ export default function PatientDetailPage() {
                       {/* Notes */}
                       {rx.notes && (
                         <div className="px-4 py-2.5" style={{ background: "var(--grey-50)", borderTop: "1px solid var(--grey-200)" }}>
-                          <p className="text-[11px]" style={{ color: "var(--grey-500)" }}><strong>Notes:</strong> {rx.notes}</p>
+                          <p className="text-[13px]" style={{ color: "var(--grey-500)" }}><strong>Notes:</strong> {rx.notes}</p>
                         </div>
                       )}
                     </div>
@@ -2142,17 +2477,17 @@ export default function PatientDetailPage() {
           {activeSection === "clinical" && (
             <div>
               <div className="flex items-center justify-between mb-5">
-                <h2 className="text-[15px] font-semibold" style={{ color: "var(--grey-800)" }}>Clinical Notes</h2>
+                <h2 className="text-[17px] font-semibold" style={{ color: "var(--grey-800)" }}>Clinical Notes</h2>
                 <button onClick={() => { setShowNoteForm(true); setEditingNoteId(null); setNoteTitle(""); setNoteContent(""); setNoteDoctor(""); setNoteType("present_illness"); }}
-                  className="px-3 py-1.5 text-[12px] font-semibold text-white" style={{ background: "#2d6a4f", borderRadius: "var(--radius-sm)" }}>+ Add Note</button>
+                  className="px-3 py-1.5 text-[14px] font-semibold text-white" style={{ background: "#2d6a4f", borderRadius: "var(--radius-sm)" }}>+ Add Note</button>
               </div>
 
               {/* Filter tabs */}
               <div className="flex flex-wrap gap-1.5 mb-4">
-                <button onClick={() => setNoteFilter("all")} className="px-3 py-1 text-[11px] font-semibold"
+                <button onClick={() => setNoteFilter("all")} className="px-3 py-1 text-[13px] font-semibold"
                   style={{ borderRadius: "var(--radius-pill)", background: noteFilter === "all" ? "#2d6a4f" : "var(--white)", color: noteFilter === "all" ? "#fff" : "var(--grey-600)", border: noteFilter === "all" ? "none" : "1px solid var(--grey-300)" }}>All</button>
                 {NOTE_TYPES.map(t => (
-                  <button key={t.value} onClick={() => setNoteFilter(t.value)} className="px-3 py-1 text-[11px] font-semibold"
+                  <button key={t.value} onClick={() => setNoteFilter(t.value)} className="px-3 py-1 text-[13px] font-semibold"
                     style={{ borderRadius: "var(--radius-pill)", background: noteFilter === t.value ? "#2d6a4f" : "var(--white)", color: noteFilter === t.value ? "#fff" : "var(--grey-600)", border: noteFilter === t.value ? "none" : "1px solid var(--grey-300)" }}>{t.label}</button>
                 ))}
               </div>
@@ -2160,32 +2495,32 @@ export default function PatientDetailPage() {
               {/* Note Form */}
               {showNoteForm && (
                 <div className="p-5 mb-4 yoda-slide-in" style={{ background: "var(--white)", border: "1px solid var(--grey-200)", borderRadius: "var(--radius)" }}>
-                  <h3 className="text-[14px] font-semibold mb-4" style={{ color: "var(--grey-800)" }}>{editingNoteId ? "Edit Clinical Note" : "New Clinical Note"}</h3>
+                  <h3 className="text-[16px] font-semibold mb-4" style={{ color: "var(--grey-800)" }}>{editingNoteId ? "Edit Clinical Note" : "New Clinical Note"}</h3>
                   <div className="space-y-3">
                     <div>
-                      <label className="text-[12px] font-medium mb-1 block" style={{ color: "var(--grey-600)" }}>Note Type</label>
+                      <label className="text-[14px] font-medium mb-1 block" style={{ color: "var(--grey-600)" }}>Note Type</label>
                       <div className="flex flex-wrap gap-1.5">
                         {NOTE_TYPES.map(t => (
-                          <button key={t.value} onClick={() => setNoteType(t.value)} className="px-3 py-1.5 text-[11px] font-semibold transition-all"
+                          <button key={t.value} onClick={() => setNoteType(t.value)} className="px-3 py-1.5 text-[13px] font-semibold transition-all"
                             style={{ borderRadius: "var(--radius-sm)", border: noteType === t.value ? "2px solid #2d6a4f" : "1px solid var(--grey-300)", background: noteType === t.value ? "#f0faf4" : "var(--white)", color: noteType === t.value ? "#2d6a4f" : "var(--grey-600)" }}>{t.label}</button>
                         ))}
                       </div>
                     </div>
                     <div>
-                      <label className="text-[12px] font-medium mb-1 block" style={{ color: "var(--grey-600)" }}>Title *</label>
-                      <input type="text" value={noteTitle} onChange={e => setNoteTitle(e.target.value)} placeholder="e.g. Chief complaint, Follow-up assessment..." className="w-full px-3 py-2 text-[13px]" style={inputStyle} />
+                      <label className="text-[14px] font-medium mb-1 block" style={{ color: "var(--grey-600)" }}>Title *</label>
+                      <input type="text" value={noteTitle} onChange={e => setNoteTitle(e.target.value)} placeholder="e.g. Chief complaint, Follow-up assessment..." className="w-full px-3 py-2 text-[15px]" style={inputStyle} />
                     </div>
                     <div>
-                      <label className="text-[12px] font-medium mb-1 block" style={{ color: "var(--grey-600)" }}>Content *</label>
-                      <textarea value={noteContent} onChange={e => setNoteContent(e.target.value)} placeholder="Enter clinical details..." rows={5} className="w-full px-3 py-2 text-[13px]" style={inputStyle} />
+                      <label className="text-[14px] font-medium mb-1 block" style={{ color: "var(--grey-600)" }}>Content *</label>
+                      <textarea value={noteContent} onChange={e => setNoteContent(e.target.value)} placeholder="Enter clinical details..." rows={5} className="w-full px-3 py-2 text-[15px]" style={inputStyle} />
                     </div>
                     <div>
-                      <label className="text-[12px] font-medium mb-1 block" style={{ color: "var(--grey-600)" }}>Doctor / Clinician</label>
-                      <input type="text" value={noteDoctor} onChange={e => setNoteDoctor(e.target.value)} placeholder="Dr. Name" className="w-full max-w-xs px-3 py-2 text-[13px]" style={inputStyle} />
+                      <label className="text-[14px] font-medium mb-1 block" style={{ color: "var(--grey-600)" }}>Doctor / Clinician</label>
+                      <input type="text" value={noteDoctor} onChange={e => setNoteDoctor(e.target.value)} placeholder="Dr. Name" className="w-full max-w-xs px-3 py-2 text-[15px]" style={inputStyle} />
                     </div>
                     <div className="flex gap-2 pt-1">
-                      <button onClick={saveClinicalNote} disabled={savingNote} className="px-4 py-1.5 text-[12px] font-semibold text-white disabled:opacity-50" style={{ background: "#2d6a4f", borderRadius: "var(--radius-sm)" }}>{savingNote ? "Saving..." : editingNoteId ? "Update Note" : "Save Note"}</button>
-                      <button onClick={() => { setShowNoteForm(false); setEditingNoteId(null); }} className="px-4 py-1.5 text-[12px] font-semibold" style={{ border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", color: "var(--grey-700)" }}>Cancel</button>
+                      <button onClick={saveClinicalNote} disabled={savingNote} className="px-4 py-1.5 text-[14px] font-semibold text-white disabled:opacity-50" style={{ background: "#2d6a4f", borderRadius: "var(--radius-sm)" }}>{savingNote ? "Saving..." : editingNoteId ? "Update Note" : "Save Note"}</button>
+                      <button onClick={() => { setShowNoteForm(false); setEditingNoteId(null); }} className="px-4 py-1.5 text-[14px] font-semibold" style={{ border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", color: "var(--grey-700)" }}>Cancel</button>
                     </div>
                   </div>
                 </div>
@@ -2195,8 +2530,8 @@ export default function PatientDetailPage() {
               {clinicalNotes.filter(n => noteFilter === "all" || n.type === noteFilter).length === 0 ? (
                 <div className="py-16 text-center">
                   <svg className="w-10 h-10 mx-auto mb-3" style={{ color: "var(--grey-300)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
-                  <p className="text-[13px] font-medium" style={{ color: "var(--grey-500)" }}>No clinical notes yet</p>
-                  <p className="text-[11px] mt-1" style={{ color: "var(--grey-400)" }}>Click &quot;+ Add Note&quot; to record present illness, past history, and more</p>
+                  <p className="text-[15px] font-medium" style={{ color: "var(--grey-500)" }}>No clinical notes yet</p>
+                  <p className="text-[13px] mt-1" style={{ color: "var(--grey-400)" }}>Click &quot;+ Add Note&quot; to record present illness, past history, and more</p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -2216,8 +2551,8 @@ export default function PatientDetailPage() {
                       <div key={note.id} className="p-4" style={{ background: "var(--white)", border: "1px solid var(--grey-200)", borderRadius: "var(--radius)" }}>
                         <div className="flex items-start justify-between mb-2">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="px-2 py-0.5 text-[10px] font-bold uppercase" style={{ borderRadius: "var(--radius-sm)", background: tc.bg, color: tc.color }}>{typeLabel}</span>
-                            <h4 className="text-[13px] font-semibold" style={{ color: "var(--grey-900)" }}>{note.title}</h4>
+                            <span className="px-2 py-0.5 text-[12px] font-bold uppercase" style={{ borderRadius: "var(--radius-sm)", background: tc.bg, color: tc.color }}>{typeLabel}</span>
+                            <h4 className="text-[15px] font-semibold" style={{ color: "var(--grey-900)" }}>{note.title}</h4>
                           </div>
                           <div className="flex items-center gap-1 flex-shrink-0">
                             <button onClick={() => editClinicalNote(note)} className="p-1 hover:bg-gray-100 rounded" style={{ color: "var(--grey-500)" }} title="Edit">
@@ -2228,10 +2563,10 @@ export default function PatientDetailPage() {
                             </button>
                           </div>
                         </div>
-                        <p className="text-[12px] leading-relaxed whitespace-pre-wrap" style={{ color: "var(--grey-700)" }}>{note.content}</p>
+                        <p className="text-[14px] leading-relaxed whitespace-pre-wrap" style={{ color: "var(--grey-700)" }}>{note.content}</p>
                         <div className="flex items-center gap-3 mt-3 pt-2" style={{ borderTop: "1px solid var(--grey-100)" }}>
-                          {note.doctor && <span className="text-[11px]" style={{ color: "var(--grey-500)" }}>By: <strong>{note.doctor}</strong></span>}
-                          <span className="text-[11px]" style={{ color: "var(--grey-400)" }}>{formatDate(note.createdAt)}</span>
+                          {note.doctor && <span className="text-[13px]" style={{ color: "var(--grey-500)" }}>By: <strong>{note.doctor}</strong></span>}
+                          <span className="text-[13px]" style={{ color: "var(--grey-400)" }}>{formatDate(note.createdAt)}</span>
                         </div>
                       </div>
                     );
@@ -2245,28 +2580,28 @@ export default function PatientDetailPage() {
           {activeSection === "documents" && (
             <div>
               <div className="flex items-center justify-between mb-5">
-                <h2 className="text-[15px] font-semibold" style={{ color: "var(--grey-800)" }}>Documents & Reports</h2>
+                <h2 className="text-[17px] font-semibold" style={{ color: "var(--grey-800)" }}>Documents & Reports</h2>
                 <button onClick={() => { setShowUploadForm(true); setSelectedFile(null); setUploadDesc(""); setUploadCategory("report"); }}
-                  className="px-3 py-1.5 text-[12px] font-semibold text-white" style={{ background: "#2d6a4f", borderRadius: "var(--radius-sm)" }}>+ Upload Document</button>
+                  className="px-3 py-1.5 text-[14px] font-semibold text-white" style={{ background: "#2d6a4f", borderRadius: "var(--radius-sm)" }}>+ Upload Document</button>
               </div>
 
               {/* Upload Form with Drag & Drop */}
               {showUploadForm && (
                 <div className="p-5 mb-4 yoda-slide-in" style={{ background: "var(--white)", border: "1px solid var(--grey-200)", borderRadius: "var(--radius)" }}>
-                  <h3 className="text-[14px] font-semibold mb-4" style={{ color: "var(--grey-800)" }}>Upload Document</h3>
+                  <h3 className="text-[16px] font-semibold mb-4" style={{ color: "var(--grey-800)" }}>Upload Document</h3>
                   <div className="space-y-3">
                     <div>
-                      <label className="text-[12px] font-medium mb-1 block" style={{ color: "var(--grey-600)" }}>Category</label>
+                      <label className="text-[14px] font-medium mb-1 block" style={{ color: "var(--grey-600)" }}>Category</label>
                       <div className="flex flex-wrap gap-1.5">
                         {DOC_CATEGORIES.map(c => (
-                          <button key={c.value} onClick={() => setUploadCategory(c.value)} className="px-3 py-1.5 text-[11px] font-semibold transition-all"
+                          <button key={c.value} onClick={() => setUploadCategory(c.value)} className="px-3 py-1.5 text-[13px] font-semibold transition-all"
                             style={{ borderRadius: "var(--radius-sm)", border: uploadCategory === c.value ? "2px solid #2d6a4f" : "1px solid var(--grey-300)", background: uploadCategory === c.value ? "#f0faf4" : "var(--white)", color: uploadCategory === c.value ? "#2d6a4f" : "var(--grey-600)" }}>{c.label}</button>
                         ))}
                       </div>
                     </div>
                     {/* Drag & Drop Zone */}
                     <div>
-                      <label className="text-[12px] font-medium mb-1 block" style={{ color: "var(--grey-600)" }}>File * (max 10MB)</label>
+                      <label className="text-[14px] font-medium mb-1 block" style={{ color: "var(--grey-600)" }}>File * (max 10MB)</label>
                       <div
                         onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); setDragActive(true); }}
                         onDragLeave={(e) => { e.preventDefault(); e.stopPropagation(); setDragActive(false); }}
@@ -2296,14 +2631,14 @@ export default function PatientDetailPage() {
                               </div>
                             ) : (
                               <div className="w-12 h-12 flex items-center justify-center flex-shrink-0" style={{ background: "#f0faf4", borderRadius: "var(--radius-sm)" }}>
-                                <span className="text-[10px] font-bold uppercase" style={{ color: "#2d6a4f" }}>
+                                <span className="text-[12px] font-bold uppercase" style={{ color: "#2d6a4f" }}>
                                   {selectedFile.name.split(".").pop()?.toUpperCase() || "FILE"}
                                 </span>
                               </div>
                             )}
                             <div className="flex-1 text-left min-w-0">
-                              <p className="text-[13px] font-semibold truncate" style={{ color: "var(--grey-900)" }}>{selectedFile.name}</p>
-                              <p className="text-[11px]" style={{ color: "var(--grey-500)" }}>{formatFileSize(selectedFile.size)}</p>
+                              <p className="text-[15px] font-semibold truncate" style={{ color: "var(--grey-900)" }}>{selectedFile.name}</p>
+                              <p className="text-[13px]" style={{ color: "var(--grey-500)" }}>{formatFileSize(selectedFile.size)}</p>
                             </div>
                             <button onClick={(e) => { e.stopPropagation(); setSelectedFile(null); }} className="p-1 hover:bg-gray-100 rounded flex-shrink-0" style={{ color: "var(--grey-400)" }}>
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
@@ -2314,21 +2649,21 @@ export default function PatientDetailPage() {
                             <svg className="w-8 h-8 mx-auto mb-2" style={{ color: dragActive ? "#2d6a4f" : "var(--grey-400)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                             </svg>
-                            <p className="text-[13px] font-medium" style={{ color: dragActive ? "#2d6a4f" : "var(--grey-600)" }}>
+                            <p className="text-[15px] font-medium" style={{ color: dragActive ? "#2d6a4f" : "var(--grey-600)" }}>
                               {dragActive ? "Drop file here" : "Drag & drop a file here"}
                             </p>
-                            <p className="text-[11px] mt-0.5" style={{ color: "var(--grey-400)" }}>or click to browse</p>
+                            <p className="text-[13px] mt-0.5" style={{ color: "var(--grey-400)" }}>or click to browse</p>
                           </>
                         )}
                       </div>
                     </div>
                     <div>
-                      <label className="text-[12px] font-medium mb-1 block" style={{ color: "var(--grey-600)" }}>Description (optional)</label>
-                      <input type="text" value={uploadDesc} onChange={e => setUploadDesc(e.target.value)} placeholder="e.g. Blood test results, CT scan report..." className="w-full px-3 py-2 text-[13px]" style={inputStyle} />
+                      <label className="text-[14px] font-medium mb-1 block" style={{ color: "var(--grey-600)" }}>Description (optional)</label>
+                      <input type="text" value={uploadDesc} onChange={e => setUploadDesc(e.target.value)} placeholder="e.g. Blood test results, CT scan report..." className="w-full px-3 py-2 text-[15px]" style={inputStyle} />
                     </div>
                     <div className="flex gap-2 pt-1">
-                      <button onClick={uploadDocument} disabled={uploading || !selectedFile} className="px-4 py-1.5 text-[12px] font-semibold text-white disabled:opacity-50" style={{ background: "#2d6a4f", borderRadius: "var(--radius-sm)" }}>{uploading ? "Uploading..." : "Upload"}</button>
-                      <button onClick={() => setShowUploadForm(false)} className="px-4 py-1.5 text-[12px] font-semibold" style={{ border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", color: "var(--grey-700)" }}>Cancel</button>
+                      <button onClick={uploadDocument} disabled={uploading || !selectedFile} className="px-4 py-1.5 text-[14px] font-semibold text-white disabled:opacity-50" style={{ background: "#2d6a4f", borderRadius: "var(--radius-sm)" }}>{uploading ? "Uploading..." : "Upload"}</button>
+                      <button onClick={() => setShowUploadForm(false)} className="px-4 py-1.5 text-[14px] font-semibold" style={{ border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", color: "var(--grey-700)" }}>Cancel</button>
                     </div>
                   </div>
                 </div>
@@ -2346,8 +2681,8 @@ export default function PatientDetailPage() {
                   }}
                 >
                   <svg className="w-10 h-10 mx-auto mb-3" style={{ color: "var(--grey-300)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
-                  <p className="text-[13px] font-medium" style={{ color: "var(--grey-500)" }}>No documents uploaded</p>
-                  <p className="text-[11px] mt-1" style={{ color: "var(--grey-400)" }}>Drag & drop files here, or click &quot;+ Upload Document&quot;</p>
+                  <p className="text-[15px] font-medium" style={{ color: "var(--grey-500)" }}>No documents uploaded</p>
+                  <p className="text-[13px] mt-1" style={{ color: "var(--grey-400)" }}>Drag & drop files here, or click &quot;+ Upload Document&quot;</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -2377,12 +2712,12 @@ export default function PatientDetailPage() {
                             {isPdf ? (
                               <>
                                 <svg className="w-10 h-10 mb-1" style={{ color: cc.color }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
-                                <span className="text-[11px] font-bold uppercase" style={{ color: cc.color }}>PDF</span>
+                                <span className="text-[13px] font-bold uppercase" style={{ color: cc.color }}>PDF</span>
                               </>
                             ) : (
                               <>
                                 <svg className="w-10 h-10 mb-1" style={{ color: cc.color }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                                <span className="text-[11px] font-bold uppercase" style={{ color: cc.color }}>{doc.fileName.split(".").pop()}</span>
+                                <span className="text-[13px] font-bold uppercase" style={{ color: cc.color }}>{doc.fileName.split(".").pop()}</span>
                               </>
                             )}
                           </div>
@@ -2391,11 +2726,11 @@ export default function PatientDetailPage() {
                         <div className="px-3 py-2.5">
                           <div className="flex items-center gap-1.5 mb-1">
                             <span className="px-1.5 py-px text-[8px] font-bold uppercase flex-shrink-0" style={{ borderRadius: "var(--radius-sm)", background: cc.bg, color: cc.color }}>{catLabel}</span>
-                            <p className="text-[12px] font-semibold truncate" style={{ color: "var(--grey-900)" }}>{doc.fileName}</p>
+                            <p className="text-[14px] font-semibold truncate" style={{ color: "var(--grey-900)" }}>{doc.fileName}</p>
                           </div>
-                          {doc.description && <p className="text-[11px] truncate mb-0.5" style={{ color: "var(--grey-500)" }}>{doc.description}</p>}
+                          {doc.description && <p className="text-[13px] truncate mb-0.5" style={{ color: "var(--grey-500)" }}>{doc.description}</p>}
                           <div className="flex items-center justify-between">
-                            <p className="text-[10px]" style={{ color: "var(--grey-400)" }}>{formatFileSize(doc.fileSize)} · {formatDate(doc.uploadedAt)}</p>
+                            <p className="text-[12px]" style={{ color: "var(--grey-400)" }}>{formatFileSize(doc.fileSize)} · {formatDate(doc.uploadedAt)}</p>
                             <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                               <a href={doc.filePath} download onClick={(e) => e.stopPropagation()} className="p-1 hover:bg-gray-100 rounded" style={{ color: "#2d6a4f" }} title="Download">
                                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
@@ -2420,13 +2755,13 @@ export default function PatientDetailPage() {
                     {/* Modal header */}
                     <div className="flex items-center justify-between px-5 py-3" style={{ background: "var(--white)", borderRadius: "var(--radius) var(--radius) 0 0", borderBottom: "1px solid var(--grey-200)" }}>
                       <div className="min-w-0 flex-1 mr-3">
-                        <p className="text-[14px] font-semibold truncate" style={{ color: "var(--grey-900)" }}>{viewingDoc.fileName}</p>
-                        <p className="text-[11px]" style={{ color: "var(--grey-500)" }}>
+                        <p className="text-[16px] font-semibold truncate" style={{ color: "var(--grey-900)" }}>{viewingDoc.fileName}</p>
+                        <p className="text-[13px]" style={{ color: "var(--grey-500)" }}>
                           {DOC_CATEGORIES.find(c => c.value === viewingDoc.category)?.label || viewingDoc.category} · {formatFileSize(viewingDoc.fileSize)} · {formatDate(viewingDoc.uploadedAt)}
                         </p>
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0">
-                        <a href={viewingDoc.filePath} download className="inline-flex items-center gap-1 px-3 py-1.5 text-[11px] font-semibold" style={{ background: "#2d6a4f", color: "#fff", borderRadius: "var(--radius-sm)" }}>
+                        <a href={viewingDoc.filePath} download className="inline-flex items-center gap-1 px-3 py-1.5 text-[13px] font-semibold" style={{ background: "#2d6a4f", color: "#fff", borderRadius: "var(--radius-sm)" }}>
                           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                           Download
                         </a>
@@ -2446,9 +2781,9 @@ export default function PatientDetailPage() {
                       ) : (
                         <div className="flex flex-col items-center justify-center py-16 px-8">
                           <svg className="w-16 h-16 mb-4" style={{ color: "var(--grey-400)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                          <p className="text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Preview not available</p>
-                          <p className="text-[12px] mb-4" style={{ color: "var(--grey-500)" }}>This file type can&apos;t be previewed in the browser</p>
-                          <a href={viewingDoc.filePath} download className="inline-flex items-center gap-2 px-5 py-2.5 text-[13px] font-semibold" style={{ background: "#2d6a4f", color: "#fff", borderRadius: "var(--radius-sm)" }}>
+                          <p className="text-[16px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Preview not available</p>
+                          <p className="text-[14px] mb-4" style={{ color: "var(--grey-500)" }}>This file type can&apos;t be previewed in the browser</p>
+                          <a href={viewingDoc.filePath} download className="inline-flex items-center gap-2 px-5 py-2.5 text-[15px] font-semibold" style={{ background: "#2d6a4f", color: "#fff", borderRadius: "var(--radius-sm)" }}>
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                             Download File
                           </a>
@@ -2465,7 +2800,7 @@ export default function PatientDetailPage() {
           {activeSection === "emergency" && (
             <div>
               <div className="mb-5">
-                <h2 className="text-[14px] font-bold" style={{ color: "var(--grey-900)" }}>Emergency Contact</h2>
+                <h2 className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>Emergency Contact</h2>
               </div>
               <div className="p-5" style={{ background: "var(--white)", border: "1px solid var(--grey-200)", borderRadius: "var(--radius)" }}>
                 {editing ? (
@@ -2479,7 +2814,7 @@ export default function PatientDetailPage() {
                     <ProfileRow label="Contact Phone" value={patient.emergencyPhone} href={patient.emergencyPhone ? `tel:${patient.emergencyPhone}` : undefined} always />
                   </tbody></table>
                 ) : (
-                  <p className="text-[13px] text-center py-8" style={{ color: "var(--grey-400)" }}>No emergency contact added</p>
+                  <p className="text-[15px] text-center py-8" style={{ color: "var(--grey-400)" }}>No emergency contact added</p>
                 )}
               </div>
             </div>
@@ -2489,18 +2824,18 @@ export default function PatientDetailPage() {
           {activeSection === "allergies" && (
             <div>
               <div className="mb-5">
-                <h2 className="text-[14px] font-bold" style={{ color: "var(--grey-900)" }}>Allergies & Medical Notes</h2>
+                <h2 className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>Allergies & Medical Notes</h2>
               </div>
               <div className="space-y-4">
                 <div className="p-5" style={{ background: "var(--white)", border: "1px solid var(--grey-200)", borderRadius: "var(--radius)" }}>
-                  <h3 className="text-[13px] font-bold mb-2" style={{ color: "var(--grey-800)" }}>Allergies</h3>
+                  <h3 className="text-[15px] font-bold mb-2" style={{ color: "var(--grey-800)" }}>Allergies</h3>
                   {editing ? <textarea value={editData.allergies} onChange={(e) => ec("allergies", e.target.value)} rows={3} className="w-full px-3 py-2" style={inputStyle} />
-                    : <p className="text-[13px]" style={{ color: patient.allergies ? "var(--red)" : "var(--grey-400)" }}>{patient.allergies || "None reported"}</p>}
+                    : <p className="text-[15px]" style={{ color: patient.allergies ? "var(--red)" : "var(--grey-400)" }}>{patient.allergies || "None reported"}</p>}
                 </div>
                 <div className="p-5" style={{ background: "var(--white)", border: "1px solid var(--grey-200)", borderRadius: "var(--radius)" }}>
-                  <h3 className="text-[13px] font-bold mb-2" style={{ color: "var(--grey-800)" }}>Other History</h3>
+                  <h3 className="text-[15px] font-bold mb-2" style={{ color: "var(--grey-800)" }}>Other History</h3>
                   {editing ? <textarea value={editData.otherHistory} onChange={(e) => ec("otherHistory", e.target.value)} rows={3} className="w-full px-3 py-2" style={inputStyle} />
-                    : <p className="text-[13px]" style={{ color: patient.otherHistory ? "var(--grey-700)" : "var(--grey-400)" }}>{patient.otherHistory || "None"}</p>}
+                    : <p className="text-[15px]" style={{ color: patient.otherHistory ? "var(--grey-700)" : "var(--grey-400)" }}>{patient.otherHistory || "None"}</p>}
                 </div>
               </div>
             </div>
@@ -2510,12 +2845,12 @@ export default function PatientDetailPage() {
           {activeSection === "timeline" && (
             <div>
               <div className="mb-5">
-                <h2 className="text-[14px] font-bold" style={{ color: "var(--grey-900)" }}>Medical History Timeline</h2>
+                <h2 className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>Medical History Timeline</h2>
               </div>
 
               {/* Filter checkboxes */}
               <div className="flex flex-wrap gap-3 mb-5 p-3" style={{ background: "var(--white)", border: "1px solid var(--grey-200)", borderRadius: "var(--radius)" }}>
-                <span className="text-[11px] font-bold uppercase tracking-wide self-center" style={{ color: "var(--grey-500)" }}>Filter:</span>
+                <span className="text-[13px] font-bold uppercase tracking-wide self-center" style={{ color: "var(--grey-500)" }}>Filter:</span>
                 {([
                   { key: "appointment", label: "Appointments", color: "#b68d40" },
                   { key: "note", label: "Notes", color: "#2d6a4f" },
@@ -2524,7 +2859,7 @@ export default function PatientDetailPage() {
                   { key: "vital", label: "Vitals", color: "#059669" },
                   { key: "invoice", label: "Invoices", color: "#37845e" },
                 ] as const).map((f) => (
-                  <label key={f.key} className="flex items-center gap-1.5 text-[12px] cursor-pointer" style={{ color: "var(--grey-700)" }}>
+                  <label key={f.key} className="flex items-center gap-1.5 text-[14px] cursor-pointer" style={{ color: "var(--grey-700)" }}>
                     <input type="checkbox" checked={timelineFilters[f.key]} onChange={() => setTimelineFilters(prev => ({ ...prev, [f.key]: !prev[f.key] }))} className="w-3.5 h-3.5" />
                     <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: f.color }} />
                     {f.label}
@@ -2537,8 +2872,8 @@ export default function PatientDetailPage() {
               ) : timelineEvents.filter(e => timelineFilters[e.type] !== false).length === 0 ? (
                 <div className="py-16 text-center">
                   <svg className="w-10 h-10 mx-auto mb-3" style={{ color: "var(--grey-300)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                  <p className="text-[13px] font-medium" style={{ color: "var(--grey-500)" }}>No timeline events yet</p>
-                  <p className="text-[11px] mt-1" style={{ color: "var(--grey-400)" }}>Activity will appear here as appointments, notes, and documents are added</p>
+                  <p className="text-[15px] font-medium" style={{ color: "var(--grey-500)" }}>No timeline events yet</p>
+                  <p className="text-[13px] mt-1" style={{ color: "var(--grey-400)" }}>Activity will appear here as appointments, notes, and documents are added</p>
                 </div>
               ) : (
                 <div className="relative" style={{ paddingLeft: 140 }}>
@@ -2557,8 +2892,8 @@ export default function PatientDetailPage() {
                       <div key={event.id || idx} className="relative mb-4 flex items-start">
                         {/* Date on left */}
                         <div className="absolute text-right" style={{ left: -140, width: 128 }}>
-                          <p className="text-[12px] font-semibold" style={{ color: "var(--grey-700)" }}>{dateStr}</p>
-                          <p className="text-[10px]" style={{ color: "var(--grey-400)" }}>{timeStr}</p>
+                          <p className="text-[14px] font-semibold" style={{ color: "var(--grey-700)" }}>{dateStr}</p>
+                          <p className="text-[12px]" style={{ color: "var(--grey-400)" }}>{timeStr}</p>
                         </div>
 
                         {/* Dot */}
@@ -2568,9 +2903,9 @@ export default function PatientDetailPage() {
                         <div className="ml-5 flex-1 p-3" style={{ background: "var(--white)", border: "1px solid var(--grey-200)", borderRadius: "var(--radius)", borderLeft: `3px solid ${dotColor}` }}>
                           <div className="flex items-center gap-2 mb-1">
                             <span className="px-1.5 py-px text-[9px] font-bold uppercase tracking-wide" style={{ borderRadius: "var(--radius-sm)", background: typeBgColors[event.type] || "var(--grey-100)", color: dotColor }}>{event.type}</span>
-                            <p className="text-[13px] font-semibold" style={{ color: "var(--grey-900)" }}>{event.title}</p>
+                            <p className="text-[15px] font-semibold" style={{ color: "var(--grey-900)" }}>{event.title}</p>
                           </div>
-                          {event.description && <p className="text-[12px] leading-relaxed" style={{ color: "var(--grey-600)" }}>{event.description}</p>}
+                          {event.description && <p className="text-[14px] leading-relaxed" style={{ color: "var(--grey-600)" }}>{event.description}</p>}
                         </div>
                       </div>
                     );
@@ -2579,7 +2914,7 @@ export default function PatientDetailPage() {
                   {/* Load more */}
                   {timelineHasMore && (
                     <div className="text-center pt-4">
-                      <button onClick={() => setTimelineLimit(prev => prev + 20)} className="px-4 py-1.5 text-[12px] font-semibold" style={{ background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", color: "#2d6a4f" }}>
+                      <button onClick={() => setTimelineLimit(prev => prev + 20)} className="px-4 py-1.5 text-[14px] font-semibold" style={{ background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", color: "#2d6a4f" }}>
                         Load More
                       </button>
                     </div>
@@ -2593,8 +2928,8 @@ export default function PatientDetailPage() {
           {activeSection === "vitals" && (
             <div>
               <div className="flex items-center justify-between mb-5">
-                <h2 className="text-[14px] font-bold" style={{ color: "var(--grey-900)" }}>Vitals Tracking</h2>
-                <button onClick={() => setShowVitalsForm(!showVitalsForm)} className="px-3 py-1.5 text-[12px] font-semibold text-white" style={{ background: "#2d6a4f", borderRadius: "var(--radius-sm)" }}>
+                <h2 className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>Vitals Tracking</h2>
+                <button onClick={() => setShowVitalsForm(!showVitalsForm)} className="px-3 py-1.5 text-[14px] font-semibold text-white" style={{ background: "#2d6a4f", borderRadius: "var(--radius-sm)" }}>
                   {showVitalsForm ? "Hide Form" : "+ Record Vitals"}
                 </button>
               </div>
@@ -2602,64 +2937,64 @@ export default function PatientDetailPage() {
               {/* Record Vitals Form */}
               {showVitalsForm && (
                 <div className="p-5 mb-5 yoda-slide-in" style={{ background: "var(--white)", border: "1px solid var(--grey-200)", borderRadius: "var(--radius)" }}>
-                  <h3 className="text-[14px] font-semibold mb-4" style={{ color: "var(--grey-800)" }}>Record Vitals</h3>
+                  <h3 className="text-[16px] font-semibold mb-4" style={{ color: "var(--grey-800)" }}>Record Vitals</h3>
                   <div className="grid grid-cols-2 gap-4 mb-4">
                     <div>
-                      <label className="text-[11px] font-medium mb-1 block" style={{ color: "var(--grey-600)" }}>BP Systolic (mmHg)</label>
-                      <input type="number" value={vitalForm.bloodPressureSys} onChange={e => setVitalForm(p => ({ ...p, bloodPressureSys: e.target.value }))} placeholder="120" className="w-full px-2.5 py-1.5 text-[13px]" style={inputStyle} />
+                      <label className="text-[13px] font-medium mb-1 block" style={{ color: "var(--grey-600)" }}>BP Systolic (mmHg)</label>
+                      <input type="number" value={vitalForm.bloodPressureSys} onChange={e => setVitalForm(p => ({ ...p, bloodPressureSys: e.target.value }))} placeholder="120" className="w-full px-2.5 py-1.5 text-[15px]" style={inputStyle} />
                     </div>
                     <div>
-                      <label className="text-[11px] font-medium mb-1 block" style={{ color: "var(--grey-600)" }}>BP Diastolic (mmHg)</label>
-                      <input type="number" value={vitalForm.bloodPressureDia} onChange={e => setVitalForm(p => ({ ...p, bloodPressureDia: e.target.value }))} placeholder="80" className="w-full px-2.5 py-1.5 text-[13px]" style={inputStyle} />
+                      <label className="text-[13px] font-medium mb-1 block" style={{ color: "var(--grey-600)" }}>BP Diastolic (mmHg)</label>
+                      <input type="number" value={vitalForm.bloodPressureDia} onChange={e => setVitalForm(p => ({ ...p, bloodPressureDia: e.target.value }))} placeholder="80" className="w-full px-2.5 py-1.5 text-[15px]" style={inputStyle} />
                     </div>
                     <div>
-                      <label className="text-[11px] font-medium mb-1 block" style={{ color: "var(--grey-600)" }}>Pulse (bpm)</label>
-                      <input type="number" value={vitalForm.pulse} onChange={e => setVitalForm(p => ({ ...p, pulse: e.target.value }))} placeholder="72" className="w-full px-2.5 py-1.5 text-[13px]" style={inputStyle} />
+                      <label className="text-[13px] font-medium mb-1 block" style={{ color: "var(--grey-600)" }}>Pulse (bpm)</label>
+                      <input type="number" value={vitalForm.pulse} onChange={e => setVitalForm(p => ({ ...p, pulse: e.target.value }))} placeholder="72" className="w-full px-2.5 py-1.5 text-[15px]" style={inputStyle} />
                     </div>
                     <div>
-                      <label className="text-[11px] font-medium mb-1 block" style={{ color: "var(--grey-600)" }}>Temperature (°C)</label>
-                      <input type="number" step="0.1" value={vitalForm.temperature} onChange={e => setVitalForm(p => ({ ...p, temperature: e.target.value }))} placeholder="36.6" className="w-full px-2.5 py-1.5 text-[13px]" style={inputStyle} />
+                      <label className="text-[13px] font-medium mb-1 block" style={{ color: "var(--grey-600)" }}>Temperature (°C)</label>
+                      <input type="number" step="0.1" value={vitalForm.temperature} onChange={e => setVitalForm(p => ({ ...p, temperature: e.target.value }))} placeholder="36.6" className="w-full px-2.5 py-1.5 text-[15px]" style={inputStyle} />
                     </div>
                     <div>
-                      <label className="text-[11px] font-medium mb-1 block" style={{ color: "var(--grey-600)" }}>Weight (kg)</label>
-                      <input type="number" step="0.1" value={vitalForm.weight} onChange={e => setVitalForm(p => ({ ...p, weight: e.target.value }))} placeholder="70" className="w-full px-2.5 py-1.5 text-[13px]" style={inputStyle} />
+                      <label className="text-[13px] font-medium mb-1 block" style={{ color: "var(--grey-600)" }}>Weight (kg)</label>
+                      <input type="number" step="0.1" value={vitalForm.weight} onChange={e => setVitalForm(p => ({ ...p, weight: e.target.value }))} placeholder="70" className="w-full px-2.5 py-1.5 text-[15px]" style={inputStyle} />
                     </div>
                     <div>
-                      <label className="text-[11px] font-medium mb-1 block" style={{ color: "var(--grey-600)" }}>Height (cm)</label>
-                      <input type="number" step="0.1" value={vitalForm.height} onChange={e => setVitalForm(p => ({ ...p, height: e.target.value }))} placeholder="170" className="w-full px-2.5 py-1.5 text-[13px]" style={inputStyle} />
+                      <label className="text-[13px] font-medium mb-1 block" style={{ color: "var(--grey-600)" }}>Height (cm)</label>
+                      <input type="number" step="0.1" value={vitalForm.height} onChange={e => setVitalForm(p => ({ ...p, height: e.target.value }))} placeholder="170" className="w-full px-2.5 py-1.5 text-[15px]" style={inputStyle} />
                     </div>
                     <div>
-                      <label className="text-[11px] font-medium mb-1 block" style={{ color: "var(--grey-600)" }}>SpO2 (%)</label>
-                      <input type="number" value={vitalForm.oxygenSaturation} onChange={e => setVitalForm(p => ({ ...p, oxygenSaturation: e.target.value }))} placeholder="98" className="w-full px-2.5 py-1.5 text-[13px]" style={inputStyle} />
+                      <label className="text-[13px] font-medium mb-1 block" style={{ color: "var(--grey-600)" }}>SpO2 (%)</label>
+                      <input type="number" value={vitalForm.oxygenSaturation} onChange={e => setVitalForm(p => ({ ...p, oxygenSaturation: e.target.value }))} placeholder="98" className="w-full px-2.5 py-1.5 text-[15px]" style={inputStyle} />
                     </div>
                     <div>
-                      <label className="text-[11px] font-medium mb-1 block" style={{ color: "var(--grey-600)" }}>Respiratory Rate (/min)</label>
-                      <input type="number" value={vitalForm.respiratoryRate} onChange={e => setVitalForm(p => ({ ...p, respiratoryRate: e.target.value }))} placeholder="16" className="w-full px-2.5 py-1.5 text-[13px]" style={inputStyle} />
+                      <label className="text-[13px] font-medium mb-1 block" style={{ color: "var(--grey-600)" }}>Respiratory Rate (/min)</label>
+                      <input type="number" value={vitalForm.respiratoryRate} onChange={e => setVitalForm(p => ({ ...p, respiratoryRate: e.target.value }))} placeholder="16" className="w-full px-2.5 py-1.5 text-[15px]" style={inputStyle} />
                     </div>
                   </div>
                   {/* BMI auto-display */}
                   {getCalculatedBMI() && (
                     <div className="mb-4 px-3 py-2 flex items-center gap-2" style={{ background: "#f0faf4", borderRadius: "var(--radius-sm)", border: "1px solid #a7e3bd" }}>
-                      <span className="text-[12px] font-medium" style={{ color: "#2d6a4f" }}>Calculated BMI:</span>
-                      <span className="text-[14px] font-bold" style={{ color: "#2d6a4f" }}>{getCalculatedBMI()}</span>
-                      <span className="text-[11px]" style={{ color: "var(--grey-500)" }}>
+                      <span className="text-[14px] font-medium" style={{ color: "#2d6a4f" }}>Calculated BMI:</span>
+                      <span className="text-[16px] font-bold" style={{ color: "#2d6a4f" }}>{getCalculatedBMI()}</span>
+                      <span className="text-[13px]" style={{ color: "var(--grey-500)" }}>
                         ({parseFloat(getCalculatedBMI()) < 18.5 ? "Underweight" : parseFloat(getCalculatedBMI()) < 25 ? "Normal" : parseFloat(getCalculatedBMI()) < 30 ? "Overweight" : "Obese"})
                       </span>
                     </div>
                   )}
                   <div className="grid grid-cols-2 gap-4 mb-4">
                     <div className="col-span-2">
-                      <label className="text-[11px] font-medium mb-1 block" style={{ color: "var(--grey-600)" }}>Notes</label>
-                      <textarea value={vitalForm.notes} onChange={e => setVitalForm(p => ({ ...p, notes: e.target.value }))} rows={2} placeholder="Additional observations..." className="w-full px-2.5 py-1.5 text-[13px]" style={inputStyle} />
+                      <label className="text-[13px] font-medium mb-1 block" style={{ color: "var(--grey-600)" }}>Notes</label>
+                      <textarea value={vitalForm.notes} onChange={e => setVitalForm(p => ({ ...p, notes: e.target.value }))} rows={2} placeholder="Additional observations..." className="w-full px-2.5 py-1.5 text-[15px]" style={inputStyle} />
                     </div>
                     <div>
-                      <label className="text-[11px] font-medium mb-1 block" style={{ color: "var(--grey-600)" }}>Recorded By</label>
-                      <input type="text" value={vitalForm.recordedBy} onChange={e => setVitalForm(p => ({ ...p, recordedBy: e.target.value }))} placeholder="Dr. Name / Nurse" className="w-full px-2.5 py-1.5 text-[13px]" style={inputStyle} />
+                      <label className="text-[13px] font-medium mb-1 block" style={{ color: "var(--grey-600)" }}>Recorded By</label>
+                      <input type="text" value={vitalForm.recordedBy} onChange={e => setVitalForm(p => ({ ...p, recordedBy: e.target.value }))} placeholder="Dr. Name / Nurse" className="w-full px-2.5 py-1.5 text-[15px]" style={inputStyle} />
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <button onClick={saveVital} disabled={savingVital} className="px-4 py-1.5 text-[12px] font-semibold text-white disabled:opacity-50" style={{ background: "#2d6a4f", borderRadius: "var(--radius-sm)" }}>{savingVital ? "Saving..." : "Save Vitals"}</button>
-                    <button onClick={() => setShowVitalsForm(false)} className="px-4 py-1.5 text-[12px] font-semibold" style={{ border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", color: "var(--grey-700)" }}>Cancel</button>
+                    <button onClick={saveVital} disabled={savingVital} className="px-4 py-1.5 text-[14px] font-semibold text-white disabled:opacity-50" style={{ background: "#2d6a4f", borderRadius: "var(--radius-sm)" }}>{savingVital ? "Saving..." : "Save Vitals"}</button>
+                    <button onClick={() => setShowVitalsForm(false)} className="px-4 py-1.5 text-[14px] font-semibold" style={{ border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", color: "var(--grey-700)" }}>Cancel</button>
                   </div>
                 </div>
               )}
@@ -2667,7 +3002,7 @@ export default function PatientDetailPage() {
               {/* Trend Charts - pure CSS sparklines */}
               {vitals.length >= 2 && (
                 <div className="mb-5">
-                  <h3 className="text-[13px] font-bold uppercase tracking-wide mb-3" style={{ color: "var(--grey-600)" }}>Trends (Last 10 Readings)</h3>
+                  <h3 className="text-[15px] font-bold uppercase tracking-wide mb-3" style={{ color: "var(--grey-600)" }}>Trends (Last 10 Readings)</h3>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     {/* Weight trend */}
                     {(() => {
@@ -2678,7 +3013,7 @@ export default function PatientDetailPage() {
                       const range = max - min || 1;
                       return (
                         <div className="p-3" style={{ background: "var(--white)", border: "1px solid var(--grey-200)", borderRadius: "var(--radius)" }}>
-                          <p className="text-[11px] font-bold mb-2" style={{ color: "var(--grey-600)" }}>Weight (kg)</p>
+                          <p className="text-[13px] font-bold mb-2" style={{ color: "var(--grey-600)" }}>Weight (kg)</p>
                           <svg width="100%" height="50" viewBox={`0 0 ${(data.length - 1) * 30} 50`} style={{ overflow: "visible" }}>
                             <polyline fill="none" stroke="#2d6a4f" strokeWidth="2" strokeLinejoin="round" points={vals.map((v, i) => `${i * 30},${45 - ((v - min) / range) * 40}`).join(" ")} />
                             {vals.map((v, i) => (
@@ -2702,7 +3037,7 @@ export default function PatientDetailPage() {
                       const range = max - min || 1;
                       return (
                         <div className="p-3" style={{ background: "var(--white)", border: "1px solid var(--grey-200)", borderRadius: "var(--radius)" }}>
-                          <p className="text-[11px] font-bold mb-2" style={{ color: "var(--grey-600)" }}>Blood Pressure</p>
+                          <p className="text-[13px] font-bold mb-2" style={{ color: "var(--grey-600)" }}>Blood Pressure</p>
                           <svg width="100%" height="50" viewBox={`0 0 ${(data.length - 1) * 30} 50`} style={{ overflow: "visible" }}>
                             <polyline fill="none" stroke="#ef4444" strokeWidth="2" strokeLinejoin="round" points={sysVals.map((v, i) => `${i * 30},${45 - ((v - min) / range) * 40}`).join(" ")} />
                             <polyline fill="none" stroke="#37845e" strokeWidth="2" strokeLinejoin="round" strokeDasharray="4,2" points={diaVals.map((v, i) => `${i * 30},${45 - ((v - min) / range) * 40}`).join(" ")} />
@@ -2725,7 +3060,7 @@ export default function PatientDetailPage() {
                       const range = max - min || 1;
                       return (
                         <div className="p-3" style={{ background: "var(--white)", border: "1px solid var(--grey-200)", borderRadius: "var(--radius)" }}>
-                          <p className="text-[11px] font-bold mb-2" style={{ color: "var(--grey-600)" }}>Pulse (bpm)</p>
+                          <p className="text-[13px] font-bold mb-2" style={{ color: "var(--grey-600)" }}>Pulse (bpm)</p>
                           <svg width="100%" height="50" viewBox={`0 0 ${(data.length - 1) * 30} 50`} style={{ overflow: "visible" }}>
                             <polyline fill="none" stroke="#16a34a" strokeWidth="2" strokeLinejoin="round" points={vals.map((v, i) => `${i * 30},${45 - ((v - min) / range) * 40}`).join(" ")} />
                             {vals.map((v, i) => (
@@ -2748,13 +3083,13 @@ export default function PatientDetailPage() {
               ) : vitals.length === 0 ? (
                 <div className="py-16 text-center">
                   <svg className="w-10 h-10 mx-auto mb-3" style={{ color: "var(--grey-300)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
-                  <p className="text-[13px] font-medium" style={{ color: "var(--grey-500)" }}>No vitals recorded yet</p>
-                  <p className="text-[11px] mt-1" style={{ color: "var(--grey-400)" }}>Click &quot;+ Record Vitals&quot; to add the first reading</p>
+                  <p className="text-[15px] font-medium" style={{ color: "var(--grey-500)" }}>No vitals recorded yet</p>
+                  <p className="text-[13px] mt-1" style={{ color: "var(--grey-400)" }}>Click &quot;+ Record Vitals&quot; to add the first reading</p>
                 </div>
               ) : (
                 <div style={{ background: "var(--white)", border: "1px solid var(--grey-200)", borderRadius: "var(--radius)", overflow: "hidden" }}>
                   <div className="overflow-x-auto">
-                    <table className="w-full text-[12px]" style={{ borderCollapse: "collapse" }}>
+                    <table className="w-full text-[14px]" style={{ borderCollapse: "collapse" }}>
                       <thead>
                         <tr style={{ background: "var(--grey-50)", borderBottom: "1px solid var(--grey-200)" }}>
                           <th className="px-3 py-2.5 text-left font-bold" style={{ color: "var(--grey-600)" }}>Date</th>
@@ -2785,7 +3120,7 @@ export default function PatientDetailPage() {
                             {expandedVitalId === v.id && (
                               <tr>
                                 <td colSpan={8} className="px-4 py-3" style={{ background: "var(--grey-50)", borderBottom: "1px solid var(--grey-200)" }}>
-                                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-[11px]">
+                                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-[13px]">
                                     <div><span style={{ color: "var(--grey-500)" }}>Height:</span> <strong style={{ color: "var(--grey-800)" }}>{v.height ? `${v.height} cm` : "—"}</strong></div>
                                     <div><span style={{ color: "var(--grey-500)" }}>Resp. Rate:</span> <strong style={{ color: "var(--grey-800)" }}>{v.respiratoryRate ? `${v.respiratoryRate}/min` : "—"}</strong></div>
                                     <div><span style={{ color: "var(--grey-500)" }}>Recorded By:</span> <strong style={{ color: "var(--grey-800)" }}>{v.recordedBy || "—"}</strong></div>
@@ -2809,8 +3144,8 @@ export default function PatientDetailPage() {
           {activeSection === "visit-summary" && (
             <div>
               <div className="mb-5">
-                <h2 className="text-[14px] font-bold" style={{ color: "var(--grey-900)" }}>Visit Summary</h2>
-                <p className="text-[11px] mt-1" style={{ color: "var(--grey-500)" }}>All patient activity grouped by date</p>
+                <h2 className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>Visit Summary</h2>
+                <p className="text-[13px] mt-1" style={{ color: "var(--grey-500)" }}>All patient activity grouped by date</p>
               </div>
 
               {visitSummaryLoading ? (
@@ -2818,8 +3153,8 @@ export default function PatientDetailPage() {
               ) : visitSummaries.length === 0 ? (
                 <div className="py-16 text-center">
                   <svg className="w-10 h-10 mx-auto mb-3" style={{ color: "var(--grey-300)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
-                  <p className="text-[13px] font-medium" style={{ color: "var(--grey-500)" }}>No visits recorded yet</p>
-                  <p className="text-[11px] mt-1" style={{ color: "var(--grey-400)" }}>Visits are grouped by date once appointments or notes are created</p>
+                  <p className="text-[15px] font-medium" style={{ color: "var(--grey-500)" }}>No visits recorded yet</p>
+                  <p className="text-[13px] mt-1" style={{ color: "var(--grey-400)" }}>Visits are grouped by date once appointments or notes are created</p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -2835,18 +3170,18 @@ export default function PatientDetailPage() {
                               <svg className="w-5 h-5" style={{ color: "#2d6a4f" }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                             </div>
                             <div>
-                              <p className="text-[14px] font-bold" style={{ color: "var(--grey-900)" }}>{formatDate(visit.date)}</p>
+                              <p className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>{formatDate(visit.date)}</p>
                               <div className="flex items-center gap-2 mt-0.5">
-                                {visit.appointment && <span className="text-[10px] font-bold px-1.5 py-px" style={{ background: "#fff7ed", color: "#b68d40", borderRadius: "var(--radius-sm)" }}>Appointment</span>}
-                                {visit.notes.length > 0 && <span className="text-[10px] font-bold px-1.5 py-px" style={{ background: "#f0faf4", color: "#2d6a4f", borderRadius: "var(--radius-sm)" }}>{visit.notes.length} Note{visit.notes.length > 1 ? "s" : ""}</span>}
-                                {visit.vitals.length > 0 && <span className="text-[10px] font-bold px-1.5 py-px" style={{ background: "#ecfdf5", color: "#059669", borderRadius: "var(--radius-sm)" }}>Vitals</span>}
-                                {visit.documents.length > 0 && <span className="text-[10px] font-bold px-1.5 py-px" style={{ background: "#e8f5e9", color: "#37845e", borderRadius: "var(--radius-sm)" }}>{visit.documents.length} Doc{visit.documents.length > 1 ? "s" : ""}</span>}
-                                {visit.invoices.length > 0 && <span className="text-[10px] font-bold px-1.5 py-px" style={{ background: "#f0faf4", color: "#37845e", borderRadius: "var(--radius-sm)" }}>Invoice</span>}
+                                {visit.appointment && <span className="text-[12px] font-bold px-1.5 py-px" style={{ background: "#fff7ed", color: "#b68d40", borderRadius: "var(--radius-sm)" }}>Appointment</span>}
+                                {visit.notes.length > 0 && <span className="text-[12px] font-bold px-1.5 py-px" style={{ background: "#f0faf4", color: "#2d6a4f", borderRadius: "var(--radius-sm)" }}>{visit.notes.length} Note{visit.notes.length > 1 ? "s" : ""}</span>}
+                                {visit.vitals.length > 0 && <span className="text-[12px] font-bold px-1.5 py-px" style={{ background: "#ecfdf5", color: "#059669", borderRadius: "var(--radius-sm)" }}>Vitals</span>}
+                                {visit.documents.length > 0 && <span className="text-[12px] font-bold px-1.5 py-px" style={{ background: "#e8f5e9", color: "#37845e", borderRadius: "var(--radius-sm)" }}>{visit.documents.length} Doc{visit.documents.length > 1 ? "s" : ""}</span>}
+                                {visit.invoices.length > 0 && <span className="text-[12px] font-bold px-1.5 py-px" style={{ background: "#f0faf4", color: "#37845e", borderRadius: "var(--radius-sm)" }}>Invoice</span>}
                               </div>
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
-                            <span className="text-[11px] font-medium" style={{ color: "var(--grey-400)" }}>{itemCount} item{itemCount !== 1 ? "s" : ""}</span>
+                            <span className="text-[13px] font-medium" style={{ color: "var(--grey-400)" }}>{itemCount} item{itemCount !== 1 ? "s" : ""}</span>
                             <svg className={`w-4 h-4 transition-transform ${isExpanded ? "rotate-180" : ""}`} style={{ color: "var(--grey-400)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                           </div>
                         </button>
@@ -2857,9 +3192,9 @@ export default function PatientDetailPage() {
                             {/* Appointment */}
                             {visit.appointment && (
                               <div className="mt-3 p-3" style={{ background: "#fff7ed", borderRadius: "var(--radius-sm)", borderLeft: "3px solid #b68d40" }}>
-                                <p className="text-[11px] font-bold uppercase tracking-wide mb-1" style={{ color: "#b68d40" }}>Appointment</p>
-                                <p className="text-[13px] font-semibold" style={{ color: "var(--grey-900)" }}>{drName(visit.appointment.doctor)}</p>
-                                <p className="text-[11px]" style={{ color: "var(--grey-600)" }}>
+                                <p className="text-[13px] font-bold uppercase tracking-wide mb-1" style={{ color: "#b68d40" }}>Appointment</p>
+                                <p className="text-[15px] font-semibold" style={{ color: "var(--grey-900)" }}>{drName(visit.appointment.doctor)}</p>
+                                <p className="text-[13px]" style={{ color: "var(--grey-600)" }}>
                                   {visit.appointment.time}{visit.appointment.department ? ` · ${visit.appointment.department}` : ""}{visit.appointment.reason ? ` · ${visit.appointment.reason}` : ""}
                                 </p>
                                 <span className="inline-block mt-1 px-2 py-0.5 text-[9px] font-bold uppercase" style={{ borderRadius: "var(--radius-sm)", background: visit.appointment.status === "completed" ? "var(--green-light)" : "#f0faf4", color: visit.appointment.status === "completed" ? "var(--green)" : "#2d6a4f" }}>{visit.appointment.status}</span>
@@ -2869,15 +3204,15 @@ export default function PatientDetailPage() {
                             {/* Clinical Notes */}
                             {visit.notes.length > 0 && (
                               <div>
-                                <p className="text-[11px] font-bold uppercase tracking-wide mb-1.5 mt-2" style={{ color: "#2d6a4f" }}>Clinical Notes</p>
+                                <p className="text-[13px] font-bold uppercase tracking-wide mb-1.5 mt-2" style={{ color: "#2d6a4f" }}>Clinical Notes</p>
                                 {visit.notes.map(n => (
                                   <div key={n.id} className="p-2.5 mb-1.5" style={{ background: "#f0faf4", borderRadius: "var(--radius-sm)", borderLeft: "3px solid #2d6a4f" }}>
                                     <div className="flex items-center gap-2 mb-0.5">
                                       <span className="px-1.5 py-px text-[9px] font-bold uppercase" style={{ background: "#d1f2e0", color: "#2d6a4f", borderRadius: "var(--radius-sm)" }}>{NOTE_TYPES.find(t => t.value === n.type)?.label || n.type}</span>
-                                      <p className="text-[12px] font-semibold" style={{ color: "var(--grey-900)" }}>{n.title}</p>
+                                      <p className="text-[14px] font-semibold" style={{ color: "var(--grey-900)" }}>{n.title}</p>
                                     </div>
-                                    <p className="text-[11px] leading-relaxed line-clamp-2" style={{ color: "var(--grey-700)" }}>{n.content}</p>
-                                    {n.doctor && <p className="text-[10px] mt-1" style={{ color: "var(--grey-500)" }}>By: {n.doctor}</p>}
+                                    <p className="text-[13px] leading-relaxed line-clamp-2" style={{ color: "var(--grey-700)" }}>{n.content}</p>
+                                    {n.doctor && <p className="text-[12px] mt-1" style={{ color: "var(--grey-500)" }}>By: {n.doctor}</p>}
                                   </div>
                                 ))}
                               </div>
@@ -2886,10 +3221,10 @@ export default function PatientDetailPage() {
                             {/* Vitals */}
                             {visit.vitals.length > 0 && (
                               <div>
-                                <p className="text-[11px] font-bold uppercase tracking-wide mb-1.5 mt-2" style={{ color: "#059669" }}>Vitals</p>
+                                <p className="text-[13px] font-bold uppercase tracking-wide mb-1.5 mt-2" style={{ color: "#059669" }}>Vitals</p>
                                 {visit.vitals.map(v => (
                                   <div key={v.id} className="p-2.5 mb-1.5" style={{ background: "#ecfdf5", borderRadius: "var(--radius-sm)", borderLeft: "3px solid #059669" }}>
-                                    <div className="flex flex-wrap gap-3 text-[11px]">
+                                    <div className="flex flex-wrap gap-3 text-[13px]">
                                       {v.bloodPressureSys && <span style={{ color: "var(--grey-700)" }}>BP: <strong>{v.bloodPressureSys}/{v.bloodPressureDia}</strong></span>}
                                       {v.pulse && <span style={{ color: "var(--grey-700)" }}>Pulse: <strong>{v.pulse}</strong></span>}
                                       {v.temperature && <span style={{ color: "var(--grey-700)" }}>Temp: <strong>{v.temperature}°C</strong></span>}
@@ -2897,7 +3232,7 @@ export default function PatientDetailPage() {
                                       {v.oxygenSaturation && <span style={{ color: "var(--grey-700)" }}>SpO2: <strong>{v.oxygenSaturation}%</strong></span>}
                                       {v.bmi && <span style={{ color: "var(--grey-700)" }}>BMI: <strong>{v.bmi}</strong></span>}
                                     </div>
-                                    {v.recordedBy && <p className="text-[10px] mt-1" style={{ color: "var(--grey-500)" }}>By: {v.recordedBy}</p>}
+                                    {v.recordedBy && <p className="text-[12px] mt-1" style={{ color: "var(--grey-500)" }}>By: {v.recordedBy}</p>}
                                   </div>
                                 ))}
                               </div>
@@ -2906,15 +3241,15 @@ export default function PatientDetailPage() {
                             {/* Documents */}
                             {visit.documents.length > 0 && (
                               <div>
-                                <p className="text-[11px] font-bold uppercase tracking-wide mb-1.5 mt-2" style={{ color: "#37845e" }}>Documents</p>
+                                <p className="text-[13px] font-bold uppercase tracking-wide mb-1.5 mt-2" style={{ color: "#37845e" }}>Documents</p>
                                 {visit.documents.map(d => (
                                   <div key={d.id} className="flex items-center gap-2 p-2.5 mb-1.5" style={{ background: "#e8f5e9", borderRadius: "var(--radius-sm)", borderLeft: "3px solid #37845e" }}>
                                     <svg className="w-4 h-4 flex-shrink-0" style={{ color: "#37845e" }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" /></svg>
                                     <div className="flex-1 min-w-0">
-                                      <p className="text-[12px] font-semibold truncate" style={{ color: "var(--grey-900)" }}>{d.fileName}</p>
-                                      <p className="text-[10px]" style={{ color: "var(--grey-500)" }}>{DOC_CATEGORIES.find(c => c.value === d.category)?.label || d.category} · {formatFileSize(d.fileSize)}</p>
+                                      <p className="text-[14px] font-semibold truncate" style={{ color: "var(--grey-900)" }}>{d.fileName}</p>
+                                      <p className="text-[12px]" style={{ color: "var(--grey-500)" }}>{DOC_CATEGORIES.find(c => c.value === d.category)?.label || d.category} · {formatFileSize(d.fileSize)}</p>
                                     </div>
-                                    <a href={d.filePath} target="_blank" rel="noopener noreferrer" className="text-[11px] font-semibold" style={{ color: "#37845e" }}>View</a>
+                                    <a href={d.filePath} target="_blank" rel="noopener noreferrer" className="text-[13px] font-semibold" style={{ color: "#37845e" }}>View</a>
                                   </div>
                                 ))}
                               </div>
@@ -2923,14 +3258,14 @@ export default function PatientDetailPage() {
                             {/* Invoices */}
                             {visit.invoices.length > 0 && (
                               <div>
-                                <p className="text-[11px] font-bold uppercase tracking-wide mb-1.5 mt-2" style={{ color: "#37845e" }}>Invoices</p>
+                                <p className="text-[13px] font-bold uppercase tracking-wide mb-1.5 mt-2" style={{ color: "#37845e" }}>Invoices</p>
                                 {visit.invoices.map(inv => (
                                   <Link key={inv.id} href={`/billing/${inv.id}`} className="flex items-center justify-between p-2.5 mb-1.5 hover:opacity-80 transition-opacity" style={{ background: "#f0faf4", borderRadius: "var(--radius-sm)", borderLeft: "3px solid #37845e" }}>
                                     <div>
-                                      <p className="text-[12px] font-semibold" style={{ color: "var(--grey-900)" }}>{inv.invoiceNumber}</p>
-                                      <span className="text-[10px] font-bold uppercase px-1.5 py-px" style={{ borderRadius: "var(--radius-sm)", background: inv.status === "paid" ? "var(--green-light)" : "#d1f2e0", color: inv.status === "paid" ? "var(--green)" : "#37845e" }}>{inv.status}</span>
+                                      <p className="text-[14px] font-semibold" style={{ color: "var(--grey-900)" }}>{inv.invoiceNumber}</p>
+                                      <span className="text-[12px] font-bold uppercase px-1.5 py-px" style={{ borderRadius: "var(--radius-sm)", background: inv.status === "paid" ? "var(--green-light)" : "#d1f2e0", color: inv.status === "paid" ? "var(--green)" : "#37845e" }}>{inv.status}</span>
                                     </div>
-                                    <p className="text-[13px] font-bold" style={{ color: "var(--grey-900)" }}>{formatCurrency(inv.totalAmount)}</p>
+                                    <p className="text-[15px] font-bold" style={{ color: "var(--grey-900)" }}>{formatCurrency(inv.totalAmount)}</p>
                                   </Link>
                                 ))}
                               </div>
@@ -2944,6 +3279,350 @@ export default function PatientDetailPage() {
               )}
             </div>
           )}
+
+          {/* ═══ TREATMENT PLANS ═══ */}
+          {activeSection === "treatment-plans" && (
+            <div>
+              <div className="flex items-center justify-between mb-5">
+                <div>
+                  <h2 className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>Treatment Plans</h2>
+                  <p className="text-[13px] mt-1" style={{ color: "var(--grey-500)" }}>Doctor-prescribed treatment plans and progress</p>
+                </div>
+                <Link href={`/treatment-plans?patientId=${id}`} className="px-3 py-1.5 text-[13px] font-semibold" style={{ background: "#2d6a4f", color: "#fff", borderRadius: "var(--radius-sm)" }}>+ New Plan</Link>
+              </div>
+              {treatmentPlansLoading ? (
+                <div className="py-16 text-center"><div className="w-6 h-6 mx-auto border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: "#2d6a4f", borderTopColor: "transparent" }} /></div>
+              ) : treatmentPlans.length === 0 ? (
+                <div className="py-16 text-center">
+                  <svg className="w-10 h-10 mx-auto mb-3" style={{ color: "var(--grey-300)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
+                  <p className="text-[15px] font-medium" style={{ color: "var(--grey-500)" }}>No treatment plans yet</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {treatmentPlans.map((tp) => {
+                    const progress = tp.totalSessions > 0 ? Math.round((tp.completedSessions / tp.totalSessions) * 100) : 0;
+                    const statusColors: Record<string, { bg: string; text: string }> = {
+                      active: { bg: "#e8f5e9", text: "#2e7d32" }, completed: { bg: "#e3f2fd", text: "#1565c0" },
+                      paused: { bg: "#fff3e0", text: "#e65100" }, cancelled: { bg: "#ffebee", text: "#c62828" },
+                    };
+                    const sc = statusColors[tp.status] || statusColors.active;
+                    return (
+                      <div key={tp.id} style={{ ...cardStyle, padding: 0, overflow: "hidden" }}>
+                        <div className="px-4 py-3">
+                          <div className="flex items-start justify-between mb-2">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <h3 className="text-[15px] font-bold truncate" style={{ color: "var(--grey-900)" }}>{tp.name}</h3>
+                                <span className="px-2 py-0.5 text-[9px] font-bold uppercase flex-shrink-0" style={{ background: sc.bg, color: sc.text, borderRadius: "var(--radius-pill)" }}>{tp.status}</span>
+                              </div>
+                              <p className="text-[13px]" style={{ color: "var(--grey-500)" }}>{tp.planNumber} &middot; Dr. {tp.doctorName.replace(/^Dr\.?\s*/i, "")}</p>
+                            </div>
+                          </div>
+                          {tp.diagnosis && <p className="text-[13px] mb-2" style={{ color: "var(--grey-600)" }}><strong>Diagnosis:</strong> {tp.diagnosis}</p>}
+                          <div className="grid grid-cols-3 gap-3 mb-2">
+                            <div><p className="text-[9px] uppercase font-bold" style={{ color: "var(--grey-400)" }}>Start</p><p className="text-[14px] font-semibold" style={{ color: "var(--grey-800)" }}>{new Date(tp.startDate).toLocaleDateString("en-SG", { day: "2-digit", month: "short", year: "numeric" })}</p></div>
+                            <div><p className="text-[9px] uppercase font-bold" style={{ color: "var(--grey-400)" }}>Sessions</p><p className="text-[14px] font-semibold" style={{ color: "var(--grey-800)" }}>{tp.completedSessions}/{tp.totalSessions}</p></div>
+                            <div><p className="text-[9px] uppercase font-bold" style={{ color: "var(--grey-400)" }}>Cost</p><p className="text-[14px] font-semibold" style={{ color: "var(--grey-800)" }}>S${tp.totalCost.toFixed(2)}</p></div>
+                          </div>
+                          {tp.totalSessions > 0 && (
+                            <div>
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="text-[12px] font-semibold" style={{ color: "var(--grey-500)" }}>Progress</span>
+                                <span className="text-[12px] font-bold" style={{ color: "#2d6a4f" }}>{progress}%</span>
+                              </div>
+                              <div style={{ height: 6, background: "var(--grey-100)", borderRadius: 3, overflow: "hidden" }}>
+                                <div style={{ width: `${progress}%`, height: "100%", background: progress === 100 ? "#2d6a4f" : "#4caf50", borderRadius: 3, transition: "width 0.3s ease" }} />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ═══ COMPLETED PROCEDURES ═══ */}
+          {activeSection === "completed-procedures" && (
+            <div>
+              <div className="mb-5">
+                <h2 className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>Completed Procedures</h2>
+                <p className="text-[13px] mt-1" style={{ color: "var(--grey-500)" }}>All completed appointments and treatments</p>
+              </div>
+              {completedProceduresLoading ? (
+                <div className="py-16 text-center"><div className="w-6 h-6 mx-auto border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: "#2d6a4f", borderTopColor: "transparent" }} /></div>
+              ) : completedProcedures.length === 0 ? (
+                <div className="py-16 text-center">
+                  <svg className="w-10 h-10 mx-auto mb-3" style={{ color: "var(--grey-300)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  <p className="text-[15px] font-medium" style={{ color: "var(--grey-500)" }}>No completed procedures yet</p>
+                </div>
+              ) : (
+                <div>
+                  {/* Summary bar */}
+                  <div className="grid grid-cols-3 gap-3 mb-4">
+                    <div className="p-3 text-center" style={{ ...cardStyle }}>
+                      <p className="text-[18px] font-bold" style={{ color: "#2d6a4f" }}>{completedProcedures.length}</p>
+                      <p className="text-[12px] font-semibold uppercase" style={{ color: "var(--grey-500)" }}>Total Done</p>
+                    </div>
+                    <div className="p-3 text-center" style={{ ...cardStyle }}>
+                      <p className="text-[18px] font-bold" style={{ color: "var(--grey-800)" }}>{new Set(completedProcedures.map(p => p.treatmentName).filter(Boolean)).size}</p>
+                      <p className="text-[12px] font-semibold uppercase" style={{ color: "var(--grey-500)" }}>Treatments</p>
+                    </div>
+                    <div className="p-3 text-center" style={{ ...cardStyle }}>
+                      <p className="text-[18px] font-bold" style={{ color: "var(--grey-800)" }}>{new Set(completedProcedures.map(p => p.doctor)).size}</p>
+                      <p className="text-[12px] font-semibold uppercase" style={{ color: "var(--grey-500)" }}>Doctors</p>
+                    </div>
+                  </div>
+                  {/* Procedures table */}
+                  <div style={{ ...cardStyle, overflow: "hidden" }}>
+                    <table className="w-full text-left">
+                      <thead>
+                        <tr style={{ background: "var(--grey-50)", borderBottom: "1px solid var(--grey-200)" }}>
+                          <th className="px-4 py-2.5 text-[12px] font-bold uppercase" style={{ color: "var(--grey-500)" }}>Date</th>
+                          <th className="px-4 py-2.5 text-[12px] font-bold uppercase" style={{ color: "var(--grey-500)" }}>Treatment</th>
+                          <th className="px-4 py-2.5 text-[12px] font-bold uppercase" style={{ color: "var(--grey-500)" }}>Doctor</th>
+                          <th className="px-4 py-2.5 text-[12px] font-bold uppercase text-right" style={{ color: "var(--grey-500)" }}>Fee</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {completedProcedures.map((proc, idx) => (
+                          <tr key={proc.id} style={{ borderBottom: idx < completedProcedures.length - 1 ? "1px solid var(--grey-100)" : "none" }}>
+                            <td className="px-4 py-2.5">
+                              <p className="text-[14px] font-semibold" style={{ color: "var(--grey-800)" }}>{new Date(proc.date).toLocaleDateString("en-SG", { day: "2-digit", month: "short" })}</p>
+                              <p className="text-[12px]" style={{ color: "var(--grey-400)" }}>{proc.time}</p>
+                            </td>
+                            <td className="px-4 py-2.5">
+                              <p className="text-[14px] font-medium" style={{ color: "var(--grey-800)" }}>{proc.treatmentName || proc.reason || "General"}</p>
+                              {proc.packageName && <p className="text-[12px]" style={{ color: "#2d6a4f" }}>{proc.packageName}</p>}
+                            </td>
+                            <td className="px-4 py-2.5 text-[14px]" style={{ color: "var(--grey-600)" }}>{proc.doctor}</td>
+                            <td className="px-4 py-2.5 text-[14px] font-semibold text-right" style={{ color: "var(--grey-800)" }}>{proc.sessionPrice ? `S$${proc.sessionPrice.toFixed(2)}` : "—"}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ═══ INVOICES ═══ */}
+          {activeSection === "invoices" && (
+            <div>
+              <div className="flex items-center justify-between mb-5">
+                <div>
+                  <h2 className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>Invoices</h2>
+                  <p className="text-[13px] mt-1" style={{ color: "var(--grey-500)" }}>All invoices for this patient</p>
+                </div>
+                <Link href={`/billing/new?patientId=${id}&patientName=${encodeURIComponent(patient.firstName + " " + patient.lastName)}`} className="px-3 py-1.5 text-[13px] font-semibold" style={{ background: "#2d6a4f", color: "#fff", borderRadius: "var(--radius-sm)" }}>+ New Invoice</Link>
+              </div>
+              {invoicesLoading ? (
+                <div className="py-16 text-center"><div className="w-6 h-6 mx-auto border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: "#2d6a4f", borderTopColor: "transparent" }} /></div>
+              ) : patientInvoices.length === 0 ? (
+                <div className="py-16 text-center">
+                  <svg className="w-10 h-10 mx-auto mb-3" style={{ color: "var(--grey-300)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" /></svg>
+                  <p className="text-[15px] font-medium" style={{ color: "var(--grey-500)" }}>No invoices yet</p>
+                </div>
+              ) : (
+                <div>
+                  {/* Invoice summary */}
+                  <div className="grid grid-cols-4 gap-3 mb-4">
+                    <div className="p-3 text-center" style={{ ...cardStyle }}>
+                      <p className="text-[16px] font-bold" style={{ color: "var(--grey-800)" }}>{patientInvoices.length}</p>
+                      <p className="text-[9px] font-semibold uppercase" style={{ color: "var(--grey-500)" }}>Total</p>
+                    </div>
+                    <div className="p-3 text-center" style={{ ...cardStyle }}>
+                      <p className="text-[16px] font-bold" style={{ color: "#2d6a4f" }}>S${patientInvoices.reduce((s, i) => s + i.totalAmount, 0).toFixed(0)}</p>
+                      <p className="text-[9px] font-semibold uppercase" style={{ color: "var(--grey-500)" }}>Billed</p>
+                    </div>
+                    <div className="p-3 text-center" style={{ ...cardStyle }}>
+                      <p className="text-[16px] font-bold" style={{ color: "#1565c0" }}>S${patientInvoices.reduce((s, i) => s + i.paidAmount, 0).toFixed(0)}</p>
+                      <p className="text-[9px] font-semibold uppercase" style={{ color: "var(--grey-500)" }}>Paid</p>
+                    </div>
+                    <div className="p-3 text-center" style={{ ...cardStyle }}>
+                      <p className="text-[16px] font-bold" style={{ color: patientInvoices.reduce((s, i) => s + i.balanceAmount, 0) > 0 ? "#c62828" : "#2d6a4f" }}>S${patientInvoices.reduce((s, i) => s + i.balanceAmount, 0).toFixed(0)}</p>
+                      <p className="text-[9px] font-semibold uppercase" style={{ color: "var(--grey-500)" }}>Balance</p>
+                    </div>
+                  </div>
+                  {/* Invoice table */}
+                  <div style={{ ...cardStyle, overflow: "hidden" }}>
+                    <table className="w-full text-left">
+                      <thead>
+                        <tr style={{ background: "var(--grey-50)", borderBottom: "1px solid var(--grey-200)" }}>
+                          <th className="px-4 py-2.5 text-[12px] font-bold uppercase" style={{ color: "var(--grey-500)" }}>Invoice #</th>
+                          <th className="px-4 py-2.5 text-[12px] font-bold uppercase" style={{ color: "var(--grey-500)" }}>Date</th>
+                          <th className="px-4 py-2.5 text-[12px] font-bold uppercase text-right" style={{ color: "var(--grey-500)" }}>Amount</th>
+                          <th className="px-4 py-2.5 text-[12px] font-bold uppercase text-right" style={{ color: "var(--grey-500)" }}>Paid</th>
+                          <th className="px-4 py-2.5 text-[12px] font-bold uppercase text-right" style={{ color: "var(--grey-500)" }}>Balance</th>
+                          <th className="px-4 py-2.5 text-[12px] font-bold uppercase text-center" style={{ color: "var(--grey-500)" }}>Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {patientInvoices.map((inv, idx) => {
+                          const statusColors: Record<string, { bg: string; text: string }> = {
+                            paid: { bg: "#e8f5e9", text: "#2e7d32" }, pending: { bg: "#fff3e0", text: "#e65100" },
+                            partially_paid: { bg: "#e3f2fd", text: "#1565c0" }, draft: { bg: "var(--grey-100)", text: "var(--grey-600)" },
+                            cancelled: { bg: "#ffebee", text: "#c62828" }, refunded: { bg: "#f3e5f5", text: "#7b1fa2" },
+                          };
+                          const sc = statusColors[inv.status] || statusColors.pending;
+                          return (
+                            <tr key={inv.id} className="hover:bg-gray-50 cursor-pointer" style={{ borderBottom: idx < patientInvoices.length - 1 ? "1px solid var(--grey-100)" : "none" }}
+                              onClick={() => router.push(`/billing/${inv.id}`)}>
+                              <td className="px-4 py-2.5">
+                                <span className="text-[14px] font-semibold" style={{ color: "#2d6a4f" }}>{inv.invoiceNumber}</span>
+                                {inv.isPackageSale && <span className="ml-1.5 px-1.5 py-0.5 text-[8px] font-bold uppercase" style={{ background: "#e8f5e9", color: "#2e7d32", borderRadius: "var(--radius-pill)" }}>Package</span>}
+                              </td>
+                              <td className="px-4 py-2.5 text-[14px]" style={{ color: "var(--grey-600)" }}>{new Date(inv.date).toLocaleDateString("en-SG", { day: "2-digit", month: "short", year: "numeric" })}</td>
+                              <td className="px-4 py-2.5 text-[14px] font-semibold text-right" style={{ color: "var(--grey-800)" }}>S${inv.totalAmount.toFixed(2)}</td>
+                              <td className="px-4 py-2.5 text-[14px] text-right" style={{ color: "#2d6a4f" }}>S${inv.paidAmount.toFixed(2)}</td>
+                              <td className="px-4 py-2.5 text-[14px] font-semibold text-right" style={{ color: inv.balanceAmount > 0 ? "#c62828" : "var(--grey-400)" }}>{inv.balanceAmount > 0 ? `S$${inv.balanceAmount.toFixed(2)}` : "—"}</td>
+                              <td className="px-4 py-2.5 text-center"><span className="px-2 py-0.5 text-[9px] font-bold uppercase" style={{ background: sc.bg, color: sc.text, borderRadius: "var(--radius-pill)" }}>{inv.status.replace("_", " ")}</span></td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ═══ PAYMENTS ═══ */}
+          {activeSection === "payments" && (
+            <div>
+              <div className="mb-5">
+                <h2 className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>Payments</h2>
+                <p className="text-[13px] mt-1" style={{ color: "var(--grey-500)" }}>All payment receipts for this patient</p>
+              </div>
+              {paymentsLoading ? (
+                <div className="py-16 text-center"><div className="w-6 h-6 mx-auto border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: "#2d6a4f", borderTopColor: "transparent" }} /></div>
+              ) : patientPayments.length === 0 ? (
+                <div className="py-16 text-center">
+                  <svg className="w-10 h-10 mx-auto mb-3" style={{ color: "var(--grey-300)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                  <p className="text-[15px] font-medium" style={{ color: "var(--grey-500)" }}>No payments recorded yet</p>
+                </div>
+              ) : (
+                <div>
+                  {/* Payment summary */}
+                  <div className="grid grid-cols-3 gap-3 mb-4">
+                    <div className="p-3 text-center" style={{ ...cardStyle }}>
+                      <p className="text-[18px] font-bold" style={{ color: "#2d6a4f" }}>S${patientPayments.reduce((s, p) => s + p.amount, 0).toFixed(0)}</p>
+                      <p className="text-[9px] font-semibold uppercase" style={{ color: "var(--grey-500)" }}>Total Paid</p>
+                    </div>
+                    <div className="p-3 text-center" style={{ ...cardStyle }}>
+                      <p className="text-[18px] font-bold" style={{ color: "var(--grey-800)" }}>{patientPayments.length}</p>
+                      <p className="text-[9px] font-semibold uppercase" style={{ color: "var(--grey-500)" }}>Receipts</p>
+                    </div>
+                    <div className="p-3 text-center" style={{ ...cardStyle }}>
+                      <p className="text-[18px] font-bold" style={{ color: "var(--grey-800)" }}>{patientPayments.filter(p => p.method === "cash").length} / {patientPayments.filter(p => p.method === "card").length}</p>
+                      <p className="text-[9px] font-semibold uppercase" style={{ color: "var(--grey-500)" }}>Cash / Card</p>
+                    </div>
+                  </div>
+                  {/* Payments list */}
+                  <div className="space-y-2">
+                    {patientPayments.map((pay) => {
+                      const methodIcons: Record<string, string> = { cash: "💵", card: "💳", upi: "📱", bank_transfer: "🏦", insurance: "🏥" };
+                      return (
+                        <div key={pay.id} className="flex items-center gap-3 px-4 py-3" style={{ ...cardStyle }}>
+                          <div className="w-9 h-9 flex items-center justify-center text-[16px] flex-shrink-0" style={{ background: "var(--grey-50)", borderRadius: "var(--radius-sm)" }}>
+                            {methodIcons[pay.method] || "💰"}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <p className="text-[14px] font-semibold" style={{ color: "var(--grey-900)" }}>S${pay.amount.toFixed(2)}</p>
+                              <span className="px-1.5 py-0.5 text-[9px] font-bold uppercase" style={{ background: "var(--grey-100)", color: "var(--grey-600)", borderRadius: "var(--radius-pill)" }}>{pay.method}</span>
+                            </div>
+                            <p className="text-[12px]" style={{ color: "var(--grey-500)" }}>
+                              {pay.receiptNumber || "—"} &middot; for {pay.invoice.invoiceNumber}
+                            </p>
+                          </div>
+                          <div className="text-right flex-shrink-0">
+                            <p className="text-[13px] font-medium" style={{ color: "var(--grey-700)" }}>{new Date(pay.date).toLocaleDateString("en-SG", { day: "2-digit", month: "short" })}</p>
+                            <p className="text-[12px]" style={{ color: "var(--grey-400)" }}>{new Date(pay.date).toLocaleTimeString("en-SG", { hour: "2-digit", minute: "2-digit" })}</p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ═══ LEDGER ═══ */}
+          {activeSection === "ledger" && (
+            <div>
+              <div className="mb-5">
+                <h2 className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>Patient Ledger</h2>
+                <p className="text-[13px] mt-1" style={{ color: "var(--grey-500)" }}>Complete financial transaction history</p>
+              </div>
+              {ledgerLoading ? (
+                <div className="py-16 text-center"><div className="w-6 h-6 mx-auto border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: "#2d6a4f", borderTopColor: "transparent" }} /></div>
+              ) : ledgerEntries.length === 0 ? (
+                <div className="py-16 text-center">
+                  <svg className="w-10 h-10 mx-auto mb-3" style={{ color: "var(--grey-300)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+                  <p className="text-[15px] font-medium" style={{ color: "var(--grey-500)" }}>No transactions yet</p>
+                </div>
+              ) : (
+                <div>
+                  {/* Ledger summary */}
+                  <div className="grid grid-cols-3 gap-3 mb-4">
+                    <div className="p-3 text-center" style={{ ...cardStyle }}>
+                      <p className="text-[16px] font-bold" style={{ color: "#c62828" }}>S${ledgerEntries.reduce((s, e) => s + e.debit, 0).toFixed(0)}</p>
+                      <p className="text-[9px] font-semibold uppercase" style={{ color: "var(--grey-500)" }}>Total Charges</p>
+                    </div>
+                    <div className="p-3 text-center" style={{ ...cardStyle }}>
+                      <p className="text-[16px] font-bold" style={{ color: "#2d6a4f" }}>S${ledgerEntries.reduce((s, e) => s + e.credit, 0).toFixed(0)}</p>
+                      <p className="text-[9px] font-semibold uppercase" style={{ color: "var(--grey-500)" }}>Total Payments</p>
+                    </div>
+                    <div className="p-3 text-center" style={{ ...cardStyle }}>
+                      <p className="text-[16px] font-bold" style={{ color: (ledgerEntries[ledgerEntries.length - 1]?.balance || 0) > 0 ? "#c62828" : "#2d6a4f" }}>
+                        S${Math.abs(ledgerEntries[ledgerEntries.length - 1]?.balance || 0).toFixed(0)}
+                      </p>
+                      <p className="text-[9px] font-semibold uppercase" style={{ color: "var(--grey-500)" }}>{(ledgerEntries[ledgerEntries.length - 1]?.balance || 0) > 0 ? "Outstanding" : "Settled"}</p>
+                    </div>
+                  </div>
+                  {/* Ledger table */}
+                  <div style={{ ...cardStyle, overflow: "hidden" }}>
+                    <table className="w-full text-left">
+                      <thead>
+                        <tr style={{ background: "var(--grey-50)", borderBottom: "1px solid var(--grey-200)" }}>
+                          <th className="px-4 py-2.5 text-[12px] font-bold uppercase" style={{ color: "var(--grey-500)" }}>Date</th>
+                          <th className="px-4 py-2.5 text-[12px] font-bold uppercase" style={{ color: "var(--grey-500)" }}>Description</th>
+                          <th className="px-4 py-2.5 text-[12px] font-bold uppercase" style={{ color: "var(--grey-500)" }}>Reference</th>
+                          <th className="px-4 py-2.5 text-[12px] font-bold uppercase text-right" style={{ color: "var(--grey-500)" }}>Debit</th>
+                          <th className="px-4 py-2.5 text-[12px] font-bold uppercase text-right" style={{ color: "var(--grey-500)" }}>Credit</th>
+                          <th className="px-4 py-2.5 text-[12px] font-bold uppercase text-right" style={{ color: "var(--grey-500)" }}>Balance</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {ledgerEntries.map((entry, idx) => (
+                          <tr key={entry.id + "-" + idx} style={{ borderBottom: idx < ledgerEntries.length - 1 ? "1px solid var(--grey-100)" : "none" }}>
+                            <td className="px-4 py-2.5 text-[13px]" style={{ color: "var(--grey-600)" }}>{new Date(entry.date).toLocaleDateString("en-SG", { day: "2-digit", month: "short", year: "2-digit" })}</td>
+                            <td className="px-4 py-2.5">
+                              <div className="flex items-center gap-1.5">
+                                <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: entry.type === "invoice" ? "#e65100" : "#2e7d32" }} />
+                                <span className="text-[13px] font-medium" style={{ color: "var(--grey-800)" }}>{entry.description}</span>
+                              </div>
+                            </td>
+                            <td className="px-4 py-2.5 text-[13px] font-mono" style={{ color: "var(--grey-500)" }}>{entry.reference}</td>
+                            <td className="px-4 py-2.5 text-[13px] font-semibold text-right" style={{ color: entry.debit > 0 ? "#c62828" : "var(--grey-300)" }}>{entry.debit > 0 ? `S$${entry.debit.toFixed(2)}` : "—"}</td>
+                            <td className="px-4 py-2.5 text-[13px] font-semibold text-right" style={{ color: entry.credit > 0 ? "#2e7d32" : "var(--grey-300)" }}>{entry.credit > 0 ? `S$${entry.credit.toFixed(2)}` : "—"}</td>
+                            <td className="px-4 py-2.5 text-[13px] font-bold text-right" style={{ color: entry.balance > 0 ? "#c62828" : "#2d6a4f" }}>S${entry.balance.toFixed(2)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
         </main>
 
         {/* ─── RIGHT SIDEBAR ─── */}
@@ -2954,16 +3633,16 @@ export default function PatientDetailPage() {
             <div>
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>Medical History</h3>
-                <button onClick={() => { setActiveSection("profile"); startEdit(); }} className="text-[13px] font-semibold hover:underline" style={{ color: "#2d6a4f" }}>+ Add New</button>
+                <button onClick={() => { setActiveSection("profile"); startEdit(); }} className="text-[15px] font-semibold hover:underline" style={{ color: "#2d6a4f" }}>+ Add New</button>
               </div>
               {medicalHistory.length > 0 ? (
                 <div className="space-y-2">{medicalHistory.map((c) => (
-                  <label key={c} className="flex items-center gap-2.5 text-[13px]" style={{ color: "var(--grey-800)" }}>
+                  <label key={c} className="flex items-center gap-2.5 text-[15px]" style={{ color: "var(--grey-800)" }}>
                     <input type="checkbox" checked readOnly className="w-4 h-4" />
                     {c}
                   </label>
                 ))}</div>
-              ) : <p className="text-[12px]" style={{ color: "var(--grey-400)" }}>No medical history recorded. Click &quot;+ Add New&quot; to add conditions.</p>}
+              ) : <p className="text-[14px]" style={{ color: "var(--grey-400)" }}>No medical history recorded. Click &quot;+ Add New&quot; to add conditions.</p>}
             </div>
 
             <div style={{ height: 1, background: "var(--grey-200)" }} />
@@ -2972,9 +3651,9 @@ export default function PatientDetailPage() {
             <div>
               <h3 className="text-[16px] font-bold mb-3" style={{ color: "var(--grey-900)" }}>Other History</h3>
               {patient.otherHistory ? (
-                <p className="text-[13px] leading-relaxed" style={{ color: "var(--grey-700)" }}>{patient.otherHistory}</p>
+                <p className="text-[15px] leading-relaxed" style={{ color: "var(--grey-700)" }}>{patient.otherHistory}</p>
               ) : (
-                <div className="px-3 py-4 text-[12px]" style={{ border: "1px solid var(--grey-200)", borderRadius: "var(--radius-sm)", color: "var(--grey-400)" }}>No other history on file. Edit profile to add.</div>
+                <div className="px-3 py-4 text-[14px]" style={{ border: "1px solid var(--grey-200)", borderRadius: "var(--radius-sm)", color: "var(--grey-400)" }}>No other history on file. Edit profile to add.</div>
               )}
             </div>
 
@@ -2984,9 +3663,9 @@ export default function PatientDetailPage() {
             <div>
               <h3 className="text-[16px] font-bold mb-3" style={{ color: "var(--grey-900)" }}>Allergies</h3>
               {patient.allergies ? (
-                <p className="text-[13px] leading-relaxed" style={{ color: "var(--red)" }}>{patient.allergies}</p>
+                <p className="text-[15px] leading-relaxed" style={{ color: "var(--red)" }}>{patient.allergies}</p>
               ) : (
-                <div className="px-3 py-4 text-[12px]" style={{ border: "1px solid var(--grey-200)", borderRadius: "var(--radius-sm)", color: "var(--grey-400)" }}>No known allergies on file. Edit profile to add.</div>
+                <div className="px-3 py-4 text-[14px]" style={{ border: "1px solid var(--grey-200)", borderRadius: "var(--radius-sm)", color: "var(--grey-400)" }}>No known allergies on file. Edit profile to add.</div>
               )}
             </div>
 
@@ -2996,16 +3675,16 @@ export default function PatientDetailPage() {
             <div>
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>Groups</h3>
-                <button onClick={() => { setActiveSection("profile"); startEdit(); }} className="text-[13px] font-semibold hover:underline" style={{ color: "#2d6a4f" }}>Add New</button>
+                <button onClick={() => { setActiveSection("profile"); startEdit(); }} className="text-[15px] font-semibold hover:underline" style={{ color: "#2d6a4f" }}>Add New</button>
               </div>
               {groups.length > 0 ? (
                 <div className="space-y-2">{groups.map((g) => (
-                  <label key={g} className="flex items-center gap-2.5 text-[13px]" style={{ color: "var(--grey-800)" }}>
+                  <label key={g} className="flex items-center gap-2.5 text-[15px]" style={{ color: "var(--grey-800)" }}>
                     <input type="checkbox" checked readOnly className="w-4 h-4" />
                     {g}
                   </label>
                 ))}</div>
-              ) : <p className="text-[12px]" style={{ color: "var(--grey-400)" }}>No groups assigned. Use groups to categorise patients.</p>}
+              ) : <p className="text-[14px]" style={{ color: "var(--grey-400)" }}>No groups assigned. Use groups to categorise patients.</p>}
             </div>
 
             <div style={{ height: 1, background: "var(--grey-200)" }} />
@@ -3014,17 +3693,17 @@ export default function PatientDetailPage() {
             <div>
               <h3 className="text-[16px] font-bold mb-3" style={{ color: "var(--grey-900)" }}>Patient Notes</h3>
               <div className="flex gap-1.5 mb-2">
-                <input type="text" value={noteInput} onChange={(e) => setNoteInput(e.target.value)} placeholder="Type note here" className="flex-1 px-2.5 py-1.5 text-[12px]" style={inputStyle}
+                <input type="text" value={noteInput} onChange={(e) => setNoteInput(e.target.value)} placeholder="Type note here" className="flex-1 px-2.5 py-1.5 text-[14px]" style={inputStyle}
                   onKeyDown={(e) => { if (e.key === "Enter") saveNote(); }} />
-                <button onClick={saveNote} disabled={!noteInput.trim()} className="px-2.5 py-1.5 text-[11px] font-semibold text-white disabled:opacity-40" style={{ background: "#2d6a4f", borderRadius: "var(--radius-sm)" }}>Add</button>
+                <button onClick={saveNote} disabled={!noteInput.trim()} className="px-2.5 py-1.5 text-[13px] font-semibold text-white disabled:opacity-40" style={{ background: "#2d6a4f", borderRadius: "var(--radius-sm)" }}>Add</button>
               </div>
               {patient.medicalNotes ? (
                 <div className="space-y-1 max-h-36 overflow-y-auto">
                   {patient.medicalNotes.split("\n").filter(Boolean).map((note, i) => (
-                    <p key={i} className="text-[11px] px-2 py-1.5 leading-snug" style={{ color: "var(--grey-700)", background: "var(--grey-50)", borderRadius: "var(--radius-sm)", borderLeft: "2px solid #2d6a4f" }}>{note}</p>
+                    <p key={i} className="text-[13px] px-2 py-1.5 leading-snug" style={{ color: "var(--grey-700)", background: "var(--grey-50)", borderRadius: "var(--radius-sm)", borderLeft: "2px solid #2d6a4f" }}>{note}</p>
                   ))}
                 </div>
-              ) : <p className="text-[12px]" style={{ color: "var(--grey-400)" }}>No notes yet. Add quick notes about this patient above.</p>}
+              ) : <p className="text-[14px]" style={{ color: "var(--grey-400)" }}>No notes yet. Add quick notes about this patient above.</p>}
             </div>
           </div>
         </aside>
@@ -3036,7 +3715,7 @@ export default function PatientDetailPage() {
           <div className="w-full max-w-md yoda-slide-in" style={{ background: "var(--white)", borderRadius: "var(--radius)", boxShadow: "0 20px 60px rgba(0,0,0,0.25)", overflow: "hidden" }} onClick={(e) => e.stopPropagation()}>
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-3.5" style={{ borderBottom: "1px solid var(--grey-200)" }}>
-              <h3 className="text-[15px] font-bold" style={{ color: "var(--grey-900)" }}>{patient.photoUrl && !photoPreview ? "Patient Photo" : photoPreview ? "Adjust & Save" : "Upload Photo"}</h3>
+              <h3 className="text-[17px] font-bold" style={{ color: "var(--grey-900)" }}>{patient.photoUrl && !photoPreview ? "Patient Photo" : photoPreview ? "Adjust & Save" : "Upload Photo"}</h3>
               <button onClick={() => { if (!uploadingPhoto) { setShowPhotoModal(false); if (photoPreview) URL.revokeObjectURL(photoPreview); setPhotoPreview(null); setPhotoFile(null); } }} className="p-1 hover:bg-gray-100 rounded" style={{ color: "var(--grey-400)" }}>
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
@@ -3089,7 +3768,7 @@ export default function PatientDetailPage() {
                       style={{ background: `linear-gradient(to right, #2d6a4f ${((photoCropScale - 1) / 2) * 100}%, var(--grey-200) ${((photoCropScale - 1) / 2) * 100}%)` }} />
                     <svg className="w-4 h-4 flex-shrink-0" style={{ color: "var(--grey-400)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" /></svg>
                   </div>
-                  <p className="text-[11px] text-center mt-2" style={{ color: "var(--grey-400)" }}>Drag to reposition, slide to zoom</p>
+                  <p className="text-[13px] text-center mt-2" style={{ color: "var(--grey-400)" }}>Drag to reposition, slide to zoom</p>
                 </div>
               ) : patient.photoUrl ? (
                 /* Current photo view */
@@ -3118,10 +3797,10 @@ export default function PatientDetailPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
-                  <p className="text-[13px] font-medium" style={{ color: dragActive ? "#2d6a4f" : "var(--grey-600)" }}>
+                  <p className="text-[15px] font-medium" style={{ color: dragActive ? "#2d6a4f" : "var(--grey-600)" }}>
                     {dragActive ? "Drop photo here" : "Drag & drop a photo"}
                   </p>
-                  <p className="text-[11px] mt-1" style={{ color: "var(--grey-400)" }}>or click to browse &middot; JPG, PNG up to 5MB</p>
+                  <p className="text-[13px] mt-1" style={{ color: "var(--grey-400)" }}>or click to browse &middot; JPG, PNG up to 5MB</p>
                 </div>
               )}
               <input ref={photoInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(e) => handlePhotoSelect(e.target.files?.[0] || null)} />
@@ -3133,11 +3812,11 @@ export default function PatientDetailPage() {
               {photoPreview ? (
                 <>
                   <button onClick={() => { if (photoPreview) URL.revokeObjectURL(photoPreview); setPhotoPreview(null); setPhotoFile(null); }} disabled={uploadingPhoto}
-                    className="flex-1 px-4 py-2.5 text-[13px] font-semibold disabled:opacity-50" style={{ background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", color: "var(--grey-700)" }}>
+                    className="flex-1 px-4 py-2.5 text-[15px] font-semibold disabled:opacity-50" style={{ background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", color: "var(--grey-700)" }}>
                     Back
                   </button>
                   <button onClick={cropAndUploadPhoto} disabled={uploadingPhoto}
-                    className="flex-1 px-4 py-2.5 text-[13px] font-semibold text-white disabled:opacity-50" style={{ background: "#2d6a4f", borderRadius: "var(--radius-sm)" }}>
+                    className="flex-1 px-4 py-2.5 text-[15px] font-semibold text-white disabled:opacity-50" style={{ background: "#2d6a4f", borderRadius: "var(--radius-sm)" }}>
                     {uploadingPhoto ? <span className="flex items-center justify-center gap-2"><span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />Saving...</span> : "Save Photo"}
                   </button>
                 </>
@@ -3145,12 +3824,12 @@ export default function PatientDetailPage() {
                 <>
                   {patient.photoUrl && (
                     <button onClick={() => { setShowPhotoModal(false); removePhoto(); }}
-                      className="px-4 py-2.5 text-[13px] font-semibold" style={{ color: "var(--red)", background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)" }}>
+                      className="px-4 py-2.5 text-[15px] font-semibold" style={{ color: "var(--red)", background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)" }}>
                       Remove
                     </button>
                   )}
                   <button onClick={() => photoInputRef.current?.click()}
-                    className="flex-1 px-4 py-2.5 text-[13px] font-semibold text-white" style={{ background: "#2d6a4f", borderRadius: "var(--radius-sm)" }}>
+                    className="flex-1 px-4 py-2.5 text-[15px] font-semibold text-white" style={{ background: "#2d6a4f", borderRadius: "var(--radius-sm)" }}>
                     {patient.photoUrl ? "Upload New Photo" : "Choose Photo"}
                   </button>
                 </>
@@ -3166,19 +3845,19 @@ export default function PatientDetailPage() {
         {fabOpen && (
           <div className="flex flex-col gap-2 mb-2 yoda-fade-in">
             <Link href={`/appointments?patientId=${id}&patientName=${encodeURIComponent(patient.firstName + " " + patient.lastName)}`}
-              className="inline-flex items-center gap-2 px-4 py-2.5 text-[12px] font-semibold shadow-lg"
+              className="inline-flex items-center gap-2 px-4 py-2.5 text-[14px] font-semibold shadow-lg"
               style={{ background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius-pill)", color: "var(--grey-800)", boxShadow: "var(--shadow-md)", whiteSpace: "nowrap" }}>
               <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: "#2d6a4f" }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
               Book Appointment
             </Link>
             <button onClick={() => { setActiveSection("vitals"); setFabOpen(false); }}
-              className="inline-flex items-center gap-2 px-4 py-2.5 text-[12px] font-semibold shadow-lg cursor-pointer"
+              className="inline-flex items-center gap-2 px-4 py-2.5 text-[14px] font-semibold shadow-lg cursor-pointer"
               style={{ background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius-pill)", color: "var(--grey-800)", boxShadow: "var(--shadow-md)", whiteSpace: "nowrap" }}>
               <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: "var(--green)" }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
               Record Vitals
             </button>
             <button onClick={() => { setActiveSection("communications"); setShowMsgForm(true); setFabOpen(false); }}
-              className="inline-flex items-center gap-2 px-4 py-2.5 text-[12px] font-semibold shadow-lg cursor-pointer"
+              className="inline-flex items-center gap-2 px-4 py-2.5 text-[14px] font-semibold shadow-lg cursor-pointer"
               style={{ background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius-pill)", color: "var(--grey-800)", boxShadow: "var(--shadow-md)", whiteSpace: "nowrap" }}>
               <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: "var(--orange)" }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
               Send Reminder

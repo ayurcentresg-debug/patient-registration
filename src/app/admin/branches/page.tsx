@@ -82,7 +82,7 @@ const inputStyle: React.CSSProperties = {
   borderRadius: "var(--radius-sm)",
   color: "var(--grey-900)",
   background: "var(--white)",
-  fontSize: "13px",
+  fontSize: "15px",
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -214,21 +214,21 @@ export default function BranchesPage() {
       {/* Toast */}
       {toast && (
         <div className="fixed top-5 right-5 z-[200] px-4 py-3 rounded shadow-lg yoda-slide-in" style={{ background: toast.type === "success" ? "#e8f5e9" : "#ffebee", color: toast.type === "success" ? "#2e7d32" : "var(--red)", border: `1px solid ${toast.type === "success" ? "#a5d6a7" : "#ef9a9a"}` }}>
-          <p className="text-[13px] font-semibold">{toast.message}</p>
+          <p className="text-[15px] font-semibold">{toast.message}</p>
         </div>
       )}
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-[22px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>Branches</h1>
-          <p className="text-[13px] mt-0.5" style={{ color: "var(--grey-600)" }}>
+          <h1 className="text-[24px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>Branches</h1>
+          <p className="text-[15px] mt-0.5" style={{ color: "var(--grey-600)" }}>
             {branches.length} branch{branches.length !== 1 ? "es" : ""} &middot; Manage clinic locations
           </p>
         </div>
         <button
           onClick={openAddModal}
-          className="inline-flex items-center gap-2 text-white px-5 py-2 text-[13px] font-semibold rounded"
+          className="inline-flex items-center gap-2 text-white px-5 py-2 text-[15px] font-semibold rounded"
           style={{ background: "var(--blue-500)", borderRadius: "var(--radius-sm)" }}
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
@@ -246,8 +246,8 @@ export default function BranchesPage() {
           <div className="w-14 h-14 mx-auto mb-4 flex items-center justify-center" style={{ background: "var(--grey-100)", borderRadius: "var(--radius-pill)" }}>
             <svg className="w-7 h-7" style={{ color: "var(--grey-400)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
           </div>
-          <p className="text-[14px] font-semibold" style={{ color: "var(--grey-700)" }}>No branches found</p>
-          <p className="text-[12px] mt-1" style={{ color: "var(--grey-500)" }}>Add your first branch to get started</p>
+          <p className="text-[16px] font-semibold" style={{ color: "var(--grey-700)" }}>No branches found</p>
+          <p className="text-[14px] mt-1" style={{ color: "var(--grey-500)" }}>Add your first branch to get started</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -256,13 +256,13 @@ export default function BranchesPage() {
               <div className="flex items-start justify-between mb-3">
                 <div>
                   <div className="flex items-center gap-2 mb-1 flex-wrap">
-                    <span className="text-[15px] font-bold" style={{ color: "var(--grey-900)" }}>{branch.name}</span>
+                    <span className="text-[17px] font-bold" style={{ color: "var(--grey-900)" }}>{branch.name}</span>
                     {branch.isMainBranch && (
-                      <span className="inline-flex px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide rounded" style={{ background: "#fff3e0", color: "#e65100", borderRadius: "var(--radius-sm)" }}>
+                      <span className="inline-flex px-2 py-0.5 text-[12px] font-bold uppercase tracking-wide rounded" style={{ background: "#fff3e0", color: "#e65100", borderRadius: "var(--radius-sm)" }}>
                         Main Branch
                       </span>
                     )}
-                    <span className="inline-flex px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide rounded" style={{
+                    <span className="inline-flex px-2 py-0.5 text-[12px] font-bold uppercase tracking-wide rounded" style={{
                       background: branch.active ? "#ecfdf5" : "#fef2f2",
                       color: branch.active ? "#059669" : "#dc2626",
                       borderRadius: "var(--radius-sm)",
@@ -270,18 +270,18 @@ export default function BranchesPage() {
                       {branch.active ? "Active" : "Inactive"}
                     </span>
                   </div>
-                  <span className="text-[11px] font-mono" style={{ color: "var(--grey-500)" }}>{branch.code}</span>
+                  <span className="text-[13px] font-mono" style={{ color: "var(--grey-500)" }}>{branch.code}</span>
                 </div>
                 <button
                   onClick={() => openEditModal(branch)}
-                  className="px-3 py-1.5 text-[12px] font-semibold rounded transition-colors"
+                  className="px-3 py-1.5 text-[14px] font-semibold rounded transition-colors"
                   style={{ background: "var(--white)", border: "1px solid var(--grey-300)", color: "var(--grey-700)", borderRadius: "var(--radius-sm)" }}
                 >
                   Edit
                 </button>
               </div>
 
-              <div className="space-y-2 text-[12px]" style={{ color: "var(--grey-600)" }}>
+              <div className="space-y-2 text-[14px]" style={{ color: "var(--grey-600)" }}>
                 {branch.address && (
                   <div className="flex items-start gap-2">
                     <svg className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
@@ -326,58 +326,58 @@ export default function BranchesPage() {
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[12px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Branch Name *</label>
+                  <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Branch Name *</label>
                   <input type="text" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} className="w-full px-3 py-2" style={inputStyle} placeholder="Main Clinic" />
                 </div>
                 <div>
-                  <label className="block text-[12px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Branch Code *</label>
+                  <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Branch Code *</label>
                   <input type="text" value={form.code} onChange={e => setForm(p => ({ ...p, code: e.target.value }))} className="w-full px-3 py-2" style={inputStyle} placeholder="MAIN-01" />
                 </div>
               </div>
 
               <div>
-                <label className="block text-[12px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Address</label>
+                <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Address</label>
                 <input type="text" value={form.address} onChange={e => setForm(p => ({ ...p, address: e.target.value }))} className="w-full px-3 py-2" style={inputStyle} placeholder="123 Wellness Street" />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-[12px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>City</label>
+                  <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>City</label>
                   <input type="text" value={form.city} onChange={e => setForm(p => ({ ...p, city: e.target.value }))} className="w-full px-3 py-2" style={inputStyle} placeholder="Singapore" />
                 </div>
                 <div>
-                  <label className="block text-[12px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>State</label>
+                  <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>State</label>
                   <input type="text" value={form.state} onChange={e => setForm(p => ({ ...p, state: e.target.value }))} className="w-full px-3 py-2" style={inputStyle} placeholder="Singapore" />
                 </div>
                 <div>
-                  <label className="block text-[12px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Zip</label>
+                  <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Zip</label>
                   <input type="text" value={form.zip} onChange={e => setForm(p => ({ ...p, zip: e.target.value }))} className="w-full px-3 py-2" style={inputStyle} placeholder="123456" />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[12px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Phone</label>
+                  <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Phone</label>
                   <input type="text" value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} className="w-full px-3 py-2" style={inputStyle} placeholder="+65 1234 5678" />
                 </div>
                 <div>
-                  <label className="block text-[12px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Email</label>
+                  <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Email</label>
                   <input type="email" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} className="w-full px-3 py-2" style={inputStyle} placeholder="branch@clinic.com" />
                 </div>
               </div>
 
               {/* Operating Hours */}
               <div>
-                <label className="block text-[12px] font-semibold mb-2" style={{ color: "var(--grey-700)" }}>Operating Hours</label>
+                <label className="block text-[14px] font-semibold mb-2" style={{ color: "var(--grey-700)" }}>Operating Hours</label>
                 <div className="space-y-2">
                   {DAYS_OF_WEEK.map(day => {
                     const dayHours = form.operatingHours[day.key] || { open: "08:00", close: "18:00", closed: false };
                     return (
                       <div key={day.key} className="flex items-center gap-3">
-                        <span className="text-[12px] font-medium w-24" style={{ color: "var(--grey-700)" }}>{day.label}</span>
+                        <span className="text-[14px] font-medium w-24" style={{ color: "var(--grey-700)" }}>{day.label}</span>
                         <button
                           onClick={() => toggleDayClosed(day.key)}
-                          className="px-2 py-1 text-[10px] font-bold uppercase rounded"
+                          className="px-2 py-1 text-[12px] font-bold uppercase rounded"
                           style={{
                             background: dayHours.closed ? "#fef2f2" : "#ecfdf5",
                             color: dayHours.closed ? "#dc2626" : "#059669",
@@ -391,7 +391,7 @@ export default function BranchesPage() {
                         {!dayHours.closed && (
                           <>
                             <input type="time" value={dayHours.open} onChange={e => updateHours(day.key, "open", e.target.value)} className="px-2 py-1" style={{ ...inputStyle, width: 110 }} />
-                            <span className="text-[12px]" style={{ color: "var(--grey-500)" }}>to</span>
+                            <span className="text-[14px]" style={{ color: "var(--grey-500)" }}>to</span>
                             <input type="time" value={dayHours.close} onChange={e => updateHours(day.key, "close", e.target.value)} className="px-2 py-1" style={{ ...inputStyle, width: 110 }} />
                           </>
                         )}
@@ -403,7 +403,7 @@ export default function BranchesPage() {
 
               {/* Main Branch toggle */}
               <div className="flex items-center gap-3">
-                <label className="text-[12px] font-semibold" style={{ color: "var(--grey-700)" }}>Main Branch</label>
+                <label className="text-[14px] font-semibold" style={{ color: "var(--grey-700)" }}>Main Branch</label>
                 <button
                   onClick={() => setForm(p => ({ ...p, isMainBranch: !p.isMainBranch }))}
                   className="relative w-10 h-5 rounded-full transition-colors"
@@ -411,14 +411,14 @@ export default function BranchesPage() {
                 >
                   <span className="absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform" style={{ left: form.isMainBranch ? 22 : 2 }} />
                 </button>
-                <span className="text-[12px]" style={{ color: "var(--grey-600)" }}>{form.isMainBranch ? "Yes" : "No"}</span>
+                <span className="text-[14px]" style={{ color: "var(--grey-600)" }}>{form.isMainBranch ? "Yes" : "No"}</span>
               </div>
             </div>
 
             <div className="flex items-center gap-3 mt-6 pt-4" style={{ borderTop: "1px solid var(--grey-200)" }}>
               <button
                 onClick={() => setShowModal(false)}
-                className="flex-1 px-4 py-2 text-[13px] font-semibold rounded"
+                className="flex-1 px-4 py-2 text-[15px] font-semibold rounded"
                 style={{ background: "var(--white)", border: "1px solid var(--grey-300)", color: "var(--grey-700)", borderRadius: "var(--radius-sm)" }}
               >
                 Cancel
@@ -426,7 +426,7 @@ export default function BranchesPage() {
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="flex-1 px-4 py-2 text-[13px] font-semibold text-white rounded disabled:opacity-50"
+                className="flex-1 px-4 py-2 text-[15px] font-semibold text-white rounded disabled:opacity-50"
                 style={{ background: "var(--blue-500)", borderRadius: "var(--radius-sm)" }}
               >
                 {saving ? "Saving..." : editingId ? "Update Branch" : "Create Branch"}

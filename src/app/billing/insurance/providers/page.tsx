@@ -34,7 +34,7 @@ const EMPTY_FORM: ProviderForm = { name: "", code: "", panelType: "private", con
 // ─── YODA Design Tokens ─────────────────────────────────────────────────────
 const cardStyle = { background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-card)" };
 const btnPrimary = { background: "var(--blue-500)", borderRadius: "var(--radius-sm)" };
-const chipBase = "inline-flex px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide";
+const chipBase = "inline-flex px-2 py-0.5 text-[12px] font-bold uppercase tracking-wide";
 
 const PANEL_COLORS: Record<string, { bg: string; color: string }> = {
   private: { bg: "#e3f2fd", color: "var(--blue-500)" },
@@ -231,15 +231,15 @@ export default function InsuranceProvidersPage() {
       {/* ── Header ──────────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-[22px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>Insurance Providers</h1>
-          <p className="text-[13px] mt-0.5" style={{ color: "var(--grey-600)" }}>
+          <h1 className="text-[24px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>Insurance Providers</h1>
+          <p className="text-[15px] mt-0.5" style={{ color: "var(--grey-600)" }}>
             {providers.length} provider{providers.length !== 1 ? "s" : ""} registered
           </p>
         </div>
         {!showForm && (
           <button
             onClick={openAddForm}
-            className="inline-flex items-center justify-center gap-2 text-white px-5 py-2 text-[13px] font-semibold transition-colors duration-150"
+            className="inline-flex items-center justify-center gap-2 text-white px-5 py-2 text-[15px] font-semibold transition-colors duration-150"
             style={btnPrimary}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -253,19 +253,19 @@ export default function InsuranceProvidersPage() {
       {/* ── Add/Edit Form ────────────────────────────────────────── */}
       {showForm && (
         <div className="mb-6 p-5" style={cardStyle}>
-          <h2 className="text-[15px] font-bold mb-4" style={{ color: "var(--grey-900)" }}>
+          <h2 className="text-[17px] font-bold mb-4" style={{ color: "var(--grey-900)" }}>
             {editingId ? "Edit Provider" : "Add New Provider"}
           </h2>
 
           {formError && (
             <div className="mb-4 px-4 py-2" style={{ background: "#ffebee", color: "var(--red)", borderRadius: "var(--radius-sm)" }}>
-              <p className="text-[13px] font-medium">{formError}</p>
+              <p className="text-[15px] font-medium">{formError}</p>
             </div>
           )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
             <div>
-              <label className="block text-[11px] font-bold uppercase tracking-wide mb-1" style={{ color: "var(--grey-600)" }}>
+              <label className="block text-[13px] font-bold uppercase tracking-wide mb-1" style={{ color: "var(--grey-600)" }}>
                 Name <span style={{ color: "var(--red)" }}>*</span>
               </label>
               <input
@@ -273,12 +273,12 @@ export default function InsuranceProvidersPage() {
                 value={form.name}
                 onChange={(e) => updateField("name", e.target.value)}
                 placeholder="e.g. AIA Singapore"
-                className="w-full px-3 py-2 text-[13px]"
+                className="w-full px-3 py-2 text-[15px]"
                 style={inputStyle}
               />
             </div>
             <div>
-              <label className="block text-[11px] font-bold uppercase tracking-wide mb-1" style={{ color: "var(--grey-600)" }}>
+              <label className="block text-[13px] font-bold uppercase tracking-wide mb-1" style={{ color: "var(--grey-600)" }}>
                 Code <span style={{ color: "var(--red)" }}>*</span>
               </label>
               <input
@@ -286,25 +286,25 @@ export default function InsuranceProvidersPage() {
                 value={form.code}
                 onChange={(e) => updateField("code", e.target.value)}
                 placeholder="e.g. AIA"
-                className="w-full px-3 py-2 text-[13px] uppercase"
+                className="w-full px-3 py-2 text-[15px] uppercase"
                 style={inputStyle}
               />
             </div>
             <div>
-              <label className="block text-[11px] font-bold uppercase tracking-wide mb-1" style={{ color: "var(--grey-600)" }}>
+              <label className="block text-[13px] font-bold uppercase tracking-wide mb-1" style={{ color: "var(--grey-600)" }}>
                 Panel Type
               </label>
               <select
                 value={form.panelType}
                 onChange={(e) => updateField("panelType", e.target.value)}
-                className="w-full px-3 py-2 text-[13px]"
+                className="w-full px-3 py-2 text-[15px]"
                 style={inputStyle}
               >
                 {PANEL_OPTIONS.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-[11px] font-bold uppercase tracking-wide mb-1" style={{ color: "var(--grey-600)" }}>
+              <label className="block text-[13px] font-bold uppercase tracking-wide mb-1" style={{ color: "var(--grey-600)" }}>
                 Contact Person
               </label>
               <input
@@ -312,12 +312,12 @@ export default function InsuranceProvidersPage() {
                 value={form.contactPerson}
                 onChange={(e) => updateField("contactPerson", e.target.value)}
                 placeholder="Contact name"
-                className="w-full px-3 py-2 text-[13px]"
+                className="w-full px-3 py-2 text-[15px]"
                 style={inputStyle}
               />
             </div>
             <div>
-              <label className="block text-[11px] font-bold uppercase tracking-wide mb-1" style={{ color: "var(--grey-600)" }}>
+              <label className="block text-[13px] font-bold uppercase tracking-wide mb-1" style={{ color: "var(--grey-600)" }}>
                 Phone
               </label>
               <input
@@ -325,12 +325,12 @@ export default function InsuranceProvidersPage() {
                 value={form.phone}
                 onChange={(e) => updateField("phone", e.target.value)}
                 placeholder="+65 xxxx xxxx"
-                className="w-full px-3 py-2 text-[13px]"
+                className="w-full px-3 py-2 text-[15px]"
                 style={inputStyle}
               />
             </div>
             <div>
-              <label className="block text-[11px] font-bold uppercase tracking-wide mb-1" style={{ color: "var(--grey-600)" }}>
+              <label className="block text-[13px] font-bold uppercase tracking-wide mb-1" style={{ color: "var(--grey-600)" }}>
                 Email
               </label>
               <input
@@ -338,13 +338,13 @@ export default function InsuranceProvidersPage() {
                 value={form.email}
                 onChange={(e) => updateField("email", e.target.value)}
                 placeholder="claims@provider.com"
-                className="w-full px-3 py-2 text-[13px]"
+                className="w-full px-3 py-2 text-[15px]"
                 style={inputStyle}
               />
             </div>
           </div>
           <div className="mb-4">
-            <label className="block text-[11px] font-bold uppercase tracking-wide mb-1" style={{ color: "var(--grey-600)" }}>
+            <label className="block text-[13px] font-bold uppercase tracking-wide mb-1" style={{ color: "var(--grey-600)" }}>
               Address
             </label>
             <input
@@ -352,7 +352,7 @@ export default function InsuranceProvidersPage() {
               value={form.address}
               onChange={(e) => updateField("address", e.target.value)}
               placeholder="Full address"
-              className="w-full px-3 py-2 text-[13px]"
+              className="w-full px-3 py-2 text-[15px]"
               style={inputStyle}
             />
           </div>
@@ -361,14 +361,14 @@ export default function InsuranceProvidersPage() {
             <button
               onClick={handleSave}
               disabled={saving}
-              className="inline-flex items-center justify-center gap-2 text-white px-5 py-2 text-[13px] font-semibold transition-colors duration-150 disabled:opacity-50"
+              className="inline-flex items-center justify-center gap-2 text-white px-5 py-2 text-[15px] font-semibold transition-colors duration-150 disabled:opacity-50"
               style={btnPrimary}
             >
               {saving ? "Saving..." : editingId ? "Update Provider" : "Add Provider"}
             </button>
             <button
               onClick={cancelForm}
-              className="inline-flex items-center justify-center gap-2 px-4 py-2 text-[13px] font-semibold transition-colors duration-150"
+              className="inline-flex items-center justify-center gap-2 px-4 py-2 text-[15px] font-semibold transition-colors duration-150"
               style={{ border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-700)", background: "var(--white)" }}
             >
               Cancel
@@ -380,8 +380,8 @@ export default function InsuranceProvidersPage() {
       {/* ── Error State ─────────────────────────────────────────── */}
       {error && (
         <div className="mb-4 px-4 py-3 flex items-center justify-between" style={{ background: "#ffebee", color: "var(--red)", borderRadius: "var(--radius-sm)" }}>
-          <p className="text-[13px] font-medium">{error}</p>
-          <button onClick={() => { setError(null); fetchProviders(); }} className="text-[12px] font-semibold underline">Retry</button>
+          <p className="text-[15px] font-medium">{error}</p>
+          <button onClick={() => { setError(null); fetchProviders(); }} className="text-[14px] font-semibold underline">Retry</button>
         </div>
       )}
 
@@ -400,10 +400,10 @@ export default function InsuranceProvidersPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
             </svg>
           </div>
-          <p className="text-[14px] font-semibold" style={{ color: "var(--grey-700)" }}>No insurance providers found</p>
+          <p className="text-[16px] font-semibold" style={{ color: "var(--grey-700)" }}>No insurance providers found</p>
           <button
             onClick={openAddForm}
-            className="text-[12px] font-semibold mt-2 hover:underline"
+            className="text-[14px] font-semibold mt-2 hover:underline"
             style={{ color: "var(--blue-500)" }}
           >
             Add your first provider
@@ -416,14 +416,14 @@ export default function InsuranceProvidersPage() {
             <table className="w-full" role="table">
               <thead style={{ borderBottom: "1px solid var(--grey-300)", background: "var(--grey-50)" }}>
                 <tr>
-                  <th className="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Name</th>
-                  <th className="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Code</th>
-                  <th className="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Panel Type</th>
-                  <th className="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Contact</th>
-                  <th className="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Phone</th>
-                  <th className="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Email</th>
-                  <th className="text-center px-4 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Active</th>
-                  <th className="text-right px-4 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Actions</th>
+                  <th className="text-left px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Name</th>
+                  <th className="text-left px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Code</th>
+                  <th className="text-left px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Panel Type</th>
+                  <th className="text-left px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Contact</th>
+                  <th className="text-left px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Phone</th>
+                  <th className="text-left px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Email</th>
+                  <th className="text-center px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Active</th>
+                  <th className="text-right px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -440,8 +440,8 @@ export default function InsuranceProvidersPage() {
                       onMouseEnter={(e) => { e.currentTarget.style.background = "var(--grey-50)"; }}
                       onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
                     >
-                      <td className="px-4 py-3 text-[13px] font-semibold" style={{ color: "var(--grey-900)" }}>{provider.name}</td>
-                      <td className="px-4 py-3 text-[12px] font-mono font-bold" style={{ color: "var(--grey-700)" }}>{provider.code}</td>
+                      <td className="px-4 py-3 text-[15px] font-semibold" style={{ color: "var(--grey-900)" }}>{provider.name}</td>
+                      <td className="px-4 py-3 text-[14px] font-mono font-bold" style={{ color: "var(--grey-700)" }}>{provider.code}</td>
                       <td className="px-4 py-3">
                         <span
                           className={chipBase}
@@ -450,9 +450,9 @@ export default function InsuranceProvidersPage() {
                           {provider.panelType}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-[12px]" style={{ color: "var(--grey-600)" }}>{provider.contactPerson || "\u2014"}</td>
-                      <td className="px-4 py-3 text-[12px]" style={{ color: "var(--grey-600)" }}>{provider.phone || "\u2014"}</td>
-                      <td className="px-4 py-3 text-[12px]" style={{ color: "var(--grey-600)" }}>{provider.email || "\u2014"}</td>
+                      <td className="px-4 py-3 text-[14px]" style={{ color: "var(--grey-600)" }}>{provider.contactPerson || "\u2014"}</td>
+                      <td className="px-4 py-3 text-[14px]" style={{ color: "var(--grey-600)" }}>{provider.phone || "\u2014"}</td>
+                      <td className="px-4 py-3 text-[14px]" style={{ color: "var(--grey-600)" }}>{provider.email || "\u2014"}</td>
                       <td className="px-4 py-3 text-center">
                         <button
                           onClick={() => toggleActive(provider)}
@@ -470,14 +470,14 @@ export default function InsuranceProvidersPage() {
                         <div className="flex items-center justify-end gap-2">
                           <button
                             onClick={() => openEditForm(provider)}
-                            className="text-[12px] font-semibold hover:underline"
+                            className="text-[14px] font-semibold hover:underline"
                             style={{ color: "var(--blue-500)" }}
                           >
                             Edit
                           </button>
                           <button
                             onClick={() => handleDelete(provider)}
-                            className="text-[12px] font-semibold hover:underline"
+                            className="text-[14px] font-semibold hover:underline"
                             style={{ color: "var(--red)" }}
                           >
                             Delete
@@ -503,8 +503,8 @@ export default function InsuranceProvidersPage() {
                 >
                   <div className="flex items-start justify-between mb-2">
                     <div>
-                      <p className="text-[14px] font-semibold" style={{ color: "var(--grey-900)" }}>{provider.name}</p>
-                      <p className="text-[11px] font-mono font-bold" style={{ color: "var(--grey-500)" }}>{provider.code}</p>
+                      <p className="text-[16px] font-semibold" style={{ color: "var(--grey-900)" }}>{provider.name}</p>
+                      <p className="text-[13px] font-mono font-bold" style={{ color: "var(--grey-500)" }}>{provider.code}</p>
                     </div>
                     <span
                       className={chipBase}
@@ -515,17 +515,17 @@ export default function InsuranceProvidersPage() {
                   </div>
 
                   {provider.contactPerson && (
-                    <p className="text-[12px] mb-1" style={{ color: "var(--grey-600)" }}>
+                    <p className="text-[14px] mb-1" style={{ color: "var(--grey-600)" }}>
                       <span className="font-medium">Contact:</span> {provider.contactPerson}
                     </p>
                   )}
                   {provider.phone && (
-                    <p className="text-[12px] mb-1" style={{ color: "var(--grey-600)" }}>
+                    <p className="text-[14px] mb-1" style={{ color: "var(--grey-600)" }}>
                       <span className="font-medium">Phone:</span> {provider.phone}
                     </p>
                   )}
                   {provider.email && (
-                    <p className="text-[12px] mb-1" style={{ color: "var(--grey-600)" }}>
+                    <p className="text-[14px] mb-1" style={{ color: "var(--grey-600)" }}>
                       <span className="font-medium">Email:</span> {provider.email}
                     </p>
                   )}
@@ -542,21 +542,21 @@ export default function InsuranceProvidersPage() {
                           style={{ transform: provider.isActive ? "translateX(18px)" : "translateX(3px)" }}
                         />
                       </button>
-                      <span className="text-[11px] font-medium" style={{ color: provider.isActive ? "var(--green)" : "var(--grey-500)" }}>
+                      <span className="text-[13px] font-medium" style={{ color: provider.isActive ? "var(--green)" : "var(--grey-500)" }}>
                         {provider.isActive ? "Active" : "Inactive"}
                       </span>
                     </div>
                     <div className="flex gap-3">
                       <button
                         onClick={() => openEditForm(provider)}
-                        className="text-[12px] font-semibold hover:underline"
+                        className="text-[14px] font-semibold hover:underline"
                         style={{ color: "var(--blue-500)" }}
                       >
                         Edit
                       </button>
                       <button
                         onClick={() => handleDelete(provider)}
-                        className="text-[12px] font-semibold hover:underline"
+                        className="text-[14px] font-semibold hover:underline"
                         style={{ color: "var(--red)" }}
                       >
                         Delete

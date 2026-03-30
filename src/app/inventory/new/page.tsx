@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { SectionNote } from "@/components/HelpTip";
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 const CATEGORIES = [
@@ -14,14 +15,14 @@ const CATEGORIES = [
 ];
 
 const SUBCATEGORIES: Record<string, string[]> = {
-  medicine: ["Kashayam", "Arishtam", "Choornam", "Thailam", "Ghritam", "Leham", "Gulika", "Vatika", "Bhasmam", "Rasayanam", "Other"],
+  medicine: ["Arishtam", "Asavam", "Bhasmam", "Bhasmam & Ksharam", "Churnam", "Classical Tablet", "Cream", "Gel", "Ghritam", "Ghritam & Sneham", "Granule", "Gulika", "Gulika & Tablet", "Gutika", "Kashayam", "Ksharam", "Kuzhampu", "Lehyam", "Lehyam & Rasayanam", "Liniment", "Mashi", "Oil", "Oil & Tailam", "Ointment", "Proprietary Medicine", "Proprietary Syrup", "Proprietary Tablet", "Rasakriya", "Rasayanam", "Sneham", "Soft Gel", "Tailam", "Other"],
   herb: [],
-  oil: [],
+  oil: ["Tailam", "Oil & Tailam", "Sneham"],
   consumable: [],
   equipment: [],
 };
 
-const UNITS = ["nos", "ml", "gm", "kg", "litre", "bottle", "packet", "box"];
+const UNITS = ["bottle", "nos", "jar", "pkt", "container", "tube", "ml", "gm", "kg", "litre", "box"];
 
 // ─── YODA Design Tokens ─────────────────────────────────────────────────────
 const inputStyle = {
@@ -29,7 +30,7 @@ const inputStyle = {
   borderRadius: "var(--radius-sm)",
   color: "var(--grey-900)",
   background: "var(--white)",
-  fontSize: "13px",
+  fontSize: "15px",
 };
 const inputErrorStyle = {
   ...inputStyle,
@@ -42,12 +43,12 @@ const cardStyle = {
   borderRadius: "var(--radius)" as const,
   boxShadow: "var(--shadow-card)" as const,
 };
-const sectionTitle = { color: "var(--grey-900)", fontSize: "15px", fontWeight: 700 as const };
+const sectionTitle = { color: "var(--grey-900)", fontSize: "17px", fontWeight: 700 as const };
 
 // ─── Field Error ────────────────────────────────────────────────────────────
 function FieldError({ error }: { error?: string }) {
   if (!error) return null;
-  return <p className="mt-0.5 text-[11px] font-medium" style={{ color: "var(--red)" }}>{error}</p>;
+  return <p className="mt-0.5 text-[13px] font-medium" style={{ color: "var(--red)" }}>{error}</p>;
 }
 
 // ─── Toast ──────────────────────────────────────────────────────────────────
@@ -59,7 +60,7 @@ function Toast({ message, type, onClose }: { message: string; type: "success" | 
 
   return (
     <div
-      className="fixed top-5 right-5 z-[100] flex items-center gap-2 px-4 py-3 text-[13px] font-semibold yoda-slide-in"
+      className="fixed top-5 right-5 z-[100] flex items-center gap-2 px-4 py-3 text-[15px] font-semibold yoda-slide-in"
       style={{
         background: type === "success" ? "var(--green)" : "var(--red)",
         color: "var(--white)",
@@ -85,7 +86,7 @@ function Toast({ message, type, onClose }: { message: string; type: "success" | 
 function FormRow({ label, required, children, error }: { label: string; required?: boolean; children: React.ReactNode; error?: string }) {
   return (
     <tr>
-      <td className="py-[8px] pr-4 text-[13px] font-normal text-right whitespace-nowrap align-top" style={{ color: "var(--grey-600)", width: 180 }}>
+      <td className="py-[8px] pr-4 text-[15px] font-normal text-right whitespace-nowrap align-top" style={{ color: "var(--grey-600)", width: 180 }}>
         {label}{required && <span style={{ color: "var(--red)" }}> *</span>} :
       </td>
       <td className="py-[8px] pl-2">
@@ -119,6 +120,8 @@ export default function NewInventoryItemPage() {
   const [hsnCode, setHsnCode] = useState("");
   const [description, setDescription] = useState("");
 
+  const [packing, setPacking] = useState("");
+  const [manufacturerCode, setManufacturerCode] = useState("");
   const [costPrice, setCostPrice] = useState("");
   const [sellingPrice, setSellingPrice] = useState("");
   const [gstPercent, setGstPercent] = useState("");
@@ -159,6 +162,8 @@ export default function NewInventoryItemPage() {
         category,
         subcategory: subcategory || null,
         unit,
+        packing: packing.trim() || null,
+        manufacturerCode: manufacturerCode.trim() || null,
         batchNumber: batchNumber.trim() || null,
         manufacturer: manufacturer.trim() || null,
         supplier: supplier.trim() || null,
@@ -166,7 +171,7 @@ export default function NewInventoryItemPage() {
         hsnCode: hsnCode.trim() || null,
         description: description.trim() || null,
         costPrice: costPrice ? Number(costPrice) : null,
-        sellingPrice: sellingPrice ? Number(sellingPrice) : null,
+        unitPrice: sellingPrice ? Number(sellingPrice) : null,
         gstPercent: gstPercent ? Number(gstPercent) : null,
         currentStock: Number(currentStock),
         reorderLevel: reorderLevel ? Number(reorderLevel) : 0,
@@ -218,10 +223,12 @@ export default function NewInventoryItemPage() {
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
         </Link>
         <div>
-          <h1 className="text-[22px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>Add Inventory Item</h1>
-          <p className="text-[13px] mt-0.5" style={{ color: "var(--grey-600)" }}>Add a new item to your Ayurveda clinic inventory</p>
+          <h1 className="text-[24px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>Add Inventory Item</h1>
+          <p className="text-[15px] mt-0.5" style={{ color: "var(--grey-600)" }}>Add a new item to your Ayurveda clinic inventory</p>
         </div>
       </div>
+
+      <SectionNote type="tip" text="Fill in the item details below. SKU is auto-generated. Required fields are marked with *. Set a reorder level so you get alerts when stock is low." />
 
       <form ref={formRef} onSubmit={handleSubmit}>
         {/* ── Section: Item Details ───────────────────────────────── */}
@@ -235,7 +242,7 @@ export default function NewInventoryItemPage() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g., Dasamoolarishtam, Triphala Choornam"
-                  className="w-full max-w-md px-2.5 py-1.5 text-[13px]"
+                  className="w-full max-w-md px-2.5 py-1.5 text-[15px]"
                   style={fieldErrors.name ? inputErrorStyle : inputStyle}
                 />
               </FormRow>
@@ -244,7 +251,7 @@ export default function NewInventoryItemPage() {
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  className="w-full max-w-md px-2.5 py-1.5 text-[13px]"
+                  className="w-full max-w-md px-2.5 py-1.5 text-[15px]"
                   style={fieldErrors.category ? inputErrorStyle : inputStyle}
                 >
                   <option value="">Select category</option>
@@ -257,7 +264,7 @@ export default function NewInventoryItemPage() {
                   <select
                     value={subcategory}
                     onChange={(e) => setSubcategory(e.target.value)}
-                    className="w-full max-w-md px-2.5 py-1.5 text-[13px]"
+                    className="w-full max-w-md px-2.5 py-1.5 text-[15px]"
                     style={inputStyle}
                   >
                     <option value="">Select subcategory</option>
@@ -270,7 +277,7 @@ export default function NewInventoryItemPage() {
                 <select
                   value={unit}
                   onChange={(e) => setUnit(e.target.value)}
-                  className="w-full max-w-md px-2.5 py-1.5 text-[13px]"
+                  className="w-full max-w-md px-2.5 py-1.5 text-[15px]"
                   style={fieldErrors.unit ? inputErrorStyle : inputStyle}
                 >
                   <option value="">Select unit</option>
@@ -278,24 +285,32 @@ export default function NewInventoryItemPage() {
                 </select>
               </FormRow>
 
+              <FormRow label="Packing">
+                <input type="text" value={packing} onChange={(e) => setPacking(e.target.value)} placeholder="e.g., 450ML, 10GM, 100Nos" className="w-full max-w-md px-2.5 py-1.5 text-[15px]" style={inputStyle} />
+              </FormRow>
+
+              <FormRow label="Mfr. Code">
+                <input type="text" value={manufacturerCode} onChange={(e) => setManufacturerCode(e.target.value)} placeholder="e.g., FGA001 (Kottakkal code)" className="w-full max-w-md px-2.5 py-1.5 text-[15px]" style={inputStyle} />
+              </FormRow>
+
               <FormRow label="Batch Number">
-                <input type="text" value={batchNumber} onChange={(e) => setBatchNumber(e.target.value)} placeholder="e.g., BATCH-2026-001" className="w-full max-w-md px-2.5 py-1.5 text-[13px]" style={inputStyle} />
+                <input type="text" value={batchNumber} onChange={(e) => setBatchNumber(e.target.value)} placeholder="e.g., BATCH-2026-001" className="w-full max-w-md px-2.5 py-1.5 text-[15px]" style={inputStyle} />
               </FormRow>
 
               <FormRow label="Manufacturer">
-                <input type="text" value={manufacturer} onChange={(e) => setManufacturer(e.target.value)} placeholder="e.g., Kottakkal Arya Vaidya Sala" className="w-full max-w-md px-2.5 py-1.5 text-[13px]" style={inputStyle} />
+                <input type="text" value={manufacturer} onChange={(e) => setManufacturer(e.target.value)} placeholder="e.g., Kottakkal Arya Vaidya Sala" className="w-full max-w-md px-2.5 py-1.5 text-[15px]" style={inputStyle} />
               </FormRow>
 
               <FormRow label="Supplier">
-                <input type="text" value={supplier} onChange={(e) => setSupplier(e.target.value)} placeholder="Supplier name" className="w-full max-w-md px-2.5 py-1.5 text-[13px]" style={inputStyle} />
+                <input type="text" value={supplier} onChange={(e) => setSupplier(e.target.value)} placeholder="Supplier name" className="w-full max-w-md px-2.5 py-1.5 text-[15px]" style={inputStyle} />
               </FormRow>
 
               <FormRow label="Location">
-                <input type="text" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="e.g., Shelf A, Room 2" className="w-full max-w-md px-2.5 py-1.5 text-[13px]" style={inputStyle} />
+                <input type="text" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="e.g., Shelf A, Room 2" className="w-full max-w-md px-2.5 py-1.5 text-[15px]" style={inputStyle} />
               </FormRow>
 
               <FormRow label="HSN Code">
-                <input type="text" value={hsnCode} onChange={(e) => setHsnCode(e.target.value)} placeholder="e.g., 3004" className="w-full max-w-md px-2.5 py-1.5 text-[13px]" style={inputStyle} />
+                <input type="text" value={hsnCode} onChange={(e) => setHsnCode(e.target.value)} placeholder="e.g., 3004" className="w-full max-w-md px-2.5 py-1.5 text-[15px]" style={inputStyle} />
               </FormRow>
 
               <FormRow label="Description">
@@ -304,7 +319,7 @@ export default function NewInventoryItemPage() {
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Optional description or notes"
                   rows={3}
-                  className="w-full max-w-md px-2.5 py-1.5 text-[13px] resize-y"
+                  className="w-full max-w-md px-2.5 py-1.5 text-[15px] resize-y"
                   style={inputStyle}
                 />
               </FormRow>
@@ -319,35 +334,35 @@ export default function NewInventoryItemPage() {
             <tbody>
               <FormRow label="Cost Price" error={fieldErrors.costPrice}>
                 <div className="relative max-w-[200px]">
-                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[13px]" style={{ color: "var(--grey-500)" }}>{"\u20B9"}</span>
-                  <input type="text" value={costPrice} onChange={(e) => setCostPrice(e.target.value)} placeholder="0.00" className="w-full pl-7 pr-2.5 py-1.5 text-[13px]" style={fieldErrors.costPrice ? inputErrorStyle : inputStyle} />
+                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[15px]" style={{ color: "var(--grey-500)" }}>{"\u20B9"}</span>
+                  <input type="text" value={costPrice} onChange={(e) => setCostPrice(e.target.value)} placeholder="0.00" className="w-full pl-7 pr-2.5 py-1.5 text-[15px]" style={fieldErrors.costPrice ? inputErrorStyle : inputStyle} />
                 </div>
               </FormRow>
 
               <FormRow label="Selling Price" error={fieldErrors.sellingPrice}>
                 <div className="relative max-w-[200px]">
-                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[13px]" style={{ color: "var(--grey-500)" }}>{"\u20B9"}</span>
-                  <input type="text" value={sellingPrice} onChange={(e) => setSellingPrice(e.target.value)} placeholder="0.00" className="w-full pl-7 pr-2.5 py-1.5 text-[13px]" style={fieldErrors.sellingPrice ? inputErrorStyle : inputStyle} />
+                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[15px]" style={{ color: "var(--grey-500)" }}>{"\u20B9"}</span>
+                  <input type="text" value={sellingPrice} onChange={(e) => setSellingPrice(e.target.value)} placeholder="0.00" className="w-full pl-7 pr-2.5 py-1.5 text-[15px]" style={fieldErrors.sellingPrice ? inputErrorStyle : inputStyle} />
                 </div>
               </FormRow>
 
               <FormRow label="GST %" error={fieldErrors.gstPercent}>
                 <div className="relative max-w-[120px]">
-                  <input type="text" value={gstPercent} onChange={(e) => setGstPercent(e.target.value)} placeholder="e.g., 5" className="w-full px-2.5 py-1.5 text-[13px]" style={fieldErrors.gstPercent ? inputErrorStyle : inputStyle} />
-                  <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[13px]" style={{ color: "var(--grey-500)" }}>%</span>
+                  <input type="text" value={gstPercent} onChange={(e) => setGstPercent(e.target.value)} placeholder="e.g., 5" className="w-full px-2.5 py-1.5 text-[15px]" style={fieldErrors.gstPercent ? inputErrorStyle : inputStyle} />
+                  <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[15px]" style={{ color: "var(--grey-500)" }}>%</span>
                 </div>
               </FormRow>
 
               <FormRow label="Current Stock" required error={fieldErrors.currentStock}>
-                <input type="text" value={currentStock} onChange={(e) => setCurrentStock(e.target.value)} placeholder="0" className="max-w-[150px] px-2.5 py-1.5 text-[13px]" style={fieldErrors.currentStock ? inputErrorStyle : inputStyle} />
+                <input type="text" value={currentStock} onChange={(e) => setCurrentStock(e.target.value)} placeholder="0" className="max-w-[150px] px-2.5 py-1.5 text-[15px]" style={fieldErrors.currentStock ? inputErrorStyle : inputStyle} />
               </FormRow>
 
               <FormRow label="Reorder Level" error={fieldErrors.reorderLevel}>
-                <input type="text" value={reorderLevel} onChange={(e) => setReorderLevel(e.target.value)} placeholder="Minimum stock before alert" className="max-w-[200px] px-2.5 py-1.5 text-[13px]" style={fieldErrors.reorderLevel ? inputErrorStyle : inputStyle} />
+                <input type="text" value={reorderLevel} onChange={(e) => setReorderLevel(e.target.value)} placeholder="Minimum stock before alert" className="max-w-[200px] px-2.5 py-1.5 text-[15px]" style={fieldErrors.reorderLevel ? inputErrorStyle : inputStyle} />
               </FormRow>
 
               <FormRow label="Expiry Date">
-                <input type="date" value={expiryDate} onChange={(e) => setExpiryDate(e.target.value)} className="max-w-[200px] px-2.5 py-1.5 text-[13px]" style={inputStyle} />
+                <input type="date" value={expiryDate} onChange={(e) => setExpiryDate(e.target.value)} className="max-w-[200px] px-2.5 py-1.5 text-[15px]" style={inputStyle} />
               </FormRow>
             </tbody>
           </table>
@@ -358,7 +373,7 @@ export default function NewInventoryItemPage() {
           <button
             type="submit"
             disabled={saving}
-            className="inline-flex items-center justify-center gap-2 text-white px-6 py-2.5 text-[13px] font-semibold transition-opacity duration-150 disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-2 text-white px-6 py-2.5 text-[15px] font-semibold transition-opacity duration-150 disabled:opacity-50"
             style={{ background: "var(--blue-500)", borderRadius: "var(--radius-sm)" }}
           >
             {saving ? (
@@ -370,7 +385,7 @@ export default function NewInventoryItemPage() {
           </button>
           <Link
             href="/inventory"
-            className="px-6 py-2.5 text-[13px] font-semibold transition-colors duration-150"
+            className="px-6 py-2.5 text-[15px] font-semibold transition-colors duration-150"
             style={{ color: "var(--grey-600)", borderRadius: "var(--radius-sm)", border: "1px solid var(--grey-300)" }}
           >
             Cancel

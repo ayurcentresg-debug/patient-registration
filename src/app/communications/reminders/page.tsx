@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import CommunicationTabs from "@/components/CommunicationTabs";
 
-const inputStyle = { border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)", fontSize: "13px" };
+const inputStyle = { border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)", fontSize: "15px" };
 const cardStyle = { background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-card)" };
 
 const CHANNEL_COLORS: Record<string, string> = { whatsapp: "#25D366", email: "#3b82f6", sms: "#8b5cf6" };
@@ -287,7 +287,7 @@ export default function RemindersPage() {
 
       {/* Toast */}
       {toast && (
-        <div className="fixed top-4 right-4 z-50 px-4 py-3 text-[13px] font-semibold text-white yoda-slide-in" style={{ background: toast.type === "success" ? "var(--green)" : "var(--red)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-lg)" }}>
+        <div className="fixed top-4 right-4 z-50 px-4 py-3 text-[15px] font-semibold text-white yoda-slide-in" style={{ background: toast.type === "success" ? "var(--green)" : "var(--red)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-lg)" }}>
           {toast.message}
         </div>
       )}
@@ -295,14 +295,14 @@ export default function RemindersPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-[22px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>Reminders</h1>
-          <p className="text-[13px] mt-0.5" style={{ color: "var(--grey-600)" }}>Schedule and manage patient reminders</p>
+          <h1 className="text-[24px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>Reminders</h1>
+          <p className="text-[15px] mt-0.5" style={{ color: "var(--grey-600)" }}>Schedule and manage patient reminders</p>
         </div>
         <div className="flex gap-2">
           <button
             onClick={handleAutoSchedule}
             disabled={autoScheduling}
-            className="inline-flex items-center gap-2 px-4 py-2 text-[13px] font-semibold transition-colors disabled:opacity-50"
+            className="inline-flex items-center gap-2 px-4 py-2 text-[15px] font-semibold transition-colors disabled:opacity-50"
             style={{ background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", color: "var(--grey-700)" }}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
@@ -310,7 +310,7 @@ export default function RemindersPage() {
           </button>
           <button
             onClick={() => setShowSchedule(true)}
-            className="inline-flex items-center gap-2 text-white px-5 py-2 text-[13px] font-semibold transition-colors duration-150"
+            className="inline-flex items-center gap-2 text-white px-5 py-2 text-[15px] font-semibold transition-colors duration-150"
             style={{ background: "var(--blue-500)", borderRadius: "var(--radius-sm)" }}
             onMouseEnter={(e) => { e.currentTarget.style.background = "var(--blue-700)"; }}
             onMouseLeave={(e) => { e.currentTarget.style.background = "var(--blue-500)"; }}
@@ -330,8 +330,8 @@ export default function RemindersPage() {
           { label: "Upcoming (24h)", value: stats.upcoming, color: "#3b82f6", bg: "#eff6ff" },
         ].map((s) => (
           <div key={s.label} className="p-3" style={{ ...cardStyle, borderLeft: `3px solid ${s.color}` }}>
-            <p className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: "var(--grey-600)" }}>{s.label}</p>
-            <p className="text-[22px] font-bold mt-0.5" style={{ color: "var(--grey-900)" }}>{s.value}</p>
+            <p className="text-[13px] font-semibold uppercase tracking-wide" style={{ color: "var(--grey-600)" }}>{s.label}</p>
+            <p className="text-[24px] font-bold mt-0.5" style={{ color: "var(--grey-900)" }}>{s.value}</p>
           </div>
         ))}
       </div>
@@ -371,7 +371,7 @@ export default function RemindersPage() {
 
               <div className="space-y-4">
                 <div>
-                  <label className="block mb-1 text-[12px] font-semibold" style={{ color: "var(--grey-700)" }}>Patient *</label>
+                  <label className="block mb-1 text-[14px] font-semibold" style={{ color: "var(--grey-700)" }}>Patient *</label>
                   <input type="text" placeholder="Search patients..." value={formPatientSearch} onChange={(e) => setFormPatientSearch(e.target.value)} className="w-full px-3 py-2 mb-1" style={inputStyle} />
                   <select value={formPatient} onChange={(e) => setFormPatient(e.target.value)} className="w-full px-3 py-2" style={inputStyle}>
                     <option value="">Choose a patient...</option>
@@ -381,7 +381,7 @@ export default function RemindersPage() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block mb-1 text-[12px] font-semibold" style={{ color: "var(--grey-700)" }}>Reminder Type</label>
+                    <label className="block mb-1 text-[14px] font-semibold" style={{ color: "var(--grey-700)" }}>Reminder Type</label>
                     <select value={formType} onChange={(e) => setFormType(e.target.value)} className="w-full px-3 py-2" style={inputStyle}>
                       <option value="appointment">Appointment</option>
                       <option value="follow_up">Follow Up</option>
@@ -391,12 +391,12 @@ export default function RemindersPage() {
                     </select>
                   </div>
                   <div>
-                    <label className="block mb-1 text-[12px] font-semibold" style={{ color: "var(--grey-700)" }}>Channel</label>
+                    <label className="block mb-1 text-[14px] font-semibold" style={{ color: "var(--grey-700)" }}>Channel</label>
                     <div className="flex gap-1">
                       {(["whatsapp", "email", "sms"] as const).map((ch) => (
                         <button
                           key={ch} type="button" onClick={() => { setFormChannel(ch); setFormTemplate(""); }}
-                          className="flex-1 px-2 py-2 text-[11px] font-semibold transition-all duration-150"
+                          className="flex-1 px-2 py-2 text-[13px] font-semibold transition-all duration-150"
                           style={{
                             borderRadius: "var(--radius-sm)",
                             border: formChannel === ch ? `2px solid ${CHANNEL_COLORS[ch]}` : "1px solid var(--grey-300)",
@@ -413,17 +413,17 @@ export default function RemindersPage() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block mb-1 text-[12px] font-semibold" style={{ color: "var(--grey-700)" }}>Date *</label>
+                    <label className="block mb-1 text-[14px] font-semibold" style={{ color: "var(--grey-700)" }}>Date *</label>
                     <input type="date" value={formDate} onChange={(e) => setFormDate(e.target.value)} className="w-full px-3 py-2" style={inputStyle} />
                   </div>
                   <div>
-                    <label className="block mb-1 text-[12px] font-semibold" style={{ color: "var(--grey-700)" }}>Time *</label>
+                    <label className="block mb-1 text-[14px] font-semibold" style={{ color: "var(--grey-700)" }}>Time *</label>
                     <input type="time" value={formTime} onChange={(e) => setFormTime(e.target.value)} className="w-full px-3 py-2" style={inputStyle} />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block mb-1 text-[12px] font-semibold" style={{ color: "var(--grey-700)" }}>Template (optional)</label>
+                  <label className="block mb-1 text-[14px] font-semibold" style={{ color: "var(--grey-700)" }}>Template (optional)</label>
                   <select value={formTemplate} onChange={(e) => setFormTemplate(e.target.value)} className="w-full px-3 py-2" style={inputStyle}>
                     <option value="">No template</option>
                     {templates.map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
@@ -431,18 +431,18 @@ export default function RemindersPage() {
                 </div>
 
                 <div>
-                  <label className="block mb-1 text-[12px] font-semibold" style={{ color: "var(--grey-700)" }}>Message *</label>
+                  <label className="block mb-1 text-[14px] font-semibold" style={{ color: "var(--grey-700)" }}>Message *</label>
                   <textarea value={formMessage} onChange={(e) => setFormMessage(e.target.value)} rows={4} placeholder="Type reminder message..." className="w-full px-3 py-2" style={inputStyle} />
                 </div>
 
                 <div className="flex gap-2 pt-1">
-                  <button onClick={() => setShowSchedule(false)} className="px-4 py-2 text-[13px] font-semibold" style={{ background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", color: "var(--grey-700)" }}>
+                  <button onClick={() => setShowSchedule(false)} className="px-4 py-2 text-[15px] font-semibold" style={{ background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", color: "var(--grey-700)" }}>
                     Cancel
                   </button>
                   <button
                     onClick={handleScheduleSave}
                     disabled={saving || !formPatient || !formMessage.trim() || !formDate || !formTime}
-                    className="flex-1 text-white px-5 py-2 text-[13px] font-semibold disabled:opacity-50"
+                    className="flex-1 text-white px-5 py-2 text-[15px] font-semibold disabled:opacity-50"
                     style={{ background: "var(--blue-500)", borderRadius: "var(--radius-sm)" }}
                   >
                     {saving ? "Saving..." : "Schedule Reminder"}
@@ -462,14 +462,14 @@ export default function RemindersPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          <p className="text-[14px] font-semibold" style={{ color: "var(--grey-700)" }}>No reminders yet</p>
-          <p className="text-[12px] mt-1" style={{ color: "var(--grey-500)" }}>Schedule a reminder or use Auto-Schedule</p>
+          <p className="text-[16px] font-semibold" style={{ color: "var(--grey-700)" }}>No reminders yet</p>
+          <p className="text-[14px] mt-1" style={{ color: "var(--grey-500)" }}>Schedule a reminder or use Auto-Schedule</p>
         </div>
       ) : (
         <div className="space-y-6">
           {grouped.map((group) => (
             <div key={group.label}>
-              <h3 className="text-[13px] font-bold uppercase tracking-wide mb-2" style={{ color: "var(--grey-600)" }}>{group.label}</h3>
+              <h3 className="text-[15px] font-bold uppercase tracking-wide mb-2" style={{ color: "var(--grey-600)" }}>{group.label}</h3>
               <div className="space-y-2">
                 {group.items.map((r) => {
                   const typeColor = TYPE_COLORS[r.type] || TYPE_COLORS.custom;
@@ -481,34 +481,34 @@ export default function RemindersPage() {
                             <ChannelIcon channel={r.channel} />
                           </div>
                           <div>
-                            <span className="text-[13px] font-semibold" style={{ color: "var(--grey-900)" }}>
+                            <span className="text-[15px] font-semibold" style={{ color: "var(--grey-900)" }}>
                               {r.patient.firstName} {r.patient.lastName}
                             </span>
                             <div className="flex items-center gap-1.5 mt-0.5">
-                              <span className="inline-flex items-center px-1.5 py-0.5 text-[10px] font-bold tracking-wide" style={{ borderRadius: "var(--radius-sm)", background: typeColor.bg, color: typeColor.color }}>
+                              <span className="inline-flex items-center px-1.5 py-0.5 text-[12px] font-bold tracking-wide" style={{ borderRadius: "var(--radius-sm)", background: typeColor.bg, color: typeColor.color }}>
                                 {TYPE_LABELS[r.type] || r.type}
                               </span>
-                              <span className="text-[11px]" style={{ color: "var(--grey-500)" }}>{relativeTime(r.scheduledAt)}</span>
+                              <span className="text-[13px]" style={{ color: "var(--grey-500)" }}>{relativeTime(r.scheduledAt)}</span>
                             </div>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
                           <span
-                            className="inline-flex items-center px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide"
+                            className="inline-flex items-center px-2 py-0.5 text-[12px] font-bold uppercase tracking-wide"
                             style={{ borderRadius: "var(--radius-sm)", background: STATUS_BG[r.status] || "var(--grey-100)", color: STATUS_COLORS[r.status] || "var(--grey-600)" }}
                           >
                             {r.status}
                           </span>
                         </div>
                       </div>
-                      <p className="text-[13px] ml-11 line-clamp-2" style={{ color: "var(--grey-600)" }}>{r.message}</p>
+                      <p className="text-[15px] ml-11 line-clamp-2" style={{ color: "var(--grey-600)" }}>{r.message}</p>
 
                       {/* Actions */}
                       <div className="flex gap-2 ml-11 mt-2">
                         {r.status === "pending" && (
                           <button
                             onClick={() => handleSendNow(r.id)}
-                            className="px-3 py-1 text-[11px] font-semibold text-white"
+                            className="px-3 py-1 text-[13px] font-semibold text-white"
                             style={{ background: "var(--green)", borderRadius: "var(--radius-sm)" }}
                           >
                             Send Now
@@ -517,7 +517,7 @@ export default function RemindersPage() {
                         {r.status === "pending" && (
                           <button
                             onClick={() => handleCancel(r.id)}
-                            className="px-3 py-1 text-[11px] font-semibold"
+                            className="px-3 py-1 text-[13px] font-semibold"
                             style={{ border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", color: "var(--grey-600)", background: "var(--white)" }}
                           >
                             Cancel

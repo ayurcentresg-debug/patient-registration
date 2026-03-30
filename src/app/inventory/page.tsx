@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import InventoryTabs from "@/components/InventoryTabs";
+import { HelpTip, PageGuide, SectionNote } from "@/components/HelpTip";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface InventoryItem {
@@ -12,13 +13,17 @@ interface InventoryItem {
   category: string;
   subcategory: string | null;
   unit: string;
+  packing: string | null;
+  manufacturerCode: string | null;
   currentStock: number;
   reorderLevel: number;
   costPrice: number | null;
-  sellingPrice: number | null;
+  unitPrice: number | null;
+  sellingPrice?: number | null;
   expiryDate: string | null;
   status: string;
   createdAt: string;
+  _count?: { variants: number };
 }
 
 interface InventoryStats {
@@ -28,13 +33,13 @@ interface InventoryStats {
   expiringSoonCount: number;
 }
 
-type SortField = "sku" | "name" | "category" | "stock" | "sellingPrice" | "expiryDate" | "status";
+type SortField = "sku" | "name" | "category" | "stock" | "unitPrice" | "expiryDate" | "status";
 type SortDir = "asc" | "desc";
 
 // ─── YODA Design Tokens ─────────────────────────────────────────────────────
 const cardStyle = { background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-card)" };
 const btnPrimary = { background: "var(--blue-500)", borderRadius: "var(--radius-sm)" };
-const chipBase = "inline-flex px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide";
+const chipBase = "inline-flex px-2 py-0.5 text-[12px] font-bold uppercase tracking-wide";
 
 const CATEGORIES = [
   { value: "all", label: "All Categories" },
@@ -50,6 +55,43 @@ const STATUS_OPTIONS = [
   { value: "active", label: "Active" },
   { value: "inactive", label: "Inactive" },
   { value: "discontinued", label: "Discontinued" },
+];
+
+const SUBCATEGORY_OPTIONS = [
+  { value: "all", label: "All Sub Categories" },
+  { value: "Arishtam", label: "Arishtam" },
+  { value: "Asavam", label: "Asavam" },
+  { value: "Bhasmam", label: "Bhasmam" },
+  { value: "Bhasmam & Ksharam", label: "Bhasmam & Ksharam" },
+  { value: "Churnam", label: "Churnam" },
+  { value: "Classical Tablet", label: "Classical Tablet" },
+  { value: "Cream", label: "Cream" },
+  { value: "Gel", label: "Gel" },
+  { value: "Ghritam", label: "Ghritam" },
+  { value: "Ghritam & Sneham", label: "Ghritam & Sneham" },
+  { value: "Granule", label: "Granule" },
+  { value: "Gulika", label: "Gulika" },
+  { value: "Gulika & Tablet", label: "Gulika & Tablet" },
+  { value: "Gutika", label: "Gutika" },
+  { value: "Ksharam", label: "Ksharam" },
+  { value: "Kuzhampu", label: "Kuzhampu" },
+  { value: "Lehyam", label: "Lehyam" },
+  { value: "Lehyam & Rasayanam", label: "Lehyam & Rasayanam" },
+  { value: "Liniment", label: "Liniment" },
+  { value: "Mashi", label: "Mashi" },
+  { value: "Oil", label: "Oil" },
+  { value: "Oil & Tailam", label: "Oil & Tailam" },
+  { value: "Ointment", label: "Ointment" },
+  { value: "Personal Care", label: "Personal Care" },
+  { value: "Personal Care - Shampoo", label: "Personal Care - Shampoo" },
+  { value: "Personal Care - Soap", label: "Personal Care - Soap" },
+  { value: "Proprietary Medicine", label: "Proprietary Medicine" },
+  { value: "Proprietary Syrup", label: "Proprietary Syrup" },
+  { value: "Proprietary Tablet", label: "Proprietary Tablet" },
+  { value: "Rasakriya", label: "Rasakriya" },
+  { value: "Rasayanam", label: "Rasayanam" },
+  { value: "Sneham", label: "Sneham" },
+  { value: "Tailam", label: "Tailam" },
 ];
 
 // ─── Utility: format date ──────────────────────────────────────────────────
@@ -74,7 +116,7 @@ function SortHeader({ label, field, currentField, direction, onSort }: {
   const isActive = currentField === field;
   return (
     <th
-      className="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider cursor-pointer select-none"
+      className="text-left px-4 py-3 text-[13px] font-bold uppercase tracking-wider cursor-pointer select-none"
       style={{ color: isActive ? "var(--blue-500)" : "var(--grey-600)" }}
       onClick={() => onSort(field)}
       role="columnheader"
@@ -118,12 +160,18 @@ export default function InventoryPage() {
 
   // Filters
   const [categoryFilter, setCategoryFilter] = useState("all");
+  const [subcategoryFilter, setSubcategoryFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [quickFilter, setQuickFilter] = useState<"lowStock" | "expiringSoon" | null>(null);
 
   // Sorting
   const [sortField, setSortField] = useState<SortField>("name");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
+
+  // Bulk selection
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkAction, setBulkAction] = useState<string>("");
+  const [bulkLoading, setBulkLoading] = useState(false);
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -143,6 +191,7 @@ export default function InventoryPage() {
     const params = new URLSearchParams();
     if (search) params.set("search", search);
     if (categoryFilter !== "all") params.set("category", categoryFilter);
+    if (subcategoryFilter !== "all") params.set("subcategory", subcategoryFilter);
     if (statusFilter !== "all") params.set("status", statusFilter);
     if (quickFilter === "lowStock") params.set("lowStock", "true");
     if (quickFilter === "expiringSoon") params.set("expiringSoon", "true");
@@ -155,7 +204,7 @@ export default function InventoryPage() {
       .then(setItems)
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
-  }, [search, categoryFilter, statusFilter, quickFilter]);
+  }, [search, categoryFilter, subcategoryFilter, statusFilter, quickFilter]);
 
   useEffect(() => {
     const timeout = setTimeout(fetchItems, 300);
@@ -174,7 +223,7 @@ export default function InventoryPage() {
         case "name": return dir * a.name.localeCompare(b.name);
         case "category": return dir * a.category.localeCompare(b.category);
         case "stock": return dir * (a.currentStock - b.currentStock);
-        case "sellingPrice": return dir * ((a.sellingPrice || 0) - (b.sellingPrice || 0));
+        case "unitPrice": return dir * ((a.unitPrice || 0) - (b.unitPrice || 0));
         case "expiryDate":
           if (!a.expiryDate && !b.expiryDate) return 0;
           if (!a.expiryDate) return 1;
@@ -193,6 +242,48 @@ export default function InventoryPage() {
     } else {
       setSortField(field);
       setSortDir("asc");
+    }
+  }
+
+  // ─── Bulk selection helpers ──────────────────────────────────────────────
+  const allSelected = sorted.length > 0 && sorted.every((item) => selectedIds.has(item.id));
+  const someSelected = selectedIds.size > 0;
+
+  function toggleSelectAll() {
+    if (allSelected) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(sorted.map((item) => item.id)));
+    }
+  }
+
+  function toggleSelectItem(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  async function handleBulkStatusUpdate(newStatus: string) {
+    if (selectedIds.size === 0) return;
+    setBulkLoading(true);
+    try {
+      const res = await fetch("/api/inventory/bulk", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: Array.from(selectedIds), action: "updateStatus", status: newStatus }),
+      });
+      if (!res.ok) throw new Error("Failed");
+      setSelectedIds(new Set());
+      setBulkAction("");
+      fetchItems();
+      fetchStats();
+    } catch {
+      alert("Failed to update items. Please try again.");
+    } finally {
+      setBulkLoading(false);
     }
   }
 
@@ -219,14 +310,14 @@ export default function InventoryPage() {
       {/* ── Header ──────────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-[22px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>Inventory</h1>
-          <p className="text-[13px] mt-0.5" style={{ color: "var(--grey-600)" }}>
+          <h1 className="text-[24px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>Inventory</h1>
+          <p className="text-[15px] mt-0.5" style={{ color: "var(--grey-600)" }}>
             {sorted.length} item{sorted.length !== 1 ? "s" : ""} found
           </p>
         </div>
         <Link
           href="/inventory/new"
-          className="inline-flex items-center justify-center gap-2 text-white px-5 py-2 text-[13px] font-semibold transition-colors duration-150"
+          className="inline-flex items-center justify-center gap-2 text-white px-5 py-2 text-[15px] font-semibold transition-colors duration-150"
           style={btnPrimary}
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -239,13 +330,28 @@ export default function InventoryPage() {
       {/* ── Tabs ──────────────────────────────────────────────────── */}
       <InventoryTabs />
 
+      {/* ── Getting Started Guide ────────────────────────────────── */}
+      <PageGuide
+        storageKey="inventory"
+        title="Inventory Quick Guide"
+        subtitle="Manage your clinic's medicines, herbs, oils, and equipment in one place."
+        steps={[
+          { icon: "📦", title: "Add Items", description: "Click 'Add Item' to add new medicines or supplies. Each item gets a unique SKU automatically." },
+          { icon: "✅", title: "Bulk Status Update", description: "Use checkboxes to select items, then change status to Active, Inactive, or Discontinued in one click." },
+          { icon: "🔍", title: "Search & Filter", description: "Search by name/SKU, filter by category or status. Use 'Low Stock' and 'Expiring Soon' quick filters." },
+          { icon: "📊", title: "Stock Management", description: "Click any item to view details, adjust stock, record purchases, or view transaction history." },
+          { icon: "🏷️", title: "Status Meanings", description: "Active = in use, Inactive = temporarily unavailable, Discontinued = no longer stocked." },
+          { icon: "⚠️", title: "Alerts & Reorder", description: "Items turn red when stock falls below reorder level. Check 'Alerts' tab for all low-stock items." },
+        ]}
+      />
+
       {/* ── Stats Cards ──────────────────────────────────────────── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <div className="p-4 transition-shadow duration-150 hover:shadow-md" style={{ ...cardStyle, boxShadow: "var(--shadow-sm)" }}>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-[12px] font-semibold uppercase tracking-wide" style={{ color: "var(--grey-600)" }}>Total Items</p>
-              <p className="text-[28px] font-bold mt-1 tracking-tight" style={{ color: "var(--grey-900)" }}>{stats.totalItems}</p>
+              <p className="text-[14px] font-semibold uppercase tracking-wide inline-flex items-center gap-1" style={{ color: "var(--grey-600)" }}>Total Items <HelpTip text="Total number of inventory items across all categories and statuses." size={13} /></p>
+              <p className="text-[30px] font-bold mt-1 tracking-tight" style={{ color: "var(--grey-900)" }}>{stats.totalItems}</p>
             </div>
             <div className="w-11 h-11 flex items-center justify-center" style={{ background: "var(--blue-100, #bbdefb)", borderRadius: "var(--radius-sm)", color: "var(--blue-500)" }}>
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
@@ -258,8 +364,8 @@ export default function InventoryPage() {
         <div className="p-4 transition-shadow duration-150 hover:shadow-md" style={{ ...cardStyle, boxShadow: "var(--shadow-sm)" }}>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-[12px] font-semibold uppercase tracking-wide" style={{ color: "var(--grey-600)" }}>Total Value</p>
-              <p className="text-[28px] font-bold mt-1 tracking-tight" style={{ color: "var(--grey-900)" }}>
+              <p className="text-[14px] font-semibold uppercase tracking-wide" style={{ color: "var(--grey-600)" }}>Total Value</p>
+              <p className="text-[30px] font-bold mt-1 tracking-tight" style={{ color: "var(--grey-900)" }}>
                 <span className="text-[18px]" style={{ color: "var(--grey-500)" }}>S$</span>{stats.totalValue.toLocaleString("en-SG")}
               </p>
             </div>
@@ -274,8 +380,8 @@ export default function InventoryPage() {
         <div className="p-4 transition-shadow duration-150 hover:shadow-md" style={{ ...cardStyle, boxShadow: "var(--shadow-sm)" }}>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-[12px] font-semibold uppercase tracking-wide" style={{ color: "var(--grey-600)" }}>Low Stock</p>
-              <p className="text-[28px] font-bold mt-1 tracking-tight" style={{ color: stats.lowStockCount > 0 ? "var(--red)" : "var(--grey-900)" }}>{stats.lowStockCount}</p>
+              <p className="text-[14px] font-semibold uppercase tracking-wide inline-flex items-center gap-1" style={{ color: "var(--grey-600)" }}>Low Stock <HelpTip text="Items where current stock is at or below the reorder level. These need to be restocked soon." size={13} /></p>
+              <p className="text-[30px] font-bold mt-1 tracking-tight" style={{ color: stats.lowStockCount > 0 ? "var(--red)" : "var(--grey-900)" }}>{stats.lowStockCount}</p>
             </div>
             <div className="w-11 h-11 flex items-center justify-center" style={{ background: "#ffcdd2", borderRadius: "var(--radius-sm)", color: "var(--red)" }}>
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
@@ -288,8 +394,8 @@ export default function InventoryPage() {
         <div className="p-4 transition-shadow duration-150 hover:shadow-md" style={{ ...cardStyle, boxShadow: "var(--shadow-sm)" }}>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-[12px] font-semibold uppercase tracking-wide" style={{ color: "var(--grey-600)" }}>Expiring Soon</p>
-              <p className="text-[28px] font-bold mt-1 tracking-tight" style={{ color: stats.expiringSoonCount > 0 ? "#f57c00" : "var(--grey-900)" }}>{stats.expiringSoonCount}</p>
+              <p className="text-[14px] font-semibold uppercase tracking-wide inline-flex items-center gap-1" style={{ color: "var(--grey-600)" }}>Expiring Soon <HelpTip text="Items expiring within 30 days. Consider using or replacing these items before they expire." size={13} /></p>
+              <p className="text-[30px] font-bold mt-1 tracking-tight" style={{ color: stats.expiringSoonCount > 0 ? "#f57c00" : "var(--grey-900)" }}>{stats.expiringSoonCount}</p>
             </div>
             <div className="w-11 h-11 flex items-center justify-center" style={{ background: "#ffe0b2", borderRadius: "var(--radius-sm)", color: "#f57c00" }}>
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
@@ -313,7 +419,7 @@ export default function InventoryPage() {
               placeholder="Search by name, SKU, batch number..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 text-[13px]"
+              className="w-full pl-10 pr-4 py-2 text-[15px]"
               style={{ border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)" }}
               aria-label="Search inventory"
             />
@@ -328,17 +434,27 @@ export default function InventoryPage() {
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            className="px-3 py-2 text-[13px]"
+            className="px-3 py-2 text-[15px]"
             style={{ border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)", minWidth: 160 }}
           >
             {CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
+          </select>
+
+          {/* Sub Category Filter */}
+          <select
+            value={subcategoryFilter}
+            onChange={(e) => setSubcategoryFilter(e.target.value)}
+            className="px-3 py-2 text-[15px]"
+            style={{ border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)", minWidth: 180 }}
+          >
+            {SUBCATEGORY_OPTIONS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
           </select>
 
           {/* Status Filter */}
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-2 text-[13px]"
+            className="px-3 py-2 text-[15px]"
             style={{ border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)", minWidth: 140 }}
           >
             {STATUS_OPTIONS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
@@ -349,7 +465,7 @@ export default function InventoryPage() {
         <div className="flex flex-wrap gap-2 items-center">
           <button
             onClick={() => setQuickFilter(quickFilter === "lowStock" ? null : "lowStock")}
-            className="px-3 py-1.5 text-[11px] font-semibold transition-all duration-150 inline-flex items-center gap-1.5"
+            className="px-3 py-1.5 text-[13px] font-semibold transition-all duration-150 inline-flex items-center gap-1.5"
             style={{
               borderRadius: "var(--radius-pill)",
               border: quickFilter === "lowStock" ? "1.5px solid var(--red)" : "1px solid var(--grey-300)",
@@ -364,7 +480,7 @@ export default function InventoryPage() {
           </button>
           <button
             onClick={() => setQuickFilter(quickFilter === "expiringSoon" ? null : "expiringSoon")}
-            className="px-3 py-1.5 text-[11px] font-semibold transition-all duration-150 inline-flex items-center gap-1.5"
+            className="px-3 py-1.5 text-[13px] font-semibold transition-all duration-150 inline-flex items-center gap-1.5"
             style={{
               borderRadius: "var(--radius-pill)",
               border: quickFilter === "expiringSoon" ? "1.5px solid #f57c00" : "1px solid var(--grey-300)",
@@ -377,10 +493,10 @@ export default function InventoryPage() {
             </svg>
             Expiring Soon
           </button>
-          {(search || categoryFilter !== "all" || statusFilter !== "all" || quickFilter) && (
+          {(search || categoryFilter !== "all" || subcategoryFilter !== "all" || statusFilter !== "all" || quickFilter) && (
             <button
-              onClick={() => { setSearch(""); setCategoryFilter("all"); setStatusFilter("all"); setQuickFilter(null); }}
-              className="text-[11px] font-semibold ml-2 hover:underline"
+              onClick={() => { setSearch(""); setCategoryFilter("all"); setSubcategoryFilter("all"); setStatusFilter("all"); setQuickFilter(null); }}
+              className="text-[13px] font-semibold ml-2 hover:underline"
               style={{ color: "var(--blue-500)" }}
             >
               Clear all filters
@@ -389,11 +505,57 @@ export default function InventoryPage() {
         </div>
       </div>
 
+      {/* ── Bulk Actions Toolbar ──────────────────────────────── */}
+      {someSelected && (
+        <div
+          className="mb-4 px-4 py-3 flex flex-wrap items-center gap-3 yoda-fade-in"
+          style={{ background: "var(--blue-50, #e3f2fd)", borderRadius: "var(--radius)", border: "1px solid var(--blue-200, #90caf9)" }}
+        >
+          <span className="text-[15px] font-semibold" style={{ color: "var(--blue-500)" }}>
+            {selectedIds.size} item{selectedIds.size !== 1 ? "s" : ""} selected
+          </span>
+          <span style={{ width: 1, height: 20, background: "var(--blue-200, #90caf9)" }} />
+          <span className="text-[14px] font-medium" style={{ color: "var(--grey-700)" }}>Set status:</span>
+          <button
+            onClick={() => handleBulkStatusUpdate("active")}
+            disabled={bulkLoading}
+            className="px-3 py-1 text-[14px] font-semibold transition-colors"
+            style={{ borderRadius: "var(--radius-sm)", background: "#e8f5e9", color: "var(--green)", border: "1px solid #a5d6a7" }}
+          >
+            {bulkLoading ? "..." : "Active"}
+          </button>
+          <button
+            onClick={() => handleBulkStatusUpdate("inactive")}
+            disabled={bulkLoading}
+            className="px-3 py-1 text-[14px] font-semibold transition-colors"
+            style={{ borderRadius: "var(--radius-sm)", background: "var(--grey-100)", color: "var(--grey-700)", border: "1px solid var(--grey-400)" }}
+          >
+            {bulkLoading ? "..." : "Inactive"}
+          </button>
+          <button
+            onClick={() => handleBulkStatusUpdate("discontinued")}
+            disabled={bulkLoading}
+            className="px-3 py-1 text-[14px] font-semibold transition-colors"
+            style={{ borderRadius: "var(--radius-sm)", background: "#ffebee", color: "var(--red)", border: "1px solid #ef9a9a" }}
+          >
+            {bulkLoading ? "..." : "Discontinued"}
+          </button>
+          <span className="flex-1" />
+          <button
+            onClick={() => setSelectedIds(new Set())}
+            className="text-[14px] font-semibold hover:underline"
+            style={{ color: "var(--grey-600)" }}
+          >
+            Clear selection
+          </button>
+        </div>
+      )}
+
       {/* ── Error State ─────────────────────────────────────────── */}
       {error && (
         <div className="mb-4 px-4 py-3 flex items-center justify-between" style={{ background: "#ffebee", color: "var(--red)", borderRadius: "var(--radius-sm)" }}>
-          <p className="text-[13px] font-medium">Failed to load inventory: {error}</p>
-          <button onClick={fetchItems} className="text-[12px] font-semibold underline">Retry</button>
+          <p className="text-[15px] font-medium">Failed to load inventory: {error}</p>
+          <button onClick={fetchItems} className="text-[14px] font-semibold underline">Retry</button>
         </div>
       )}
 
@@ -412,19 +574,19 @@ export default function InventoryPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
             </svg>
           </div>
-          <p className="text-[14px] font-semibold" style={{ color: "var(--grey-700)" }}>
-            {search || categoryFilter !== "all" || statusFilter !== "all" || quickFilter ? "No items match your filters" : "No inventory items found"}
+          <p className="text-[16px] font-semibold" style={{ color: "var(--grey-700)" }}>
+            {search || categoryFilter !== "all" || subcategoryFilter !== "all" || statusFilter !== "all" || quickFilter ? "No items match your filters" : "No inventory items found"}
           </p>
-          {(search || categoryFilter !== "all" || statusFilter !== "all" || quickFilter) ? (
+          {(search || categoryFilter !== "all" || subcategoryFilter !== "all" || statusFilter !== "all" || quickFilter) ? (
             <button
-              onClick={() => { setSearch(""); setCategoryFilter("all"); setStatusFilter("all"); setQuickFilter(null); }}
-              className="text-[12px] font-semibold mt-2 hover:underline"
+              onClick={() => { setSearch(""); setCategoryFilter("all"); setSubcategoryFilter("all"); setStatusFilter("all"); setQuickFilter(null); }}
+              className="text-[14px] font-semibold mt-2 hover:underline"
               style={{ color: "var(--blue-500)" }}
             >
               Clear all filters
             </button>
           ) : (
-            <Link href="/inventory/new" className="text-[12px] font-semibold mt-2 inline-block hover:underline" style={{ color: "var(--blue-500)" }}>
+            <Link href="/inventory/new" className="text-[14px] font-semibold mt-2 inline-block hover:underline" style={{ color: "var(--blue-500)" }}>
               Add your first inventory item
             </Link>
           )}
@@ -436,14 +598,25 @@ export default function InventoryPage() {
             <table className="w-full" role="table">
               <thead style={{ borderBottom: "1px solid var(--grey-300)", background: "var(--grey-50)" }}>
                 <tr>
+                  <th className="px-3 py-3 w-10">
+                    <input
+                      type="checkbox"
+                      checked={allSelected}
+                      onChange={toggleSelectAll}
+                      className="w-4 h-4 cursor-pointer accent-[var(--blue-500)]"
+                      aria-label="Select all items"
+                    />
+                  </th>
                   <SortHeader label="SKU" field="sku" currentField={sortField} direction={sortDir} onSort={handleSort} />
                   <SortHeader label="Item Name" field="name" currentField={sortField} direction={sortDir} onSort={handleSort} />
                   <SortHeader label="Category" field="category" currentField={sortField} direction={sortDir} onSort={handleSort} />
+                  <th className="text-left px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Sub Category</th>
+                  <th className="text-left px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Packing</th>
                   <SortHeader label="Stock" field="stock" currentField={sortField} direction={sortDir} onSort={handleSort} />
-                  <SortHeader label="Unit Price" field="sellingPrice" currentField={sortField} direction={sortDir} onSort={handleSort} />
+                  <SortHeader label="Unit Price" field="unitPrice" currentField={sortField} direction={sortDir} onSort={handleSort} />
                   <SortHeader label="Expiry Date" field="expiryDate" currentField={sortField} direction={sortDir} onSort={handleSort} />
                   <SortHeader label="Status" field="status" currentField={sortField} direction={sortDir} onSort={handleSort} />
-                  <th className="text-right px-4 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Actions</th>
+                  <th className="text-right px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -461,11 +634,20 @@ export default function InventoryPage() {
                       onMouseEnter={(e) => { e.currentTarget.style.background = "var(--grey-50)"; }}
                       onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
                     >
-                      <td className="px-4 py-3 text-[12px] font-mono" style={{ color: "var(--grey-600)" }}>{item.sku}</td>
+                      <td className="px-3 py-3 w-10">
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.has(item.id)}
+                          onChange={() => toggleSelectItem(item.id)}
+                          onClick={(e) => e.stopPropagation()}
+                          className="w-4 h-4 cursor-pointer accent-[var(--blue-500)]"
+                          aria-label={`Select ${item.name}`}
+                        />
+                      </td>
+                      <td className="px-4 py-3 text-[14px] font-mono" style={{ color: "var(--grey-600)" }}>{item.sku}</td>
                       <td className="px-4 py-3">
                         <Link href={`/inventory/${item.id}`} className="group/link">
-                          <p className="text-[13px] font-semibold group-hover/link:underline" style={{ color: "var(--grey-900)" }}>{item.name}</p>
-                          {item.subcategory && <p className="text-[11px]" style={{ color: "var(--grey-500)" }}>{item.subcategory}</p>}
+                          <p className="text-[15px] font-semibold group-hover/link:underline" style={{ color: "var(--grey-900)" }}>{item.name}</p>
                         </Link>
                       </td>
                       <td className="px-4 py-3">
@@ -473,21 +655,32 @@ export default function InventoryPage() {
                           {item.category}
                         </span>
                       </td>
+                      <td className="px-4 py-3 text-[14px]" style={{ color: "var(--grey-600)" }}>
+                        {item.subcategory || "\u2014"}
+                      </td>
+                      <td className="px-4 py-3 text-[14px]" style={{ color: "var(--grey-600)" }}>
+                        {item.packing || "\u2014"}
+                        {item._count && item._count.variants > 0 && (
+                          <span className="ml-1 text-[11px] font-semibold px-1.5 py-0.5" style={{ background: "var(--blue-50, #e3f2fd)", color: "var(--blue-500)", borderRadius: "var(--radius-sm)" }}>
+                            +{item._count.variants}
+                          </span>
+                        )}
+                      </td>
                       <td className="px-4 py-3">
                         <span
-                          className="inline-flex px-2 py-0.5 text-[12px] font-bold"
+                          className="inline-flex px-2 py-0.5 text-[14px] font-bold"
                           style={{ borderRadius: "var(--radius-sm)", background: stockBg, color: stockColor }}
                         >
                           {item.currentStock} {item.unit}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-[13px]" style={{ color: "var(--grey-800)" }}>
-                        {item.sellingPrice != null ? `S$${item.sellingPrice.toLocaleString("en-SG")}` : "\u2014"}
+                      <td className="px-4 py-3 text-[15px]" style={{ color: "var(--grey-800)" }}>
+                        {item.unitPrice != null ? `S$${item.unitPrice.toLocaleString("en-SG")}` : "\u2014"}
                       </td>
-                      <td className="px-4 py-3 text-[12px]" style={{ color: expiryWarning ? "var(--red)" : "var(--grey-600)", fontWeight: expiryWarning ? 600 : 400 }}>
+                      <td className="px-4 py-3 text-[14px]" style={{ color: expiryWarning ? "var(--red)" : "var(--grey-600)", fontWeight: expiryWarning ? 600 : 400 }}>
                         {item.expiryDate ? formatDate(item.expiryDate) : "\u2014"}
                         {expiryWarning && expiryDays !== null && (
-                          <span className="block text-[10px]" style={{ color: "var(--red)" }}>
+                          <span className="block text-[12px]" style={{ color: "var(--red)" }}>
                             {expiryDays <= 0 ? "Expired" : `${expiryDays}d left`}
                           </span>
                         )}
@@ -505,7 +698,7 @@ export default function InventoryPage() {
                         </span>
                       </td>
                       <td className="px-4 py-3 text-right">
-                        <Link href={`/inventory/${item.id}`} className="text-[12px] font-semibold hover:underline" style={{ color: "var(--blue-500)" }}>
+                        <Link href={`/inventory/${item.id}`} className="text-[14px] font-semibold hover:underline" style={{ color: "var(--blue-500)" }}>
                           View
                         </Link>
                       </td>
@@ -525,42 +718,49 @@ export default function InventoryPage() {
               const expiryWarning = expiryDays !== null && expiryDays <= 30;
 
               return (
-                <Link
+                <div
                   key={item.id}
-                  href={`/inventory/${item.id}`}
-                  className="block p-4 transition-shadow duration-150 active:shadow-md"
+                  className="block p-4 transition-shadow duration-150"
                   style={{ ...cardStyle, boxShadow: "var(--shadow-sm)" }}
                 >
                   <div className="flex items-start justify-between">
-                    <div className="flex-1">
+                    <div className="flex items-start gap-3 flex-1">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.has(item.id)}
+                        onChange={() => toggleSelectItem(item.id)}
+                        className="w-4 h-4 mt-1 cursor-pointer accent-[var(--blue-500)]"
+                      />
+                      <Link href={`/inventory/${item.id}`} className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <span className={chipBase} style={{ borderRadius: "var(--radius-sm)", background: "var(--blue-50, #e3f2fd)", color: "var(--blue-500)" }}>
                           {item.category}
                         </span>
-                        <span className="text-[11px] font-mono" style={{ color: "var(--grey-500)" }}>{item.sku}</span>
+                        <span className="text-[13px] font-mono" style={{ color: "var(--grey-500)" }}>{item.sku}</span>
                       </div>
-                      <p className="text-[14px] font-semibold" style={{ color: "var(--grey-900)" }}>{item.name}</p>
-                      {item.subcategory && <p className="text-[12px]" style={{ color: "var(--grey-600)" }}>{item.subcategory}</p>}
+                      <p className="text-[16px] font-semibold" style={{ color: "var(--grey-900)" }}>{item.name}</p>
+                      {item.subcategory && <p className="text-[14px]" style={{ color: "var(--grey-600)" }}>{item.subcategory}{item.packing ? ` · ${item.packing}` : ""}</p>}
+                      <div className="flex gap-4 mt-2">
+                        {item.unitPrice != null && (
+                          <span className="text-[13px]" style={{ color: "var(--grey-600)" }}>{"S$"}{item.unitPrice.toLocaleString("en-SG")}</span>
+                        )}
+                        {item.expiryDate && (
+                          <span className="text-[13px]" style={{ color: expiryWarning ? "var(--red)" : "var(--grey-500)" }}>
+                            Exp: {formatDate(item.expiryDate)}
+                            {expiryWarning && expiryDays !== null && (expiryDays <= 0 ? " (Expired)" : ` (${expiryDays}d)`)}
+                          </span>
+                        )}
+                      </div>
+                      </Link>
                     </div>
                     <span
-                      className="inline-flex px-2 py-0.5 text-[12px] font-bold ml-2 flex-shrink-0"
+                      className="inline-flex px-2 py-0.5 text-[14px] font-bold ml-2 flex-shrink-0"
                       style={{ borderRadius: "var(--radius-sm)", background: stockBg, color: stockColor }}
                     >
                       {item.currentStock} {item.unit}
                     </span>
                   </div>
-                  <div className="flex gap-4 mt-2">
-                    {item.sellingPrice != null && (
-                      <span className="text-[11px]" style={{ color: "var(--grey-600)" }}>{"S$"}{item.sellingPrice.toLocaleString("en-SG")}</span>
-                    )}
-                    {item.expiryDate && (
-                      <span className="text-[11px]" style={{ color: expiryWarning ? "var(--red)" : "var(--grey-500)" }}>
-                        Exp: {formatDate(item.expiryDate)}
-                        {expiryWarning && expiryDays !== null && (expiryDays <= 0 ? " (Expired)" : ` (${expiryDays}d)`)}
-                      </span>
-                    )}
-                  </div>
-                </Link>
+                </div>
               );
             })}
           </div>

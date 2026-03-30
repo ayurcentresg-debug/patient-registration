@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import CommunicationTabs from "@/components/CommunicationTabs";
 import ConfirmDialog from "@/components/ConfirmDialog";
 
-const inputStyle = { border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)", fontSize: "13px" };
+const inputStyle = { border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)", fontSize: "15px" };
 const cardStyle = { background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-card)" };
 
 const CHANNEL_COLORS: Record<string, string> = { whatsapp: "#25D366", email: "#3b82f6", sms: "#8b5cf6" };
@@ -236,7 +236,7 @@ export default function TemplatesPage() {
       {/* Toast */}
       {toast && (
         <div
-          className="fixed top-4 right-4 z-50 px-4 py-3 text-[13px] font-semibold text-white yoda-slide-in"
+          className="fixed top-4 right-4 z-50 px-4 py-3 text-[15px] font-semibold text-white yoda-slide-in"
           style={{ background: toast.type === "success" ? "var(--green)" : "var(--red)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-lg)" }}
         >
           {toast.message}
@@ -246,12 +246,12 @@ export default function TemplatesPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-[22px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>Message Templates</h1>
-          <p className="text-[13px] mt-0.5" style={{ color: "var(--grey-600)" }}>Create and manage reusable message templates</p>
+          <h1 className="text-[24px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>Message Templates</h1>
+          <p className="text-[15px] mt-0.5" style={{ color: "var(--grey-600)" }}>Create and manage reusable message templates</p>
         </div>
         <button
           onClick={openNewForm}
-          className="inline-flex items-center justify-center gap-2 text-white px-5 py-2 text-[13px] font-semibold transition-colors duration-150"
+          className="inline-flex items-center justify-center gap-2 text-white px-5 py-2 text-[15px] font-semibold transition-colors duration-150"
           style={{ background: "var(--blue-500)", borderRadius: "var(--radius-sm)" }}
           onMouseEnter={(e) => { e.currentTarget.style.background = "var(--blue-700)"; }}
           onMouseLeave={(e) => { e.currentTarget.style.background = "var(--blue-500)"; }}
@@ -267,7 +267,7 @@ export default function TemplatesPage() {
           <button
             key={ch}
             onClick={() => setFilterChannel(ch)}
-            className="px-4 py-1.5 text-[12px] font-semibold transition-all duration-150"
+            className="px-4 py-1.5 text-[14px] font-semibold transition-all duration-150"
             style={{
               borderRadius: "var(--radius-pill)",
               border: filterChannel === ch ? `2px solid ${ch === "all" ? "var(--blue-500)" : CHANNEL_COLORS[ch]}` : "1px solid var(--grey-300)",
@@ -286,7 +286,7 @@ export default function TemplatesPage() {
           <button
             key={cat.value}
             onClick={() => setFilterCategory(cat.value)}
-            className="px-3 py-1 text-[11px] font-semibold transition-all duration-150"
+            className="px-3 py-1 text-[13px] font-semibold transition-all duration-150"
             style={{
               borderRadius: "var(--radius-pill)",
               border: filterCategory === cat.value ? "1px solid var(--blue-500)" : "1px solid var(--grey-300)",
@@ -315,18 +315,18 @@ export default function TemplatesPage() {
 
               <div className="space-y-4">
                 <div>
-                  <label className="block mb-1 text-[12px] font-semibold" style={{ color: "var(--grey-700)" }}>Template Name *</label>
+                  <label className="block mb-1 text-[14px] font-semibold" style={{ color: "var(--grey-700)" }}>Template Name *</label>
                   <input type="text" value={formName} onChange={(e) => setFormName(e.target.value)} className="w-full px-3 py-2" style={inputStyle} placeholder="e.g. Appointment Reminder" />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block mb-1 text-[12px] font-semibold" style={{ color: "var(--grey-700)" }}>Channel *</label>
+                    <label className="block mb-1 text-[14px] font-semibold" style={{ color: "var(--grey-700)" }}>Channel *</label>
                     <div className="flex gap-2">
                       {(["whatsapp", "email", "sms"] as const).map((ch) => (
                         <button
                           key={ch} type="button" onClick={() => setFormChannel(ch)}
-                          className="flex-1 px-2 py-2 text-[12px] font-semibold transition-all duration-150"
+                          className="flex-1 px-2 py-2 text-[14px] font-semibold transition-all duration-150"
                           style={{
                             borderRadius: "var(--radius-sm)",
                             border: formChannel === ch ? `2px solid ${CHANNEL_COLORS[ch]}` : "1px solid var(--grey-300)",
@@ -340,7 +340,7 @@ export default function TemplatesPage() {
                     </div>
                   </div>
                   <div>
-                    <label className="block mb-1 text-[12px] font-semibold" style={{ color: "var(--grey-700)" }}>Category *</label>
+                    <label className="block mb-1 text-[14px] font-semibold" style={{ color: "var(--grey-700)" }}>Category *</label>
                     <select value={formCategory} onChange={(e) => setFormCategory(e.target.value)} className="w-full px-3 py-2" style={inputStyle}>
                       {CATEGORIES.filter((c) => c.value !== "all").map((c) => (
                         <option key={c.value} value={c.value}>{c.label}</option>
@@ -351,19 +351,19 @@ export default function TemplatesPage() {
 
                 {formChannel === "email" && (
                   <div>
-                    <label className="block mb-1 text-[12px] font-semibold" style={{ color: "var(--grey-700)" }}>Subject</label>
+                    <label className="block mb-1 text-[14px] font-semibold" style={{ color: "var(--grey-700)" }}>Subject</label>
                     <input type="text" value={formSubject} onChange={(e) => setFormSubject(e.target.value)} className="w-full px-3 py-2" style={inputStyle} placeholder="Email subject line..." />
                   </div>
                 )}
 
                 <div>
-                  <label className="block mb-1 text-[12px] font-semibold" style={{ color: "var(--grey-700)" }}>Body *</label>
+                  <label className="block mb-1 text-[14px] font-semibold" style={{ color: "var(--grey-700)" }}>Body *</label>
                   <div className="flex flex-wrap gap-1 mb-2">
-                    <span className="text-[11px] mr-1" style={{ color: "var(--grey-600)" }}>Insert:</span>
+                    <span className="text-[13px] mr-1" style={{ color: "var(--grey-600)" }}>Insert:</span>
                     {VARIABLES.map((v) => (
                       <button
                         key={v} type="button" onClick={() => insertVariable(v)}
-                        className="px-2 py-0.5 text-[10px] font-semibold transition-colors"
+                        className="px-2 py-0.5 text-[12px] font-semibold transition-colors"
                         style={{ background: "var(--blue-50)", color: "var(--blue-500)", borderRadius: "var(--radius-pill)", border: "1px solid var(--blue-100)" }}
                       >
                         {`{{${v}}}`}
@@ -380,24 +380,24 @@ export default function TemplatesPage() {
                 {/* Live Preview */}
                 {(previewText || formBody) && (
                   <div className="p-3" style={{ background: "var(--grey-100)", borderRadius: "var(--radius-sm)", border: "1px solid var(--grey-300)" }}>
-                    <p className="text-[11px] font-semibold uppercase mb-1" style={{ color: "var(--grey-600)" }}>Preview</p>
-                    <p className="text-[13px]" style={{ color: "var(--grey-800)", whiteSpace: "pre-wrap" }}>
+                    <p className="text-[13px] font-semibold uppercase mb-1" style={{ color: "var(--grey-600)" }}>Preview</p>
+                    <p className="text-[15px]" style={{ color: "var(--grey-800)", whiteSpace: "pre-wrap" }}>
                       {previewText || formBody}
                     </p>
                   </div>
                 )}
 
                 <div className="flex gap-2 pt-2">
-                  <button onClick={handlePreview} className="px-4 py-2 text-[13px] font-semibold" style={{ background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", color: "var(--grey-700)" }}>
+                  <button onClick={handlePreview} className="px-4 py-2 text-[15px] font-semibold" style={{ background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", color: "var(--grey-700)" }}>
                     Preview
                   </button>
-                  <button onClick={() => setShowForm(false)} className="px-4 py-2 text-[13px] font-semibold" style={{ background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", color: "var(--grey-700)" }}>
+                  <button onClick={() => setShowForm(false)} className="px-4 py-2 text-[15px] font-semibold" style={{ background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", color: "var(--grey-700)" }}>
                     Cancel
                   </button>
                   <button
                     onClick={handleSave}
                     disabled={saving || !formName.trim() || !formBody.trim()}
-                    className="flex-1 text-white px-5 py-2 text-[13px] font-semibold disabled:opacity-50"
+                    className="flex-1 text-white px-5 py-2 text-[15px] font-semibold disabled:opacity-50"
                     style={{ background: "var(--blue-500)", borderRadius: "var(--radius-sm)" }}
                   >
                     {saving ? "Saving..." : editingTemplate ? "Update Template" : "Create Template"}
@@ -417,8 +417,8 @@ export default function TemplatesPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
           </div>
-          <p className="text-[14px] font-semibold" style={{ color: "var(--grey-700)" }}>No templates found</p>
-          <button onClick={openNewForm} className="text-[12px] font-semibold mt-2 hover:underline" style={{ color: "var(--blue-500)" }}>Create your first template</button>
+          <p className="text-[16px] font-semibold" style={{ color: "var(--grey-700)" }}>No templates found</p>
+          <button onClick={openNewForm} className="text-[14px] font-semibold mt-2 hover:underline" style={{ color: "var(--blue-500)" }}>Create your first template</button>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -429,16 +429,16 @@ export default function TemplatesPage() {
               <div key={tpl.id} className="p-4 transition-shadow duration-150 hover:shadow-md" style={cardStyle}>
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-[14px] font-bold truncate" style={{ color: "var(--grey-900)" }}>{tpl.name}</h3>
+                    <h3 className="text-[16px] font-bold truncate" style={{ color: "var(--grey-900)" }}>{tpl.name}</h3>
                     <div className="flex items-center gap-2 mt-1">
                       <span
-                        className="inline-flex items-center px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide"
+                        className="inline-flex items-center px-2 py-0.5 text-[12px] font-bold uppercase tracking-wide"
                         style={{ borderRadius: "var(--radius-sm)", background: CHANNEL_BG[tpl.channel], color: CHANNEL_COLORS[tpl.channel] }}
                       >
                         {tpl.channel === "whatsapp" ? "WhatsApp" : tpl.channel === "email" ? "Email" : "SMS"}
                       </span>
                       <span
-                        className="inline-flex items-center px-2 py-0.5 text-[10px] font-bold tracking-wide"
+                        className="inline-flex items-center px-2 py-0.5 text-[12px] font-bold tracking-wide"
                         style={{ borderRadius: "var(--radius-sm)", background: catColor.bg, color: catColor.color }}
                       >
                         {categoryLabel(tpl.category)}
@@ -449,7 +449,7 @@ export default function TemplatesPage() {
                   {/* Active toggle */}
                   <button
                     onClick={() => handleToggleActive(tpl)}
-                    className="flex items-center gap-1 px-2 py-1 text-[11px] font-semibold"
+                    className="flex items-center gap-1 px-2 py-1 text-[13px] font-semibold"
                     style={{
                       borderRadius: "var(--radius-pill)",
                       background: tpl.isActive ? "var(--green-light)" : "var(--grey-100)",
@@ -462,7 +462,7 @@ export default function TemplatesPage() {
                 </div>
 
                 {/* Body preview */}
-                <p className="text-[13px] mt-2 line-clamp-3" style={{ color: "var(--grey-600)" }}>
+                <p className="text-[15px] mt-2 line-clamp-3" style={{ color: "var(--grey-600)" }}>
                   {tpl.body.length > 100 ? tpl.body.slice(0, 100) + "..." : tpl.body}
                 </p>
 
@@ -472,7 +472,7 @@ export default function TemplatesPage() {
                     {vars.map((v) => (
                       <span
                         key={v}
-                        className="px-1.5 py-0.5 text-[10px] font-semibold"
+                        className="px-1.5 py-0.5 text-[12px] font-semibold"
                         style={{ background: "var(--blue-50)", color: "var(--blue-500)", borderRadius: "var(--radius-sm)" }}
                       >
                         {v}
@@ -485,14 +485,14 @@ export default function TemplatesPage() {
                 <div className="flex gap-2 mt-3 pt-3" style={{ borderTop: "1px solid var(--grey-200)" }}>
                   <button
                     onClick={() => openEditForm(tpl)}
-                    className="px-3 py-1.5 text-[12px] font-semibold transition-colors"
+                    className="px-3 py-1.5 text-[14px] font-semibold transition-colors"
                     style={{ border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", color: "var(--grey-700)", background: "var(--white)" }}
                   >
                     Edit
                   </button>
                   <button
                     onClick={() => handleDelete(tpl.id)}
-                    className="px-3 py-1.5 text-[12px] font-semibold transition-colors"
+                    className="px-3 py-1.5 text-[14px] font-semibold transition-colors"
                     style={{ border: "1px solid var(--red-light)", borderRadius: "var(--radius-sm)", color: "var(--red)", background: "var(--red-light)" }}
                   >
                     Delete

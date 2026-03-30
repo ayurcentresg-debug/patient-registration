@@ -66,7 +66,7 @@ const inputStyle: React.CSSProperties = {
   borderRadius: "var(--radius-sm)",
   color: "var(--grey-900)",
   background: "var(--white)",
-  fontSize: "13px",
+  fontSize: "15px",
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -190,22 +190,22 @@ export default function ClinicSettingsPage() {
       {/* Toast */}
       {toast && (
         <div className="fixed top-5 right-5 z-[200] px-4 py-3 rounded shadow-lg yoda-slide-in" style={{ background: toast.type === "success" ? "#e8f5e9" : "#ffebee", color: toast.type === "success" ? "#2e7d32" : "var(--red)", border: `1px solid ${toast.type === "success" ? "#a5d6a7" : "#ef9a9a"}` }}>
-          <p className="text-[13px] font-semibold">{toast.message}</p>
+          <p className="text-[15px] font-semibold">{toast.message}</p>
         </div>
       )}
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-[22px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>Clinic Settings</h1>
-          <p className="text-[13px] mt-0.5" style={{ color: "var(--grey-600)" }}>
+          <h1 className="text-[24px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>Clinic Settings</h1>
+          <p className="text-[15px] mt-0.5" style={{ color: "var(--grey-600)" }}>
             Configure your clinic information, tax settings, and preferences
           </p>
         </div>
         <button
           onClick={handleSave}
           disabled={saving}
-          className="inline-flex items-center gap-2 text-white px-5 py-2 text-[13px] font-semibold rounded disabled:opacity-50"
+          className="inline-flex items-center gap-2 text-white px-5 py-2 text-[15px] font-semibold rounded disabled:opacity-50"
           style={{ background: "var(--blue-500)", borderRadius: "var(--radius-sm)" }}
         >
           {saving ? (
@@ -230,38 +230,38 @@ export default function ClinicSettingsPage() {
         <div className="space-y-6">
           {/* ── Clinic Information ──────────────────────────────────────── */}
           <div className="p-5" style={cardStyle}>
-            <h2 className="text-[15px] font-bold mb-4" style={{ color: "var(--grey-900)" }}>Clinic Information</h2>
+            <h2 className="text-[17px] font-bold mb-4" style={{ color: "var(--grey-900)" }}>Clinic Information</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="md:col-span-2">
-                <label className="block text-[12px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Clinic Name</label>
+                <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Clinic Name</label>
                 <input type="text" value={settings.clinicName} onChange={e => updateField("clinicName", e.target.value)} className="w-full px-3 py-2" style={inputStyle} placeholder="Ayur Centre Pte. Ltd." />
               </div>
               <div className="md:col-span-2">
-                <label className="block text-[12px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Address</label>
+                <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Address</label>
                 <input type="text" value={settings.address} onChange={e => updateField("address", e.target.value)} className="w-full px-3 py-2" style={inputStyle} placeholder="123 Wellness Street" />
               </div>
               <div>
-                <label className="block text-[12px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>City</label>
+                <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>City</label>
                 <input type="text" value={settings.city} onChange={e => updateField("city", e.target.value)} className="w-full px-3 py-2" style={inputStyle} placeholder="Singapore" />
               </div>
               <div>
-                <label className="block text-[12px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>State</label>
+                <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>State</label>
                 <input type="text" value={settings.state} onChange={e => updateField("state", e.target.value)} className="w-full px-3 py-2" style={inputStyle} placeholder="Singapore" />
               </div>
               <div>
-                <label className="block text-[12px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Zip / Postal Code</label>
+                <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Zip / Postal Code</label>
                 <input type="text" value={settings.zip} onChange={e => updateField("zip", e.target.value)} className="w-full px-3 py-2" style={inputStyle} placeholder="123456" />
               </div>
               <div>
-                <label className="block text-[12px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Phone</label>
+                <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Phone</label>
                 <input type="text" value={settings.phone} onChange={e => updateField("phone", e.target.value)} className="w-full px-3 py-2" style={inputStyle} placeholder="+65 1234 5678" />
               </div>
               <div>
-                <label className="block text-[12px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Email</label>
+                <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Email</label>
                 <input type="email" value={settings.email} onChange={e => updateField("email", e.target.value)} className="w-full px-3 py-2" style={inputStyle} placeholder="clinic@example.com" />
               </div>
               <div>
-                <label className="block text-[12px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Website</label>
+                <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Website</label>
                 <input type="text" value={settings.website} onChange={e => updateField("website", e.target.value)} className="w-full px-3 py-2" style={inputStyle} placeholder="https://www.example.com" />
               </div>
             </div>
@@ -269,14 +269,14 @@ export default function ClinicSettingsPage() {
 
           {/* ── GST & Tax ──────────────────────────────────────────────── */}
           <div className="p-5" style={cardStyle}>
-            <h2 className="text-[15px] font-bold mb-4" style={{ color: "var(--grey-900)" }}>GST & Tax</h2>
+            <h2 className="text-[17px] font-bold mb-4" style={{ color: "var(--grey-900)" }}>GST & Tax</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-[12px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>GST Number</label>
+                <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>GST Number</label>
                 <input type="text" value={settings.gstNumber} onChange={e => updateField("gstNumber", e.target.value)} className="w-full px-3 py-2" style={inputStyle} placeholder="GST-XXXXXXXXX" />
               </div>
               <div className="md:col-span-2">
-                <label className="block text-[12px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Tax Terms & Conditions</label>
+                <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Tax Terms & Conditions</label>
                 <textarea value={settings.taxTerms} onChange={e => updateField("taxTerms", e.target.value)} className="w-full px-3 py-2" rows={3} style={{ ...inputStyle, resize: "vertical" as const }} placeholder="Enter tax-related terms and conditions..." />
               </div>
             </div>
@@ -284,10 +284,10 @@ export default function ClinicSettingsPage() {
 
           {/* ── Preferences ────────────────────────────────────────────── */}
           <div className="p-5" style={cardStyle}>
-            <h2 className="text-[15px] font-bold mb-4" style={{ color: "var(--grey-900)" }}>Preferences</h2>
+            <h2 className="text-[17px] font-bold mb-4" style={{ color: "var(--grey-900)" }}>Preferences</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
-                <label className="block text-[12px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Currency</label>
+                <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Currency</label>
                 <select value={settings.currency} onChange={e => updateField("currency", e.target.value)} className="w-full px-3 py-2" style={inputStyle}>
                   <option value="SGD">S$ — SGD</option>
                   <option value="USD">$ — USD</option>
@@ -296,7 +296,7 @@ export default function ClinicSettingsPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-[12px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Date Format</label>
+                <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Date Format</label>
                 <select value={settings.dateFormat} onChange={e => updateField("dateFormat", e.target.value)} className="w-full px-3 py-2" style={inputStyle}>
                   <option value="DD/MM/YYYY">DD/MM/YYYY</option>
                   <option value="MM/DD/YYYY">MM/DD/YYYY</option>
@@ -304,14 +304,14 @@ export default function ClinicSettingsPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-[12px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Time Format</label>
+                <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Time Format</label>
                 <select value={settings.timeFormat} onChange={e => updateField("timeFormat", e.target.value)} className="w-full px-3 py-2" style={inputStyle}>
                   <option value="12h">12-hour</option>
                   <option value="24h">24-hour</option>
                 </select>
               </div>
               <div>
-                <label className="block text-[12px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Default Appointment Duration</label>
+                <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Default Appointment Duration</label>
                 <select value={settings.defaultAppointmentDuration} onChange={e => updateField("defaultAppointmentDuration", e.target.value)} className="w-full px-3 py-2" style={inputStyle}>
                   <option value="15">15 minutes</option>
                   <option value="20">20 minutes</option>
@@ -322,18 +322,18 @@ export default function ClinicSettingsPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-[12px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Working Hours Start</label>
+                <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Working Hours Start</label>
                 <input type="time" value={settings.workingHoursStart} onChange={e => updateField("workingHoursStart", e.target.value)} className="w-full px-3 py-2" style={inputStyle} />
               </div>
               <div>
-                <label className="block text-[12px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Working Hours End</label>
+                <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Working Hours End</label>
                 <input type="time" value={settings.workingHoursEnd} onChange={e => updateField("workingHoursEnd", e.target.value)} className="w-full px-3 py-2" style={inputStyle} />
               </div>
             </div>
 
             {/* Working Days */}
             <div className="mt-5">
-              <label className="block text-[12px] font-semibold mb-2" style={{ color: "var(--grey-700)" }}>Working Days</label>
+              <label className="block text-[14px] font-semibold mb-2" style={{ color: "var(--grey-700)" }}>Working Days</label>
               <div className="flex flex-wrap gap-2">
                 {ALL_DAYS.map(day => {
                   const active = settings.workingDays.includes(day.key);
@@ -341,7 +341,7 @@ export default function ClinicSettingsPage() {
                     <button
                       key={day.key}
                       onClick={() => toggleDay(day.key)}
-                      className="px-4 py-2 text-[12px] font-semibold rounded transition-colors"
+                      className="px-4 py-2 text-[14px] font-semibold rounded transition-colors"
                       style={{
                         background: active ? "var(--blue-500)" : "var(--grey-100)",
                         color: active ? "var(--white)" : "var(--grey-600)",
@@ -362,7 +362,7 @@ export default function ClinicSettingsPage() {
             <button
               onClick={handleSave}
               disabled={saving}
-              className="inline-flex items-center gap-2 text-white px-6 py-2.5 text-[13px] font-semibold rounded disabled:opacity-50"
+              className="inline-flex items-center gap-2 text-white px-6 py-2.5 text-[15px] font-semibold rounded disabled:opacity-50"
               style={{ background: "var(--blue-500)", borderRadius: "var(--radius-sm)" }}
             >
               {saving ? "Saving..." : "Save Changes"}

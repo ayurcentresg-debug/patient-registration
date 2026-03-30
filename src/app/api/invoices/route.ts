@@ -62,7 +62,24 @@ export async function GET(request: NextRequest) {
       take: 100,
     });
 
-    return NextResponse.json(invoices);
+    // Check which invoices are linked to packages
+    const invoiceIds = invoices.map((inv) => inv.id);
+    const packageLinks = await prisma.patientPackage.findMany({
+      where: { invoiceId: { in: invoiceIds } },
+      select: { invoiceId: true, packageNumber: true, packageName: true, id: true },
+    });
+    const packageMap = new Map(packageLinks.map((p) => [p.invoiceId, p]));
+
+    const enriched = invoices.map((inv) => {
+      const pkg = packageMap.get(inv.id);
+      return {
+        ...inv,
+        isPackageSale: !!pkg,
+        packageInfo: pkg ? { id: pkg.id, packageNumber: pkg.packageNumber, packageName: pkg.packageName } : null,
+      };
+    });
+
+    return NextResponse.json(enriched);
   } catch (error) {
     console.error("Error fetching invoices:", error);
     return NextResponse.json(
@@ -115,10 +132,12 @@ export async function POST(request: NextRequest) {
       gstAmount: number;
       amount: number;
       inventoryItemId?: string;
+      variantId?: string;
     }> = [];
 
     const inventoryUpdates: Array<{
       itemId: string;
+      variantId?: string;
       quantity: number;
       previousStock: number;
       newStock: number;
@@ -150,36 +169,67 @@ export async function POST(request: NextRequest) {
         if (item.inventoryItemId) {
           processedItem.inventoryItemId = item.inventoryItemId;
         }
+        if (item.variantId) {
+          processedItem.variantId = item.variantId;
+        }
 
         // If medicine with inventoryItemId, validate and prepare stock deduction
         if (item.type === "medicine" && item.inventoryItemId) {
-          const inventoryItem = await prisma.inventoryItem.findUnique({
-            where: { id: item.inventoryItemId },
-          });
+          // Check if this is a variant sale
+          if (item.variantId) {
+            const variant = await prisma.inventoryVariant.findUnique({
+              where: { id: item.variantId },
+            });
+            if (!variant) {
+              return NextResponse.json(
+                { error: `Variant not found: ${item.variantId}` },
+                { status: 404 }
+              );
+            }
+            if (variant.currentStock < quantity) {
+              return NextResponse.json(
+                { error: `Insufficient stock for variant "${variant.packing}". Available: ${variant.currentStock}, requested: ${quantity}` },
+                { status: 400 }
+              );
+            }
+            inventoryUpdates.push({
+              itemId: item.inventoryItemId,
+              variantId: item.variantId,
+              quantity,
+              previousStock: variant.currentStock,
+              newStock: variant.currentStock - quantity,
+              unitPrice,
+            });
+          } else {
+            // Base item stock deduction
+            const inventoryItem = await prisma.inventoryItem.findUnique({
+              where: { id: item.inventoryItemId },
+            });
 
-          if (!inventoryItem) {
-            return NextResponse.json(
-              { error: `Inventory item not found: ${item.inventoryItemId}` },
-              { status: 404 }
-            );
+            if (!inventoryItem) {
+              return NextResponse.json(
+                { error: `Inventory item not found: ${item.inventoryItemId}` },
+                { status: 404 }
+              );
+            }
+
+            if (inventoryItem.currentStock < quantity) {
+              return NextResponse.json(
+                {
+                  error: `Insufficient stock for "${inventoryItem.name}". Available: ${inventoryItem.currentStock}, requested: ${quantity}`,
+                },
+                { status: 400 }
+              );
+            }
+
+            inventoryUpdates.push({
+              itemId: item.inventoryItemId,
+              quantity,
+              previousStock: inventoryItem.currentStock,
+              newStock: inventoryItem.currentStock - quantity,
+              unitPrice,
+            });
           }
-
-          if (inventoryItem.currentStock < quantity) {
-            return NextResponse.json(
-              {
-                error: `Insufficient stock for "${inventoryItem.name}". Available: ${inventoryItem.currentStock}, requested: ${quantity}`,
-              },
-              { status: 400 }
-            );
-          }
-
-          inventoryUpdates.push({
-            itemId: item.inventoryItemId,
-            quantity,
-            previousStock: inventoryItem.currentStock,
-            newStock: inventoryItem.currentStock - quantity,
-            unitPrice,
-          });
         }
 
         items.push(processedItem);
@@ -233,6 +283,7 @@ export async function POST(request: NextRequest) {
             type: item.type,
             description: item.description,
             inventoryItemId: item.inventoryItemId || null,
+            variantId: item.variantId || null,
             quantity: item.quantity,
             unitPrice: item.unitPrice,
             discount: item.discount,
@@ -258,20 +309,32 @@ export async function POST(request: NextRequest) {
     transactionOps.push(invoiceCreate);
 
     for (const update of inventoryUpdates) {
-      transactionOps.push(
-        prisma.inventoryItem.update({
-          where: { id: update.itemId },
-          data: {
-            currentStock: update.newStock,
-            status: update.newStock === 0 ? "out_of_stock" : "active",
-          },
-        })
-      );
+      if (update.variantId) {
+        // Deduct from variant stock
+        transactionOps.push(
+          prisma.inventoryVariant.update({
+            where: { id: update.variantId },
+            data: { currentStock: update.newStock },
+          })
+        );
+      } else {
+        // Deduct from base item stock
+        transactionOps.push(
+          prisma.inventoryItem.update({
+            where: { id: update.itemId },
+            data: {
+              currentStock: update.newStock,
+              status: update.newStock === 0 ? "out_of_stock" : "active",
+            },
+          })
+        );
+      }
 
       transactionOps.push(
         prisma.stockTransaction.create({
           data: {
             itemId: update.itemId,
+            variantId: update.variantId || null,
             type: "sale",
             quantity: -update.quantity,
             unitPrice: update.unitPrice,

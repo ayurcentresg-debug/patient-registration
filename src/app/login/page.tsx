@@ -170,12 +170,12 @@ export default function LoginPage() {
         {/* Body */}
         <div className="px-8 py-6">
           {error && (
-            <div className="mb-4 px-4 py-3 rounded-lg text-[13px] font-medium" style={{ background: "#fef2f2", color: "#dc2626", border: "1px solid #fecaca" }}>
+            <div className="mb-4 px-4 py-3 rounded-lg text-[15px] font-medium" style={{ background: "#fef2f2", color: "#dc2626", border: "1px solid #fecaca" }}>
               {error}
             </div>
           )}
           {success && (
-            <div className="mb-4 px-4 py-3 rounded-lg text-[13px] font-medium" style={{ background: "#f0fdf4", color: "#16a34a", border: "1px solid #bbf7d0" }}>
+            <div className="mb-4 px-4 py-3 rounded-lg text-[15px] font-medium" style={{ background: "#f0fdf4", color: "#16a34a", border: "1px solid #bbf7d0" }}>
               {success}
             </div>
           )}
@@ -184,14 +184,14 @@ export default function LoginPage() {
           {view === "login" && (
             <form onSubmit={handleLogin} className="space-y-4">
               <div>
-                <label className="block text-[12px] font-bold mb-1.5" style={{ color: "#374151" }}>Email</label>
+                <label className="block text-[14px] font-bold mb-1.5" style={{ color: "#374151" }}>Email</label>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="admin@clinic.com"
                   required
-                  className="w-full px-4 py-3 text-[14px] rounded-lg outline-none transition-all"
+                  className="w-full px-4 py-3 text-[16px] rounded-lg outline-none transition-all"
                   style={{ border: "1.5px solid #d1d5db", background: "#fafafa" }}
                   onFocus={(e) => { e.currentTarget.style.borderColor = "#2d6a4f"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(45,106,79,0.08)"; }}
                   onBlur={(e) => { e.currentTarget.style.borderColor = "#d1d5db"; e.currentTarget.style.boxShadow = "none"; }}
@@ -199,7 +199,7 @@ export default function LoginPage() {
               </div>
 
               <div>
-                <label className="block text-[12px] font-bold mb-1.5" style={{ color: "#374151" }}>Password</label>
+                <label className="block text-[14px] font-bold mb-1.5" style={{ color: "#374151" }}>Password</label>
                 <div className="relative">
                   <input
                     type={showPassword ? "text" : "password"}
@@ -207,7 +207,7 @@ export default function LoginPage() {
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Enter your password"
                     required
-                    className="w-full px-4 py-3 pr-12 text-[14px] rounded-lg outline-none transition-all"
+                    className="w-full px-4 py-3 pr-12 text-[16px] rounded-lg outline-none transition-all"
                     style={{ border: "1.5px solid #d1d5db", background: "#fafafa" }}
                     onFocus={(e) => { e.currentTarget.style.borderColor = "#2d6a4f"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(45,106,79,0.08)"; }}
                     onBlur={(e) => { e.currentTarget.style.borderColor = "#d1d5db"; e.currentTarget.style.boxShadow = "none"; }}
@@ -230,12 +230,12 @@ export default function LoginPage() {
               <div className="flex items-center justify-between">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" className="w-4 h-4 rounded accent-amber-700" />
-                  <span className="text-[12px] font-medium" style={{ color: "#6b7280" }}>Remember me</span>
+                  <span className="text-[14px] font-medium" style={{ color: "#6b7280" }}>Remember me</span>
                 </label>
                 <button
                   type="button"
                   onClick={() => { setView("forgot"); setError(""); setSuccess(""); }}
-                  className="text-[12px] font-bold hover:underline"
+                  className="text-[14px] font-bold hover:underline"
                   style={{ color: "#2d6a4f" }}
                 >
                   Forgot password?
@@ -245,7 +245,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 text-[14px] font-bold text-white rounded-lg transition-all"
+                className="w-full py-3 text-[16px] font-bold text-white rounded-lg transition-all"
                 style={{ background: loading ? "#37845e" : "#2d6a4f", opacity: loading ? 0.7 : 1 }}
               >
                 {loading ? "Signing in..." : "Sign In"}
@@ -260,7 +260,7 @@ export default function LoginPage() {
                 <div className="w-12 h-12 mx-auto mb-2 rounded-full flex items-center justify-center" style={{ background: "#d1f2e0" }}>
                   <svg className="w-6 h-6" fill="none" stroke="#2d6a4f" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
                 </div>
-                <p className="text-[13px]" style={{ color: "#6b7280" }}>
+                <p className="text-[15px]" style={{ color: "#6b7280" }}>
                   Open your authenticator app and enter the 6-digit code
                 </p>
               </div>
@@ -284,7 +284,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading || totpCode.length !== 6}
-                className="w-full py-3 text-[14px] font-bold text-white rounded-lg transition-all"
+                className="w-full py-3 text-[16px] font-bold text-white rounded-lg transition-all"
                 style={{ background: loading ? "#37845e" : "#2d6a4f", opacity: (loading || totpCode.length !== 6) ? 0.6 : 1 }}
               >
                 {loading ? "Verifying..." : "Verify & Sign In"}
@@ -293,7 +293,7 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => { setView("login"); setError(""); setTotpCode(""); }}
-                className="w-full text-center text-[13px] font-semibold hover:underline"
+                className="w-full text-center text-[15px] font-semibold hover:underline"
                 style={{ color: "#6b7280" }}
               >
                 Back to Sign In
@@ -305,14 +305,14 @@ export default function LoginPage() {
           {view === "forgot" && (
             <form onSubmit={handleForgotPassword} className="space-y-4">
               <div>
-                <label className="block text-[12px] font-bold mb-1.5" style={{ color: "#374151" }}>Email address</label>
+                <label className="block text-[14px] font-bold mb-1.5" style={{ color: "#374151" }}>Email address</label>
                 <input
                   type="email"
                   value={resetEmail}
                   onChange={(e) => setResetEmail(e.target.value)}
                   placeholder="Enter your registered email"
                   required
-                  className="w-full px-4 py-3 text-[14px] rounded-lg outline-none transition-all"
+                  className="w-full px-4 py-3 text-[16px] rounded-lg outline-none transition-all"
                   style={{ border: "1.5px solid #d1d5db", background: "#fafafa" }}
                   onFocus={(e) => { e.currentTarget.style.borderColor = "#2d6a4f"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(45,106,79,0.08)"; }}
                   onBlur={(e) => { e.currentTarget.style.borderColor = "#d1d5db"; e.currentTarget.style.boxShadow = "none"; }}
@@ -322,7 +322,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 text-[14px] font-bold text-white rounded-lg transition-all"
+                className="w-full py-3 text-[16px] font-bold text-white rounded-lg transition-all"
                 style={{ background: loading ? "#37845e" : "#2d6a4f", opacity: loading ? 0.7 : 1 }}
               >
                 {loading ? "Sending..." : "Send Reset Code"}
@@ -331,7 +331,7 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => { setView("login"); setError(""); setSuccess(""); }}
-                className="w-full text-center text-[13px] font-semibold hover:underline"
+                className="w-full text-center text-[15px] font-semibold hover:underline"
                 style={{ color: "#6b7280" }}
               >
                 Back to Sign In
@@ -343,7 +343,7 @@ export default function LoginPage() {
           {view === "reset" && (
             <form onSubmit={handleResetPassword} className="space-y-4">
               <div>
-                <label className="block text-[12px] font-bold mb-1.5" style={{ color: "#374151" }}>6-digit Code</label>
+                <label className="block text-[14px] font-bold mb-1.5" style={{ color: "#374151" }}>6-digit Code</label>
                 <input
                   type="text"
                   value={otp}
@@ -359,7 +359,7 @@ export default function LoginPage() {
               </div>
 
               <div>
-                <label className="block text-[12px] font-bold mb-1.5" style={{ color: "#374151" }}>New Password</label>
+                <label className="block text-[14px] font-bold mb-1.5" style={{ color: "#374151" }}>New Password</label>
                 <input
                   type="password"
                   value={newPassword}
@@ -367,7 +367,7 @@ export default function LoginPage() {
                   placeholder="Min. 6 characters"
                   required
                   minLength={6}
-                  className="w-full px-4 py-3 text-[14px] rounded-lg outline-none transition-all"
+                  className="w-full px-4 py-3 text-[16px] rounded-lg outline-none transition-all"
                   style={{ border: "1.5px solid #d1d5db", background: "#fafafa" }}
                   onFocus={(e) => { e.currentTarget.style.borderColor = "#2d6a4f"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(45,106,79,0.08)"; }}
                   onBlur={(e) => { e.currentTarget.style.borderColor = "#d1d5db"; e.currentTarget.style.boxShadow = "none"; }}
@@ -377,7 +377,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 text-[14px] font-bold text-white rounded-lg transition-all"
+                className="w-full py-3 text-[16px] font-bold text-white rounded-lg transition-all"
                 style={{ background: loading ? "#37845e" : "#2d6a4f", opacity: loading ? 0.7 : 1 }}
               >
                 {loading ? "Resetting..." : "Reset Password"}
@@ -386,7 +386,7 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => { setView("login"); setError(""); setSuccess(""); }}
-                className="w-full text-center text-[13px] font-semibold hover:underline"
+                className="w-full text-center text-[15px] font-semibold hover:underline"
                 style={{ color: "#6b7280" }}
               >
                 Back to Sign In
@@ -397,7 +397,7 @@ export default function LoginPage() {
 
         {/* Footer */}
         <div className="px-8 pb-6 text-center">
-          <p className="text-[11px]" style={{ color: "#9ca3af" }}>
+          <p className="text-[13px]" style={{ color: "#9ca3af" }}>
             Clinic Management System v1.0
           </p>
         </div>

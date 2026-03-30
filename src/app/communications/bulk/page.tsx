@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import CommunicationTabs from "@/components/CommunicationTabs";
 
-const inputStyle = { border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)", fontSize: "13px" };
+const inputStyle = { border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)", fontSize: "15px" };
 const cardStyle = { background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-card)" };
 
 const CHANNEL_COLORS: Record<string, string> = { whatsapp: "#25D366", email: "#3b82f6", sms: "#8b5cf6" };
@@ -204,15 +204,15 @@ export default function BulkSendPage() {
 
       {/* Toast */}
       {toast && (
-        <div className="fixed top-4 right-4 z-50 px-4 py-3 text-[13px] font-semibold text-white yoda-slide-in" style={{ background: toast.type === "success" ? "var(--green)" : "var(--red)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-lg)" }}>
+        <div className="fixed top-4 right-4 z-50 px-4 py-3 text-[15px] font-semibold text-white yoda-slide-in" style={{ background: toast.type === "success" ? "var(--green)" : "var(--red)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-lg)" }}>
           {toast.message}
         </div>
       )}
 
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-[22px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>Bulk Send</h1>
-        <p className="text-[13px] mt-0.5" style={{ color: "var(--grey-600)" }}>Send messages to multiple patients at once</p>
+        <h1 className="text-[24px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>Bulk Send</h1>
+        <p className="text-[15px] mt-0.5" style={{ color: "var(--grey-600)" }}>Send messages to multiple patients at once</p>
       </div>
 
       {/* Stepper */}
@@ -228,7 +228,7 @@ export default function BulkSendPage() {
             <div key={s.num} className="flex items-center flex-1">
               <div className="flex items-center gap-2">
                 <div
-                  className="w-8 h-8 flex items-center justify-center text-[13px] font-bold"
+                  className="w-8 h-8 flex items-center justify-center text-[15px] font-bold"
                   style={{
                     borderRadius: "var(--radius-pill)",
                     background: isCompleted ? "var(--green)" : isActive ? "var(--blue-500)" : "var(--grey-200)",
@@ -239,7 +239,7 @@ export default function BulkSendPage() {
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" /></svg>
                   ) : s.num}
                 </div>
-                <span className="text-[13px] font-semibold hidden sm:inline" style={{ color: isActive ? "var(--grey-900)" : "var(--grey-500)" }}>
+                <span className="text-[15px] font-semibold hidden sm:inline" style={{ color: isActive ? "var(--grey-900)" : "var(--grey-500)" }}>
                   {s.label}
                 </span>
               </div>
@@ -265,7 +265,7 @@ export default function BulkSendPage() {
               <button
                 key={f.key}
                 onClick={() => applyQuickFilter(f.key)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-semibold transition-all duration-150"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[14px] font-semibold transition-all duration-150"
                 style={{
                   borderRadius: "var(--radius-pill)",
                   border: quickFilter === f.key ? "2px solid var(--blue-500)" : "1px solid var(--grey-300)",
@@ -286,10 +286,10 @@ export default function BulkSendPage() {
               value={patientSearch} onChange={(e) => setPatientSearch(e.target.value)}
               className="flex-1 px-3 py-2" style={inputStyle}
             />
-            <button onClick={selectAll} className="px-3 py-2 text-[12px] font-semibold" style={{ ...inputStyle, cursor: "pointer" }}>Select All</button>
-            <button onClick={deselectAll} className="px-3 py-2 text-[12px] font-semibold" style={{ ...inputStyle, cursor: "pointer" }}>Deselect All</button>
+            <button onClick={selectAll} className="px-3 py-2 text-[14px] font-semibold" style={{ ...inputStyle, cursor: "pointer" }}>Select All</button>
+            <button onClick={deselectAll} className="px-3 py-2 text-[14px] font-semibold" style={{ ...inputStyle, cursor: "pointer" }}>Deselect All</button>
             <span
-              className="inline-flex items-center px-3 py-1.5 text-[12px] font-bold"
+              className="inline-flex items-center px-3 py-1.5 text-[14px] font-bold"
               style={{ background: "var(--blue-50)", color: "var(--blue-500)", borderRadius: "var(--radius-pill)" }}
             >
               {selectedIds.size} selected
@@ -311,8 +311,8 @@ export default function BulkSendPage() {
                   className="w-4 h-4"
                 />
                 <div className="flex-1 min-w-0">
-                  <p className="text-[13px] font-semibold truncate" style={{ color: "var(--grey-900)" }}>{p.firstName} {p.lastName}</p>
-                  <p className="text-[11px]" style={{ color: "var(--grey-500)" }}>{p.phone} {p.email ? `/ ${p.email}` : ""}</p>
+                  <p className="text-[15px] font-semibold truncate" style={{ color: "var(--grey-900)" }}>{p.firstName} {p.lastName}</p>
+                  <p className="text-[13px]" style={{ color: "var(--grey-500)" }}>{p.phone} {p.email ? `/ ${p.email}` : ""}</p>
                 </div>
                 <div className="flex gap-1">
                   {p.whatsapp && <span className="w-2 h-2 rounded-full" style={{ background: "#25D366" }} title="WhatsApp" />}
@@ -323,7 +323,7 @@ export default function BulkSendPage() {
             ))}
             {filteredPatients.length === 0 && (
               <div className="text-center py-8">
-                <p className="text-[13px]" style={{ color: "var(--grey-500)" }}>No patients found</p>
+                <p className="text-[15px]" style={{ color: "var(--grey-500)" }}>No patients found</p>
               </div>
             )}
           </div>
@@ -332,7 +332,7 @@ export default function BulkSendPage() {
             <button
               onClick={() => setStep(2)}
               disabled={selectedIds.size === 0}
-              className="text-white px-6 py-2 text-[13px] font-semibold disabled:opacity-50"
+              className="text-white px-6 py-2 text-[15px] font-semibold disabled:opacity-50"
               style={{ background: "var(--blue-500)", borderRadius: "var(--radius-sm)" }}
             >
               Next: Compose Message
@@ -347,12 +347,12 @@ export default function BulkSendPage() {
           <div className="space-y-4">
             {/* Channel */}
             <div>
-              <label className="block mb-1 text-[12px] font-semibold" style={{ color: "var(--grey-700)" }}>Channel</label>
+              <label className="block mb-1 text-[14px] font-semibold" style={{ color: "var(--grey-700)" }}>Channel</label>
               <div className="flex gap-2">
                 {(["whatsapp", "email", "sms"] as const).map((ch) => (
                   <button
                     key={ch} type="button" onClick={() => { setChannel(ch); setSelectedTemplate(""); }}
-                    className="flex-1 px-3 py-2.5 text-[13px] font-semibold transition-all duration-150"
+                    className="flex-1 px-3 py-2.5 text-[15px] font-semibold transition-all duration-150"
                     style={{
                       borderRadius: "var(--radius-sm)",
                       border: channel === ch ? `2px solid ${CHANNEL_COLORS[ch]}` : "1px solid var(--grey-300)",
@@ -368,7 +368,7 @@ export default function BulkSendPage() {
 
             {/* Template */}
             <div>
-              <label className="block mb-1 text-[12px] font-semibold" style={{ color: "var(--grey-700)" }}>Template (optional)</label>
+              <label className="block mb-1 text-[14px] font-semibold" style={{ color: "var(--grey-700)" }}>Template (optional)</label>
               <select value={selectedTemplate} onChange={(e) => setSelectedTemplate(e.target.value)} className="w-full px-3 py-2" style={inputStyle}>
                 <option value="">No template</option>
                 {templates.map((t) => <option key={t.id} value={t.id}>{t.name} ({t.category})</option>)}
@@ -378,20 +378,20 @@ export default function BulkSendPage() {
             {/* Subject (email) */}
             {channel === "email" && (
               <div>
-                <label className="block mb-1 text-[12px] font-semibold" style={{ color: "var(--grey-700)" }}>Subject</label>
+                <label className="block mb-1 text-[14px] font-semibold" style={{ color: "var(--grey-700)" }}>Subject</label>
                 <input type="text" value={subject} onChange={(e) => setSubject(e.target.value)} className="w-full px-3 py-2" style={inputStyle} placeholder="Email subject..." />
               </div>
             )}
 
             {/* Message */}
             <div>
-              <label className="block mb-1 text-[12px] font-semibold" style={{ color: "var(--grey-700)" }}>Message *</label>
+              <label className="block mb-1 text-[14px] font-semibold" style={{ color: "var(--grey-700)" }}>Message *</label>
               <div className="flex flex-wrap gap-1 mb-2">
-                <span className="text-[11px] mr-1" style={{ color: "var(--grey-600)" }}>Insert:</span>
+                <span className="text-[13px] mr-1" style={{ color: "var(--grey-600)" }}>Insert:</span>
                 {VARIABLES.map((v) => (
                   <button
                     key={v} type="button" onClick={() => insertVariable(v)}
-                    className="px-2 py-0.5 text-[10px] font-semibold"
+                    className="px-2 py-0.5 text-[12px] font-semibold"
                     style={{ background: "var(--blue-50)", color: "var(--blue-500)", borderRadius: "var(--radius-pill)", border: "1px solid var(--blue-100)" }}
                   >
                     {`{{${v}}}`}
@@ -403,25 +403,25 @@ export default function BulkSendPage() {
 
             {/* Preview */}
             <div className="flex gap-2">
-              <button onClick={handlePreview} className="px-4 py-2 text-[13px] font-semibold" style={{ background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", color: "var(--grey-700)" }}>
+              <button onClick={handlePreview} className="px-4 py-2 text-[15px] font-semibold" style={{ background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", color: "var(--grey-700)" }}>
                 Preview with Sample Data
               </button>
             </div>
             {previewText && (
               <div className="p-3" style={{ background: "var(--grey-100)", borderRadius: "var(--radius-sm)", border: "1px solid var(--grey-300)" }}>
-                <p className="text-[11px] font-semibold uppercase mb-1" style={{ color: "var(--grey-600)" }}>Preview (sample patient)</p>
-                <p className="text-[13px]" style={{ color: "var(--grey-800)", whiteSpace: "pre-wrap" }}>{previewText}</p>
+                <p className="text-[13px] font-semibold uppercase mb-1" style={{ color: "var(--grey-600)" }}>Preview (sample patient)</p>
+                <p className="text-[15px]" style={{ color: "var(--grey-800)", whiteSpace: "pre-wrap" }}>{previewText}</p>
               </div>
             )}
 
             <div className="flex justify-between pt-2">
-              <button onClick={() => setStep(1)} className="px-4 py-2 text-[13px] font-semibold" style={{ background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", color: "var(--grey-700)" }}>
+              <button onClick={() => setStep(1)} className="px-4 py-2 text-[15px] font-semibold" style={{ background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", color: "var(--grey-700)" }}>
                 Back
               </button>
               <button
                 onClick={() => setStep(3)}
                 disabled={!message.trim()}
-                className="text-white px-6 py-2 text-[13px] font-semibold disabled:opacity-50"
+                className="text-white px-6 py-2 text-[15px] font-semibold disabled:opacity-50"
                 style={{ background: "var(--blue-500)", borderRadius: "var(--radius-sm)" }}
               >
                 Next: Review & Send
@@ -435,16 +435,16 @@ export default function BulkSendPage() {
       {step === 3 && (
         <div className="max-w-2xl yoda-fade-in">
           <div className="p-5 mb-5" style={cardStyle}>
-            <h3 className="text-[15px] font-bold mb-4" style={{ color: "var(--grey-900)" }}>Summary</h3>
+            <h3 className="text-[17px] font-bold mb-4" style={{ color: "var(--grey-900)" }}>Summary</h3>
             <div className="space-y-3">
               <div className="flex justify-between items-center py-2" style={{ borderBottom: "1px solid var(--grey-200)" }}>
-                <span className="text-[13px]" style={{ color: "var(--grey-600)" }}>Recipients</span>
-                <span className="text-[13px] font-bold" style={{ color: "var(--grey-900)" }}>{selectedIds.size} patient{selectedIds.size !== 1 ? "s" : ""}</span>
+                <span className="text-[15px]" style={{ color: "var(--grey-600)" }}>Recipients</span>
+                <span className="text-[15px] font-bold" style={{ color: "var(--grey-900)" }}>{selectedIds.size} patient{selectedIds.size !== 1 ? "s" : ""}</span>
               </div>
               <div className="flex justify-between items-center py-2" style={{ borderBottom: "1px solid var(--grey-200)" }}>
-                <span className="text-[13px]" style={{ color: "var(--grey-600)" }}>Channel</span>
+                <span className="text-[15px]" style={{ color: "var(--grey-600)" }}>Channel</span>
                 <span
-                  className="inline-flex items-center px-2 py-0.5 text-[11px] font-bold uppercase"
+                  className="inline-flex items-center px-2 py-0.5 text-[13px] font-bold uppercase"
                   style={{ borderRadius: "var(--radius-sm)", background: CHANNEL_BG[channel], color: CHANNEL_COLORS[channel] }}
                 >
                   {channel === "whatsapp" ? "WhatsApp" : channel === "email" ? "Email" : "SMS"}
@@ -452,14 +452,14 @@ export default function BulkSendPage() {
               </div>
               {channel === "email" && subject && (
                 <div className="flex justify-between items-center py-2" style={{ borderBottom: "1px solid var(--grey-200)" }}>
-                  <span className="text-[13px]" style={{ color: "var(--grey-600)" }}>Subject</span>
-                  <span className="text-[13px] font-semibold" style={{ color: "var(--grey-900)" }}>{subject}</span>
+                  <span className="text-[15px]" style={{ color: "var(--grey-600)" }}>Subject</span>
+                  <span className="text-[15px] font-semibold" style={{ color: "var(--grey-900)" }}>{subject}</span>
                 </div>
               )}
               <div className="py-2">
-                <span className="text-[13px] block mb-1" style={{ color: "var(--grey-600)" }}>Message</span>
+                <span className="text-[15px] block mb-1" style={{ color: "var(--grey-600)" }}>Message</span>
                 <div className="p-3" style={{ background: "var(--grey-100)", borderRadius: "var(--radius-sm)" }}>
-                  <p className="text-[13px]" style={{ color: "var(--grey-800)", whiteSpace: "pre-wrap" }}>{message}</p>
+                  <p className="text-[15px]" style={{ color: "var(--grey-800)", whiteSpace: "pre-wrap" }}>{message}</p>
                 </div>
               </div>
             </div>
@@ -469,8 +469,8 @@ export default function BulkSendPage() {
           {sending && (
             <div className="mb-5">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-[12px] font-semibold" style={{ color: "var(--grey-700)" }}>Sending messages...</span>
-                <span className="text-[12px] font-bold" style={{ color: "var(--blue-500)" }}>{sendProgress}%</span>
+                <span className="text-[14px] font-semibold" style={{ color: "var(--grey-700)" }}>Sending messages...</span>
+                <span className="text-[14px] font-bold" style={{ color: "var(--blue-500)" }}>{sendProgress}%</span>
               </div>
               <div className="w-full h-2 overflow-hidden" style={{ background: "var(--grey-200)", borderRadius: "var(--radius-pill)" }}>
                 <div
@@ -484,23 +484,23 @@ export default function BulkSendPage() {
           {/* Results */}
           {sendResults && (
             <div className="mb-5 p-5 yoda-slide-in" style={cardStyle}>
-              <h3 className="text-[15px] font-bold mb-3" style={{ color: "var(--grey-900)" }}>Results</h3>
+              <h3 className="text-[17px] font-bold mb-3" style={{ color: "var(--grey-900)" }}>Results</h3>
               <div className="grid grid-cols-2 gap-3 mb-3">
                 <div className="p-3" style={{ background: "var(--green-light)", borderRadius: "var(--radius-sm)" }}>
-                  <p className="text-[11px] font-semibold uppercase" style={{ color: "var(--green)" }}>Sent</p>
-                  <p className="text-[22px] font-bold" style={{ color: "var(--green)" }}>{sendResults.sent}</p>
+                  <p className="text-[13px] font-semibold uppercase" style={{ color: "var(--green)" }}>Sent</p>
+                  <p className="text-[24px] font-bold" style={{ color: "var(--green)" }}>{sendResults.sent}</p>
                 </div>
                 <div className="p-3" style={{ background: "var(--red-light)", borderRadius: "var(--radius-sm)" }}>
-                  <p className="text-[11px] font-semibold uppercase" style={{ color: "var(--red)" }}>Failed</p>
-                  <p className="text-[22px] font-bold" style={{ color: "var(--red)" }}>{sendResults.failed}</p>
+                  <p className="text-[13px] font-semibold uppercase" style={{ color: "var(--red)" }}>Failed</p>
+                  <p className="text-[24px] font-bold" style={{ color: "var(--red)" }}>{sendResults.failed}</p>
                 </div>
               </div>
               {sendResults.failedList.length > 0 && (
                 <div>
-                  <p className="text-[12px] font-semibold mb-1" style={{ color: "var(--red)" }}>Failed recipients:</p>
+                  <p className="text-[14px] font-semibold mb-1" style={{ color: "var(--red)" }}>Failed recipients:</p>
                   <ul className="space-y-0.5">
                     {sendResults.failedList.map((name, i) => (
-                      <li key={i} className="text-[12px]" style={{ color: "var(--grey-700)" }}>- {name}</li>
+                      <li key={i} className="text-[14px]" style={{ color: "var(--grey-700)" }}>- {name}</li>
                     ))}
                   </ul>
                 </div>
@@ -512,7 +512,7 @@ export default function BulkSendPage() {
             <button
               onClick={() => { setStep(2); setSendResults(null); }}
               disabled={sending}
-              className="px-4 py-2 text-[13px] font-semibold disabled:opacity-50"
+              className="px-4 py-2 text-[15px] font-semibold disabled:opacity-50"
               style={{ background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", color: "var(--grey-700)" }}
             >
               Back
@@ -521,7 +521,7 @@ export default function BulkSendPage() {
               <button
                 onClick={handleSendAll}
                 disabled={sending || selectedIds.size === 0}
-                className="text-white px-6 py-2.5 text-[13px] font-semibold disabled:opacity-50 inline-flex items-center gap-2"
+                className="text-white px-6 py-2.5 text-[15px] font-semibold disabled:opacity-50 inline-flex items-center gap-2"
                 style={{ background: "var(--blue-500)", borderRadius: "var(--radius-sm)" }}
               >
                 {sending ? (
@@ -536,7 +536,7 @@ export default function BulkSendPage() {
             ) : (
               <button
                 onClick={() => { setStep(1); setSelectedIds(new Set()); setMessage(""); setSubject(""); setSendResults(null); setQuickFilter(null); }}
-                className="text-white px-6 py-2 text-[13px] font-semibold"
+                className="text-white px-6 py-2 text-[15px] font-semibold"
                 style={{ background: "var(--blue-500)", borderRadius: "var(--radius-sm)" }}
               >
                 Start New Bulk Send

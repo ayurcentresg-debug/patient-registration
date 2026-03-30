@@ -33,15 +33,15 @@ interface DaySchedule {
 type WeeklySchedule = Record<string, DaySchedule>;
 
 // ─── YODA Styles ────────────────────────────────────────────────────────────
-const inputStyle = { border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)", fontSize: "13px" };
+const inputStyle = { border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)", fontSize: "15px" };
 const inputErrorStyle = { ...inputStyle, border: "1px solid var(--red)", background: "#fff5f5" };
-const labelStyle = { color: "var(--grey-600)", fontSize: "13px", fontWeight: 400 as const };
+const labelStyle = { color: "var(--grey-600)", fontSize: "15px", fontWeight: 400 as const };
 const cardStyle = { background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius)" as const, boxShadow: "var(--shadow-card)" as const };
-const sectionTitle = { color: "var(--grey-900)", fontSize: "15px", fontWeight: 700 as const };
+const sectionTitle = { color: "var(--grey-900)", fontSize: "17px", fontWeight: 700 as const };
 
 function FieldError({ error }: { error?: string }) {
   if (!error) return null;
-  return <p className="mt-0.5 text-[11px] font-medium" style={{ color: "var(--red)" }}>{error}</p>;
+  return <p className="mt-0.5 text-[13px] font-medium" style={{ color: "var(--red)" }}>{error}</p>;
 }
 
 function Toast({ message, type, onClose }: { message: string; type: "success" | "error"; onClose: () => void }) {
@@ -52,7 +52,7 @@ function Toast({ message, type, onClose }: { message: string; type: "success" | 
 
   return (
     <div
-      className="fixed top-5 right-5 z-[100] flex items-center gap-2 px-4 py-3 text-[13px] font-semibold yoda-slide-in"
+      className="fixed top-5 right-5 z-[100] flex items-center gap-2 px-4 py-3 text-[15px] font-semibold yoda-slide-in"
       style={{
         background: type === "success" ? "var(--green)" : "var(--red)",
         color: "var(--white)",
@@ -218,7 +218,7 @@ export default function NewDoctorPage() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
         </Link>
-        <h1 className="text-[22px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>Add Ayurveda Doctor</h1>
+        <h1 className="text-[24px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>Add Ayurveda Doctor</h1>
       </div>
 
       <form ref={formRef} onSubmit={handleSubmit}>
@@ -319,7 +319,7 @@ export default function NewDoctorPage() {
                 <td className="py-[8px] pr-4 text-right whitespace-nowrap align-top" style={{ ...labelStyle, width: 180 }}>Consultation Fee :</td>
                 <td className="py-[8px] pl-2">
                   <div className="flex items-center gap-1 max-w-[200px]">
-                    <span className="text-[13px] font-medium" style={{ color: "var(--grey-600)" }}>$</span>
+                    <span className="text-[15px] font-medium" style={{ color: "var(--grey-600)" }}>$</span>
                     <input
                       type="number"
                       value={consultationFee}
@@ -357,11 +357,11 @@ export default function NewDoctorPage() {
                   <div className="flex items-center gap-4">
                     <label className="flex items-center gap-1.5 cursor-pointer">
                       <input type="radio" name="status" value="active" checked={status === "active"} onChange={() => setStatus("active")} />
-                      <span className="text-[13px] font-medium" style={{ color: "var(--green)" }}>Active</span>
+                      <span className="text-[15px] font-medium" style={{ color: "var(--green)" }}>Active</span>
                     </label>
                     <label className="flex items-center gap-1.5 cursor-pointer">
                       <input type="radio" name="status" value="inactive" checked={status === "inactive"} onChange={() => setStatus("inactive")} />
-                      <span className="text-[13px] font-medium" style={{ color: "var(--grey-600)" }}>Inactive</span>
+                      <span className="text-[15px] font-medium" style={{ color: "var(--grey-600)" }}>Inactive</span>
                     </label>
                   </div>
                 </td>
@@ -373,7 +373,7 @@ export default function NewDoctorPage() {
         {/* ── Weekly Schedule ───────────────────────────────────── */}
         <div className="p-6 mb-5" style={cardStyle}>
           <h2 className="mb-4" style={sectionTitle}>Weekly Schedule</h2>
-          <p className="text-[12px] mb-4" style={{ color: "var(--grey-500)" }}>
+          <p className="text-[14px] mb-4" style={{ color: "var(--grey-500)" }}>
             Toggle days on/off and set time blocks for each day. You can add multiple time blocks per day.
           </p>
 
@@ -406,14 +406,14 @@ export default function NewDoctorPage() {
                         style={{ transform: daySchedule.enabled ? "translateX(16px)" : "translateX(0)" }}
                       />
                     </button>
-                    <span className="text-[13px] font-semibold w-24" style={{ color: daySchedule.enabled ? "var(--grey-900)" : "var(--grey-500)" }}>
+                    <span className="text-[15px] font-semibold w-24" style={{ color: daySchedule.enabled ? "var(--grey-900)" : "var(--grey-500)" }}>
                       {day}
                     </span>
                     {daySchedule.enabled && (
                       <button
                         type="button"
                         onClick={() => addBlock(day)}
-                        className="text-[11px] font-semibold px-2 py-0.5 transition-colors"
+                        className="text-[13px] font-semibold px-2 py-0.5 transition-colors"
                         style={{ color: "var(--blue-500)", border: "1px solid var(--blue-500)", borderRadius: "var(--radius-sm)" }}
                       >
                         + Add Block
@@ -429,15 +429,15 @@ export default function NewDoctorPage() {
                             type="time"
                             value={block.start}
                             onChange={(e) => updateBlock(day, idx, "start", e.target.value)}
-                            className="px-2 py-1 text-[12px]"
+                            className="px-2 py-1 text-[14px]"
                             style={inputStyle}
                           />
-                          <span className="text-[12px]" style={{ color: "var(--grey-500)" }}>to</span>
+                          <span className="text-[14px]" style={{ color: "var(--grey-500)" }}>to</span>
                           <input
                             type="time"
                             value={block.end}
                             onChange={(e) => updateBlock(day, idx, "end", e.target.value)}
-                            className="px-2 py-1 text-[12px]"
+                            className="px-2 py-1 text-[14px]"
                             style={inputStyle}
                           />
                           {daySchedule.blocks.length > 1 && (
@@ -467,7 +467,7 @@ export default function NewDoctorPage() {
         <div className="flex items-center gap-3 justify-end">
           <Link
             href="/doctors"
-            className="px-5 py-2 text-[13px] font-semibold transition-colors"
+            className="px-5 py-2 text-[15px] font-semibold transition-colors"
             style={{ color: "var(--grey-600)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)" }}
           >
             Cancel
@@ -475,7 +475,7 @@ export default function NewDoctorPage() {
           <button
             type="submit"
             disabled={saving}
-            className="px-6 py-2 text-[13px] font-semibold text-white transition-colors disabled:opacity-60"
+            className="px-6 py-2 text-[15px] font-semibold text-white transition-colors disabled:opacity-60"
             style={{ background: "var(--blue-500)", borderRadius: "var(--radius-sm)" }}
           >
             {saving ? (

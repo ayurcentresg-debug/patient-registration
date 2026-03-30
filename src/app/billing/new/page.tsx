@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { SectionNote } from "@/components/HelpTip";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface Patient {
@@ -35,14 +36,26 @@ interface TreatmentOption {
   duration: number;
 }
 
+interface MedicineVariant {
+  id: string;
+  packing: string;
+  unitPrice: number;
+  costPrice: number;
+  currentStock: number;
+  gstPercent: number;
+}
+
 interface MedicineResult {
   id: string;
   name: string;
   sku: string;
-  sellingPrice: number;
+  unitPrice: number;
   currentStock: number;
   unit: string;
+  packing: string | null;
   gstPercent: number | null;
+  variants?: MedicineVariant[];
+  _count?: { variants: number };
 }
 
 interface InvoiceItem {
@@ -54,15 +67,16 @@ interface InvoiceItem {
   discount: number;
   gstPercent: number;
   inventoryItemId?: string;
+  variantId?: string;
   maxStock?: number;
 }
 
 // ─── YODA Design Tokens ─────────────────────────────────────────────────────
 const cardStyle = { background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-card)" };
-const inputStyle = { border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)", fontSize: "13px" };
+const inputStyle = { border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)", fontSize: "15px" };
 const btnPrimary = { background: "var(--blue-500)", borderRadius: "var(--radius-sm)" };
-const chipBase = "inline-flex px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide";
-const sectionTitle = { color: "var(--grey-900)", fontSize: "15px", fontWeight: 700 as const };
+const chipBase = "inline-flex px-2 py-0.5 text-[12px] font-bold uppercase tracking-wide";
+const sectionTitle = { color: "var(--grey-900)", fontSize: "17px", fontWeight: 700 as const };
 
 const PAYMENT_METHODS = ["Cash", "Card", "UPI", "Insurance", "Bank Transfer"];
 
@@ -98,7 +112,7 @@ function Toast({ message, type, onClose }: { message: string; type: "success" | 
 
   return (
     <div
-      className="fixed top-6 right-6 z-50 px-4 py-3 flex items-center gap-3 text-[13px] font-medium yoda-slide-in"
+      className="fixed top-6 right-6 z-50 px-4 py-3 flex items-center gap-3 text-[15px] font-medium yoda-slide-in"
       style={{
         borderRadius: "var(--radius)",
         background: type === "success" ? "var(--green-light)" : "var(--red-light)",
@@ -149,6 +163,7 @@ export default function NewInvoicePage() {
   const [medicineSearch, setMedicineSearch] = useState("");
   const [medicineResults, setMedicineResults] = useState<MedicineResult[]>([]);
   const [searchingMedicine, setSearchingMedicine] = useState(false);
+  const [variantPickerMed, setVariantPickerMed] = useState<MedicineResult | null>(null);
 
   // Treatment search
   const [showTreatmentSearch, setShowTreatmentSearch] = useState(false);
@@ -165,6 +180,26 @@ export default function NewInvoicePage() {
   const [notes, setNotes] = useState("");
 
   useEffect(() => { setMounted(true); }, []);
+
+  // ─── Auto-fill patient from URL params ────────────────────────────────────
+  useEffect(() => {
+    const pid = searchParams.get("patientId");
+    if (!pid) return;
+    fetch(`/api/patients/${pid}`)
+      .then((r) => { if (r.ok) return r.json(); throw new Error(); })
+      .then((p) => {
+        if (p && p.id) {
+          setSelectedPatient({
+            id: p.id,
+            firstName: p.firstName,
+            lastName: p.lastName,
+            phone: p.phone || "",
+            patientIdNumber: p.patientIdNumber || "",
+          });
+        }
+      })
+      .catch(() => { /* ignore */ });
+  }, [searchParams]);
 
   // ─── Patient Search ───────────────────────────────────────────────────────
   const searchPatients = useCallback((q: string) => {
@@ -249,7 +284,7 @@ export default function NewInvoicePage() {
   const searchMedicines = useCallback((q: string) => {
     if (!q || q.length < 2) { setMedicineResults([]); return; }
     setSearchingMedicine(true);
-    fetch(`/api/inventory?search=${encodeURIComponent(q)}&category=medicine`)
+    fetch(`/api/inventory?search=${encodeURIComponent(q)}&category=medicine&includeVariants=true`)
       .then((r) => r.json())
       .then((data) => setMedicineResults(Array.isArray(data) ? data : []))
       .catch(() => setMedicineResults([]))
@@ -325,12 +360,55 @@ export default function NewInvoicePage() {
     }));
   }
 
-  function addMedicine(med: MedicineResult) {
+  function handleMedicineClick(med: MedicineResult) {
+    // If medicine has variants, show variant picker
+    if (med.variants && med.variants.length > 0) {
+      setVariantPickerMed(med);
+      return;
+    }
+    // No variants — add directly
     if (med.currentStock <= 0) {
       setToast({ message: `${med.name} is out of stock`, type: "error" });
       return;
     }
-    addItem("medicine", `${med.name} (${med.sku})`, med.sellingPrice, med.gstPercent || 0, med.id, med.currentStock);
+    const packLabel = med.packing ? ` · ${med.packing}` : "";
+    addItem("medicine", `${med.name}${packLabel}`, med.unitPrice, med.gstPercent || 0, med.id, med.currentStock);
+    setShowMedicineSearch(false);
+    setMedicineSearch("");
+    setMedicineResults([]);
+  }
+
+  function addMedicineVariant(med: MedicineResult, variant: MedicineVariant) {
+    if (variant.currentStock <= 0) {
+      setToast({ message: `${med.name} (${variant.packing}) is out of stock`, type: "error" });
+      return;
+    }
+    setItems((prev) => [...prev, {
+      id: generateItemId(),
+      type: "medicine" as const,
+      description: `${med.name} · ${variant.packing}`,
+      qty: 1,
+      unitPrice: variant.unitPrice,
+      discount: 0,
+      gstPercent: variant.gstPercent || med.gstPercent || 0,
+      inventoryItemId: med.id,
+      variantId: variant.id,
+      maxStock: variant.currentStock,
+    }]);
+    setVariantPickerMed(null);
+    setShowMedicineSearch(false);
+    setMedicineSearch("");
+    setMedicineResults([]);
+  }
+
+  function addMedicineBase(med: MedicineResult) {
+    if (med.currentStock <= 0) {
+      setToast({ message: `${med.name} (${med.packing}) is out of stock`, type: "error" });
+      return;
+    }
+    const packLabel = med.packing ? ` · ${med.packing}` : "";
+    addItem("medicine", `${med.name}${packLabel}`, med.unitPrice, med.gstPercent || 0, med.id, med.currentStock);
+    setVariantPickerMed(null);
     setShowMedicineSearch(false);
     setMedicineSearch("");
     setMedicineResults([]);
@@ -380,6 +458,7 @@ export default function NewInvoicePage() {
           discount: item.discount,
           gstPercent: item.gstPercent,
           inventoryItemId: item.inventoryItemId || null,
+          variantId: item.variantId || null,
         })),
         discountPercent: effectiveDiscountPercent,
         amountPaid,
@@ -432,10 +511,12 @@ export default function NewInvoicePage() {
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
         </Link>
         <div>
-          <h1 className="text-[22px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>New Invoice</h1>
-          <p className="text-[13px] mt-0.5" style={{ color: "var(--grey-600)" }}>Create a billing invoice</p>
+          <h1 className="text-[24px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>New Invoice</h1>
+          <p className="text-[15px] mt-0.5" style={{ color: "var(--grey-600)" }}>Create a billing invoice</p>
         </div>
       </div>
+
+      <SectionNote type="tip" text="Select a patient (or walk-in), add consultation/medicine/treatment line items, set payment method, and click Create Invoice. The invoice number is generated automatically." />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* ── Left Column (2/3) ────────────────────────────────────── */}
@@ -449,7 +530,7 @@ export default function NewInvoicePage() {
             <div className="flex gap-2 mb-4">
               <button
                 onClick={() => { setPatientMode("existing"); setSelectedPatient(null); }}
-                className="px-4 py-2 text-[12px] font-semibold transition-all"
+                className="px-4 py-2 text-[14px] font-semibold transition-all"
                 style={{
                   borderRadius: "var(--radius-sm)",
                   background: patientMode === "existing" ? "var(--blue-500)" : "var(--grey-100)",
@@ -460,7 +541,7 @@ export default function NewInvoicePage() {
               </button>
               <button
                 onClick={() => { setPatientMode("walkin"); setSelectedPatient(null); }}
-                className="px-4 py-2 text-[12px] font-semibold transition-all"
+                className="px-4 py-2 text-[14px] font-semibold transition-all"
                 style={{
                   borderRadius: "var(--radius-sm)",
                   background: patientMode === "walkin" ? "var(--blue-500)" : "var(--grey-100)",
@@ -476,10 +557,10 @@ export default function NewInvoicePage() {
                 {selectedPatient ? (
                   <div className="flex items-center justify-between p-3" style={{ background: "var(--blue-50, #e3f2fd)", borderRadius: "var(--radius-sm)" }}>
                     <div>
-                      <p className="text-[13px] font-semibold" style={{ color: "var(--grey-900)" }}>{selectedPatient.firstName} {selectedPatient.lastName}</p>
-                      <p className="text-[11px]" style={{ color: "var(--grey-600)" }}>{selectedPatient.patientIdNumber} &middot; {selectedPatient.phone}</p>
+                      <p className="text-[15px] font-semibold" style={{ color: "var(--grey-900)" }}>{selectedPatient.firstName} {selectedPatient.lastName}</p>
+                      <p className="text-[13px]" style={{ color: "var(--grey-600)" }}>{selectedPatient.patientIdNumber} &middot; {selectedPatient.phone}</p>
                     </div>
-                    <button onClick={() => { setSelectedPatient(null); setPatientSearch(""); }} className="text-[11px] font-semibold" style={{ color: "var(--red)" }}>Change</button>
+                    <button onClick={() => { setSelectedPatient(null); setPatientSearch(""); }} className="text-[13px] font-semibold" style={{ color: "var(--red)" }}>Change</button>
                   </div>
                 ) : (
                   <div className="relative">
@@ -491,21 +572,21 @@ export default function NewInvoicePage() {
                       placeholder="Search patients by name or ID..."
                       value={patientSearch}
                       onChange={(e) => setPatientSearch(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2 text-[13px]"
+                      className="w-full pl-10 pr-4 py-2 text-[15px]"
                       style={inputStyle}
                     />
-                    {searchingPatients && <p className="text-[11px] mt-1" style={{ color: "var(--grey-500)" }}>Searching...</p>}
+                    {searchingPatients && <p className="text-[13px] mt-1" style={{ color: "var(--grey-500)" }}>Searching...</p>}
                     {patientResults.length > 0 && (
                       <div className="absolute z-10 w-full mt-1 max-h-48 overflow-y-auto" style={{ ...cardStyle, boxShadow: "var(--shadow-md)" }}>
                         {patientResults.map((p) => (
                           <button
                             key={p.id}
                             onClick={() => { setSelectedPatient(p); setPatientResults([]); setPatientSearch(""); }}
-                            className="w-full text-left px-4 py-2.5 text-[13px] transition-colors hover:bg-gray-50"
+                            className="w-full text-left px-4 py-2.5 text-[15px] transition-colors hover:bg-gray-50"
                             style={{ borderBottom: "1px solid var(--grey-200)" }}
                           >
                             <span className="font-semibold" style={{ color: "var(--grey-900)" }}>{p.firstName} {p.lastName}</span>
-                            <span className="ml-2 text-[11px]" style={{ color: "var(--grey-500)" }}>{p.patientIdNumber} &middot; {p.phone}</span>
+                            <span className="ml-2 text-[13px]" style={{ color: "var(--grey-500)" }}>{p.patientIdNumber} &middot; {p.phone}</span>
                           </button>
                         ))}
                       </div>
@@ -516,7 +597,7 @@ export default function NewInvoicePage() {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[11px] font-semibold uppercase tracking-wide mb-1" style={{ color: "var(--grey-600)" }}>Name *</label>
+                  <label className="block text-[13px] font-semibold uppercase tracking-wide mb-1" style={{ color: "var(--grey-600)" }}>Name *</label>
                   <input
                     type="text"
                     value={walkInName}
@@ -527,7 +608,7 @@ export default function NewInvoicePage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] font-semibold uppercase tracking-wide mb-1" style={{ color: "var(--grey-600)" }}>Phone</label>
+                  <label className="block text-[13px] font-semibold uppercase tracking-wide mb-1" style={{ color: "var(--grey-600)" }}>Phone</label>
                   <input
                     type="tel"
                     value={walkInPhone}
@@ -545,7 +626,7 @@ export default function NewInvoicePage() {
               <div className="mt-4">
                 <button
                   onClick={() => setShowAppointmentPicker(!showAppointmentPicker)}
-                  className="text-[12px] font-semibold inline-flex items-center gap-1.5"
+                  className="text-[14px] font-semibold inline-flex items-center gap-1.5"
                   style={{ color: "var(--blue-500)" }}
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -559,7 +640,7 @@ export default function NewInvoicePage() {
                     {loadingAppointments ? (
                       <div className="h-12 animate-pulse" style={{ background: "var(--grey-100)", borderRadius: "var(--radius-sm)" }} />
                     ) : appointments.length === 0 ? (
-                      <p className="text-[12px]" style={{ color: "var(--grey-500)" }}>No completed appointments found for this patient.</p>
+                      <p className="text-[14px]" style={{ color: "var(--grey-500)" }}>No completed appointments found for this patient.</p>
                     ) : (
                       appointments.map((apt) => (
                         <button
@@ -573,10 +654,10 @@ export default function NewInvoicePage() {
                           }}
                         >
                           <div className="flex justify-between">
-                            <span className="text-[13px] font-semibold" style={{ color: "var(--grey-900)" }}>{apt.doctorName}</span>
-                            <span className="text-[11px]" style={{ color: "var(--grey-500)" }}>{apt.date} at {apt.time}</span>
+                            <span className="text-[15px] font-semibold" style={{ color: "var(--grey-900)" }}>{apt.doctorName}</span>
+                            <span className="text-[13px]" style={{ color: "var(--grey-500)" }}>{apt.date} at {apt.time}</span>
                           </div>
-                          <p className="text-[11px] mt-0.5" style={{ color: "var(--grey-600)" }}>
+                          <p className="text-[13px] mt-0.5" style={{ color: "var(--grey-600)" }}>
                             {apt.type} &middot; Fee: {"S$"}{(apt.consultationFee ?? 0).toLocaleString("en-SG")}
                             {apt.therapyFee ? ` + Treatment: S$${(apt.therapyFee ?? 0).toLocaleString("en-SG")}` : ""}
                             {apt.treatmentName ? ` (${apt.treatmentName})` : ""}
@@ -597,7 +678,7 @@ export default function NewInvoicePage() {
               <div className="relative">
                 <button
                   onClick={() => setShowAddMenu(!showAddMenu)}
-                  className="inline-flex items-center gap-1.5 text-white px-3 py-1.5 text-[12px] font-semibold"
+                  className="inline-flex items-center gap-1.5 text-white px-3 py-1.5 text-[14px] font-semibold"
                   style={btnPrimary}
                 >
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -629,7 +710,7 @@ export default function NewInvoicePage() {
                             addItem(type, type === "consultation" ? "Doctor Consultation" : "");
                           }
                         }}
-                        className="w-full text-left px-4 py-2 text-[13px] transition-colors hover:bg-gray-50 flex items-center gap-2"
+                        className="w-full text-left px-4 py-2 text-[15px] transition-colors hover:bg-gray-50 flex items-center gap-2"
                       >
                         <span className={chipBase} style={{ borderRadius: "var(--radius-sm)", background: TYPE_COLORS[type].bg, color: TYPE_COLORS[type].color }}>
                           {type}
@@ -646,37 +727,91 @@ export default function NewInvoicePage() {
             {showMedicineSearch && (
               <div className="mb-4 p-4" style={{ background: "var(--grey-50)", borderRadius: "var(--radius-sm)", border: "1px solid var(--grey-300)" }}>
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-[13px] font-semibold" style={{ color: "var(--grey-900)" }}>Search Medicine</p>
-                  <button onClick={() => { setShowMedicineSearch(false); setMedicineSearch(""); setMedicineResults([]); }} className="text-[11px] font-semibold" style={{ color: "var(--red)" }}>Close</button>
+                  <p className="text-[15px] font-semibold" style={{ color: "var(--grey-900)" }}>Search Medicine</p>
+                  <button onClick={() => { setShowMedicineSearch(false); setMedicineSearch(""); setMedicineResults([]); }} className="text-[13px] font-semibold" style={{ color: "var(--red)" }}>Close</button>
                 </div>
                 <input
                   type="text"
                   placeholder="Search medicines by name or SKU..."
                   value={medicineSearch}
                   onChange={(e) => setMedicineSearch(e.target.value)}
-                  className="w-full px-3 py-2 text-[13px] mb-2"
+                  className="w-full px-3 py-2 text-[15px] mb-2"
                   style={inputStyle}
                   autoFocus
                 />
-                {searchingMedicine && <p className="text-[11px]" style={{ color: "var(--grey-500)" }}>Searching...</p>}
-                {medicineResults.length > 0 && (
-                  <div className="max-h-40 overflow-y-auto space-y-1">
-                    {medicineResults.map((med) => (
+                {searchingMedicine && <p className="text-[13px]" style={{ color: "var(--grey-500)" }}>Searching...</p>}
+                {medicineResults.length > 0 && !variantPickerMed && (
+                  <div className="max-h-48 overflow-y-auto space-y-1">
+                    {medicineResults.map((med) => {
+                      const hasVariants = med.variants && med.variants.length > 0;
+                      return (
+                        <button
+                          key={med.id}
+                          onClick={() => handleMedicineClick(med)}
+                          className="w-full text-left p-2 text-[14px] transition-colors hover:bg-white flex items-center justify-between"
+                          style={{ borderRadius: "var(--radius-sm)", border: "1px solid var(--grey-200)" }}
+                          disabled={!hasVariants && med.currentStock <= 0}
+                        >
+                          <div>
+                            <span className="font-semibold" style={{ color: "var(--grey-900)" }}>{med.name}</span>
+                            {med.packing && <span className="ml-1.5 text-[12px]" style={{ color: "var(--grey-500)" }}>{med.packing}</span>}
+                            <span className="ml-1.5 text-[12px]" style={{ color: "var(--grey-400)" }}>{med.sku}</span>
+                            {hasVariants && (
+                              <span className="ml-1.5 text-[11px] font-semibold px-1.5 py-0.5" style={{ background: "var(--blue-50, #e3f2fd)", color: "var(--blue-500)", borderRadius: "var(--radius-sm)" }}>
+                                +{med.variants!.length} sizes
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-right flex-shrink-0 ml-2">
+                            <span className="font-semibold" style={{ color: "var(--grey-800)" }}>S${(med.unitPrice ?? 0).toFixed(2)}</span>
+                            <span className="ml-2 text-[12px]" style={{ color: med.currentStock <= 0 ? "var(--red)" : "var(--green)" }}>
+                              {med.currentStock <= 0 ? "Out of stock" : `${med.currentStock} ${med.unit}`}
+                            </span>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Variant picker */}
+                {variantPickerMed && (
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-[14px] font-semibold" style={{ color: "var(--grey-900)" }}>
+                        Select size — {variantPickerMed.name}
+                      </p>
+                      <button onClick={() => setVariantPickerMed(null)} className="text-[12px] font-semibold" style={{ color: "var(--grey-500)" }}>Back</button>
+                    </div>
+                    {/* Base item as first option */}
+                    <button
+                      onClick={() => addMedicineBase(variantPickerMed)}
+                      className="w-full text-left p-2.5 text-[14px] transition-colors hover:bg-white flex items-center justify-between"
+                      style={{ borderRadius: "var(--radius-sm)", border: "1px solid var(--grey-300)", background: "var(--white)" }}
+                      disabled={variantPickerMed.currentStock <= 0}
+                    >
+                      <span className="font-semibold" style={{ color: "var(--grey-900)" }}>{variantPickerMed.packing || "Standard"}</span>
+                      <div className="text-right">
+                        <span className="font-semibold" style={{ color: "var(--grey-800)" }}>S${(variantPickerMed.unitPrice ?? 0).toFixed(2)}</span>
+                        <span className="ml-2 text-[12px]" style={{ color: variantPickerMed.currentStock <= 0 ? "var(--red)" : "var(--green)" }}>
+                          {variantPickerMed.currentStock <= 0 ? "Out of stock" : `${variantPickerMed.currentStock} ${variantPickerMed.unit}`}
+                        </span>
+                      </div>
+                    </button>
+                    {/* Variant options */}
+                    {variantPickerMed.variants!.map((v) => (
                       <button
-                        key={med.id}
-                        onClick={() => addMedicine(med)}
-                        className="w-full text-left p-2 text-[12px] transition-colors hover:bg-white flex items-center justify-between"
-                        style={{ borderRadius: "var(--radius-sm)", border: "1px solid var(--grey-200)" }}
-                        disabled={med.currentStock <= 0}
+                        key={v.id}
+                        onClick={() => addMedicineVariant(variantPickerMed, v)}
+                        className="w-full text-left p-2.5 text-[14px] transition-colors hover:bg-white flex items-center justify-between"
+                        style={{ borderRadius: "var(--radius-sm)", border: "1px solid var(--grey-300)", background: "var(--white)" }}
+                        disabled={v.currentStock <= 0}
                       >
-                        <div>
-                          <span className="font-semibold" style={{ color: "var(--grey-900)" }}>{med.name}</span>
-                          <span className="ml-2 text-[10px]" style={{ color: "var(--grey-500)" }}>{med.sku}</span>
-                        </div>
+                        <span className="font-semibold" style={{ color: "var(--grey-900)" }}>{v.packing}</span>
                         <div className="text-right">
-                          <span className="font-semibold" style={{ color: "var(--grey-800)" }}>S${(med.sellingPrice ?? 0).toFixed(2)}</span>
-                          <span className="ml-2" style={{ color: med.currentStock <= 0 ? "var(--red)" : "var(--green)" }}>
-                            {med.currentStock <= 0 ? "Out of stock" : `${med.currentStock} ${med.unit}`}
+                          <span className="font-semibold" style={{ color: "var(--grey-800)" }}>S${v.unitPrice.toFixed(2)}</span>
+                          <span className="ml-2 text-[12px]" style={{ color: v.currentStock <= 0 ? "var(--red)" : "var(--green)" }}>
+                            {v.currentStock <= 0 ? "Out of stock" : `${v.currentStock} in stock`}
                           </span>
                         </div>
                       </button>
@@ -690,42 +825,42 @@ export default function NewInvoicePage() {
             {showTreatmentSearch && (
               <div className="mb-4 p-4" style={{ background: "#e8f5e9", borderRadius: "var(--radius-sm)", border: "1px solid var(--green)" }}>
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-[13px] font-semibold" style={{ color: "var(--grey-900)" }}>Select Treatment</p>
-                  <button onClick={() => { setShowTreatmentSearch(false); setTreatmentSearch(""); setTreatmentResults([]); }} className="text-[11px] font-semibold" style={{ color: "var(--red)" }}>Close</button>
+                  <p className="text-[15px] font-semibold" style={{ color: "var(--grey-900)" }}>Select Treatment</p>
+                  <button onClick={() => { setShowTreatmentSearch(false); setTreatmentSearch(""); setTreatmentResults([]); }} className="text-[13px] font-semibold" style={{ color: "var(--red)" }}>Close</button>
                 </div>
                 <input
                   type="text"
                   placeholder="Search treatments by name..."
                   value={treatmentSearch}
                   onChange={(e) => setTreatmentSearch(e.target.value)}
-                  className="w-full px-3 py-2 text-[13px] mb-2"
+                  className="w-full px-3 py-2 text-[15px] mb-2"
                   style={inputStyle}
                   autoFocus
                 />
-                {searchingTreatment && <p className="text-[11px]" style={{ color: "var(--grey-500)" }}>Loading treatments...</p>}
+                {searchingTreatment && <p className="text-[13px]" style={{ color: "var(--grey-500)" }}>Loading treatments...</p>}
                 {treatmentResults.length > 0 && (
                   <div className="max-h-48 overflow-y-auto space-y-1">
                     {treatmentResults.map((t) => (
                       <button
                         key={t.id}
                         onClick={() => addTreatment(t)}
-                        className="w-full text-left p-2.5 text-[12px] transition-colors hover:bg-white flex items-center justify-between"
+                        className="w-full text-left p-2.5 text-[14px] transition-colors hover:bg-white flex items-center justify-between"
                         style={{ borderRadius: "var(--radius-sm)", border: "1px solid var(--grey-200)", background: "var(--white)" }}
                       >
                         <div>
                           <span className="font-semibold" style={{ color: "var(--grey-900)" }}>{t.name}</span>
-                          <span className="ml-2 text-[10px] uppercase font-bold px-1.5 py-0.5" style={{ background: "#e8f5e9", color: "var(--green)", borderRadius: "var(--radius-sm)" }}>{t.category}</span>
+                          <span className="ml-2 text-[12px] uppercase font-bold px-1.5 py-0.5" style={{ background: "#e8f5e9", color: "var(--green)", borderRadius: "var(--radius-sm)" }}>{t.category}</span>
                         </div>
                         <div className="text-right">
                           <span className="font-semibold" style={{ color: "var(--grey-800)" }}>S${(t.basePrice ?? 0).toFixed(2)}</span>
-                          <span className="ml-2 text-[10px]" style={{ color: "var(--grey-500)" }}>{t.duration} min</span>
+                          <span className="ml-2 text-[12px]" style={{ color: "var(--grey-500)" }}>{t.duration} min</span>
                         </div>
                       </button>
                     ))}
                   </div>
                 )}
                 {!searchingTreatment && treatmentResults.length === 0 && treatmentSearch.length >= 2 && (
-                  <p className="text-[11px]" style={{ color: "var(--grey-500)" }}>No treatments found</p>
+                  <p className="text-[13px]" style={{ color: "var(--grey-500)" }}>No treatments found</p>
                 )}
               </div>
             )}
@@ -737,8 +872,8 @@ export default function NewInvoicePage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" />
                   </svg>
                 </div>
-                <p className="text-[13px] font-medium" style={{ color: "var(--grey-600)" }}>No items added yet</p>
-                <p className="text-[11px] mt-0.5" style={{ color: "var(--grey-500)" }}>Click &quot;Add Item&quot; to start building the invoice</p>
+                <p className="text-[15px] font-medium" style={{ color: "var(--grey-600)" }}>No items added yet</p>
+                <p className="text-[13px] mt-0.5" style={{ color: "var(--grey-500)" }}>Click &quot;Add Item&quot; to start building the invoice</p>
               </div>
             ) : (
               <>
@@ -747,12 +882,12 @@ export default function NewInvoicePage() {
                   <table className="w-full">
                     <thead>
                       <tr style={{ borderBottom: "1px solid var(--grey-300)" }}>
-                        <th className="text-left px-2 py-2 text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Type</th>
-                        <th className="text-left px-2 py-2 text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Description</th>
-                        <th className="text-center px-2 py-2 text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)", width: 60 }}>Qty</th>
-                        <th className="text-right px-2 py-2 text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)", width: 90 }}>Unit Price</th>
-                        <th className="text-center px-2 py-2 text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)", width: 60 }}>GST %</th>
-                        <th className="text-right px-2 py-2 text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)", width: 100 }}>Amount</th>
+                        <th className="text-left px-2 py-2 text-[12px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Type</th>
+                        <th className="text-left px-2 py-2 text-[12px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Description</th>
+                        <th className="text-center px-2 py-2 text-[12px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)", width: 60 }}>Qty</th>
+                        <th className="text-right px-2 py-2 text-[12px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)", width: 90 }}>Unit Price</th>
+                        <th className="text-center px-2 py-2 text-[12px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)", width: 60 }}>GST %</th>
+                        <th className="text-right px-2 py-2 text-[12px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)", width: 100 }}>Amount</th>
                         <th className="px-2 py-2" style={{ width: 36 }}></th>
                       </tr>
                     </thead>
@@ -772,7 +907,7 @@ export default function NewInvoicePage() {
                                 type="text"
                                 value={item.description}
                                 onChange={(e) => updateItem(item.id, "description", e.target.value)}
-                                className="w-full px-2 py-1 text-[12px]"
+                                className="w-full px-2 py-1 text-[14px]"
                                 style={{ ...inputStyle, minWidth: 120 }}
                                 placeholder="Description"
                               />
@@ -782,7 +917,7 @@ export default function NewInvoicePage() {
                                 type="number"
                                 value={item.qty}
                                 onChange={(e) => updateItem(item.id, "qty", Math.max(1, parseInt(e.target.value) || 1))}
-                                className="w-full px-2 py-1 text-[12px] text-center"
+                                className="w-full px-2 py-1 text-[14px] text-center"
                                 style={{ ...inputStyle, width: 60 }}
                                 min={1}
                                 max={item.maxStock || 9999}
@@ -793,7 +928,7 @@ export default function NewInvoicePage() {
                                 type="number"
                                 value={item.unitPrice}
                                 onChange={(e) => updateItem(item.id, "unitPrice", Math.max(0, parseFloat(e.target.value) || 0))}
-                                className="w-full px-2 py-1 text-[12px] text-right"
+                                className="w-full px-2 py-1 text-[14px] text-right"
                                 style={{ ...inputStyle, width: 90 }}
                                 min={0}
                                 step={0.01}
@@ -804,13 +939,13 @@ export default function NewInvoicePage() {
                                 type="number"
                                 value={item.gstPercent}
                                 onChange={(e) => updateItem(item.id, "gstPercent", Math.max(0, parseFloat(e.target.value) || 0))}
-                                className="w-full px-2 py-1 text-[12px] text-center"
+                                className="w-full px-2 py-1 text-[14px] text-center"
                                 style={{ ...inputStyle, width: 60 }}
                                 min={0}
                                 step={0.5}
                               />
                             </td>
-                            <td className="px-2 py-2 text-right text-[13px] font-semibold" style={{ color: "var(--grey-900)" }}>
+                            <td className="px-2 py-2 text-right text-[15px] font-semibold" style={{ color: "var(--grey-900)" }}>
                               {formatCurrency(amount)}
                             </td>
                             <td className="px-2 py-2">
@@ -836,22 +971,22 @@ export default function NewInvoicePage() {
                           <span className={chipBase} style={{ borderRadius: "var(--radius-sm)", background: typeStyle.bg, color: typeStyle.color }}>{item.type}</span>
                           <button onClick={() => removeItem(item.id)} style={{ color: "var(--red)" }}><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
                         </div>
-                        <input type="text" value={item.description} onChange={(e) => updateItem(item.id, "description", e.target.value)} className="w-full px-2 py-1 text-[12px] mb-2" style={inputStyle} placeholder="Description" />
+                        <input type="text" value={item.description} onChange={(e) => updateItem(item.id, "description", e.target.value)} className="w-full px-2 py-1 text-[14px] mb-2" style={inputStyle} placeholder="Description" />
                         <div className="grid grid-cols-3 gap-2">
                           <div>
                             <label className="text-[9px] font-bold uppercase" style={{ color: "var(--grey-500)" }}>Qty</label>
-                            <input type="number" value={item.qty} onChange={(e) => updateItem(item.id, "qty", Math.max(1, parseInt(e.target.value) || 1))} className="w-full px-2 py-1 text-[12px]" style={inputStyle} min={1} />
+                            <input type="number" value={item.qty} onChange={(e) => updateItem(item.id, "qty", Math.max(1, parseInt(e.target.value) || 1))} className="w-full px-2 py-1 text-[14px]" style={inputStyle} min={1} />
                           </div>
                           <div>
                             <label className="text-[9px] font-bold uppercase" style={{ color: "var(--grey-500)" }}>Price</label>
-                            <input type="number" value={item.unitPrice} onChange={(e) => updateItem(item.id, "unitPrice", Math.max(0, parseFloat(e.target.value) || 0))} className="w-full px-2 py-1 text-[12px]" style={inputStyle} min={0} />
+                            <input type="number" value={item.unitPrice} onChange={(e) => updateItem(item.id, "unitPrice", Math.max(0, parseFloat(e.target.value) || 0))} className="w-full px-2 py-1 text-[14px]" style={inputStyle} min={0} />
                           </div>
                           <div>
                             <label className="text-[9px] font-bold uppercase" style={{ color: "var(--grey-500)" }}>GST%</label>
-                            <input type="number" value={item.gstPercent} onChange={(e) => updateItem(item.id, "gstPercent", Math.max(0, parseFloat(e.target.value) || 0))} className="w-full px-2 py-1 text-[12px]" style={inputStyle} min={0} />
+                            <input type="number" value={item.gstPercent} onChange={(e) => updateItem(item.id, "gstPercent", Math.max(0, parseFloat(e.target.value) || 0))} className="w-full px-2 py-1 text-[14px]" style={inputStyle} min={0} />
                           </div>
                         </div>
-                        <p className="text-right text-[13px] font-semibold mt-2" style={{ color: "var(--grey-900)" }}>{formatCurrency(amount)}</p>
+                        <p className="text-right text-[15px] font-semibold mt-2" style={{ color: "var(--grey-900)" }}>{formatCurrency(amount)}</p>
                       </div>
                     );
                   })}
@@ -867,7 +1002,7 @@ export default function NewInvoicePage() {
           <div className="p-5" style={{ ...cardStyle, position: "sticky" as const, top: 24 }}>
             <p className="mb-4" style={sectionTitle}>Summary</p>
 
-            <div className="space-y-2 text-[13px]">
+            <div className="space-y-2 text-[15px]">
               <div className="flex justify-between" style={{ color: "var(--grey-700)" }}>
                 <span>Subtotal</span>
                 <span className="font-semibold">{formatCurrency(subtotal)}</span>
@@ -880,13 +1015,13 @@ export default function NewInvoicePage() {
                     <button
                       type="button"
                       onClick={() => { setDiscountMode("percent"); setDiscountFixed(0); }}
-                      className="px-2 py-0.5 text-[11px] font-semibold"
+                      className="px-2 py-0.5 text-[13px] font-semibold"
                       style={{ background: discountMode === "percent" ? "var(--blue-500)" : "var(--white)", color: discountMode === "percent" ? "#fff" : "var(--grey-600)" }}
                     >%</button>
                     <button
                       type="button"
                       onClick={() => { setDiscountMode("amount"); setDiscountPercent(0); }}
-                      className="px-2 py-0.5 text-[11px] font-semibold"
+                      className="px-2 py-0.5 text-[13px] font-semibold"
                       style={{ background: discountMode === "amount" ? "var(--blue-500)" : "var(--white)", color: discountMode === "amount" ? "#fff" : "var(--grey-600)", borderLeft: "1px solid var(--grey-400)" }}
                     >S$</button>
                   </div>
@@ -896,18 +1031,18 @@ export default function NewInvoicePage() {
                         type="number"
                         value={discountPercent}
                         onChange={(e) => setDiscountPercent(Math.max(0, Math.min(100, parseFloat(e.target.value) || 0)))}
-                        className="px-2 py-0.5 text-[12px] text-center"
+                        className="px-2 py-0.5 text-[14px] text-center"
                         style={{ ...inputStyle, width: 50 }}
                         min={0} max={100} step={0.5}
                       />
-                      <span className="text-[11px]" style={{ color: "var(--grey-500)" }}>%</span>
+                      <span className="text-[13px]" style={{ color: "var(--grey-500)" }}>%</span>
                     </div>
                   ) : (
                     <input
                       type="number"
                       value={discountFixed}
                       onChange={(e) => setDiscountFixed(Math.max(0, parseFloat(e.target.value) || 0))}
-                      className="px-2 py-0.5 text-[12px] text-center"
+                      className="px-2 py-0.5 text-[14px] text-center"
                       style={{ ...inputStyle, width: 80 }}
                       min={0} step={1}
                       placeholder="0.00"
@@ -923,18 +1058,18 @@ export default function NewInvoicePage() {
               </div>
 
               <div className="pt-2 mt-2 flex justify-between" style={{ borderTop: "2px solid var(--grey-300)" }}>
-                <span className="text-[15px] font-bold" style={{ color: "var(--grey-900)" }}>Grand Total</span>
-                <span className="text-[15px] font-bold" style={{ color: "var(--grey-900)" }}>{formatCurrency(grandTotal)}</span>
+                <span className="text-[17px] font-bold" style={{ color: "var(--grey-900)" }}>Grand Total</span>
+                <span className="text-[17px] font-bold" style={{ color: "var(--grey-900)" }}>{formatCurrency(grandTotal)}</span>
               </div>
             </div>
 
             {/* Payment */}
             <div className="mt-5 pt-4" style={{ borderTop: "1px solid var(--grey-200)" }}>
-              <p className="text-[12px] font-semibold uppercase tracking-wide mb-3" style={{ color: "var(--grey-600)" }}>Payment</p>
+              <p className="text-[14px] font-semibold uppercase tracking-wide mb-3" style={{ color: "var(--grey-600)" }}>Payment</p>
 
               <div className="space-y-3">
                 <div>
-                  <label className="block text-[11px] font-semibold uppercase tracking-wide mb-1" style={{ color: "var(--grey-600)" }}>Amount Paid (S$)</label>
+                  <label className="block text-[13px] font-semibold uppercase tracking-wide mb-1" style={{ color: "var(--grey-600)" }}>Amount Paid (S$)</label>
                   <input
                     type="number"
                     value={amountPaid}
@@ -947,7 +1082,7 @@ export default function NewInvoicePage() {
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-semibold uppercase tracking-wide mb-1" style={{ color: "var(--grey-600)" }}>Payment Method</label>
+                  <label className="block text-[13px] font-semibold uppercase tracking-wide mb-1" style={{ color: "var(--grey-600)" }}>Payment Method</label>
                   <select
                     value={paymentMethod}
                     onChange={(e) => setPaymentMethod(e.target.value)}
@@ -960,7 +1095,7 @@ export default function NewInvoicePage() {
               </div>
 
               {grandTotal > 0 && amountPaid > 0 && amountPaid < grandTotal && (
-                <p className="text-[11px] font-semibold mt-2" style={{ color: "#f57c00" }}>
+                <p className="text-[13px] font-semibold mt-2" style={{ color: "#f57c00" }}>
                   Balance Due: {formatCurrency(grandTotal - amountPaid)}
                 </p>
               )}
@@ -968,12 +1103,12 @@ export default function NewInvoicePage() {
 
             {/* Notes */}
             <div className="mt-4">
-              <label className="block text-[11px] font-semibold uppercase tracking-wide mb-1" style={{ color: "var(--grey-600)" }}>Notes</label>
+              <label className="block text-[13px] font-semibold uppercase tracking-wide mb-1" style={{ color: "var(--grey-600)" }}>Notes</label>
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 rows={3}
-                className="w-full px-3 py-2 text-[13px] resize-none"
+                className="w-full px-3 py-2 text-[15px] resize-none"
                 style={inputStyle}
                 placeholder="Additional notes..."
               />
@@ -983,7 +1118,7 @@ export default function NewInvoicePage() {
             <button
               onClick={handleSubmit}
               disabled={submitting}
-              className="w-full mt-4 px-5 py-2.5 text-[13px] font-semibold text-white transition-opacity duration-150 disabled:opacity-50"
+              className="w-full mt-4 px-5 py-2.5 text-[15px] font-semibold text-white transition-opacity duration-150 disabled:opacity-50"
               style={btnPrimary}
             >
               {submitting ? "Creating Invoice..." : "Create Invoice"}

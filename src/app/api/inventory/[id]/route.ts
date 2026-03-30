@@ -16,6 +16,9 @@ export async function GET(
           orderBy: { date: "desc" },
           take: 20,
         },
+        variants: {
+          orderBy: { packing: "asc" },
+        },
       },
     });
 
@@ -69,6 +72,8 @@ export async function PUT(
       "category",
       "subcategory",
       "unit",
+      "packing",
+      "manufacturerCode",
       "unitPrice",
       "costPrice",
       "currentStock",

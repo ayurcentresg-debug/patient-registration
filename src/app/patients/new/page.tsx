@@ -68,26 +68,26 @@ const inputStyle = {
   borderRadius: "var(--radius-sm)",
   color: "var(--grey-900)",
   background: "var(--white)",
-  fontSize: "13px",
+  fontSize: "15px",
 };
 const inputErrorStyle = {
   ...inputStyle,
   border: "1px solid var(--red)",
   background: "#fff5f5",
 };
-const labelStyle = { color: "var(--grey-700)", fontSize: "12px", fontWeight: 600 as const };
+const labelStyle = { color: "var(--grey-700)", fontSize: "14px", fontWeight: 600 as const };
 const cardStyle = {
   background: "var(--white)",
   border: "1px solid var(--grey-300)",
   borderRadius: "var(--radius)" as const,
   boxShadow: "var(--shadow-card)" as const,
 };
-const sectionTitle = { color: "var(--grey-900)", fontSize: "15px", fontWeight: 700 as const };
+const sectionTitle = { color: "var(--grey-900)", fontSize: "17px", fontWeight: 700 as const };
 
 /* Field error helper */
 function FieldError({ error }: { error?: string }) {
   if (!error) return null;
-  return <p className="mt-0.5 text-[11px] font-medium" style={{ color: "var(--red)" }}>{error}</p>;
+  return <p className="mt-0.5 text-[13px] font-medium" style={{ color: "var(--red)" }}>{error}</p>;
 }
 
 /* Toast notification */
@@ -99,7 +99,7 @@ function Toast({ message, type, onClose }: { message: string; type: "success" | 
 
   return (
     <div
-      className="fixed top-5 right-5 z-[100] flex items-center gap-2 px-4 py-3 text-[13px] font-semibold yoda-slide-in"
+      className="fixed top-5 right-5 z-[100] flex items-center gap-2 px-4 py-3 text-[15px] font-semibold yoda-slide-in"
       style={{
         background: type === "success" ? "var(--green)" : "var(--red)",
         color: "var(--white)",
@@ -389,12 +389,12 @@ export default function NewPatientPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <div>
-          <h1 className="text-[22px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>New Patient Registration</h1>
-          <p className="text-[13px] mt-0.5" style={{ color: "var(--grey-600)" }}>Fill in required details to register a new patient</p>
+          <h1 className="text-[24px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>New Patient Registration</h1>
+          <p className="text-[15px] mt-0.5" style={{ color: "var(--grey-600)" }}>Fill in required details to register a new patient</p>
         </div>
         <button
           onClick={() => window.print()}
-          className="inline-flex items-center gap-2 text-[12px] font-semibold print:hidden transition-colors"
+          className="inline-flex items-center gap-2 text-[14px] font-semibold print:hidden transition-colors"
           style={{ color: "var(--blue-500)" }}
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -405,21 +405,21 @@ export default function NewPatientPage() {
       </div>
 
       {prefill.appointmentId && (
-        <div className="mb-4 px-4 py-3 text-[13px] font-medium flex items-center gap-2" style={{ background: "#eff6ff", color: "var(--blue-500)", borderRadius: "var(--radius-sm)", border: "1px solid var(--blue-200, #bfdbfe)" }}>
+        <div className="mb-4 px-4 py-3 text-[15px] font-medium flex items-center gap-2" style={{ background: "#eff6ff", color: "var(--blue-500)", borderRadius: "var(--radius-sm)", border: "1px solid var(--blue-200, #bfdbfe)" }}>
           <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
           Converting walk-in patient — name and phone have been pre-filled. Please verify and complete the remaining details.
         </div>
       )}
 
       {error && (
-        <div className="mb-4 px-4 py-3 text-[13px] font-medium flex items-center gap-2" style={{ background: "var(--red-light)", color: "var(--red)", borderRadius: "var(--radius-sm)" }}>
+        <div className="mb-4 px-4 py-3 text-[15px] font-medium flex items-center gap-2" style={{ background: "var(--red-light)", color: "var(--red)", borderRadius: "var(--radius-sm)" }}>
           <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" /></svg>
           {error}
         </div>
       )}
 
       {Object.keys(fieldErrors).length > 0 && (
-        <div className="mb-4 px-4 py-3 text-[13px] font-medium" style={{ background: "var(--red-light)", color: "var(--red)", borderRadius: "var(--radius-sm)" }}>
+        <div className="mb-4 px-4 py-3 text-[15px] font-medium" style={{ background: "var(--red-light)", color: "var(--red)", borderRadius: "var(--radius-sm)" }}>
           <p className="font-bold mb-1">Please fix the following errors:</p>
           <ul className="list-disc pl-5 space-y-0.5">
             {Object.values(fieldErrors).map((err, i) => <li key={i}>{err}</li>)}
@@ -440,7 +440,7 @@ export default function NewPatientPage() {
                 <div className="flex-shrink-0">
                   <div className="w-24 h-28 flex flex-col items-center justify-center" style={{ background: "var(--grey-100)", border: "2px dashed var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-500)" }}>
                     <svg className="w-8 h-8 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-                    <span className="text-[10px] font-medium">Photo</span>
+                    <span className="text-[12px] font-medium">Photo</span>
                   </div>
                 </div>
 
@@ -449,12 +449,12 @@ export default function NewPatientPage() {
                     <div>
                       <label htmlFor="firstName" className="block mb-1" style={labelStyle}><span style={{ color: "var(--red)" }}>*</span> First Name</label>
                       <input id="firstName" name="firstName" required defaultValue={prefill.firstName} className="w-full px-3 py-2" style={fieldErrors.firstName ? inputErrorStyle : inputStyle} aria-invalid={!!fieldErrors.firstName} aria-describedby={fieldErrors.firstName ? "err-firstName" : undefined} />
-                      {fieldErrors.firstName && <p id="err-firstName" className="mt-0.5 text-[11px] font-medium" style={{ color: "var(--red)" }}>{fieldErrors.firstName}</p>}
+                      {fieldErrors.firstName && <p id="err-firstName" className="mt-0.5 text-[13px] font-medium" style={{ color: "var(--red)" }}>{fieldErrors.firstName}</p>}
                     </div>
                     <div>
                       <label htmlFor="lastName" className="block mb-1" style={labelStyle}><span style={{ color: "var(--red)" }}>*</span> Last Name</label>
                       <input id="lastName" name="lastName" required defaultValue={prefill.lastName} className="w-full px-3 py-2" style={fieldErrors.lastName ? inputErrorStyle : inputStyle} aria-invalid={!!fieldErrors.lastName} aria-describedby={fieldErrors.lastName ? "err-lastName" : undefined} />
-                      {fieldErrors.lastName && <p id="err-lastName" className="mt-0.5 text-[11px] font-medium" style={{ color: "var(--red)" }}>{fieldErrors.lastName}</p>}
+                      {fieldErrors.lastName && <p id="err-lastName" className="mt-0.5 text-[13px] font-medium" style={{ color: "var(--red)" }}>{fieldErrors.lastName}</p>}
                     </div>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -471,7 +471,7 @@ export default function NewPatientPage() {
                     <label className="block mb-1.5" style={labelStyle}><span style={{ color: "var(--red)" }}>*</span> Gender</label>
                     <div className="flex gap-5" role="radiogroup" aria-label="Gender">
                       {["male", "female", "other"].map((g) => (
-                        <label key={g} className="flex items-center gap-2 text-[13px] cursor-pointer" style={{ color: "var(--grey-800)" }}>
+                        <label key={g} className="flex items-center gap-2 text-[15px] cursor-pointer" style={{ color: "var(--grey-800)" }}>
                           <input type="radio" name="gender" value={g} required /> {g.charAt(0).toUpperCase() + g.slice(1)}
                         </label>
                       ))}
@@ -486,7 +486,7 @@ export default function NewPatientPage() {
                       ) : (
                         <input name="age" type="number" min="0" max="150" placeholder="Enter age" className="flex-1 px-3 py-2" style={inputStyle} />
                       )}
-                      <button type="button" onClick={() => setDobMode(dobMode === "dob" ? "age" : "dob")} className="text-[12px] font-semibold whitespace-nowrap" style={{ color: "var(--blue-500)" }}>
+                      <button type="button" onClick={() => setDobMode(dobMode === "dob" ? "age" : "dob")} className="text-[14px] font-semibold whitespace-nowrap" style={{ color: "var(--blue-500)" }}>
                         Or {dobMode === "dob" ? "age" : "DOB"}
                       </button>
                     </div>
@@ -507,7 +507,7 @@ export default function NewPatientPage() {
                         {REFERRAL_SOURCES.map((r) => <option key={r} value={r}>{r}</option>)}
                       </select>
                     )}
-                    <button type="button" onClick={() => setShowNewReferral(!showNewReferral)} className="text-[11px] font-semibold whitespace-nowrap" style={{ color: "var(--blue-500)" }}>
+                    <button type="button" onClick={() => setShowNewReferral(!showNewReferral)} className="text-[13px] font-semibold whitespace-nowrap" style={{ color: "var(--blue-500)" }}>
                       {showNewReferral ? "Select" : "Or add new"}
                     </button>
                   </div>
@@ -527,15 +527,15 @@ export default function NewPatientPage() {
                     <div className="space-y-1.5 mb-2">
                       {familyMembers.map((fm, idx) => (
                         <div key={idx} className="flex items-center gap-2 px-3 py-1.5 rounded" style={{ background: "var(--grey-50)", border: "1px solid var(--grey-200)" }}>
-                          <span className="text-[13px] font-semibold" style={{ color: "var(--grey-700)" }}>
+                          <span className="text-[15px] font-semibold" style={{ color: "var(--grey-700)" }}>
                             {genderRelationLabel(fm.relation, fm.memberGender)}
                           </span>
-                          <span className="text-[13px]" style={{ color: "var(--grey-500)" }}>:</span>
-                          <span className="text-[13px] font-semibold flex-1" style={{ color: "var(--blue-500)" }}>
+                          <span className="text-[15px]" style={{ color: "var(--grey-500)" }}>:</span>
+                          <span className="text-[15px] font-semibold flex-1" style={{ color: "var(--blue-500)" }}>
                             {fm.memberName}
                           </span>
                           {fm.memberPhone && (
-                            <span className="text-[11px]" style={{ color: "var(--grey-500)" }}>{fm.memberPhone}</span>
+                            <span className="text-[13px]" style={{ color: "var(--grey-500)" }}>{fm.memberPhone}</span>
                           )}
                           <button
                             type="button"
@@ -588,7 +588,7 @@ export default function NewPatientPage() {
                           style={{ background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", boxShadow: "0 4px 16px rgba(0,0,0,0.1)" }}
                         >
                           {familySearchLoading ? (
-                            <div className="px-3 py-2 text-[12px]" style={{ color: "var(--grey-500)" }}>Searching...</div>
+                            <div className="px-3 py-2 text-[14px]" style={{ color: "var(--grey-500)" }}>Searching...</div>
                           ) : familySearchResults.length > 0 ? (
                             familySearchResults.map((p) => (
                               <button
@@ -599,10 +599,10 @@ export default function NewPatientPage() {
                                 style={{ borderBottom: "1px solid var(--grey-100)" }}
                               >
                                 <div className="flex-1 min-w-0">
-                                  <span className="text-[13px] font-semibold" style={{ color: "var(--grey-900)" }}>
+                                  <span className="text-[15px] font-semibold" style={{ color: "var(--grey-900)" }}>
                                     {p.firstName} {p.lastName}
                                   </span>
-                                  <span className="text-[11px] ml-2" style={{ color: "var(--grey-500)" }}>
+                                  <span className="text-[13px] ml-2" style={{ color: "var(--grey-500)" }}>
                                     {p.patientIdNumber} · {p.phone}
                                     {p.gender ? ` · ${p.gender.charAt(0).toUpperCase() + p.gender.slice(1)}` : ""}
                                   </span>
@@ -611,11 +611,11 @@ export default function NewPatientPage() {
                             ))
                           ) : (
                             <div className="px-3 py-2">
-                              <p className="text-[12px]" style={{ color: "var(--grey-500)" }}>No patients found</p>
+                              <p className="text-[14px]" style={{ color: "var(--grey-500)" }}>No patients found</p>
                               <button
                                 type="button"
                                 onClick={addManualFamilyMember}
-                                className="text-[12px] font-semibold mt-1"
+                                className="text-[14px] font-semibold mt-1"
                                 style={{ color: "var(--blue-500)" }}
                               >
                                 + Add &quot;{familySearch}&quot; as manual entry
@@ -626,7 +626,7 @@ export default function NewPatientPage() {
                       )}
                     </div>
                   </div>
-                  <p className="text-[10px] mt-1" style={{ color: "var(--grey-500)" }}>
+                  <p className="text-[12px] mt-1" style={{ color: "var(--grey-500)" }}>
                     Select relation, then search for an existing patient or type a name and press Enter
                   </p>
                 </div>
@@ -655,7 +655,7 @@ export default function NewPatientPage() {
                         {OCCUPATIONS.map((o) => <option key={o} value={o}>{o}</option>)}
                       </select>
                     )}
-                    <button type="button" onClick={() => setShowNewOccupation(!showNewOccupation)} className="text-[11px] font-semibold whitespace-nowrap" style={{ color: "var(--blue-500)" }}>
+                    <button type="button" onClick={() => setShowNewOccupation(!showNewOccupation)} className="text-[13px] font-semibold whitespace-nowrap" style={{ color: "var(--blue-500)" }}>
                       {showNewOccupation ? "Select" : "Or add new"}
                     </button>
                   </div>
@@ -670,7 +670,7 @@ export default function NewPatientPage() {
                 <div>
                   <label htmlFor="phone" className="block mb-1" style={labelStyle}><span style={{ color: "var(--red)" }}>*</span> Primary Mobile No.</label>
                   <input id="phone" name="phone" type="tel" required defaultValue={prefill.phone} placeholder="+91 98765 43210" className="w-full px-3 py-2" style={fieldErrors.phone ? inputErrorStyle : inputStyle} aria-invalid={!!fieldErrors.phone} aria-describedby={fieldErrors.phone ? "err-phone" : undefined} />
-                  {fieldErrors.phone && <p id="err-phone" className="mt-0.5 text-[11px] font-medium" style={{ color: "var(--red)" }}>{fieldErrors.phone}</p>}
+                  {fieldErrors.phone && <p id="err-phone" className="mt-0.5 text-[13px] font-medium" style={{ color: "var(--red)" }}>{fieldErrors.phone}</p>}
                 </div>
                 <div>
                   <label htmlFor="secondaryMobile" className="block mb-1" style={labelStyle}>Secondary Mobile No.</label>
@@ -690,7 +690,7 @@ export default function NewPatientPage() {
                 <div className="sm:col-span-2">
                   <label htmlFor="email" className="block mb-1" style={labelStyle}>Email Address</label>
                   <input id="email" name="email" type="email" placeholder="patient@example.com" className="w-full px-3 py-2" style={fieldErrors.email ? inputErrorStyle : inputStyle} aria-invalid={!!fieldErrors.email} aria-describedby={fieldErrors.email ? "err-email" : undefined} />
-                  {fieldErrors.email && <p id="err-email" className="mt-0.5 text-[11px] font-medium" style={{ color: "var(--red)" }}>{fieldErrors.email}</p>}
+                  {fieldErrors.email && <p id="err-email" className="mt-0.5 text-[13px] font-medium" style={{ color: "var(--red)" }}>{fieldErrors.email}</p>}
                 </div>
                 <div className="sm:col-span-2">
                   <label htmlFor="address" className="block mb-1" style={labelStyle}>Street Address</label>
@@ -738,7 +738,7 @@ export default function NewPatientPage() {
             <div className="p-5" style={cardStyle}>
               <div className="flex items-center justify-between mb-3 pb-3" style={{ borderBottom: "1px solid var(--grey-200)" }}>
                 <h2 style={sectionTitle}>Medical History</h2>
-                <button type="button" onClick={() => { const n = prompt("New condition:"); if (n?.trim()) { setCustomConditions((p) => [...p, n.trim()]); setSelectedConditions((p) => [...p, n.trim()]); markDirty(); } }} className="text-[12px] font-semibold" style={{ color: "var(--blue-500)" }}>+ Add New</button>
+                <button type="button" onClick={() => { const n = prompt("New condition:"); if (n?.trim()) { setCustomConditions((p) => [...p, n.trim()]); setSelectedConditions((p) => [...p, n.trim()]); markDirty(); } }} className="text-[14px] font-semibold" style={{ color: "var(--blue-500)" }}>+ Add New</button>
               </div>
               <input
                 type="text" placeholder="Search conditions..." value={conditionSearch} onChange={(e) => setConditionSearch(e.target.value)}
@@ -751,13 +751,13 @@ export default function NewPatientPage() {
                     onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
                   >
                     <input type="checkbox" checked={selectedConditions.includes(c)} onChange={() => toggleCondition(c)} />
-                    <span className="text-[13px]" style={{ color: "var(--grey-800)" }}>{c}</span>
+                    <span className="text-[15px]" style={{ color: "var(--grey-800)" }}>{c}</span>
                   </label>
                 ))}
                 {filteredConditions.length === 0 && (
                   <div className="text-center py-3">
-                    <p className="text-[12px]" style={{ color: "var(--grey-500)" }}>No match</p>
-                    <button type="button" onClick={() => { if (conditionSearch.trim()) { setCustomConditions((p) => [...p, conditionSearch.trim()]); setSelectedConditions((p) => [...p, conditionSearch.trim()]); setConditionSearch(""); markDirty(); } }} className="text-[11px] font-semibold mt-1" style={{ color: "var(--blue-500)" }}>
+                    <p className="text-[14px]" style={{ color: "var(--grey-500)" }}>No match</p>
+                    <button type="button" onClick={() => { if (conditionSearch.trim()) { setCustomConditions((p) => [...p, conditionSearch.trim()]); setSelectedConditions((p) => [...p, conditionSearch.trim()]); setConditionSearch(""); markDirty(); } }} className="text-[13px] font-semibold mt-1" style={{ color: "var(--blue-500)" }}>
                       + Add &quot;{conditionSearch}&quot;
                     </button>
                   </div>
@@ -765,10 +765,10 @@ export default function NewPatientPage() {
               </div>
               {selectedConditions.length > 0 && (
                 <div className="mt-3 pt-3" style={{ borderTop: "1px solid var(--grey-200)" }}>
-                  <p className="text-[10px] font-bold uppercase tracking-wide mb-2" style={{ color: "var(--grey-600)" }}>Selected ({selectedConditions.length})</p>
+                  <p className="text-[12px] font-bold uppercase tracking-wide mb-2" style={{ color: "var(--grey-600)" }}>Selected ({selectedConditions.length})</p>
                   <div className="flex flex-wrap gap-1.5">
                     {selectedConditions.map((c) => (
-                      <span key={c} className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-semibold" style={{ background: "var(--red-light)", color: "var(--red)", borderRadius: "var(--radius-pill)" }}>
+                      <span key={c} className="inline-flex items-center gap-1 px-2 py-0.5 text-[13px] font-semibold" style={{ background: "var(--red-light)", color: "var(--red)", borderRadius: "var(--radius-pill)" }}>
                         {c}
                         <button type="button" onClick={() => toggleCondition(c)} className="hover:opacity-70" aria-label={`Remove ${c}`}>&times;</button>
                       </span>
@@ -794,7 +794,7 @@ export default function NewPatientPage() {
             <div className="p-5" style={cardStyle}>
               <div className="flex items-center justify-between mb-3 pb-3" style={{ borderBottom: "1px solid var(--grey-200)" }}>
                 <h2 style={sectionTitle}>Groups</h2>
-                <button type="button" onClick={() => { const n = prompt("New group:"); if (n?.trim()) { setCustomGroups((p) => [...p, n.trim()]); setSelectedGroups((p) => [...p, n.trim()]); markDirty(); } }} className="text-[12px] font-semibold" style={{ color: "var(--blue-500)" }}>+ Add New</button>
+                <button type="button" onClick={() => { const n = prompt("New group:"); if (n?.trim()) { setCustomGroups((p) => [...p, n.trim()]); setSelectedGroups((p) => [...p, n.trim()]); markDirty(); } }} className="text-[14px] font-semibold" style={{ color: "var(--blue-500)" }}>+ Add New</button>
               </div>
               <div className="space-y-0.5">
                 {allGroups.map((g) => (
@@ -803,7 +803,7 @@ export default function NewPatientPage() {
                     onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
                   >
                     <input type="checkbox" checked={selectedGroups.includes(g)} onChange={() => toggleGroup(g)} />
-                    <span className="text-[13px]" style={{ color: "var(--grey-800)" }}>{g}</span>
+                    <span className="text-[15px]" style={{ color: "var(--grey-800)" }}>{g}</span>
                   </label>
                 ))}
               </div>
@@ -821,7 +821,7 @@ export default function NewPatientPage() {
         <div className="mt-6 flex items-center gap-3 sticky bottom-0 py-4 print:hidden" style={{ background: "var(--background)" }}>
           <button
             type="submit" disabled={saving}
-            className="inline-flex items-center gap-2 text-white px-6 py-2.5 text-[13px] font-semibold transition-colors duration-150 disabled:opacity-50"
+            className="inline-flex items-center gap-2 text-white px-6 py-2.5 text-[15px] font-semibold transition-colors duration-150 disabled:opacity-50"
             style={{ background: "var(--blue-500)", borderRadius: "var(--radius-sm)" }}
             onMouseEnter={(e) => { if (!saving) e.currentTarget.style.background = "var(--blue-700)"; }}
             onMouseLeave={(e) => { e.currentTarget.style.background = "var(--blue-500)"; }}
@@ -837,7 +837,7 @@ export default function NewPatientPage() {
               if (isDirty && !confirm("You have unsaved changes. Are you sure you want to leave?")) return;
               router.back();
             }}
-            className="px-6 py-2.5 text-[13px] font-semibold transition-colors duration-150"
+            className="px-6 py-2.5 text-[15px] font-semibold transition-colors duration-150"
             style={{ background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", color: "var(--grey-700)" }}
             onMouseEnter={(e) => { e.currentTarget.style.background = "var(--grey-100)"; }}
             onMouseLeave={(e) => { e.currentTarget.style.background = "var(--white)"; }}
@@ -845,7 +845,7 @@ export default function NewPatientPage() {
             Cancel
           </button>
           {isDirty && !submitted && (
-            <span className="text-[11px] font-medium" style={{ color: "var(--grey-500)" }}>
+            <span className="text-[13px] font-medium" style={{ color: "var(--grey-500)" }}>
               <span className="inline-block w-1.5 h-1.5 rounded-full mr-1" style={{ background: "var(--orange, #f59e0b)" }} />
               Unsaved changes
             </span>

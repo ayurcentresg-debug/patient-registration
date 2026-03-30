@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
+import { PageGuide } from "@/components/HelpTip";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface Patient {
@@ -24,7 +25,7 @@ type SortDir = "asc" | "desc";
 // ─── YODA Design Tokens ─────────────────────────────────────────────────────
 const cardStyle = { background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-card)" };
 const btnPrimary = { background: "var(--blue-500)", borderRadius: "var(--radius-sm)" };
-const chipBase = "inline-flex px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide";
+const chipBase = "inline-flex px-2 py-0.5 text-[12px] font-bold uppercase tracking-wide";
 
 // ─── Utility: format date consistently (avoids hydration mismatches) ────────
 function formatDate(dateStr: string): string {
@@ -40,7 +41,7 @@ function FilterChip({ label, active, onClick }: { label: string; active: boolean
   return (
     <button
       onClick={onClick}
-      className="px-3 py-1 text-[11px] font-semibold transition-all duration-150"
+      className="px-3 py-1 text-[13px] font-semibold transition-all duration-150"
       style={{
         borderRadius: "var(--radius-pill)",
         border: active ? "1.5px solid var(--blue-500)" : "1px solid var(--grey-300)",
@@ -60,7 +61,7 @@ function SortHeader({ label, field, currentField, direction, onSort }: {
   const isActive = currentField === field;
   return (
     <th
-      className="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider cursor-pointer select-none"
+      className="text-left px-4 py-3 text-[13px] font-bold uppercase tracking-wider cursor-pointer select-none"
       style={{ color: isActive ? "var(--blue-500)" : "var(--grey-600)" }}
       onClick={() => onSort(field)}
       role="columnheader"
@@ -172,8 +173,8 @@ export default function PatientsPage() {
       {/* ── Header ──────────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-[22px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>Patients</h1>
-          <p className="text-[13px] mt-0.5" style={{ color: "var(--grey-600)" }}>
+          <h1 className="text-[24px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>Patients</h1>
+          <p className="text-[15px] mt-0.5" style={{ color: "var(--grey-600)" }}>
             {displayedCount === totalFetched
               ? `${totalFetched} total patients`
               : `${displayedCount} of ${totalFetched} patients`
@@ -183,7 +184,7 @@ export default function PatientsPage() {
         </div>
         <Link
           href="/patients/new"
-          className="inline-flex items-center justify-center gap-2 text-white px-5 py-2 text-[13px] font-semibold transition-colors duration-150"
+          className="inline-flex items-center justify-center gap-2 text-white px-5 py-2 text-[15px] font-semibold transition-colors duration-150"
           style={btnPrimary}
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -192,6 +193,20 @@ export default function PatientsPage() {
           Register Patient
         </Link>
       </div>
+
+      <PageGuide
+        storageKey="patients"
+        title="Patient Management Guide"
+        subtitle="Register, track, and manage all your clinic patients."
+        steps={[
+          { icon: "➕", title: "Register New Patient", description: "Click 'Register Patient' to add a new patient. A unique Patient ID (e.g., P10001) is generated automatically." },
+          { icon: "📋", title: "Patient Profile", description: "Click any patient to view their full profile — appointments, clinical notes, prescriptions, billing, and more." },
+          { icon: "🔍", title: "Search & Filter", description: "Search by name, phone, or patient ID. Filter by status (Active/Inactive) or gender using the chips below." },
+          { icon: "📂", title: "Patient Sidebar Tabs", description: "Each patient has 3 sections: Patient (profile, appointments), EMR (clinical notes, prescriptions, vitals), and Billing (invoices, payments)." },
+          { icon: "💰", title: "Patient Billing", description: "Create invoices directly from a patient's profile using the Invoices tab > New Invoice button." },
+          { icon: "📱", title: "Communications", description: "Send SMS/WhatsApp reminders to patients from their Communications tab." },
+        ]}
+      />
 
       {/* ── Search + Filters Row ────────────────────────────────── */}
       <div className="mb-5 space-y-3">
@@ -205,7 +220,7 @@ export default function PatientsPage() {
             placeholder="Search by name, phone, email, or patient ID..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full sm:w-[400px] pl-10 pr-4 py-2 text-[13px]"
+            className="w-full sm:w-[400px] pl-10 pr-4 py-2 text-[15px]"
             style={{ border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)" }}
             aria-label="Search patients"
           />
@@ -226,11 +241,11 @@ export default function PatientsPage() {
 
         {/* Filter chips */}
         <div className="flex flex-wrap gap-2 items-center">
-          <span className="text-[11px] font-bold uppercase tracking-wide mr-1" style={{ color: "var(--grey-500)" }}>Status:</span>
+          <span className="text-[13px] font-bold uppercase tracking-wide mr-1" style={{ color: "var(--grey-500)" }}>Status:</span>
           {["all", "active", "inactive"].map((s) => (
             <FilterChip key={s} label={s === "all" ? "All" : s.charAt(0).toUpperCase() + s.slice(1)} active={statusFilter === s} onClick={() => setStatusFilter(s)} />
           ))}
-          <span className="text-[11px] font-bold uppercase tracking-wide ml-3 mr-1" style={{ color: "var(--grey-500)" }}>Gender:</span>
+          <span className="text-[13px] font-bold uppercase tracking-wide ml-3 mr-1" style={{ color: "var(--grey-500)" }}>Gender:</span>
           {["all", "male", "female", "other"].map((g) => (
             <FilterChip key={g} label={g === "all" ? "All" : g.charAt(0).toUpperCase() + g.slice(1)} active={genderFilter === g} onClick={() => setGenderFilter(g)} />
           ))}
@@ -240,8 +255,8 @@ export default function PatientsPage() {
       {/* ── Error State ─────────────────────────────────────────── */}
       {error && (
         <div className="mb-4 px-4 py-3 flex items-center justify-between" style={{ background: "var(--red-light)", color: "var(--red)", borderRadius: "var(--radius-sm)" }}>
-          <p className="text-[13px] font-medium">Failed to load patients: {error}</p>
-          <button onClick={fetchPatients} className="text-[12px] font-semibold underline">Retry</button>
+          <p className="text-[15px] font-medium">Failed to load patients: {error}</p>
+          <button onClick={fetchPatients} className="text-[14px] font-semibold underline">Retry</button>
         </div>
       )}
 
@@ -260,19 +275,19 @@ export default function PatientsPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
           </div>
-          <p className="text-[14px] font-semibold" style={{ color: "var(--grey-700)" }}>
+          <p className="text-[16px] font-semibold" style={{ color: "var(--grey-700)" }}>
             {search || statusFilter !== "all" || genderFilter !== "all" ? "No patients match your filters" : "No patients found"}
           </p>
           {(search || statusFilter !== "all" || genderFilter !== "all") ? (
             <button
               onClick={() => { setSearch(""); setStatusFilter("all"); setGenderFilter("all"); }}
-              className="text-[12px] font-semibold mt-2 hover:underline"
+              className="text-[14px] font-semibold mt-2 hover:underline"
               style={{ color: "var(--blue-500)" }}
             >
               Clear all filters
             </button>
           ) : (
-            <Link href="/patients/new" className="text-[12px] font-semibold mt-2 inline-block hover:underline" style={{ color: "var(--blue-500)" }}>
+            <Link href="/patients/new" className="text-[14px] font-semibold mt-2 inline-block hover:underline" style={{ color: "var(--blue-500)" }}>
               Register your first patient
             </Link>
           )}
@@ -285,11 +300,11 @@ export default function PatientsPage() {
               <thead style={{ borderBottom: "1px solid var(--grey-300)", background: "var(--grey-50)" }}>
                 <tr>
                   <SortHeader label="Patient" field="name" currentField={sortField} direction={sortDir} onSort={handleSort} />
-                  <th className="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Contact</th>
+                  <th className="text-left px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Contact</th>
                   <SortHeader label="Gender" field="gender" currentField={sortField} direction={sortDir} onSort={handleSort} />
                   <SortHeader label="Status" field="status" currentField={sortField} direction={sortDir} onSort={handleSort} />
                   <SortHeader label="Registered" field="createdAt" currentField={sortField} direction={sortDir} onSort={handleSort} />
-                  <th className="text-right px-4 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Actions</th>
+                  <th className="text-right px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -304,24 +319,24 @@ export default function PatientsPage() {
                     <td className="px-4 py-3">
                       <Link href={`/patients/${p.id}`} className="flex items-center gap-3 group/link">
                         <div
-                          className="w-8 h-8 flex items-center justify-center text-[11px] font-bold flex-shrink-0"
+                          className="w-8 h-8 flex items-center justify-center text-[13px] font-bold flex-shrink-0"
                           style={{ background: "var(--blue-50)", color: "var(--blue-500)", borderRadius: "var(--radius-pill)" }}
                         >
                           {p.firstName[0]}{p.lastName[0]}
                         </div>
                         <div>
-                          <p className="text-[13px] font-semibold group-hover/link:underline" style={{ color: "var(--grey-900)" }}>
+                          <p className="text-[15px] font-semibold group-hover/link:underline" style={{ color: "var(--grey-900)" }}>
                             {p.firstName} {p.lastName}
                           </p>
-                          <p className="text-[11px]" style={{ color: "var(--grey-500)" }}>{p.patientIdNumber || p.id.slice(0, 8)}</p>
+                          <p className="text-[13px]" style={{ color: "var(--grey-500)" }}>{p.patientIdNumber || p.id.slice(0, 8)}</p>
                         </div>
                       </Link>
                     </td>
                     <td className="px-4 py-3">
-                      <p className="text-[13px]" style={{ color: "var(--grey-800)" }}>{p.phone}</p>
-                      {p.email && <p className="text-[11px]" style={{ color: "var(--grey-500)" }}>{p.email}</p>}
+                      <p className="text-[15px]" style={{ color: "var(--grey-800)" }}>{p.phone}</p>
+                      {p.email && <p className="text-[13px]" style={{ color: "var(--grey-500)" }}>{p.email}</p>}
                     </td>
-                    <td className="px-4 py-3 text-[13px] capitalize" style={{ color: "var(--grey-800)" }}>{p.gender}</td>
+                    <td className="px-4 py-3 text-[15px] capitalize" style={{ color: "var(--grey-800)" }}>{p.gender}</td>
                     <td className="px-4 py-3">
                       <span
                         className={chipBase}
@@ -334,9 +349,9 @@ export default function PatientsPage() {
                         {p.status}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-[12px]" style={{ color: "var(--grey-600)" }}>{formatDate(p.createdAt)}</td>
+                    <td className="px-4 py-3 text-[14px]" style={{ color: "var(--grey-600)" }}>{formatDate(p.createdAt)}</td>
                     <td className="px-4 py-3 text-right">
-                      <Link href={`/patients/${p.id}`} className="text-[12px] font-semibold hover:underline" style={{ color: "var(--blue-500)" }}>
+                      <Link href={`/patients/${p.id}`} className="text-[14px] font-semibold hover:underline" style={{ color: "var(--blue-500)" }}>
                         View
                       </Link>
                     </td>
@@ -358,14 +373,14 @@ export default function PatientsPage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div
-                      className="w-9 h-9 flex items-center justify-center text-[11px] font-bold"
+                      className="w-9 h-9 flex items-center justify-center text-[13px] font-bold"
                       style={{ background: "var(--blue-50)", color: "var(--blue-500)", borderRadius: "var(--radius-pill)" }}
                     >
                       {p.firstName[0]}{p.lastName[0]}
                     </div>
                     <div>
-                      <p className="text-[14px] font-semibold" style={{ color: "var(--grey-900)" }}>{p.firstName} {p.lastName}</p>
-                      <p className="text-[12px]" style={{ color: "var(--grey-600)" }}>{p.phone}</p>
+                      <p className="text-[16px] font-semibold" style={{ color: "var(--grey-900)" }}>{p.firstName} {p.lastName}</p>
+                      <p className="text-[14px]" style={{ color: "var(--grey-600)" }}>{p.phone}</p>
                     </div>
                   </div>
                   <span
@@ -380,9 +395,9 @@ export default function PatientsPage() {
                   </span>
                 </div>
                 <div className="flex gap-4 mt-2 ml-12">
-                  <span className="text-[11px]" style={{ color: "var(--grey-500)" }}>Appts: {p._count.appointments}</span>
-                  <span className="text-[11px]" style={{ color: "var(--grey-500)" }}>Msgs: {p._count.communications}</span>
-                  <span className="text-[11px]" style={{ color: "var(--grey-500)" }}>{formatDate(p.createdAt)}</span>
+                  <span className="text-[13px]" style={{ color: "var(--grey-500)" }}>Appts: {p._count.appointments}</span>
+                  <span className="text-[13px]" style={{ color: "var(--grey-500)" }}>Msgs: {p._count.communications}</span>
+                  <span className="text-[13px]" style={{ color: "var(--grey-500)" }}>{formatDate(p.createdAt)}</span>
                 </div>
               </Link>
             ))}

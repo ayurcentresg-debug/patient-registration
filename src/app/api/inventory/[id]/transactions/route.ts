@@ -87,9 +87,77 @@ export async function POST(
       );
     }
 
+    const variantId = body.variantId || null;
+    const quantity = Number(body.quantity);
+
+    // If operating on a variant, use variant stock
+    if (variantId) {
+      const variant = await prisma.inventoryVariant.findUnique({
+        where: { id: variantId },
+      });
+      if (!variant || variant.itemId !== id) {
+        return NextResponse.json(
+          { error: "Variant not found for this item" },
+          { status: 404 }
+        );
+      }
+
+      const previousStock = variant.currentStock;
+      let newStock: number;
+
+      switch (body.type) {
+        case "purchase":
+        case "return":
+          newStock = previousStock + quantity;
+          break;
+        case "sale":
+        case "damaged":
+        case "expired":
+          if (previousStock < quantity) {
+            return NextResponse.json(
+              { error: `Insufficient variant stock (${variant.packing}). Current: ${previousStock}, requested: ${quantity}` },
+              { status: 400 }
+            );
+          }
+          newStock = previousStock - quantity;
+          break;
+        case "adjustment":
+          newStock = quantity;
+          break;
+        default:
+          return NextResponse.json({ error: "Invalid transaction type" }, { status: 400 });
+      }
+
+      const [transaction] = await prisma.$transaction([
+        prisma.stockTransaction.create({
+          data: {
+            itemId: id,
+            variantId,
+            type: body.type,
+            quantity: body.type === "adjustment" ? newStock - previousStock
+              : (body.type === "sale" || body.type === "damaged" || body.type === "expired") ? -quantity : quantity,
+            unitPrice: body.unitPrice ?? 0,
+            totalAmount: body.totalAmount ?? 0,
+            previousStock,
+            newStock,
+            reference: body.reference || null,
+            notes: body.notes ? `[${variant.packing}] ${body.notes}` : `[${variant.packing}]`,
+            performedBy: body.performedBy || null,
+            date: body.date ? new Date(body.date) : new Date(),
+          },
+        }),
+        prisma.inventoryVariant.update({
+          where: { id: variantId },
+          data: { currentStock: newStock },
+        }),
+      ]);
+
+      return NextResponse.json(transaction, { status: 201 });
+    }
+
+    // Base item stock operation
     const previousStock = item.currentStock;
     let newStock: number;
-    const quantity = Number(body.quantity);
 
     switch (body.type) {
       case "purchase":
@@ -111,7 +179,6 @@ export async function POST(
         break;
 
       case "adjustment":
-        // For adjustment, quantity is the target stock level
         newStock = quantity;
         break;
 

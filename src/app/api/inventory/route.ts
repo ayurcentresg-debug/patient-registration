@@ -7,6 +7,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search");
     const category = searchParams.get("category");
+    const subcategory = searchParams.get("subcategory");
     const status = searchParams.get("status");
     const lowStock = searchParams.get("lowStock");
     const expiringSoon = searchParams.get("expiringSoon");
@@ -17,13 +18,20 @@ export async function GET(request: NextRequest) {
       where.OR = [
         { name: { contains: search } },
         { sku: { contains: search } },
+        { subcategory: { contains: search } },
         { manufacturer: { contains: search } },
+        { manufacturerCode: { contains: search } },
+        { packing: { contains: search } },
         { description: { contains: search } },
       ];
     }
 
     if (category) {
       where.category = category;
+    }
+
+    if (subcategory) {
+      where.subcategory = subcategory;
     }
 
     if (status) {
@@ -47,12 +55,15 @@ export async function GET(request: NextRequest) {
       };
     }
 
+    const includeVariants = searchParams.get("includeVariants") === "true";
+
     let items = await prisma.inventoryItem.findMany({
       where,
       include: {
         _count: {
-          select: { transactions: true },
+          select: { transactions: true, variants: true },
         },
+        ...(includeVariants ? { variants: { orderBy: { packing: "asc" } } } : {}),
       },
       orderBy: { createdAt: "desc" },
     });
@@ -119,6 +130,8 @@ export async function POST(request: NextRequest) {
         category: body.category,
         subcategory: body.subcategory || null,
         unit: body.unit || "nos",
+        packing: body.packing || null,
+        manufacturerCode: body.manufacturerCode || null,
         unitPrice: body.unitPrice ?? 0,
         costPrice: body.costPrice ?? 0,
         currentStock: body.currentStock ?? 0,

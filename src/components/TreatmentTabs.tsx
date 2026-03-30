@@ -25,7 +25,7 @@ export default function TreatmentTabs() {
           <Link
             key={tab.href}
             href={tab.href}
-            className="px-3 py-1 text-[11px] font-semibold transition-all duration-150"
+            className="px-3 py-1 text-[13px] font-semibold transition-all duration-150"
             style={{
               borderRadius: "var(--radius-pill)",
               border: active ? "1.5px solid var(--blue-500)" : "1px solid var(--grey-300)",

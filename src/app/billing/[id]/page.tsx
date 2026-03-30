@@ -91,8 +91,8 @@ interface CreditNote {
 
 // ─── YODA Design Tokens ─────────────────────────────────────────────────────
 const cardStyle = { background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-card)" };
-const chipBase = "inline-flex px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide";
-const inputStyle = { border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)", fontSize: "13px" };
+const chipBase = "inline-flex px-2 py-0.5 text-[12px] font-bold uppercase tracking-wide";
+const inputStyle = { border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)", fontSize: "15px" };
 
 // ─── Status colors ──────────────────────────────────────────────────────────
 const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
@@ -193,7 +193,7 @@ function numberToWords(num: number): string {
 function Toast({ message, type, onClose }: { message: string; type: "success" | "error"; onClose: () => void }) {
   useEffect(() => { const t = setTimeout(onClose, 3500); return () => clearTimeout(t); }, [onClose]);
   return (
-    <div className="fixed top-5 right-5 z-[100] flex items-center gap-2 px-4 py-3 text-[13px] font-semibold yoda-slide-in print:hidden" role="alert"
+    <div className="fixed top-5 right-5 z-[100] flex items-center gap-2 px-4 py-3 text-[15px] font-semibold yoda-slide-in print:hidden" role="alert"
       style={{ background: type === "success" ? "var(--green)" : "var(--red)", color: "#fff", borderRadius: "var(--radius-sm)", boxShadow: "0 4px 20px rgba(0,0,0,0.15)", minWidth: 260 }}>
       <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         {type === "success" ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /> : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />}
@@ -543,13 +543,13 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
   if (error) {
     return (
       <div className="p-6 md:p-8">
-        <Link href="/billing" className="text-[13px] font-semibold hover:underline mb-4 inline-flex items-center gap-1" style={{ color: "var(--blue-500)" }}>
+        <Link href="/billing" className="text-[15px] font-semibold hover:underline mb-4 inline-flex items-center gap-1" style={{ color: "var(--blue-500)" }}>
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
           Back to Billing
         </Link>
         <div className="mt-4 px-4 py-3 flex items-center justify-between" style={{ background: "#ffebee", color: "var(--red)", borderRadius: "var(--radius-sm)" }}>
-          <p className="text-[13px] font-medium">Failed to load invoice: {error}</p>
-          <button onClick={fetchInvoice} className="text-[12px] font-semibold underline">Retry</button>
+          <p className="text-[15px] font-medium">Failed to load invoice: {error}</p>
+          <button onClick={fetchInvoice} className="text-[14px] font-semibold underline">Retry</button>
         </div>
       </div>
     );
@@ -587,13 +587,13 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
         <div className="fixed inset-0 z-50 flex items-center justify-center print:hidden" style={{ background: "rgba(0,0,0,0.4)" }}>
           <div className="w-full max-w-sm mx-4 p-6" style={{ ...cardStyle, boxShadow: "0 20px 60px rgba(0,0,0,0.2)" }}>
             <h3 className="text-[16px] font-bold mb-2" style={{ color: "var(--grey-900)" }}>Cancel Invoice?</h3>
-            <p className="text-[13px] mb-5" style={{ color: "var(--grey-600)" }}>
+            <p className="text-[15px] mb-5" style={{ color: "var(--grey-600)" }}>
               This will mark invoice <strong>{invoice.invoiceNumber}</strong> as cancelled. This action cannot be undone.
             </p>
             <div className="flex gap-2 justify-end">
               <button
                 onClick={() => setShowCancelConfirm(false)}
-                className="px-4 py-2 text-[13px] font-semibold"
+                className="px-4 py-2 text-[15px] font-semibold"
                 style={{ border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-700)", background: "var(--white)" }}
               >
                 Keep Invoice
@@ -601,7 +601,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
               <button
                 onClick={handleCancelInvoice}
                 disabled={cancelling}
-                className="px-4 py-2 text-[13px] font-semibold text-white"
+                className="px-4 py-2 text-[15px] font-semibold text-white"
                 style={{ background: "var(--red)", borderRadius: "var(--radius-sm)", opacity: cancelling ? 0.6 : 1 }}
               >
                 {cancelling ? "Cancelling..." : "Yes, Cancel Invoice"}
@@ -696,14 +696,14 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
       <div className="p-6 md:p-8 yoda-fade-in">
         {/* ── Back link + Actions ───────────────────────────────────── */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 print:hidden">
-          <Link href="/billing" className="text-[13px] font-semibold hover:underline inline-flex items-center gap-1" style={{ color: "var(--blue-500)" }}>
+          <Link href="/billing" className="text-[15px] font-semibold hover:underline inline-flex items-center gap-1" style={{ color: "var(--blue-500)" }}>
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
             Back to Billing
           </Link>
           <div className="flex gap-2">
             <button
               onClick={() => { setPrintingReceiptId(null); setTimeout(() => window.print(), 50); }}
-              className="inline-flex items-center gap-2 px-4 py-2 text-[13px] font-semibold"
+              className="inline-flex items-center gap-2 px-4 py-2 text-[15px] font-semibold"
               style={{ border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-700)", background: "var(--white)" }}
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
@@ -712,7 +712,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
             {canCancel && (
               <button
                 onClick={() => setShowCancelConfirm(true)}
-                className="inline-flex items-center gap-2 px-4 py-2 text-[13px] font-semibold text-white"
+                className="inline-flex items-center gap-2 px-4 py-2 text-[15px] font-semibold text-white"
                 style={{ background: "var(--red)", borderRadius: "var(--radius-sm)" }}
               >
                 Cancel Invoice
@@ -775,7 +775,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
             <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
               <div>
                 <div className="flex items-center gap-3 mb-2">
-                  <h1 className="text-[22px] md:text-[26px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>
+                  <h1 className="text-[24px] md:text-[28px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>
                     {invoice.invoiceNumber}
                   </h1>
                   <span
@@ -785,14 +785,14 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                     {formatStatusLabel(invoice.status)}
                   </span>
                 </div>
-                <div className="flex flex-wrap gap-x-6 gap-y-1 text-[13px]" style={{ color: "var(--grey-600)" }}>
+                <div className="flex flex-wrap gap-x-6 gap-y-1 text-[15px]" style={{ color: "var(--grey-600)" }}>
                   <span>Date: <strong style={{ color: "var(--grey-900)" }}>{formatDate(invoice.date)}</strong></span>
                   {invoice.dueDate && (
                     <span>Due: <strong style={{ color: "var(--grey-900)" }}>{formatDate(invoice.dueDate)}</strong></span>
                   )}
                 </div>
               </div>
-              <div className="text-[13px]" style={{ color: "var(--grey-600)" }}>
+              <div className="text-[15px]" style={{ color: "var(--grey-600)" }}>
                 <p className="font-semibold mb-1" style={{ color: "var(--grey-900)" }}>{invoice.patientName}</p>
                 {invoice.patientPhone && <p>Phone: {invoice.patientPhone}</p>}
                 {invoice.patientId && <p>Patient ID: {invoice.patientId}</p>}
@@ -813,22 +813,22 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
           {/* ── Items Table ───────────────────────────────────────────── */}
           <div className="mb-4 overflow-hidden" style={cardStyle}>
             <div className="px-5 py-3" style={{ borderBottom: "1px solid var(--grey-300)", background: "var(--grey-50)" }}>
-              <h2 className="text-[15px] font-bold" style={{ color: "var(--grey-900)" }}>Items</h2>
+              <h2 className="text-[17px] font-bold" style={{ color: "var(--grey-900)" }}>Items</h2>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full" role="table">
                 <thead style={{ borderBottom: "1px solid var(--grey-300)", background: "var(--grey-50)" }}>
                   <tr>
-                    <th className="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)", width: 40 }}>#</th>
-                    <th className="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Description</th>
-                    <th className="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Type</th>
-                    <th className="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider hidden print:table-cell" style={{ color: "var(--grey-600)" }}>HSN/SAC</th>
-                    <th className="text-right px-4 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Qty</th>
-                    <th className="text-right px-4 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Unit Price</th>
-                    <th className="text-right px-4 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Discount</th>
-                    <th className="text-right px-4 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>GST %</th>
-                    <th className="text-right px-4 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>GST Amt</th>
-                    <th className="text-right px-4 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Amount</th>
+                    <th className="text-left px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)", width: 40 }}>#</th>
+                    <th className="text-left px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Description</th>
+                    <th className="text-left px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Type</th>
+                    <th className="text-left px-4 py-3 text-[13px] font-bold uppercase tracking-wider hidden print:table-cell" style={{ color: "var(--grey-600)" }}>HSN/SAC</th>
+                    <th className="text-right px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Qty</th>
+                    <th className="text-right px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Unit Price</th>
+                    <th className="text-right px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Discount</th>
+                    <th className="text-right px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>GST %</th>
+                    <th className="text-right px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>GST Amt</th>
+                    <th className="text-right px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Amount</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -836,8 +836,8 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                     const typeStyle = getItemTypeStyle(item.type);
                     return (
                       <tr key={item.id} style={{ borderBottom: idx < invoice.items.length - 1 ? "1px solid var(--grey-200)" : "none" }}>
-                        <td className="px-4 py-3 text-[12px]" style={{ color: "var(--grey-500)" }}>{idx + 1}</td>
-                        <td className="px-4 py-3 text-[13px] font-medium" style={{ color: "var(--grey-900)" }}>{item.description}</td>
+                        <td className="px-4 py-3 text-[14px]" style={{ color: "var(--grey-500)" }}>{idx + 1}</td>
+                        <td className="px-4 py-3 text-[15px] font-medium" style={{ color: "var(--grey-900)" }}>{item.description}</td>
                         <td className="px-4 py-3">
                           <span
                             className={chipBase}
@@ -846,21 +846,21 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                             {item.type}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-[12px] hidden print:table-cell" style={{ color: "var(--grey-600)" }}>{item.hsnSacCode || "\u2014"}</td>
-                        <td className="px-4 py-3 text-[13px] text-right" style={{ color: "var(--grey-900)" }}>{item.quantity}</td>
-                        <td className="px-4 py-3 text-[13px] text-right" style={{ color: "var(--grey-900)" }}>{formatCurrency(item.unitPrice)}</td>
-                        <td className="px-4 py-3 text-[13px] text-right" style={{ color: item.discount > 0 ? "var(--red)" : "var(--grey-500)" }}>
+                        <td className="px-4 py-3 text-[14px] hidden print:table-cell" style={{ color: "var(--grey-600)" }}>{item.hsnSacCode || "\u2014"}</td>
+                        <td className="px-4 py-3 text-[15px] text-right" style={{ color: "var(--grey-900)" }}>{item.quantity}</td>
+                        <td className="px-4 py-3 text-[15px] text-right" style={{ color: "var(--grey-900)" }}>{formatCurrency(item.unitPrice)}</td>
+                        <td className="px-4 py-3 text-[15px] text-right" style={{ color: item.discount > 0 ? "var(--red)" : "var(--grey-500)" }}>
                           {item.discount > 0 ? formatCurrency(item.discount) : "\u2014"}
                         </td>
-                        <td className="px-4 py-3 text-[13px] text-right" style={{ color: "var(--grey-600)" }}>{item.gstPercent}%</td>
-                        <td className="px-4 py-3 text-[13px] text-right" style={{ color: "var(--grey-600)" }}>{formatCurrency(item.gstAmount)}</td>
-                        <td className="px-4 py-3 text-[13px] text-right font-semibold" style={{ color: "var(--grey-900)" }}>{formatCurrency(item.amount)}</td>
+                        <td className="px-4 py-3 text-[15px] text-right" style={{ color: "var(--grey-600)" }}>{item.gstPercent}%</td>
+                        <td className="px-4 py-3 text-[15px] text-right" style={{ color: "var(--grey-600)" }}>{formatCurrency(item.gstAmount)}</td>
+                        <td className="px-4 py-3 text-[15px] text-right font-semibold" style={{ color: "var(--grey-900)" }}>{formatCurrency(item.amount)}</td>
                       </tr>
                     );
                   })}
                   {invoice.items.length === 0 && (
                     <tr>
-                      <td colSpan={10} className="px-4 py-8 text-center text-[13px]" style={{ color: "var(--grey-500)" }}>No items</td>
+                      <td colSpan={10} className="px-4 py-8 text-center text-[15px]" style={{ color: "var(--grey-500)" }}>No items</td>
                     </tr>
                   )}
                 </tbody>
@@ -872,29 +872,29 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
           {gstSummary.length > 0 && (
             <div className="mb-4 overflow-hidden hidden print:block" style={cardStyle}>
               <div className="px-5 py-3" style={{ borderBottom: "1px solid var(--grey-300)", background: "var(--grey-50)" }}>
-                <h2 className="text-[15px] font-bold" style={{ color: "var(--grey-900)" }}>GST Summary</h2>
+                <h2 className="text-[17px] font-bold" style={{ color: "var(--grey-900)" }}>GST Summary</h2>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full" role="table">
                   <thead style={{ borderBottom: "1px solid var(--grey-300)", background: "var(--grey-50)" }}>
                     <tr>
-                      <th className="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>GST Rate</th>
-                      <th className="text-right px-4 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Taxable Amount</th>
-                      <th className="text-right px-4 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>GST Amount</th>
+                      <th className="text-left px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>GST Rate</th>
+                      <th className="text-right px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Taxable Amount</th>
+                      <th className="text-right px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>GST Amount</th>
                     </tr>
                   </thead>
                   <tbody>
                     {gstSummary.map((row, idx) => (
                       <tr key={row.rate} style={{ borderBottom: idx < gstSummary.length - 1 ? "1px solid var(--grey-200)" : "none" }}>
-                        <td className="px-4 py-3 text-[13px] font-medium" style={{ color: "var(--grey-900)" }}>{row.rate}% GST</td>
-                        <td className="px-4 py-3 text-[13px] text-right" style={{ color: "var(--grey-900)" }}>{formatCurrency(row.taxable)}</td>
-                        <td className="px-4 py-3 text-[13px] text-right font-semibold" style={{ color: "var(--grey-900)" }}>{formatCurrency(row.gst)}</td>
+                        <td className="px-4 py-3 text-[15px] font-medium" style={{ color: "var(--grey-900)" }}>{row.rate}% GST</td>
+                        <td className="px-4 py-3 text-[15px] text-right" style={{ color: "var(--grey-900)" }}>{formatCurrency(row.taxable)}</td>
+                        <td className="px-4 py-3 text-[15px] text-right font-semibold" style={{ color: "var(--grey-900)" }}>{formatCurrency(row.gst)}</td>
                       </tr>
                     ))}
                     <tr style={{ borderTop: "2px solid var(--grey-300)" }}>
-                      <td className="px-4 py-3 text-[13px] font-bold" style={{ color: "var(--grey-900)" }}>Total</td>
-                      <td className="px-4 py-3 text-[13px] text-right font-bold" style={{ color: "var(--grey-900)" }}>{formatCurrency(gstSummary.reduce((s, r) => s + r.taxable, 0))}</td>
-                      <td className="px-4 py-3 text-[13px] text-right font-bold" style={{ color: "var(--grey-900)" }}>{formatCurrency(gstSummary.reduce((s, r) => s + r.gst, 0))}</td>
+                      <td className="px-4 py-3 text-[15px] font-bold" style={{ color: "var(--grey-900)" }}>Total</td>
+                      <td className="px-4 py-3 text-[15px] text-right font-bold" style={{ color: "var(--grey-900)" }}>{formatCurrency(gstSummary.reduce((s, r) => s + r.taxable, 0))}</td>
+                      <td className="px-4 py-3 text-[15px] text-right font-bold" style={{ color: "var(--grey-900)" }}>{formatCurrency(gstSummary.reduce((s, r) => s + r.gst, 0))}</td>
                     </tr>
                   </tbody>
                 </table>
@@ -908,39 +908,39 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
               <table style={{ minWidth: 320 }}>
                 <tbody>
                   <tr>
-                    <td className="py-1.5 pr-6 text-[13px] text-right" style={{ color: "var(--grey-600)" }}>Subtotal</td>
-                    <td className="py-1.5 text-[13px] text-right font-medium" style={{ color: "var(--grey-900)" }}>{formatCurrency(invoice.subtotal)}</td>
+                    <td className="py-1.5 pr-6 text-[15px] text-right" style={{ color: "var(--grey-600)" }}>Subtotal</td>
+                    <td className="py-1.5 text-[15px] text-right font-medium" style={{ color: "var(--grey-900)" }}>{formatCurrency(invoice.subtotal)}</td>
                   </tr>
                   {(invoice.discountPercent > 0 || invoice.discountAmount > 0) && (
                     <tr>
-                      <td className="py-1.5 pr-6 text-[13px] text-right" style={{ color: "var(--grey-600)" }}>
+                      <td className="py-1.5 pr-6 text-[15px] text-right" style={{ color: "var(--grey-600)" }}>
                         Discount{invoice.discountPercent > 0 ? ` (${invoice.discountPercent}%)` : ""}
                       </td>
-                      <td className="py-1.5 text-[13px] text-right font-medium" style={{ color: "var(--red)" }}>
+                      <td className="py-1.5 text-[15px] text-right font-medium" style={{ color: "var(--red)" }}>
                         -{formatCurrency(invoice.discountAmount)}
                       </td>
                     </tr>
                   )}
                   <tr>
-                    <td className="py-1.5 pr-6 text-[13px] text-right" style={{ color: "var(--grey-600)" }}>Taxable Amount</td>
-                    <td className="py-1.5 text-[13px] text-right font-medium" style={{ color: "var(--grey-900)" }}>{formatCurrency(invoice.taxableAmount)}</td>
+                    <td className="py-1.5 pr-6 text-[15px] text-right" style={{ color: "var(--grey-600)" }}>Taxable Amount</td>
+                    <td className="py-1.5 text-[15px] text-right font-medium" style={{ color: "var(--grey-900)" }}>{formatCurrency(invoice.taxableAmount)}</td>
                   </tr>
                   <tr>
-                    <td className="py-1.5 pr-6 text-[13px] text-right" style={{ color: "var(--grey-600)" }}>GST</td>
-                    <td className="py-1.5 text-[13px] text-right font-medium" style={{ color: "var(--grey-900)" }}>{formatCurrency(invoice.gstAmount)}</td>
+                    <td className="py-1.5 pr-6 text-[15px] text-right" style={{ color: "var(--grey-600)" }}>GST</td>
+                    <td className="py-1.5 text-[15px] text-right font-medium" style={{ color: "var(--grey-900)" }}>{formatCurrency(invoice.gstAmount)}</td>
                   </tr>
                   <tr style={{ borderTop: "2px solid var(--grey-300)" }}>
-                    <td className="py-2.5 pr-6 text-[15px] text-right font-bold" style={{ color: "var(--grey-900)" }}>Grand Total</td>
+                    <td className="py-2.5 pr-6 text-[17px] text-right font-bold" style={{ color: "var(--grey-900)" }}>Grand Total</td>
                     <td className="py-2.5 text-[17px] text-right font-bold" style={{ color: "var(--grey-900)" }}>{formatCurrency(invoice.totalAmount)}</td>
                   </tr>
                   <tr>
-                    <td className="py-1.5 pr-6 text-[13px] text-right" style={{ color: "var(--grey-600)" }}>Amount Paid</td>
-                    <td className="py-1.5 text-[13px] text-right font-medium" style={{ color: "var(--green)" }}>{formatCurrency(invoice.paidAmount)}</td>
+                    <td className="py-1.5 pr-6 text-[15px] text-right" style={{ color: "var(--grey-600)" }}>Amount Paid</td>
+                    <td className="py-1.5 text-[15px] text-right font-medium" style={{ color: "var(--green)" }}>{formatCurrency(invoice.paidAmount)}</td>
                   </tr>
                   {invoice.balanceAmount > 0 && (
                     <tr style={{ borderTop: "1px solid var(--grey-200)" }}>
-                      <td className="py-2 pr-6 text-[14px] text-right font-bold" style={{ color: "var(--red)" }}>Balance Due</td>
-                      <td className="py-2 text-[15px] text-right font-bold" style={{ color: "var(--red)" }}>{formatCurrency(invoice.balanceAmount)}</td>
+                      <td className="py-2 pr-6 text-[16px] text-right font-bold" style={{ color: "var(--red)" }}>Balance Due</td>
+                      <td className="py-2 text-[17px] text-right font-bold" style={{ color: "var(--red)" }}>{formatCurrency(invoice.balanceAmount)}</td>
                     </tr>
                   )}
                 </tbody>
@@ -960,13 +960,13 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
           <div className="hidden print:block mt-12">
             <div className="flex justify-between items-end" style={{ borderTop: "1px solid var(--grey-300)", paddingTop: 24 }}>
               <div>
-                <p className="text-[13px] font-medium" style={{ color: "var(--grey-600)" }}>Thank you for your visit.</p>
-                <p className="text-[11px] mt-1" style={{ color: "var(--grey-500)" }}>Wishing you good health and wellness.</p>
+                <p className="text-[15px] font-medium" style={{ color: "var(--grey-600)" }}>Thank you for your visit.</p>
+                <p className="text-[13px] mt-1" style={{ color: "var(--grey-500)" }}>Wishing you good health and wellness.</p>
               </div>
               <div className="text-center">
                 <p style={{ fontSize: 11, color: "var(--grey-600)", marginBottom: 24 }}>For {clinicName}</p>
                 <div style={{ borderTop: "1px solid var(--grey-400)", width: 200, marginBottom: 4 }} />
-                <p className="text-[11px]" style={{ color: "var(--grey-600)" }}>Authorized Signature</p>
+                <p className="text-[13px]" style={{ color: "var(--grey-600)" }}>Authorized Signature</p>
                 <p style={{ fontSize: 10, color: "var(--grey-500)", marginTop: 2 }}>Date: _______________</p>
               </div>
             </div>
@@ -978,21 +978,21 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
         {/* ── Payment History ─────────────────────────────────────────── */}
         <div className="mb-4 overflow-hidden print:hidden" style={cardStyle}>
           <div className="px-5 py-3" style={{ borderBottom: "1px solid var(--grey-300)", background: "var(--grey-50)" }}>
-            <h2 className="text-[15px] font-bold" style={{ color: "var(--grey-900)" }}>Payment History</h2>
+            <h2 className="text-[17px] font-bold" style={{ color: "var(--grey-900)" }}>Payment History</h2>
           </div>
           {invoice.payments.length === 0 ? (
-            <div className="px-5 py-8 text-center text-[13px]" style={{ color: "var(--grey-500)" }}>No payments recorded yet</div>
+            <div className="px-5 py-8 text-center text-[15px]" style={{ color: "var(--grey-500)" }}>No payments recorded yet</div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full" role="table">
                 <thead style={{ borderBottom: "1px solid var(--grey-300)", background: "var(--grey-50)" }}>
                   <tr>
-                    <th className="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Date</th>
-                    <th className="text-right px-4 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Amount</th>
-                    <th className="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Method</th>
-                    <th className="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Reference</th>
-                    <th className="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Notes</th>
-                    <th className="text-center px-4 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Receipt</th>
+                    <th className="text-left px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Date</th>
+                    <th className="text-right px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Amount</th>
+                    <th className="text-left px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Method</th>
+                    <th className="text-left px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Reference</th>
+                    <th className="text-left px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Notes</th>
+                    <th className="text-center px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Receipt</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1000,19 +1000,19 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                     const mStyle = getMethodStyle(pay.method);
                     return (
                       <tr key={pay.id} style={{ borderBottom: idx < invoice.payments.length - 1 ? "1px solid var(--grey-200)" : "none" }}>
-                        <td className="px-4 py-3 text-[13px]" style={{ color: "var(--grey-900)" }}>{formatDate(pay.date)}</td>
-                        <td className="px-4 py-3 text-[13px] text-right font-semibold" style={{ color: "var(--green)" }}>{formatCurrency(pay.amount)}</td>
+                        <td className="px-4 py-3 text-[15px]" style={{ color: "var(--grey-900)" }}>{formatDate(pay.date)}</td>
+                        <td className="px-4 py-3 text-[15px] text-right font-semibold" style={{ color: "var(--green)" }}>{formatCurrency(pay.amount)}</td>
                         <td className="px-4 py-3">
                           <span className={chipBase} style={{ borderRadius: "var(--radius-sm)", background: mStyle.bg, color: mStyle.color }}>
                             {pay.method}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-[12px]" style={{ color: "var(--grey-600)" }}>{pay.reference || "\u2014"}</td>
-                        <td className="px-4 py-3 text-[12px]" style={{ color: "var(--grey-600)" }}>{pay.notes || "\u2014"}</td>
+                        <td className="px-4 py-3 text-[14px]" style={{ color: "var(--grey-600)" }}>{pay.reference || "\u2014"}</td>
+                        <td className="px-4 py-3 text-[14px]" style={{ color: "var(--grey-600)" }}>{pay.notes || "\u2014"}</td>
                         <td className="px-4 py-3 text-center">
                           <button
                             onClick={() => handlePrintReceipt(pay.id)}
-                            className="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-semibold"
+                            className="inline-flex items-center gap-1 px-2 py-1 text-[13px] font-semibold"
                             style={{ border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-700)", background: "var(--white)" }}
                             title="Print Receipt"
                           >
@@ -1033,13 +1033,13 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
         {invoice.balanceAmount > 0 && invoice.status !== "cancelled" && (
           <div className="mb-4 print:hidden" style={cardStyle}>
             <div className="px-5 py-3" style={{ borderBottom: "1px solid var(--grey-300)", background: "var(--grey-50)" }}>
-              <h2 className="text-[15px] font-bold" style={{ color: "var(--grey-900)" }}>Record Payment</h2>
+              <h2 className="text-[17px] font-bold" style={{ color: "var(--grey-900)" }}>Record Payment</h2>
             </div>
             <form onSubmit={handleRecordPayment} className="p-5">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                 {/* Amount */}
                 <div>
-                  <label className="block text-[12px] font-semibold mb-1" style={{ color: "var(--grey-600)" }}>Amount ({"S$"})</label>
+                  <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-600)" }}>Amount ({"S$"})</label>
                   <input
                     type="number"
                     step="0.01"
@@ -1055,7 +1055,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                 </div>
                 {/* Method */}
                 <div>
-                  <label className="block text-[12px] font-semibold mb-1" style={{ color: "var(--grey-600)" }}>Method</label>
+                  <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-600)" }}>Method</label>
                   <select
                     value={payMethod}
                     onChange={(e) => setPayMethod(e.target.value)}
@@ -1071,7 +1071,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                 </div>
                 {/* Reference */}
                 <div>
-                  <label className="block text-[12px] font-semibold mb-1" style={{ color: "var(--grey-600)" }}>Reference</label>
+                  <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-600)" }}>Reference</label>
                   <input
                     type="text"
                     value={payReference}
@@ -1083,7 +1083,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                 </div>
                 {/* Notes */}
                 <div>
-                  <label className="block text-[12px] font-semibold mb-1" style={{ color: "var(--grey-600)" }}>Notes</label>
+                  <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-600)" }}>Notes</label>
                   <input
                     type="text"
                     value={payNotes}
@@ -1098,7 +1098,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                 <button
                   type="submit"
                   disabled={submittingPayment}
-                  className="inline-flex items-center gap-2 text-white px-5 py-2 text-[13px] font-semibold transition-colors duration-150"
+                  className="inline-flex items-center gap-2 text-white px-5 py-2 text-[15px] font-semibold transition-colors duration-150"
                   style={{ background: "var(--blue-500)", borderRadius: "var(--radius-sm)", opacity: submittingPayment ? 0.6 : 1 }}
                 >
                   {submittingPayment ? (
@@ -1121,18 +1121,18 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
         {/* ── Invoice Notes ───────────────────────────────────────────── */}
         {invoice.notes && (
           <div className="mb-4 p-5 print:hidden" style={cardStyle}>
-            <h2 className="text-[15px] font-bold mb-2" style={{ color: "var(--grey-900)" }}>Notes</h2>
-            <p className="text-[13px]" style={{ color: "var(--grey-600)", whiteSpace: "pre-wrap" }}>{invoice.notes}</p>
+            <h2 className="text-[17px] font-bold mb-2" style={{ color: "var(--grey-900)" }}>Notes</h2>
+            <p className="text-[15px]" style={{ color: "var(--grey-600)", whiteSpace: "pre-wrap" }}>{invoice.notes}</p>
           </div>
         )}
 
         {/* ═══ Insurance Claims Section ═══════════════════════════════════ */}
         <div className="mb-4 overflow-hidden print:hidden" style={cardStyle}>
           <div className="px-5 py-3 flex items-center justify-between" style={{ borderBottom: "1px solid var(--grey-300)", background: "var(--grey-50)" }}>
-            <h2 className="text-[15px] font-bold" style={{ color: "var(--grey-900)" }}>Insurance Claims</h2>
+            <h2 className="text-[17px] font-bold" style={{ color: "var(--grey-900)" }}>Insurance Claims</h2>
             <button
               onClick={openClaimForm}
-              className="inline-flex items-center gap-1 px-3 py-1.5 text-[12px] font-semibold text-white"
+              className="inline-flex items-center gap-1 px-3 py-1.5 text-[14px] font-semibold text-white"
               style={{ background: "var(--blue-500)", borderRadius: "var(--radius-sm)" }}
             >
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
@@ -1145,7 +1145,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
             <form onSubmit={handleSubmitClaim} className="p-5" style={{ borderBottom: "1px solid var(--grey-300)", background: "#fffdf7" }}>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                 <div>
-                  <label className="block text-[12px] font-semibold mb-1" style={{ color: "var(--grey-600)" }}>Insurance Provider</label>
+                  <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-600)" }}>Insurance Provider</label>
                   <select
                     value={claimProviderId}
                     onChange={(e) => setClaimProviderId(e.target.value)}
@@ -1160,7 +1160,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[12px] font-semibold mb-1" style={{ color: "var(--grey-600)" }}>Claim Amount (S$)</label>
+                  <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-600)" }}>Claim Amount (S$)</label>
                   <input
                     type="number"
                     step="0.01"
@@ -1174,7 +1174,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                   />
                 </div>
                 <div>
-                  <label className="block text-[12px] font-semibold mb-1" style={{ color: "var(--grey-600)" }}>Pre-Auth Number</label>
+                  <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-600)" }}>Pre-Auth Number</label>
                   <input
                     type="text"
                     value={claimPreAuth}
@@ -1185,7 +1185,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                   />
                 </div>
                 <div>
-                  <label className="block text-[12px] font-semibold mb-1" style={{ color: "var(--grey-600)" }}>Notes</label>
+                  <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-600)" }}>Notes</label>
                   <input
                     type="text"
                     value={claimNotes}
@@ -1200,7 +1200,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                 <button
                   type="button"
                   onClick={() => setShowClaimForm(false)}
-                  className="px-4 py-2 text-[13px] font-semibold"
+                  className="px-4 py-2 text-[15px] font-semibold"
                   style={{ border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-700)", background: "var(--white)" }}
                 >
                   Cancel
@@ -1208,7 +1208,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                 <button
                   type="submit"
                   disabled={submittingClaim}
-                  className="px-4 py-2 text-[13px] font-semibold text-white"
+                  className="px-4 py-2 text-[15px] font-semibold text-white"
                   style={{ background: "var(--blue-500)", borderRadius: "var(--radius-sm)", opacity: submittingClaim ? 0.6 : 1 }}
                 >
                   {submittingClaim ? "Submitting..." : "Submit Claim"}
@@ -1219,21 +1219,21 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
 
           {/* Claims list */}
           {loadingClaims ? (
-            <div className="px-5 py-8 text-center text-[13px]" style={{ color: "var(--grey-500)" }}>Loading claims...</div>
+            <div className="px-5 py-8 text-center text-[15px]" style={{ color: "var(--grey-500)" }}>Loading claims...</div>
           ) : claims.length === 0 ? (
-            <div className="px-5 py-8 text-center text-[13px]" style={{ color: "var(--grey-500)" }}>No insurance claims for this invoice</div>
+            <div className="px-5 py-8 text-center text-[15px]" style={{ color: "var(--grey-500)" }}>No insurance claims for this invoice</div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full" role="table">
                 <thead style={{ borderBottom: "1px solid var(--grey-300)", background: "var(--grey-50)" }}>
                   <tr>
-                    <th className="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Claim #</th>
-                    <th className="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Provider</th>
-                    <th className="text-center px-4 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Status</th>
-                    <th className="text-right px-4 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Claimed</th>
-                    <th className="text-right px-4 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Approved</th>
-                    <th className="text-right px-4 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Settled</th>
-                    <th className="text-center px-4 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Actions</th>
+                    <th className="text-left px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Claim #</th>
+                    <th className="text-left px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Provider</th>
+                    <th className="text-center px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Status</th>
+                    <th className="text-right px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Claimed</th>
+                    <th className="text-right px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Approved</th>
+                    <th className="text-right px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Settled</th>
+                    <th className="text-center px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1241,18 +1241,18 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                     const cStyle = getStatusStyle(claim.status);
                     return (
                       <tr key={claim.id} style={{ borderBottom: idx < claims.length - 1 ? "1px solid var(--grey-200)" : "none" }}>
-                        <td className="px-4 py-3 text-[13px] font-medium" style={{ color: "var(--grey-900)" }}>{claim.claimNumber}</td>
-                        <td className="px-4 py-3 text-[13px]" style={{ color: "var(--grey-900)" }}>{claim.providerName}</td>
+                        <td className="px-4 py-3 text-[15px] font-medium" style={{ color: "var(--grey-900)" }}>{claim.claimNumber}</td>
+                        <td className="px-4 py-3 text-[15px]" style={{ color: "var(--grey-900)" }}>{claim.providerName}</td>
                         <td className="px-4 py-3 text-center">
                           <span className={chipBase} style={{ borderRadius: "var(--radius-sm)", background: cStyle.bg, color: cStyle.color }}>
                             {formatStatusLabel(claim.status)}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-[13px] text-right" style={{ color: "var(--grey-900)" }}>{formatCurrency(claim.claimAmount)}</td>
-                        <td className="px-4 py-3 text-[13px] text-right" style={{ color: "var(--grey-600)" }}>
+                        <td className="px-4 py-3 text-[15px] text-right" style={{ color: "var(--grey-900)" }}>{formatCurrency(claim.claimAmount)}</td>
+                        <td className="px-4 py-3 text-[15px] text-right" style={{ color: "var(--grey-600)" }}>
                           {claim.approvedAmount != null ? formatCurrency(claim.approvedAmount) : "\u2014"}
                         </td>
-                        <td className="px-4 py-3 text-[13px] text-right" style={{ color: "var(--grey-600)" }}>
+                        <td className="px-4 py-3 text-[15px] text-right" style={{ color: "var(--grey-600)" }}>
                           {claim.settledAmount != null ? formatCurrency(claim.settledAmount) : "\u2014"}
                         </td>
                         <td className="px-4 py-3 text-center">
@@ -1260,7 +1260,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                             {claim.status === "submitted" && (
                               <button
                                 onClick={() => handleClaimStatusChange(claim.id, "under_review")}
-                                className="px-2 py-1 text-[10px] font-semibold text-white"
+                                className="px-2 py-1 text-[12px] font-semibold text-white"
                                 style={{ background: "var(--blue-500)", borderRadius: "var(--radius-sm)" }}
                               >
                                 Under Review
@@ -1269,7 +1269,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                             {(claim.status === "submitted" || claim.status === "under_review") && (
                               <button
                                 onClick={() => handleClaimStatusChange(claim.id, "approved")}
-                                className="px-2 py-1 text-[10px] font-semibold text-white"
+                                className="px-2 py-1 text-[12px] font-semibold text-white"
                                 style={{ background: "var(--green)", borderRadius: "var(--radius-sm)" }}
                               >
                                 Approve
@@ -1278,7 +1278,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                             {claim.status === "approved" && (
                               <button
                                 onClick={() => handleClaimStatusChange(claim.id, "settled")}
-                                className="px-2 py-1 text-[10px] font-semibold text-white"
+                                className="px-2 py-1 text-[12px] font-semibold text-white"
                                 style={{ background: "#7b1fa2", borderRadius: "var(--radius-sm)" }}
                               >
                                 Settle
@@ -1287,7 +1287,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                             {(claim.status === "submitted" || claim.status === "under_review") && (
                               <button
                                 onClick={() => handleClaimStatusChange(claim.id, "rejected")}
-                                className="px-2 py-1 text-[10px] font-semibold text-white"
+                                className="px-2 py-1 text-[12px] font-semibold text-white"
                                 style={{ background: "var(--red)", borderRadius: "var(--radius-sm)" }}
                               >
                                 Reject
@@ -1307,11 +1307,11 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
         {/* ═══ Credit Notes Section ═══════════════════════════════════════ */}
         <div className="mb-4 overflow-hidden print:hidden" style={cardStyle}>
           <div className="px-5 py-3 flex items-center justify-between" style={{ borderBottom: "1px solid var(--grey-300)", background: "var(--grey-50)" }}>
-            <h2 className="text-[15px] font-bold" style={{ color: "var(--grey-900)" }}>Credit Notes</h2>
+            <h2 className="text-[17px] font-bold" style={{ color: "var(--grey-900)" }}>Credit Notes</h2>
             {canIssueCreditNote && (
               <button
                 onClick={openCreditNoteForm}
-                className="inline-flex items-center gap-1 px-3 py-1.5 text-[12px] font-semibold text-white"
+                className="inline-flex items-center gap-1 px-3 py-1.5 text-[14px] font-semibold text-white"
                 style={{ background: "var(--blue-500)", borderRadius: "var(--radius-sm)" }}
               >
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
@@ -1324,7 +1324,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
           {showCreditNoteForm && (
             <form onSubmit={handleIssueCreditNote} className="p-5" style={{ borderBottom: "1px solid var(--grey-300)", background: "#fffdf7" }}>
               <div className="mb-4">
-                <label className="block text-[12px] font-semibold mb-1" style={{ color: "var(--grey-600)" }}>Reason</label>
+                <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-600)" }}>Reason</label>
                 <textarea
                   value={cnReason}
                   onChange={(e) => setCnReason(e.target.value)}
@@ -1336,15 +1336,15 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
               </div>
 
               <div className="mb-4">
-                <label className="block text-[12px] font-semibold mb-2" style={{ color: "var(--grey-600)" }}>Select Items to Credit</label>
+                <label className="block text-[14px] font-semibold mb-2" style={{ color: "var(--grey-600)" }}>Select Items to Credit</label>
                 <div style={{ border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", overflow: "hidden" }}>
                   <table className="w-full">
                     <thead style={{ borderBottom: "1px solid var(--grey-300)", background: "var(--grey-50)" }}>
                       <tr>
-                        <th className="text-left px-3 py-2 text-[11px] font-bold uppercase" style={{ color: "var(--grey-600)", width: 40 }}></th>
-                        <th className="text-left px-3 py-2 text-[11px] font-bold uppercase" style={{ color: "var(--grey-600)" }}>Item</th>
-                        <th className="text-right px-3 py-2 text-[11px] font-bold uppercase" style={{ color: "var(--grey-600)" }}>Original</th>
-                        <th className="text-right px-3 py-2 text-[11px] font-bold uppercase" style={{ color: "var(--grey-600)", width: 140 }}>Credit Amount</th>
+                        <th className="text-left px-3 py-2 text-[13px] font-bold uppercase" style={{ color: "var(--grey-600)", width: 40 }}></th>
+                        <th className="text-left px-3 py-2 text-[13px] font-bold uppercase" style={{ color: "var(--grey-600)" }}>Item</th>
+                        <th className="text-right px-3 py-2 text-[13px] font-bold uppercase" style={{ color: "var(--grey-600)" }}>Original</th>
+                        <th className="text-right px-3 py-2 text-[13px] font-bold uppercase" style={{ color: "var(--grey-600)", width: 140 }}>Credit Amount</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1358,8 +1358,8 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                               style={{ accentColor: "var(--blue-500)" }}
                             />
                           </td>
-                          <td className="px-3 py-2 text-[13px]" style={{ color: "var(--grey-900)" }}>{item.description}</td>
-                          <td className="px-3 py-2 text-[13px] text-right" style={{ color: "var(--grey-600)" }}>{formatCurrency(item.amount)}</td>
+                          <td className="px-3 py-2 text-[15px]" style={{ color: "var(--grey-900)" }}>{item.description}</td>
+                          <td className="px-3 py-2 text-[15px] text-right" style={{ color: "var(--grey-600)" }}>{formatCurrency(item.amount)}</td>
                           <td className="px-3 py-2 text-right">
                             <input
                               type="number"
@@ -1368,7 +1368,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                               max={item.amount}
                               value={cnItemAmounts[item.id] || ""}
                               onChange={(e) => setCnItemAmounts({ ...cnItemAmounts, [item.id]: e.target.value })}
-                              className="w-full px-2 py-1 text-right text-[12px]"
+                              className="w-full px-2 py-1 text-right text-[14px]"
                               style={inputStyle}
                               disabled={!cnSelectedItems[item.id]}
                               placeholder="0.00"
@@ -1380,7 +1380,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                   </table>
                 </div>
                 <div className="mt-2 text-right">
-                  <span className="text-[13px] font-semibold" style={{ color: "var(--grey-900)" }}>
+                  <span className="text-[15px] font-semibold" style={{ color: "var(--grey-900)" }}>
                     Total Credit: {formatCurrency(
                       Object.entries(cnSelectedItems)
                         .filter(([, v]) => v)
@@ -1394,7 +1394,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                 <button
                   type="button"
                   onClick={() => setShowCreditNoteForm(false)}
-                  className="px-4 py-2 text-[13px] font-semibold"
+                  className="px-4 py-2 text-[15px] font-semibold"
                   style={{ border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-700)", background: "var(--white)" }}
                 >
                   Cancel
@@ -1402,7 +1402,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                 <button
                   type="submit"
                   disabled={submittingCreditNote}
-                  className="px-4 py-2 text-[13px] font-semibold text-white"
+                  className="px-4 py-2 text-[15px] font-semibold text-white"
                   style={{ background: "var(--blue-500)", borderRadius: "var(--radius-sm)", opacity: submittingCreditNote ? 0.6 : 1 }}
                 >
                   {submittingCreditNote ? "Creating..." : "Create Credit Note"}
@@ -1413,20 +1413,20 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
 
           {/* Credit notes list */}
           {loadingCreditNotes ? (
-            <div className="px-5 py-8 text-center text-[13px]" style={{ color: "var(--grey-500)" }}>Loading credit notes...</div>
+            <div className="px-5 py-8 text-center text-[15px]" style={{ color: "var(--grey-500)" }}>Loading credit notes...</div>
           ) : creditNotes.length === 0 ? (
-            <div className="px-5 py-8 text-center text-[13px]" style={{ color: "var(--grey-500)" }}>No credit notes for this invoice</div>
+            <div className="px-5 py-8 text-center text-[15px]" style={{ color: "var(--grey-500)" }}>No credit notes for this invoice</div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full" role="table">
                 <thead style={{ borderBottom: "1px solid var(--grey-300)", background: "var(--grey-50)" }}>
                   <tr>
-                    <th className="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Credit Note #</th>
-                    <th className="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Reason</th>
-                    <th className="text-right px-4 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Amount</th>
-                    <th className="text-center px-4 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Status</th>
-                    <th className="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Date</th>
-                    <th className="text-center px-4 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Actions</th>
+                    <th className="text-left px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Credit Note #</th>
+                    <th className="text-left px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Reason</th>
+                    <th className="text-right px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Amount</th>
+                    <th className="text-center px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Status</th>
+                    <th className="text-left px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Date</th>
+                    <th className="text-center px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1434,21 +1434,21 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                     const cnStyle = getStatusStyle(cn.status);
                     return (
                       <tr key={cn.id} style={{ borderBottom: idx < creditNotes.length - 1 ? "1px solid var(--grey-200)" : "none" }}>
-                        <td className="px-4 py-3 text-[13px] font-medium" style={{ color: "var(--grey-900)" }}>{cn.creditNoteNumber}</td>
-                        <td className="px-4 py-3 text-[12px]" style={{ color: "var(--grey-600)", maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{cn.reason}</td>
-                        <td className="px-4 py-3 text-[13px] text-right font-semibold" style={{ color: "var(--red)" }}>{formatCurrency(cn.amount)}</td>
+                        <td className="px-4 py-3 text-[15px] font-medium" style={{ color: "var(--grey-900)" }}>{cn.creditNoteNumber}</td>
+                        <td className="px-4 py-3 text-[14px]" style={{ color: "var(--grey-600)", maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{cn.reason}</td>
+                        <td className="px-4 py-3 text-[15px] text-right font-semibold" style={{ color: "var(--red)" }}>{formatCurrency(cn.amount)}</td>
                         <td className="px-4 py-3 text-center">
                           <span className={chipBase} style={{ borderRadius: "var(--radius-sm)", background: cnStyle.bg, color: cnStyle.color }}>
                             {formatStatusLabel(cn.status)}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-[12px]" style={{ color: "var(--grey-600)" }}>{formatDate(cn.createdAt)}</td>
+                        <td className="px-4 py-3 text-[14px]" style={{ color: "var(--grey-600)" }}>{formatDate(cn.createdAt)}</td>
                         <td className="px-4 py-3 text-center">
                           <div className="flex gap-1 justify-center flex-wrap">
                             {cn.status === "draft" && (
                               <button
                                 onClick={() => handleCreditNoteAction(cn.id, "issue")}
-                                className="px-2 py-1 text-[10px] font-semibold text-white"
+                                className="px-2 py-1 text-[12px] font-semibold text-white"
                                 style={{ background: "var(--blue-500)", borderRadius: "var(--radius-sm)" }}
                               >
                                 Issue
@@ -1457,7 +1457,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                             {cn.status === "issued" && (
                               <button
                                 onClick={() => { setRefundModal({ creditNoteId: cn.id }); setRefundMethod("Cash"); setRefundReference(""); }}
-                                className="px-2 py-1 text-[10px] font-semibold text-white"
+                                className="px-2 py-1 text-[12px] font-semibold text-white"
                                 style={{ background: "#7b1fa2", borderRadius: "var(--radius-sm)" }}
                               >
                                 Apply Refund
@@ -1480,7 +1480,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
             <div className="w-full max-w-sm mx-4 p-6" style={{ ...cardStyle, boxShadow: "0 20px 60px rgba(0,0,0,0.2)" }}>
               <h3 className="text-[16px] font-bold mb-4" style={{ color: "var(--grey-900)" }}>Apply Refund</h3>
               <div className="mb-4">
-                <label className="block text-[12px] font-semibold mb-1" style={{ color: "var(--grey-600)" }}>Refund Method</label>
+                <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-600)" }}>Refund Method</label>
                 <select
                   value={refundMethod}
                   onChange={(e) => setRefundMethod(e.target.value)}
@@ -1494,7 +1494,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                 </select>
               </div>
               <div className="mb-5">
-                <label className="block text-[12px] font-semibold mb-1" style={{ color: "var(--grey-600)" }}>Reference</label>
+                <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-600)" }}>Reference</label>
                 <input
                   type="text"
                   value={refundReference}
@@ -1507,14 +1507,14 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
               <div className="flex gap-2 justify-end">
                 <button
                   onClick={() => setRefundModal(null)}
-                  className="px-4 py-2 text-[13px] font-semibold"
+                  className="px-4 py-2 text-[15px] font-semibold"
                   style={{ border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-700)", background: "var(--white)" }}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={() => handleCreditNoteAction(refundModal.creditNoteId, "apply_refund", { refundMethod, refundReference })}
-                  className="px-4 py-2 text-[13px] font-semibold text-white"
+                  className="px-4 py-2 text-[15px] font-semibold text-white"
                   style={{ background: "#7b1fa2", borderRadius: "var(--radius-sm)" }}
                 >
                   Apply Refund

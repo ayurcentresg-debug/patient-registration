@@ -65,14 +65,14 @@ export default function InvitePage() {
         </div>
 
         <div className="bg-white rounded-2xl shadow-lg p-6" style={{ border: "1.5px solid var(--grey-200, #e5e7eb)" }}>
-          {loading && <p className="text-center text-[13px]" style={{ color: "var(--grey-500)" }}>Validating invite...</p>}
+          {loading && <p className="text-center text-[15px]" style={{ color: "var(--grey-500)" }}>Validating invite...</p>}
 
           {!loading && error && !info && (
             <div className="text-center">
               <div className="text-4xl mb-3">&#128683;</div>
               <h2 className="text-[16px] font-bold mb-1" style={{ color: "var(--grey-900)" }}>Invalid Invite</h2>
-              <p className="text-[13px]" style={{ color: "var(--grey-500)" }}>{error}</p>
-              <button onClick={() => router.push("/login")} className="mt-4 px-4 py-2 text-[13px] font-semibold rounded-lg" style={{ background: "var(--grey-100)", color: "var(--grey-700)" }}>
+              <p className="text-[15px]" style={{ color: "var(--grey-500)" }}>{error}</p>
+              <button onClick={() => router.push("/login")} className="mt-4 px-4 py-2 text-[15px] font-semibold rounded-lg" style={{ background: "var(--grey-100)", color: "var(--grey-700)" }}>
                 Go to Login
               </button>
             </div>
@@ -82,38 +82,38 @@ export default function InvitePage() {
             <div className="text-center">
               <div className="text-4xl mb-3">&#9989;</div>
               <h2 className="text-[16px] font-bold mb-1" style={{ color: "#059669" }}>Account Activated!</h2>
-              <p className="text-[13px]" style={{ color: "var(--grey-500)" }}>Redirecting to login...</p>
+              <p className="text-[15px]" style={{ color: "var(--grey-500)" }}>Redirecting to login...</p>
             </div>
           )}
 
           {info && !success && (
             <>
               <h2 className="text-[16px] font-bold mb-1" style={{ color: "var(--grey-900)" }}>Welcome, {info.name}!</h2>
-              <p className="text-[13px] mb-4" style={{ color: "var(--grey-500)" }}>
+              <p className="text-[15px] mb-4" style={{ color: "var(--grey-500)" }}>
                 Set your password to activate your <strong>{info.role}</strong> account at Ayur Centre.
               </p>
 
               {error && (
-                <div className="p-3 rounded-lg mb-3 text-[12px] font-medium" style={{ background: "#fee2e2", color: "#dc2626" }}>{error}</div>
+                <div className="p-3 rounded-lg mb-3 text-[14px] font-medium" style={{ background: "#fee2e2", color: "#dc2626" }}>{error}</div>
               )}
 
               <form onSubmit={handleSubmit} className="space-y-3">
                 <div>
-                  <label className="block text-[12px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Email</label>
-                  <input type="email" value={info.email} disabled className="w-full px-3 py-2 text-[13px] rounded-lg" style={{ background: "var(--grey-50)", border: "1.5px solid var(--grey-200)", color: "var(--grey-500)" }} />
+                  <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Email</label>
+                  <input type="email" value={info.email} disabled className="w-full px-3 py-2 text-[15px] rounded-lg" style={{ background: "var(--grey-50)", border: "1.5px solid var(--grey-200)", color: "var(--grey-500)" }} />
                 </div>
                 <div>
-                  <label className="block text-[12px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Password</label>
-                  <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full px-3 py-2 text-[13px] rounded-lg" style={{ border: "1.5px solid var(--grey-300)" }} placeholder="Min 6 characters" autoFocus />
+                  <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Password</label>
+                  <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full px-3 py-2 text-[15px] rounded-lg" style={{ border: "1.5px solid var(--grey-300)" }} placeholder="Min 6 characters" autoFocus />
                 </div>
                 <div>
-                  <label className="block text-[12px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Confirm Password</label>
-                  <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="w-full px-3 py-2 text-[13px] rounded-lg" style={{ border: "1.5px solid var(--grey-300)" }} placeholder="Re-enter password" />
+                  <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Confirm Password</label>
+                  <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="w-full px-3 py-2 text-[15px] rounded-lg" style={{ border: "1.5px solid var(--grey-300)" }} placeholder="Re-enter password" />
                 </div>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="w-full py-2.5 text-[13px] font-semibold text-white rounded-lg"
+                  className="w-full py-2.5 text-[15px] font-semibold text-white rounded-lg"
                   style={{ background: submitting ? "#9ca3af" : "#14532d" }}
                 >
                   {submitting ? "Activating..." : "Activate Account"}

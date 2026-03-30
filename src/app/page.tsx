@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import StatsCard from "@/components/StatsCard";
+import { PageGuide } from "@/components/HelpTip";
 
 interface TodayAppointment {
   id: string;
@@ -228,9 +229,23 @@ export default function Dashboard() {
     <div className="p-6 md:p-8 yoda-fade-in">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-[22px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>Dashboard</h1>
-        <p className="text-[13px] mt-1" style={{ color: "var(--grey-600)" }}>Overview of your clinic management system</p>
+        <h1 className="text-[24px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>Dashboard</h1>
+        <p className="text-[15px] mt-1" style={{ color: "var(--grey-600)" }}>Overview of your clinic management system</p>
       </div>
+
+      <PageGuide
+        storageKey="dashboard"
+        title="Welcome to Your Clinic Dashboard"
+        subtitle="Here's a quick overview of how to get started with the system."
+        steps={[
+          { icon: "👤", title: "Register Patients", description: "Go to Patients > Add Patient to register new patients with their details, medical history, and insurance info." },
+          { icon: "📅", title: "Book Appointments", description: "Schedule appointments from the Appointments page. Select a doctor, time slot, and treatment type." },
+          { icon: "💊", title: "Manage Inventory", description: "Track medicines, herbs, and supplies in the Inventory section. Set reorder levels for automatic alerts." },
+          { icon: "💰", title: "Create Invoices", description: "Go to Billing > New Invoice to bill patients for consultations, treatments, and medicines." },
+          { icon: "👨‍⚕️", title: "Add Staff", description: "Set up doctors, therapists, and staff in the Admin section. Each gets a unique Staff ID." },
+          { icon: "📊", title: "Track Revenue", description: "This dashboard shows today's revenue, appointment stats, and trends. Data updates in real-time." },
+        ]}
+      />
 
       {/* ═══════ Row 1: Key Metrics ═══════ */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -238,8 +253,8 @@ export default function Dashboard() {
         <div className="p-4 transition-shadow duration-150 hover:shadow-md" style={{ ...cardStyle, boxShadow: "var(--shadow-sm)" }}>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-[12px] font-semibold uppercase tracking-wide" style={{ color: "var(--grey-600)" }}>Today&apos;s Revenue</p>
-              <p className="text-[26px] font-bold mt-1 tracking-tight" style={{ color: "var(--grey-900)" }}>{formatCurrency(todayRevenue)}</p>
+              <p className="text-[14px] font-semibold uppercase tracking-wide" style={{ color: "var(--grey-600)" }}>Today&apos;s Revenue</p>
+              <p className="text-[28px] font-bold mt-1 tracking-tight" style={{ color: "var(--grey-900)" }}>{formatCurrency(todayRevenue)}</p>
             </div>
             <div className="w-11 h-11 flex items-center justify-center" style={{ background: "#d1f2e0", borderRadius: "var(--radius-sm)", color: "#2d6a4f" }}>
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
@@ -252,7 +267,7 @@ export default function Dashboard() {
               <svg className="w-3.5 h-3.5" style={{ color: "var(--green)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18" />
               </svg>
-              <span className="text-[11px] font-semibold" style={{ color: "var(--green)" }}>Active today</span>
+              <span className="text-[13px] font-semibold" style={{ color: "var(--green)" }}>Active today</span>
             </div>
           )}
         </div>
@@ -261,8 +276,8 @@ export default function Dashboard() {
         <div className="p-4 transition-shadow duration-150 hover:shadow-md" style={{ ...cardStyle, boxShadow: "var(--shadow-sm)" }}>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-[12px] font-semibold uppercase tracking-wide" style={{ color: "var(--grey-600)" }}>Monthly Revenue</p>
-              <p className="text-[26px] font-bold mt-1 tracking-tight" style={{ color: "var(--grey-900)" }}>{formatCurrency(monthRevenue)}</p>
+              <p className="text-[14px] font-semibold uppercase tracking-wide" style={{ color: "var(--grey-600)" }}>Monthly Revenue</p>
+              <p className="text-[28px] font-bold mt-1 tracking-tight" style={{ color: "var(--grey-900)" }}>{formatCurrency(monthRevenue)}</p>
             </div>
             <div className="w-11 h-11 flex items-center justify-center" style={{ background: "#dbeafe", borderRadius: "var(--radius-sm)", color: "var(--blue-500)" }}>
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
@@ -279,7 +294,7 @@ export default function Dashboard() {
               >
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18" />
               </svg>
-              <span className="text-[11px] font-semibold" style={{ color: revenueChange >= 0 ? "var(--green)" : "var(--red)" }}>
+              <span className="text-[13px] font-semibold" style={{ color: revenueChange >= 0 ? "var(--green)" : "var(--red)" }}>
                 {revenueChange >= 0 ? "+" : ""}{revenueChange.toFixed(1)}% vs last month
               </span>
             </div>
@@ -309,27 +324,27 @@ export default function Dashboard() {
         <div className="p-5" style={cardStyle}>
           <div className="flex items-center justify-between mb-5">
             <div>
-              <h2 className="text-[14px] font-bold" style={{ color: "var(--grey-900)" }}>Revenue (Last 7 Days)</h2>
-              <p className="text-[12px] mt-0.5" style={{ color: "var(--grey-500)" }}>Daily revenue overview</p>
+              <h2 className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>Revenue (Last 7 Days)</h2>
+              <p className="text-[14px] mt-0.5" style={{ color: "var(--grey-500)" }}>Daily revenue overview</p>
             </div>
             <div className="text-right">
               <p className="text-[18px] font-bold" style={{ color: "var(--grey-900)" }}>
                 {formatCurrency(weeklyRevenue.reduce((s, d) => s + d.revenue, 0))}
               </p>
-              <p className="text-[11px]" style={{ color: "var(--grey-500)" }}>7-day total</p>
+              <p className="text-[13px]" style={{ color: "var(--grey-500)" }}>7-day total</p>
             </div>
           </div>
           {weeklyRevenue.length === 0 ? (
             <div className="flex items-center justify-center h-48">
-              <p className="text-[13px]" style={{ color: "var(--grey-500)" }}>No revenue data available</p>
+              <p className="text-[15px]" style={{ color: "var(--grey-500)" }}>No revenue data available</p>
             </div>
           ) : (
             <div className="relative" style={{ height: 200 }}>
               {/* Y-axis labels */}
               <div className="absolute left-0 top-0 bottom-24 flex flex-col justify-between" style={{ width: 50 }}>
-                <span className="text-[10px]" style={{ color: "var(--grey-500)" }}>{formatCurrencyShort(maxWeeklyRevenue)}</span>
-                <span className="text-[10px]" style={{ color: "var(--grey-500)" }}>{formatCurrencyShort(maxWeeklyRevenue / 2)}</span>
-                <span className="text-[10px]" style={{ color: "var(--grey-500)" }}>S$0</span>
+                <span className="text-[12px]" style={{ color: "var(--grey-500)" }}>{formatCurrencyShort(maxWeeklyRevenue)}</span>
+                <span className="text-[12px]" style={{ color: "var(--grey-500)" }}>{formatCurrencyShort(maxWeeklyRevenue / 2)}</span>
+                <span className="text-[12px]" style={{ color: "var(--grey-500)" }}>S$0</span>
               </div>
               {/* Bars */}
               <div className="flex items-end gap-2 justify-between" style={{ marginLeft: 55, height: 160 }}>
@@ -345,7 +360,7 @@ export default function Dashboard() {
                       {/* Tooltip */}
                       {hoveredBar === i && (
                         <div
-                          className="absolute -top-8 px-2 py-1 text-[10px] font-semibold text-white whitespace-nowrap z-10"
+                          className="absolute -top-8 px-2 py-1 text-[12px] font-semibold text-white whitespace-nowrap z-10"
                           style={{ background: "var(--grey-900)", borderRadius: "var(--radius-sm)" }}
                         >
                           {formatCurrency(day.revenue)}
@@ -365,7 +380,7 @@ export default function Dashboard() {
                         }}
                       />
                       {/* Label */}
-                      <span className="text-[10px] mt-2 font-medium" style={{ color: "var(--grey-600)" }}>
+                      <span className="text-[12px] mt-2 font-medium" style={{ color: "var(--grey-600)" }}>
                         {getDayAbbr(day.date)}
                       </span>
                     </div>
@@ -380,14 +395,14 @@ export default function Dashboard() {
         <div className="p-5" style={cardStyle}>
           <div className="flex items-center justify-between mb-5">
             <div>
-              <h2 className="text-[14px] font-bold" style={{ color: "var(--grey-900)" }}>Appointment Status</h2>
-              <p className="text-[12px] mt-0.5" style={{ color: "var(--grey-500)" }}>Today&apos;s breakdown</p>
+              <h2 className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>Appointment Status</h2>
+              <p className="text-[14px] mt-0.5" style={{ color: "var(--grey-500)" }}>Today&apos;s breakdown</p>
             </div>
-            <span className="text-[22px] font-bold" style={{ color: "var(--grey-900)" }}>{totalStatusCount > 1 ? totalStatusCount : 0}</span>
+            <span className="text-[24px] font-bold" style={{ color: "var(--grey-900)" }}>{totalStatusCount > 1 ? totalStatusCount : 0}</span>
           </div>
           {statusBreakdown.length === 0 ? (
             <div className="flex items-center justify-center h-48">
-              <p className="text-[13px]" style={{ color: "var(--grey-500)" }}>No appointment data</p>
+              <p className="text-[15px]" style={{ color: "var(--grey-500)" }}>No appointment data</p>
             </div>
           ) : (
             <div>
@@ -419,11 +434,11 @@ export default function Dashboard() {
                     <div key={s.status} className="flex items-center justify-between">
                       <div className="flex items-center gap-2.5">
                         <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: sc.color }} />
-                        <span className="text-[12px] font-medium capitalize" style={{ color: "var(--grey-700)" }}>{s.status.replace("-", " ")}</span>
+                        <span className="text-[14px] font-medium capitalize" style={{ color: "var(--grey-700)" }}>{s.status.replace("-", " ")}</span>
                       </div>
                       <div className="flex items-center gap-3">
-                        <span className="text-[12px] font-bold tabular-nums" style={{ color: "var(--grey-900)" }}>{s.count}</span>
-                        <span className="text-[11px] tabular-nums" style={{ color: "var(--grey-500)", minWidth: 36, textAlign: "right" }}>{pct.toFixed(0)}%</span>
+                        <span className="text-[14px] font-bold tabular-nums" style={{ color: "var(--grey-900)" }}>{s.count}</span>
+                        <span className="text-[13px] tabular-nums" style={{ color: "var(--grey-500)", minWidth: 36, textAlign: "right" }}>{pct.toFixed(0)}%</span>
                       </div>
                     </div>
                   );
@@ -439,16 +454,16 @@ export default function Dashboard() {
         {/* Today's Appointments (existing) */}
         <div className="p-5" style={cardStyle}>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-[14px] font-bold" style={{ color: "var(--grey-900)" }}>Today&apos;s Appointments</h2>
-            <Link href="/appointments" className="text-[12px] font-semibold hover:underline" style={{ color: "var(--blue-500)" }}>View all</Link>
+            <h2 className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>Today&apos;s Appointments</h2>
+            <Link href="/appointments" className="text-[14px] font-semibold hover:underline" style={{ color: "var(--blue-500)" }}>View all</Link>
           </div>
           {!data?.todaysAppointmentsList?.length ? (
             <div className="text-center py-8">
               <svg className="w-10 h-10 mx-auto mb-2" style={{ color: "var(--grey-400)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
-              <p className="text-[13px]" style={{ color: "var(--grey-500)" }}>No appointments today</p>
-              <Link href="/appointments/new" className="inline-block mt-2 text-[12px] font-semibold" style={{ color: "var(--blue-500)" }}>Book one now</Link>
+              <p className="text-[15px]" style={{ color: "var(--grey-500)" }}>No appointments today</p>
+              <Link href="/appointments/new" className="inline-block mt-2 text-[14px] font-semibold" style={{ color: "var(--blue-500)" }}>Book one now</Link>
             </div>
           ) : (
             <div className="space-y-1">
@@ -464,19 +479,19 @@ export default function Dashboard() {
                     onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
                   >
                     <div className="flex items-center gap-3">
-                      <span className="text-[13px] font-bold tabular-nums" style={{ color: "var(--blue-500)", minWidth: 48 }}>{apt.time}</span>
+                      <span className="text-[15px] font-bold tabular-nums" style={{ color: "var(--blue-500)", minWidth: 48 }}>{apt.time}</span>
                       <div>
-                        <p className="text-[13px] font-semibold" style={{ color: "var(--grey-900)" }}>
+                        <p className="text-[15px] font-semibold" style={{ color: "var(--grey-900)" }}>
                           {apt.patient ? `${apt.patient.firstName} ${apt.patient.lastName}` : (apt.walkinName || "Walk-in")}
                           {apt.isWalkin && <span className="ml-1 text-[9px] font-bold px-1 py-0.5 rounded" style={{ background: "#d1f2e0", color: "#14532d" }}>WALK-IN</span>}
                         </p>
-                        <p className="text-[11px]" style={{ color: "var(--grey-500)" }}>
+                        <p className="text-[13px]" style={{ color: "var(--grey-500)" }}>
                           {apt.doctorRef?.name || apt.doctor} &middot; {apt.type}
                         </p>
                       </div>
                     </div>
                     <span
-                      className="text-[10px] font-bold uppercase px-2 py-0.5"
+                      className="text-[12px] font-bold uppercase px-2 py-0.5"
                       style={{ background: sc.bg, color: sc.color, borderRadius: "var(--radius-sm)" }}
                     >
                       {apt.status}
@@ -492,8 +507,8 @@ export default function Dashboard() {
         <div className="p-5" style={cardStyle}>
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-[14px] font-bold" style={{ color: "var(--grey-900)" }}>Top Treatments</h2>
-              <p className="text-[11px] mt-0.5" style={{ color: "var(--grey-500)" }}>This month</p>
+              <h2 className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>Top Treatments</h2>
+              <p className="text-[13px] mt-0.5" style={{ color: "var(--grey-500)" }}>This month</p>
             </div>
             <div className="w-9 h-9 flex items-center justify-center" style={{ background: "#d1f2e0", borderRadius: "var(--radius-sm)", color: "#2d6a4f" }}>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
@@ -503,7 +518,7 @@ export default function Dashboard() {
           </div>
           {topTreatments.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-[13px]" style={{ color: "var(--grey-500)" }}>No treatment data yet</p>
+              <p className="text-[15px]" style={{ color: "var(--grey-500)" }}>No treatment data yet</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -512,8 +527,8 @@ export default function Dashboard() {
                 return (
                   <div key={i}>
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-[12px] font-semibold truncate" style={{ color: "var(--grey-800)", maxWidth: "70%" }}>{t.name}</span>
-                      <span className="text-[12px] font-bold tabular-nums" style={{ color: "var(--grey-900)" }}>{t.count}</span>
+                      <span className="text-[14px] font-semibold truncate" style={{ color: "var(--grey-800)", maxWidth: "70%" }}>{t.name}</span>
+                      <span className="text-[14px] font-bold tabular-nums" style={{ color: "var(--grey-900)" }}>{t.count}</span>
                     </div>
                     <div className="w-full overflow-hidden" style={{ height: 6, background: "var(--grey-200)", borderRadius: 3 }}>
                       <div
@@ -532,8 +547,8 @@ export default function Dashboard() {
         <div className="p-5" style={cardStyle}>
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-[14px] font-bold" style={{ color: "var(--grey-900)" }}>Revenue by Method</h2>
-              <p className="text-[11px] mt-0.5" style={{ color: "var(--grey-500)" }}>Payment breakdown</p>
+              <h2 className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>Revenue by Method</h2>
+              <p className="text-[13px] mt-0.5" style={{ color: "var(--grey-500)" }}>Payment breakdown</p>
             </div>
             <div className="w-9 h-9 flex items-center justify-center" style={{ background: "var(--blue-50)", borderRadius: "var(--radius-sm)", color: "var(--blue-500)" }}>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
@@ -543,7 +558,7 @@ export default function Dashboard() {
           </div>
           {revenueByMethod.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-[13px]" style={{ color: "var(--grey-500)" }}>No payment data yet</p>
+              <p className="text-[15px]" style={{ color: "var(--grey-500)" }}>No payment data yet</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -555,11 +570,11 @@ export default function Dashboard() {
                     <div className="flex items-center justify-between mb-1">
                       <div className="flex items-center gap-2">
                         <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: color }} />
-                        <span className="text-[12px] font-semibold" style={{ color: "var(--grey-800)" }}>
+                        <span className="text-[14px] font-semibold" style={{ color: "var(--grey-800)" }}>
                           {methodLabels[m.method] || m.method}
                         </span>
                       </div>
-                      <span className="text-[12px] font-bold tabular-nums" style={{ color: "var(--grey-900)" }}>{formatCurrency(m.total)}</span>
+                      <span className="text-[14px] font-bold tabular-nums" style={{ color: "var(--grey-900)" }}>{formatCurrency(m.total)}</span>
                     </div>
                     <div className="w-full overflow-hidden" style={{ height: 6, background: "var(--grey-200)", borderRadius: 3 }}>
                       <div
@@ -581,27 +596,27 @@ export default function Dashboard() {
         <div className="lg:col-span-2 p-5" style={cardStyle}>
           <div className="flex items-center justify-between mb-5">
             <div>
-              <h2 className="text-[14px] font-bold" style={{ color: "var(--grey-900)" }}>Monthly Appointment Trend</h2>
-              <p className="text-[12px] mt-0.5" style={{ color: "var(--grey-500)" }}>Last 6 months</p>
+              <h2 className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>Monthly Appointment Trend</h2>
+              <p className="text-[14px] mt-0.5" style={{ color: "var(--grey-500)" }}>Last 6 months</p>
             </div>
             <div className="text-right">
               <p className="text-[18px] font-bold" style={{ color: "var(--grey-900)" }}>
                 {monthlyTrend.reduce((s, m) => s + m.count, 0)}
               </p>
-              <p className="text-[11px]" style={{ color: "var(--grey-500)" }}>Total appointments</p>
+              <p className="text-[13px]" style={{ color: "var(--grey-500)" }}>Total appointments</p>
             </div>
           </div>
           {monthlyTrend.length === 0 ? (
             <div className="flex items-center justify-center h-40">
-              <p className="text-[13px]" style={{ color: "var(--grey-500)" }}>No trend data available</p>
+              <p className="text-[15px]" style={{ color: "var(--grey-500)" }}>No trend data available</p>
             </div>
           ) : (
             <div className="relative" style={{ height: 180 }}>
               {/* Y-axis */}
               <div className="absolute left-0 top-0 bottom-24 flex flex-col justify-between" style={{ width: 36 }}>
-                <span className="text-[10px]" style={{ color: "var(--grey-500)" }}>{maxTrendCount}</span>
-                <span className="text-[10px]" style={{ color: "var(--grey-500)" }}>{Math.round(maxTrendCount / 2)}</span>
-                <span className="text-[10px]" style={{ color: "var(--grey-500)" }}>0</span>
+                <span className="text-[12px]" style={{ color: "var(--grey-500)" }}>{maxTrendCount}</span>
+                <span className="text-[12px]" style={{ color: "var(--grey-500)" }}>{Math.round(maxTrendCount / 2)}</span>
+                <span className="text-[12px]" style={{ color: "var(--grey-500)" }}>0</span>
               </div>
               {/* Bars */}
               <div className="flex items-end gap-3 justify-between" style={{ marginLeft: 42, height: 150 }}>
@@ -617,7 +632,7 @@ export default function Dashboard() {
                       {/* Tooltip */}
                       {hoveredTrendBar === i && (
                         <div
-                          className="absolute -top-8 px-2 py-1 text-[10px] font-semibold text-white whitespace-nowrap z-10"
+                          className="absolute -top-8 px-2 py-1 text-[12px] font-semibold text-white whitespace-nowrap z-10"
                           style={{ background: "var(--grey-900)", borderRadius: "var(--radius-sm)" }}
                         >
                           {m.count} appointments
@@ -637,7 +652,7 @@ export default function Dashboard() {
                         }}
                       />
                       {/* Label */}
-                      <span className="text-[10px] mt-2 font-medium" style={{ color: "var(--grey-600)" }}>
+                      <span className="text-[12px] mt-2 font-medium" style={{ color: "var(--grey-600)" }}>
                         {getMonthAbbr(m.month)}
                       </span>
                     </div>
@@ -650,11 +665,11 @@ export default function Dashboard() {
 
         {/* Quick Actions */}
         <div className="p-5" style={cardStyle}>
-          <h2 className="text-[14px] font-bold mb-4" style={{ color: "var(--grey-900)" }}>Quick Actions</h2>
+          <h2 className="text-[16px] font-bold mb-4" style={{ color: "var(--grey-900)" }}>Quick Actions</h2>
           <div className="space-y-2.5">
             <Link
               href="/patients/new"
-              className="flex items-center gap-3 px-4 py-3 text-[13px] font-semibold text-white transition-all duration-150"
+              className="flex items-center gap-3 px-4 py-3 text-[15px] font-semibold text-white transition-all duration-150"
               style={{ background: "var(--blue-500)", borderRadius: "var(--radius)" }}
               onMouseEnter={(e) => { e.currentTarget.style.background = "var(--blue-600)"; e.currentTarget.style.transform = "translateY(-1px)"; }}
               onMouseLeave={(e) => { e.currentTarget.style.background = "var(--blue-500)"; e.currentTarget.style.transform = "translateY(0)"; }}
@@ -666,7 +681,7 @@ export default function Dashboard() {
             </Link>
             <Link
               href="/appointments/new"
-              className="flex items-center gap-3 px-4 py-3 text-[13px] font-semibold transition-all duration-150"
+              className="flex items-center gap-3 px-4 py-3 text-[15px] font-semibold transition-all duration-150"
               style={{ background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius)", color: "var(--grey-700)" }}
               onMouseEnter={(e) => { e.currentTarget.style.background = "var(--grey-50)"; e.currentTarget.style.transform = "translateY(-1px)"; }}
               onMouseLeave={(e) => { e.currentTarget.style.background = "var(--white)"; e.currentTarget.style.transform = "translateY(0)"; }}
@@ -678,7 +693,7 @@ export default function Dashboard() {
             </Link>
             <Link
               href="/doctors/new"
-              className="flex items-center gap-3 px-4 py-3 text-[13px] font-semibold transition-all duration-150"
+              className="flex items-center gap-3 px-4 py-3 text-[15px] font-semibold transition-all duration-150"
               style={{ background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius)", color: "var(--grey-700)" }}
               onMouseEnter={(e) => { e.currentTarget.style.background = "var(--grey-50)"; e.currentTarget.style.transform = "translateY(-1px)"; }}
               onMouseLeave={(e) => { e.currentTarget.style.background = "var(--white)"; e.currentTarget.style.transform = "translateY(0)"; }}
@@ -690,7 +705,7 @@ export default function Dashboard() {
             </Link>
             <Link
               href="/communications"
-              className="flex items-center gap-3 px-4 py-3 text-[13px] font-semibold transition-all duration-150"
+              className="flex items-center gap-3 px-4 py-3 text-[15px] font-semibold transition-all duration-150"
               style={{ background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius)", color: "var(--grey-700)" }}
               onMouseEnter={(e) => { e.currentTarget.style.background = "var(--grey-50)"; e.currentTarget.style.transform = "translateY(-1px)"; }}
               onMouseLeave={(e) => { e.currentTarget.style.background = "var(--white)"; e.currentTarget.style.transform = "translateY(0)"; }}
@@ -709,11 +724,11 @@ export default function Dashboard() {
         {/* Recent Patients */}
         <div className="p-5" style={cardStyle}>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-[14px] font-bold" style={{ color: "var(--grey-900)" }}>Recent Patients</h2>
-            <Link href="/patients" className="text-[12px] font-semibold hover:underline" style={{ color: "var(--blue-500)" }}>View all</Link>
+            <h2 className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>Recent Patients</h2>
+            <Link href="/patients" className="text-[14px] font-semibold hover:underline" style={{ color: "var(--blue-500)" }}>View all</Link>
           </div>
           {data?.recentPatients.length === 0 ? (
-            <p className="text-[13px] text-center py-8" style={{ color: "var(--grey-500)" }}>No patients registered yet</p>
+            <p className="text-[15px] text-center py-8" style={{ color: "var(--grey-500)" }}>No patients registered yet</p>
           ) : (
             <div className="space-y-1">
               {data?.recentPatients.map((p) => (
@@ -727,7 +742,7 @@ export default function Dashboard() {
                 >
                   <div className="flex items-center gap-3">
                     <div
-                      className="w-8 h-8 flex items-center justify-center text-[11px] font-bold"
+                      className="w-8 h-8 flex items-center justify-center text-[13px] font-bold"
                       style={{
                         background: "var(--blue-50)",
                         color: "var(--blue-500)",
@@ -737,11 +752,11 @@ export default function Dashboard() {
                       {p.firstName[0]}{p.lastName[0]}
                     </div>
                     <div>
-                      <p className="text-[13px] font-semibold" style={{ color: "var(--grey-900)" }}>{p.firstName} {p.lastName}</p>
-                      <p className="text-[11px]" style={{ color: "var(--grey-500)" }}>{p.phone}</p>
+                      <p className="text-[15px] font-semibold" style={{ color: "var(--grey-900)" }}>{p.firstName} {p.lastName}</p>
+                      <p className="text-[13px]" style={{ color: "var(--grey-500)" }}>{p.phone}</p>
                     </div>
                   </div>
-                  <span className="text-[11px] font-medium" style={{ color: "var(--grey-500)" }}>{new Date(p.createdAt).toLocaleDateString()}</span>
+                  <span className="text-[13px] font-medium" style={{ color: "var(--grey-500)" }}>{new Date(p.createdAt).toLocaleDateString()}</span>
                 </Link>
               ))}
             </div>
@@ -751,11 +766,11 @@ export default function Dashboard() {
         {/* Recent Communications */}
         <div className="p-5" style={cardStyle}>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-[14px] font-bold" style={{ color: "var(--grey-900)" }}>Recent Communications</h2>
-            <Link href="/communications" className="text-[12px] font-semibold hover:underline" style={{ color: "var(--blue-500)" }}>View all</Link>
+            <h2 className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>Recent Communications</h2>
+            <Link href="/communications" className="text-[14px] font-semibold hover:underline" style={{ color: "var(--blue-500)" }}>View all</Link>
           </div>
           {data?.recentCommunications.length === 0 ? (
-            <p className="text-[13px] text-center py-8" style={{ color: "var(--grey-500)" }}>No messages sent yet</p>
+            <p className="text-[15px] text-center py-8" style={{ color: "var(--grey-500)" }}>No messages sent yet</p>
           ) : (
             <div className="space-y-1">
               {data?.recentCommunications.map((c) => (
@@ -766,7 +781,7 @@ export default function Dashboard() {
                 >
                   <div className="flex items-center gap-3">
                     <span
-                      className="inline-flex items-center px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide"
+                      className="inline-flex items-center px-2 py-0.5 text-[12px] font-bold uppercase tracking-wide"
                       style={{
                         borderRadius: "var(--radius-sm)",
                         background: c.type === "whatsapp" ? "var(--green-light)" : "var(--blue-50)",
@@ -776,12 +791,12 @@ export default function Dashboard() {
                       {c.type === "whatsapp" ? "WA" : "EM"}
                     </span>
                     <div>
-                      <p className="text-[13px] font-semibold" style={{ color: "var(--grey-900)" }}>{c.patient.firstName} {c.patient.lastName}</p>
-                      <p className="text-[11px] truncate max-w-[200px]" style={{ color: "var(--grey-500)" }}>{c.message}</p>
+                      <p className="text-[15px] font-semibold" style={{ color: "var(--grey-900)" }}>{c.patient.firstName} {c.patient.lastName}</p>
+                      <p className="text-[13px] truncate max-w-[200px]" style={{ color: "var(--grey-500)" }}>{c.message}</p>
                     </div>
                   </div>
                   <span
-                    className="text-[10px] font-bold uppercase"
+                    className="text-[12px] font-bold uppercase"
                     style={{ color: c.status === "sent" ? "var(--green)" : "var(--red)" }}
                   >
                     {c.status}
@@ -805,8 +820,8 @@ export default function Dashboard() {
                 </svg>
               </div>
               <div>
-                <h2 className="text-[14px] font-bold" style={{ color: "var(--grey-900)" }}>Recent Activity</h2>
-                <p className="text-[12px] mt-0.5" style={{ color: "var(--grey-500)" }}>Latest actions across the clinic</p>
+                <h2 className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>Recent Activity</h2>
+                <p className="text-[14px] mt-0.5" style={{ color: "var(--grey-500)" }}>Latest actions across the clinic</p>
               </div>
             </div>
           </div>
@@ -864,7 +879,7 @@ export default function Dashboard() {
                   <svg className="w-10 h-10 mx-auto mb-2" style={{ color: "var(--grey-400)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
                   </svg>
-                  <p className="text-[13px]" style={{ color: "var(--grey-500)" }}>No recent activity yet</p>
+                  <p className="text-[15px]" style={{ color: "var(--grey-500)" }}>No recent activity yet</p>
                 </div>
               );
             }
@@ -903,15 +918,15 @@ export default function Dashboard() {
                       </div>
                       {/* Content */}
                       <div className="flex-1 min-w-0 pt-0.5">
-                        <p className="text-[13px] font-semibold truncate" style={{ color: "var(--grey-900)" }}>
+                        <p className="text-[15px] font-semibold truncate" style={{ color: "var(--grey-900)" }}>
                           {item.description}
                         </p>
-                        <p className="text-[11px] truncate" style={{ color: "var(--grey-500)" }}>
+                        <p className="text-[13px] truncate" style={{ color: "var(--grey-500)" }}>
                           {item.detail}
                         </p>
                       </div>
                       {/* Time */}
-                      <span className="text-[11px] font-medium flex-shrink-0 pt-0.5" style={{ color: "var(--grey-500)" }}>
+                      <span className="text-[13px] font-medium flex-shrink-0 pt-0.5" style={{ color: "var(--grey-500)" }}>
                         {timeAgo(item.timestamp)}
                       </span>
                     </Link>
@@ -932,18 +947,18 @@ export default function Dashboard() {
                 </svg>
               </div>
               <div>
-                <h2 className="text-[14px] font-bold" style={{ color: "var(--grey-900)" }}>Upcoming Today</h2>
-                <p className="text-[11px] mt-0.5" style={{ color: "var(--grey-500)" }}>Remaining appointments</p>
+                <h2 className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>Upcoming Today</h2>
+                <p className="text-[13px] mt-0.5" style={{ color: "var(--grey-500)" }}>Remaining appointments</p>
               </div>
             </div>
-            <Link href="/appointments" className="text-[12px] font-semibold hover:underline" style={{ color: "var(--blue-500)" }}>View all</Link>
+            <Link href="/appointments" className="text-[14px] font-semibold hover:underline" style={{ color: "var(--blue-500)" }}>View all</Link>
           </div>
           {!data?.upcomingTodayAppointments?.length ? (
             <div className="text-center py-8">
               <svg className="w-10 h-10 mx-auto mb-2" style={{ color: "var(--grey-400)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <p className="text-[13px] font-medium" style={{ color: "var(--grey-500)" }}>All caught up for today</p>
+              <p className="text-[15px] font-medium" style={{ color: "var(--grey-500)" }}>All caught up for today</p>
             </div>
           ) : (
             <div className="space-y-1.5">
@@ -962,20 +977,20 @@ export default function Dashboard() {
                     onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
                   >
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-[13px] font-semibold truncate" style={{ color: "var(--grey-900)", maxWidth: "60%" }}>
+                      <span className="text-[15px] font-semibold truncate" style={{ color: "var(--grey-900)", maxWidth: "60%" }}>
                         {patientName}
                       </span>
                       <span
-                        className="text-[10px] font-bold uppercase px-2 py-0.5 flex-shrink-0"
+                        className="text-[12px] font-bold uppercase px-2 py-0.5 flex-shrink-0"
                         style={{ background: sc.bg, color: sc.color, borderRadius: "var(--radius-sm)" }}
                       >
                         {apt.status}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-[12px] font-bold tabular-nums" style={{ color: "var(--blue-500)" }}>{apt.time}</span>
-                      <span className="text-[11px]" style={{ color: "var(--grey-400)" }}>&middot;</span>
-                      <span className="text-[11px] truncate" style={{ color: "var(--grey-500)" }}>{doctorName}</span>
+                      <span className="text-[14px] font-bold tabular-nums" style={{ color: "var(--blue-500)" }}>{apt.time}</span>
+                      <span className="text-[13px]" style={{ color: "var(--grey-400)" }}>&middot;</span>
+                      <span className="text-[13px] truncate" style={{ color: "var(--grey-500)" }}>{doctorName}</span>
                     </div>
                   </div>
                 );

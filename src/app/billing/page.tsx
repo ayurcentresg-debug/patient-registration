@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import BillingTabs from "@/components/BillingTabs";
+import { PageGuide } from "@/components/HelpTip";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface Invoice {
@@ -16,6 +17,8 @@ interface Invoice {
   paid: number;
   balance: number;
   status: string;
+  isPackageSale: boolean;
+  packageInfo: { id: string; packageNumber: string; packageName: string } | null;
 }
 
 interface BillingStats {
@@ -31,7 +34,7 @@ type SortDir = "asc" | "desc";
 // ─── YODA Design Tokens ─────────────────────────────────────────────────────
 const cardStyle = { background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-card)" };
 const btnPrimary = { background: "var(--blue-500)", borderRadius: "var(--radius-sm)" };
-const chipBase = "inline-flex px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide";
+const chipBase = "inline-flex px-2 py-0.5 text-[12px] font-bold uppercase tracking-wide";
 
 // ─── Status colors ──────────────────────────────────────────────────────────
 const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
@@ -73,7 +76,7 @@ function SortHeader({ label, field, currentField, direction, onSort }: {
   const isActive = currentField === field;
   return (
     <th
-      className="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider cursor-pointer select-none"
+      className="text-left px-4 py-3 text-[13px] font-bold uppercase tracking-wider cursor-pointer select-none"
       style={{ color: isActive ? "var(--blue-500)" : "var(--grey-600)" }}
       onClick={() => onSort(field)}
       role="columnheader"
@@ -157,6 +160,8 @@ export default function BillingPage() {
           paid: (inv.paidAmount as number) ?? 0,
           balance: (inv.balanceAmount as number) ?? 0,
           status: (inv.status as string) || "draft",
+          isPackageSale: (inv.isPackageSale as boolean) || false,
+          packageInfo: (inv.packageInfo as Invoice["packageInfo"]) || null,
         }));
         setInvoices(mapped);
       })
@@ -233,15 +238,15 @@ export default function BillingPage() {
       {/* ── Header ──────────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-[22px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>Billing</h1>
-          <p className="text-[13px] mt-0.5" style={{ color: "var(--grey-600)" }}>
+          <h1 className="text-[24px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>Billing</h1>
+          <p className="text-[15px] mt-0.5" style={{ color: "var(--grey-600)" }}>
             {sorted.length} invoice{sorted.length !== 1 ? "s" : ""} found
           </p>
         </div>
         <div className="flex gap-2">
           <Link
             href="/billing/new"
-            className="inline-flex items-center justify-center gap-2 text-white px-5 py-2 text-[13px] font-semibold transition-colors duration-150"
+            className="inline-flex items-center justify-center gap-2 text-white px-5 py-2 text-[15px] font-semibold transition-colors duration-150"
             style={btnPrimary}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -251,7 +256,7 @@ export default function BillingPage() {
           </Link>
           <Link
             href="/billing/new?from=appointment"
-            className="inline-flex items-center justify-center gap-2 px-4 py-2 text-[13px] font-semibold transition-colors duration-150"
+            className="inline-flex items-center justify-center gap-2 px-4 py-2 text-[15px] font-semibold transition-colors duration-150"
             style={{ border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-700)", background: "var(--white)" }}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -262,12 +267,26 @@ export default function BillingPage() {
         </div>
       </div>
 
+      <PageGuide
+        storageKey="billing"
+        title="Billing & Invoicing Guide"
+        subtitle="Create invoices, record payments, and track revenue."
+        steps={[
+          { icon: "🧾", title: "Create Invoice", description: "Click 'New Invoice' to create a bill. Select a patient, add consultation fees, medicines, or treatments as line items." },
+          { icon: "💳", title: "Record Payment", description: "Click any pending invoice to open it. Use 'Record Payment' to log cash, card, or UPI payments. Partial payments are supported." },
+          { icon: "🧾", title: "Invoice Status", description: "Draft = not sent, Pending = awaiting payment, Paid = fully paid, Partially Paid = balance remaining." },
+          { icon: "📦", title: "Package Billing", description: "Sell treatment packages from Billing > Packages tab. Package invoices are auto-linked to the treatment plan." },
+          { icon: "🏥", title: "Insurance Claims", description: "Manage insurance claims from the Insurance tab. Link claims to invoices for tracking." },
+          { icon: "📊", title: "Revenue Tracking", description: "The stats cards above show today's revenue, monthly revenue, and pending amounts at a glance." },
+        ]}
+      />
+
       {/* ── Stats Cards ──────────────────────────────────────────── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <div className="p-4 transition-shadow duration-150 hover:shadow-md" style={{ ...cardStyle, boxShadow: "var(--shadow-sm)" }}>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-[12px] font-semibold uppercase tracking-wide" style={{ color: "var(--grey-600)" }}>Today&apos;s Revenue</p>
+              <p className="text-[14px] font-semibold uppercase tracking-wide" style={{ color: "var(--grey-600)" }}>Today&apos;s Revenue</p>
               <p className="text-[24px] font-bold mt-1 tracking-tight" style={{ color: "var(--grey-900)" }}>
                 <span className="text-[16px]" style={{ color: "var(--grey-500)" }}>{"S$"}</span>{(stats.todayRevenue ?? 0).toLocaleString("en-SG")}
               </p>
@@ -283,7 +302,7 @@ export default function BillingPage() {
         <div className="p-4 transition-shadow duration-150 hover:shadow-md" style={{ ...cardStyle, boxShadow: "var(--shadow-sm)" }}>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-[12px] font-semibold uppercase tracking-wide" style={{ color: "var(--grey-600)" }}>Monthly Revenue</p>
+              <p className="text-[14px] font-semibold uppercase tracking-wide" style={{ color: "var(--grey-600)" }}>Monthly Revenue</p>
               <p className="text-[24px] font-bold mt-1 tracking-tight" style={{ color: "var(--grey-900)" }}>
                 <span className="text-[16px]" style={{ color: "var(--grey-500)" }}>{"S$"}</span>{(stats.monthRevenue ?? 0).toLocaleString("en-SG")}
               </p>
@@ -299,7 +318,7 @@ export default function BillingPage() {
         <div className="p-4 transition-shadow duration-150 hover:shadow-md" style={{ ...cardStyle, boxShadow: "var(--shadow-sm)" }}>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-[12px] font-semibold uppercase tracking-wide" style={{ color: "var(--grey-600)" }}>Pending Payments</p>
+              <p className="text-[14px] font-semibold uppercase tracking-wide" style={{ color: "var(--grey-600)" }}>Pending Payments</p>
               <p className="text-[24px] font-bold mt-1 tracking-tight" style={{ color: stats.pendingAmount > 0 ? "#f57c00" : "var(--grey-900)" }}>
                 <span className="text-[16px]" style={{ color: "var(--grey-500)" }}>{"S$"}</span>{(stats.pendingAmount ?? 0).toLocaleString("en-SG")}
               </p>
@@ -315,8 +334,8 @@ export default function BillingPage() {
         <div className="p-4 transition-shadow duration-150 hover:shadow-md" style={{ ...cardStyle, boxShadow: "var(--shadow-sm)" }}>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-[12px] font-semibold uppercase tracking-wide" style={{ color: "var(--grey-600)" }}>Total Invoices</p>
-              <p className="text-[28px] font-bold mt-1 tracking-tight" style={{ color: "var(--grey-900)" }}>{stats.totalInvoices}</p>
+              <p className="text-[14px] font-semibold uppercase tracking-wide" style={{ color: "var(--grey-600)" }}>Total Invoices</p>
+              <p className="text-[30px] font-bold mt-1 tracking-tight" style={{ color: "var(--grey-900)" }}>{stats.totalInvoices}</p>
             </div>
             <div className="w-11 h-11 flex items-center justify-center" style={{ background: "#e1bee7", borderRadius: "var(--radius-sm)", color: "#7b1fa2" }}>
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
@@ -340,7 +359,7 @@ export default function BillingPage() {
               placeholder="Search by invoice # or patient name..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 text-[13px]"
+              className="w-full pl-10 pr-4 py-2 text-[15px]"
               style={{ border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)" }}
               aria-label="Search invoices"
             />
@@ -355,7 +374,7 @@ export default function BillingPage() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-2 text-[13px]"
+            className="px-3 py-2 text-[15px]"
             style={{ border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)", minWidth: 150 }}
           >
             {STATUS_OPTIONS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
@@ -366,7 +385,7 @@ export default function BillingPage() {
             type="date"
             value={dateFrom}
             onChange={(e) => setDateFrom(e.target.value)}
-            className="px-3 py-2 text-[13px]"
+            className="px-3 py-2 text-[15px]"
             style={{ border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)", minWidth: 140 }}
             aria-label="Date from"
           />
@@ -376,7 +395,7 @@ export default function BillingPage() {
             type="date"
             value={dateTo}
             onChange={(e) => setDateTo(e.target.value)}
-            className="px-3 py-2 text-[13px]"
+            className="px-3 py-2 text-[15px]"
             style={{ border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)", minWidth: 140 }}
             aria-label="Date to"
           />
@@ -386,7 +405,7 @@ export default function BillingPage() {
           <div className="flex items-center">
             <button
               onClick={() => { setSearch(""); setStatusFilter("all"); setDateFrom(""); setDateTo(""); }}
-              className="text-[11px] font-semibold hover:underline"
+              className="text-[13px] font-semibold hover:underline"
               style={{ color: "var(--blue-500)" }}
             >
               Clear all filters
@@ -398,8 +417,8 @@ export default function BillingPage() {
       {/* ── Error State ─────────────────────────────────────────── */}
       {error && (
         <div className="mb-4 px-4 py-3 flex items-center justify-between" style={{ background: "#ffebee", color: "var(--red)", borderRadius: "var(--radius-sm)" }}>
-          <p className="text-[13px] font-medium">Failed to load invoices: {error}</p>
-          <button onClick={fetchInvoices} className="text-[12px] font-semibold underline">Retry</button>
+          <p className="text-[15px] font-medium">Failed to load invoices: {error}</p>
+          <button onClick={fetchInvoices} className="text-[14px] font-semibold underline">Retry</button>
         </div>
       )}
 
@@ -418,19 +437,19 @@ export default function BillingPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" />
             </svg>
           </div>
-          <p className="text-[14px] font-semibold" style={{ color: "var(--grey-700)" }}>
+          <p className="text-[16px] font-semibold" style={{ color: "var(--grey-700)" }}>
             {search || statusFilter !== "all" || dateFrom || dateTo ? "No invoices match your filters" : "No invoices found"}
           </p>
           {(search || statusFilter !== "all" || dateFrom || dateTo) ? (
             <button
               onClick={() => { setSearch(""); setStatusFilter("all"); setDateFrom(""); setDateTo(""); }}
-              className="text-[12px] font-semibold mt-2 hover:underline"
+              className="text-[14px] font-semibold mt-2 hover:underline"
               style={{ color: "var(--blue-500)" }}
             >
               Clear all filters
             </button>
           ) : (
-            <Link href="/billing/new" className="text-[12px] font-semibold mt-2 inline-block hover:underline" style={{ color: "var(--blue-500)" }}>
+            <Link href="/billing/new" className="text-[14px] font-semibold mt-2 inline-block hover:underline" style={{ color: "var(--blue-500)" }}>
               Create your first invoice
             </Link>
           )}
@@ -445,12 +464,12 @@ export default function BillingPage() {
                   <SortHeader label="Invoice #" field="invoiceNumber" currentField={sortField} direction={sortDir} onSort={handleSort} />
                   <SortHeader label="Date" field="date" currentField={sortField} direction={sortDir} onSort={handleSort} />
                   <SortHeader label="Patient" field="patientName" currentField={sortField} direction={sortDir} onSort={handleSort} />
-                  <th className="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Items</th>
+                  <th className="text-left px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Items</th>
                   <SortHeader label="Total" field="total" currentField={sortField} direction={sortDir} onSort={handleSort} />
-                  <th className="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Paid</th>
+                  <th className="text-left px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Paid</th>
                   <SortHeader label="Balance" field="balance" currentField={sortField} direction={sortDir} onSort={handleSort} />
                   <SortHeader label="Status" field="status" currentField={sortField} direction={sortDir} onSort={handleSort} />
-                  <th className="text-right px-4 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Actions</th>
+                  <th className="text-right px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -465,16 +484,31 @@ export default function BillingPage() {
                       onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
                     >
                       <td className="px-4 py-3">
-                        <Link href={`/billing/${inv.id}`} className="text-[13px] font-semibold hover:underline" style={{ color: "var(--blue-500)" }}>
-                          {inv.invoiceNumber}
-                        </Link>
+                        <div className="flex items-center gap-2">
+                          <Link href={`/billing/${inv.id}`} className="text-[15px] font-semibold hover:underline" style={{ color: "var(--blue-500)" }}>
+                            {inv.invoiceNumber}
+                          </Link>
+                          {inv.isPackageSale && (
+                            <Link
+                              href={`/packages/${inv.packageInfo?.id || ""}`}
+                              className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide hover:opacity-80"
+                              style={{ borderRadius: "var(--radius-sm)", background: "#e8f5e9", color: "var(--green)" }}
+                              title={inv.packageInfo?.packageName || "Package"}
+                            >
+                              <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                              </svg>
+                              Package
+                            </Link>
+                          )}
+                        </div>
                       </td>
-                      <td className="px-4 py-3 text-[12px]" style={{ color: "var(--grey-600)" }}>{formatDate(inv.date)}</td>
-                      <td className="px-4 py-3 text-[13px] font-medium" style={{ color: "var(--grey-900)" }}>{inv.patientName}</td>
-                      <td className="px-4 py-3 text-[12px] text-center" style={{ color: "var(--grey-600)" }}>{inv.itemsCount}</td>
-                      <td className="px-4 py-3 text-[13px] font-semibold" style={{ color: "var(--grey-900)" }}>{formatCurrency(inv.total)}</td>
-                      <td className="px-4 py-3 text-[13px]" style={{ color: "var(--green)" }}>{formatCurrency(inv.paid)}</td>
-                      <td className="px-4 py-3 text-[13px] font-semibold" style={{ color: inv.balance > 0 ? "#f57c00" : "var(--grey-600)" }}>
+                      <td className="px-4 py-3 text-[14px]" style={{ color: "var(--grey-600)" }}>{formatDate(inv.date)}</td>
+                      <td className="px-4 py-3 text-[15px] font-medium" style={{ color: "var(--grey-900)" }}>{inv.patientName}</td>
+                      <td className="px-4 py-3 text-[14px] text-center" style={{ color: "var(--grey-600)" }}>{inv.itemsCount}</td>
+                      <td className="px-4 py-3 text-[15px] font-semibold" style={{ color: "var(--grey-900)" }}>{formatCurrency(inv.total)}</td>
+                      <td className="px-4 py-3 text-[15px]" style={{ color: "var(--green)" }}>{formatCurrency(inv.paid)}</td>
+                      <td className="px-4 py-3 text-[15px] font-semibold" style={{ color: inv.balance > 0 ? "#f57c00" : "var(--grey-600)" }}>
                         {formatCurrency(inv.balance)}
                       </td>
                       <td className="px-4 py-3">
@@ -486,7 +520,7 @@ export default function BillingPage() {
                         </span>
                       </td>
                       <td className="px-4 py-3 text-right">
-                        <Link href={`/billing/${inv.id}`} className="text-[12px] font-semibold hover:underline" style={{ color: "var(--blue-500)" }}>
+                        <Link href={`/billing/${inv.id}`} className="text-[14px] font-semibold hover:underline" style={{ color: "var(--blue-500)" }}>
                           View
                         </Link>
                       </td>
@@ -510,8 +544,18 @@ export default function BillingPage() {
                 >
                   <div className="flex items-start justify-between mb-2">
                     <div>
-                      <p className="text-[13px] font-semibold" style={{ color: "var(--blue-500)" }}>{inv.invoiceNumber}</p>
-                      <p className="text-[11px]" style={{ color: "var(--grey-500)" }}>{formatDate(inv.date)}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-[15px] font-semibold" style={{ color: "var(--blue-500)" }}>{inv.invoiceNumber}</p>
+                        {inv.isPackageSale && (
+                          <span
+                            className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide"
+                            style={{ borderRadius: "var(--radius-sm)", background: "#e8f5e9", color: "var(--green)" }}
+                          >
+                            Package
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[13px]" style={{ color: "var(--grey-500)" }}>{formatDate(inv.date)}</p>
                     </div>
                     <span
                       className={chipBase}
@@ -520,15 +564,15 @@ export default function BillingPage() {
                       {formatStatusLabel(inv.status)}
                     </span>
                   </div>
-                  <p className="text-[14px] font-semibold mb-1" style={{ color: "var(--grey-900)" }}>{inv.patientName}</p>
-                  <div className="flex gap-4 text-[12px]">
+                  <p className="text-[16px] font-semibold mb-1" style={{ color: "var(--grey-900)" }}>{inv.patientName}</p>
+                  <div className="flex gap-4 text-[14px]">
                     <span style={{ color: "var(--grey-600)" }}>Total: <strong style={{ color: "var(--grey-900)" }}>{formatCurrency(inv.total)}</strong></span>
                     <span style={{ color: "var(--grey-600)" }}>Paid: <strong style={{ color: "var(--green)" }}>{formatCurrency(inv.paid)}</strong></span>
                     {inv.balance > 0 && (
                       <span style={{ color: "#f57c00" }}>Due: <strong>{formatCurrency(inv.balance)}</strong></span>
                     )}
                   </div>
-                  <p className="text-[11px] mt-1" style={{ color: "var(--grey-500)" }}>{inv.itemsCount} item{inv.itemsCount !== 1 ? "s" : ""}</p>
+                  <p className="text-[13px] mt-1" style={{ color: "var(--grey-500)" }}>{inv.itemsCount} item{inv.itemsCount !== 1 ? "s" : ""}</p>
                 </Link>
               );
             })}

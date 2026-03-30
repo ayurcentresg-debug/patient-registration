@@ -2,8 +2,9 @@
 
 import { useEffect, useState, useCallback } from "react";
 import CommunicationTabs from "@/components/CommunicationTabs";
+import { PageGuide } from "@/components/HelpTip";
 
-const inputStyle = { border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)", fontSize: "13px" };
+const inputStyle = { border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)", fontSize: "15px" };
 const cardStyle = { background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-card)" };
 
 const CHANNEL_COLORS: Record<string, string> = { whatsapp: "#25D366", email: "#3b82f6", sms: "#8b5cf6" };
@@ -229,7 +230,7 @@ export default function MessagesPage() {
       {/* Toast */}
       {toast && (
         <div
-          className="fixed top-4 right-4 z-50 px-4 py-3 text-[13px] font-semibold text-white yoda-slide-in"
+          className="fixed top-4 right-4 z-50 px-4 py-3 text-[15px] font-semibold text-white yoda-slide-in"
           style={{
             background: toast.type === "success" ? "var(--green)" : "var(--red)",
             borderRadius: "var(--radius)",
@@ -243,12 +244,12 @@ export default function MessagesPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-[22px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>Messages</h1>
-          <p className="text-[13px] mt-0.5" style={{ color: "var(--grey-600)" }}>Send and track patient communications</p>
+          <h1 className="text-[24px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>Messages</h1>
+          <p className="text-[15px] mt-0.5" style={{ color: "var(--grey-600)" }}>Send and track patient communications</p>
         </div>
         <button
           onClick={() => setShowCompose(!showCompose)}
-          className="inline-flex items-center justify-center gap-2 text-white px-5 py-2 text-[13px] font-semibold transition-colors duration-150"
+          className="inline-flex items-center justify-center gap-2 text-white px-5 py-2 text-[15px] font-semibold transition-colors duration-150"
           style={{ background: "var(--blue-500)", borderRadius: "var(--radius-sm)" }}
           onMouseEnter={(e) => { e.currentTarget.style.background = "var(--blue-700)"; }}
           onMouseLeave={(e) => { e.currentTarget.style.background = "var(--blue-500)"; }}
@@ -257,6 +258,20 @@ export default function MessagesPage() {
           New Message
         </button>
       </div>
+
+      <PageGuide
+        storageKey="communications"
+        title="Communications Guide"
+        subtitle="Send messages and reminders to patients via WhatsApp, SMS, or Email."
+        steps={[
+          { icon: "💬", title: "Send Message", description: "Click 'New Message' to send a WhatsApp, SMS, or Email to any patient. Select the patient and type." },
+          { icon: "📋", title: "Templates", description: "Go to Templates tab to create reusable message templates for appointment reminders, follow-ups, etc." },
+          { icon: "⏰", title: "Reminders", description: "Set up automatic appointment reminders in the Reminders tab. Choose timing (1 day before, 1 hour before)." },
+          { icon: "📢", title: "Bulk Messaging", description: "Use Bulk tab to send messages to multiple patients at once — great for announcements or promotions." },
+          { icon: "📊", title: "Delivery Status", description: "Track sent, delivered, and failed messages. Failed messages can be retried." },
+          { icon: "📱", title: "WhatsApp Integration", description: "WhatsApp messages require a connected business number. Contact admin to set up the integration." },
+        ]}
+      />
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
@@ -268,8 +283,8 @@ export default function MessagesPage() {
           { label: "Failed", value: stats.failed, color: "var(--red)", bg: "var(--red-light)" },
         ].map((s) => (
           <div key={s.label} className="p-3" style={{ ...cardStyle, borderLeft: `3px solid ${s.color}` }}>
-            <p className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: "var(--grey-600)" }}>{s.label}</p>
-            <p className="text-[22px] font-bold mt-0.5" style={{ color: "var(--grey-900)" }}>{s.value}</p>
+            <p className="text-[13px] font-semibold uppercase tracking-wide" style={{ color: "var(--grey-600)" }}>{s.label}</p>
+            <p className="text-[24px] font-bold mt-0.5" style={{ color: "var(--grey-900)" }}>{s.value}</p>
           </div>
         ))}
       </div>
@@ -311,7 +326,7 @@ export default function MessagesPage() {
               <div className="space-y-4">
                 {/* Patient Select */}
                 <div>
-                  <label className="block mb-1 text-[12px] font-semibold" style={{ color: "var(--grey-700)" }}>Select Patient *</label>
+                  <label className="block mb-1 text-[14px] font-semibold" style={{ color: "var(--grey-700)" }}>Select Patient *</label>
                   <input
                     type="text" placeholder="Search patients..."
                     value={patientSearch} onChange={(e) => setPatientSearch(e.target.value)}
@@ -330,12 +345,12 @@ export default function MessagesPage() {
 
                 {/* Channel Toggle */}
                 <div>
-                  <label className="block mb-1 text-[12px] font-semibold" style={{ color: "var(--grey-700)" }}>Channel</label>
+                  <label className="block mb-1 text-[14px] font-semibold" style={{ color: "var(--grey-700)" }}>Channel</label>
                   <div className="flex gap-2">
                     {(["whatsapp", "email", "sms"] as const).map((ch) => (
                       <button
                         key={ch} type="button" onClick={() => { setMsgChannel(ch); setSelectedTemplate(""); }}
-                        className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 text-[13px] font-semibold transition-all duration-150"
+                        className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 text-[15px] font-semibold transition-all duration-150"
                         style={{
                           borderRadius: "var(--radius-sm)",
                           border: msgChannel === ch ? `2px solid ${CHANNEL_COLORS[ch]}` : "1px solid var(--grey-300)",
@@ -352,7 +367,7 @@ export default function MessagesPage() {
 
                 {/* Template */}
                 <div>
-                  <label className="block mb-1 text-[12px] font-semibold" style={{ color: "var(--grey-700)" }}>Template (optional)</label>
+                  <label className="block mb-1 text-[14px] font-semibold" style={{ color: "var(--grey-700)" }}>Template (optional)</label>
                   <select value={selectedTemplate} onChange={(e) => setSelectedTemplate(e.target.value)} className="w-full px-3 py-2" style={inputStyle}>
                     <option value="">No template</option>
                     {templates.map((t) => <option key={t.id} value={t.id}>{t.name} ({t.category})</option>)}
@@ -362,22 +377,22 @@ export default function MessagesPage() {
                 {/* Subject (email only) */}
                 {msgChannel === "email" && (
                   <div>
-                    <label className="block mb-1 text-[12px] font-semibold" style={{ color: "var(--grey-700)" }}>Subject</label>
+                    <label className="block mb-1 text-[14px] font-semibold" style={{ color: "var(--grey-700)" }}>Subject</label>
                     <input type="text" value={subject} onChange={(e) => setSubject(e.target.value)} className="w-full px-3 py-2" style={inputStyle} placeholder="Email subject line..." />
                   </div>
                 )}
 
                 {/* Message */}
                 <div>
-                  <label className="block mb-1 text-[12px] font-semibold" style={{ color: "var(--grey-700)" }}>Message *</label>
+                  <label className="block mb-1 text-[14px] font-semibold" style={{ color: "var(--grey-700)" }}>Message *</label>
                   <textarea value={message} onChange={(e) => setMessage(e.target.value)} rows={6} placeholder="Type your message here..." className="w-full px-3 py-2" style={inputStyle} />
                 </div>
 
                 {/* Preview */}
                 {previewText && (
                   <div className="p-3" style={{ background: "var(--grey-100)", borderRadius: "var(--radius-sm)", border: "1px solid var(--grey-300)" }}>
-                    <p className="text-[11px] font-semibold uppercase mb-1" style={{ color: "var(--grey-600)" }}>Preview</p>
-                    <p className="text-[13px]" style={{ color: "var(--grey-800)", whiteSpace: "pre-wrap" }}>{previewText}</p>
+                    <p className="text-[13px] font-semibold uppercase mb-1" style={{ color: "var(--grey-600)" }}>Preview</p>
+                    <p className="text-[15px]" style={{ color: "var(--grey-800)", whiteSpace: "pre-wrap" }}>{previewText}</p>
                   </div>
                 )}
 
@@ -385,7 +400,7 @@ export default function MessagesPage() {
                 <div className="flex gap-2 pt-1">
                   <button
                     onClick={handlePreview}
-                    className="px-4 py-2 text-[13px] font-semibold transition-colors"
+                    className="px-4 py-2 text-[15px] font-semibold transition-colors"
                     style={{ background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", color: "var(--grey-700)" }}
                   >
                     Preview
@@ -393,7 +408,7 @@ export default function MessagesPage() {
                   <button
                     onClick={handleSend}
                     disabled={sending || !selectedPatient || !message.trim()}
-                    className="flex-1 text-white px-5 py-2 text-[13px] font-semibold transition-colors disabled:opacity-50"
+                    className="flex-1 text-white px-5 py-2 text-[15px] font-semibold transition-colors disabled:opacity-50"
                     style={{ background: "var(--blue-500)", borderRadius: "var(--radius-sm)" }}
                   >
                     {sending ? "Sending..." : "Send Message"}
@@ -413,11 +428,11 @@ export default function MessagesPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
             </svg>
           </div>
-          <p className="text-[14px] font-semibold" style={{ color: "var(--grey-700)" }}>
+          <p className="text-[16px] font-semibold" style={{ color: "var(--grey-700)" }}>
             {communications.length === 0 ? "No messages sent yet" : "No messages match your filters"}
           </p>
           {communications.length === 0 && (
-            <button onClick={() => setShowCompose(true)} className="text-[12px] font-semibold mt-2 hover:underline" style={{ color: "var(--blue-500)" }}>Send your first message</button>
+            <button onClick={() => setShowCompose(true)} className="text-[14px] font-semibold mt-2 hover:underline" style={{ color: "var(--blue-500)" }}>Send your first message</button>
           )}
         </div>
       ) : (
@@ -437,11 +452,11 @@ export default function MessagesPage() {
                       <ChannelIcon channel={c.type} size={16} />
                     </div>
                     <div>
-                      <span className="text-[13px] font-semibold" style={{ color: "var(--grey-900)" }}>
+                      <span className="text-[15px] font-semibold" style={{ color: "var(--grey-900)" }}>
                         {c.patient.firstName} {c.patient.lastName}
                       </span>
                       <span
-                        className="inline-flex items-center ml-2 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide"
+                        className="inline-flex items-center ml-2 px-1.5 py-0.5 text-[12px] font-bold uppercase tracking-wide"
                         style={{
                           borderRadius: "var(--radius-sm)",
                           background: CHANNEL_BG[c.type] || "var(--grey-100)",
@@ -454,7 +469,7 @@ export default function MessagesPage() {
                   </div>
                   <div className="flex items-center gap-3">
                     <span
-                      className="inline-flex items-center px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide"
+                      className="inline-flex items-center px-2 py-0.5 text-[12px] font-bold uppercase tracking-wide"
                       style={{
                         borderRadius: "var(--radius-sm)",
                         background: STATUS_BG[c.status] || "var(--grey-100)",
@@ -463,15 +478,15 @@ export default function MessagesPage() {
                     >
                       {c.status}
                     </span>
-                    <span className="text-[11px]" style={{ color: "var(--grey-500)" }}>{relativeTime(c.sentAt)}</span>
+                    <span className="text-[13px]" style={{ color: "var(--grey-500)" }}>{relativeTime(c.sentAt)}</span>
                   </div>
                 </div>
-                {c.subject && <p className="text-[13px] font-semibold mb-0.5 ml-11" style={{ color: "var(--grey-800)" }}>{c.subject}</p>}
-                <p className={`text-[13px] ml-11 ${isExpanded ? "" : "line-clamp-2"}`} style={{ color: "var(--grey-600)", whiteSpace: isExpanded ? "pre-wrap" : undefined }}>
+                {c.subject && <p className="text-[15px] font-semibold mb-0.5 ml-11" style={{ color: "var(--grey-800)" }}>{c.subject}</p>}
+                <p className={`text-[15px] ml-11 ${isExpanded ? "" : "line-clamp-2"}`} style={{ color: "var(--grey-600)", whiteSpace: isExpanded ? "pre-wrap" : undefined }}>
                   {c.message}
                 </p>
                 {!isExpanded && c.message.length > 120 && (
-                  <p className="text-[11px] font-semibold ml-11 mt-1" style={{ color: "var(--blue-500)" }}>Click to expand</p>
+                  <p className="text-[13px] font-semibold ml-11 mt-1" style={{ color: "var(--blue-500)" }}>Click to expand</p>
                 )}
               </div>
             );
@@ -482,14 +497,14 @@ export default function MessagesPage() {
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between mt-5">
-          <p className="text-[12px]" style={{ color: "var(--grey-600)" }}>
+          <p className="text-[14px]" style={{ color: "var(--grey-600)" }}>
             Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1}-{Math.min(currentPage * ITEMS_PER_PAGE, filtered.length)} of {filtered.length}
           </p>
           <div className="flex gap-1">
             <button
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1}
-              className="px-3 py-1.5 text-[12px] font-semibold disabled:opacity-40"
+              className="px-3 py-1.5 text-[14px] font-semibold disabled:opacity-40"
               style={{ border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", color: "var(--grey-700)", background: "var(--white)" }}
             >
               Previous
@@ -501,7 +516,7 @@ export default function MessagesPage() {
               <button
                 key={p}
                 onClick={() => setCurrentPage(p)}
-                className="px-3 py-1.5 text-[12px] font-semibold"
+                className="px-3 py-1.5 text-[14px] font-semibold"
                 style={{
                   border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)",
                   background: p === currentPage ? "var(--blue-500)" : "var(--white)",
@@ -514,7 +529,7 @@ export default function MessagesPage() {
             <button
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
-              className="px-3 py-1.5 text-[12px] font-semibold disabled:opacity-40"
+              className="px-3 py-1.5 text-[14px] font-semibold disabled:opacity-40"
               style={{ border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", color: "var(--grey-700)", background: "var(--white)" }}
             >
               Next

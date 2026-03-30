@@ -33,7 +33,7 @@ type Step = 1 | 2 | 3 | 4 | 5;
 
 // ─── YODA Design Tokens ─────────────────────────────────────────────────────
 const cardStyle = { background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-card)" };
-const inputStyle = { border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)", fontSize: "13px" };
+const inputStyle = { border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)", fontSize: "15px" };
 const btnPrimary = { background: "var(--blue-500)", borderRadius: "var(--radius-sm)" };
 
 // ─── Utility ────────────────────────────────────────────────────────────────
@@ -65,7 +65,7 @@ function Toast({ message, type, onClose }: { message: string; type: "success" | 
 
   return (
     <div
-      className="fixed top-6 right-6 z-50 px-4 py-3 flex items-center gap-3 text-[13px] font-medium yoda-slide-in"
+      className="fixed top-6 right-6 z-50 px-4 py-3 flex items-center gap-3 text-[15px] font-medium yoda-slide-in"
       style={{
         borderRadius: "var(--radius)",
         background: type === "success" ? "var(--green-light)" : "var(--red-light)",
@@ -95,7 +95,7 @@ function StepIndicator({ current, labels }: { current: Step; labels: string[] })
             )}
             <div className="flex items-center gap-2 flex-shrink-0">
               <div
-                className="w-7 h-7 flex items-center justify-center text-[11px] font-bold flex-shrink-0"
+                className="w-7 h-7 flex items-center justify-center text-[13px] font-bold flex-shrink-0"
                 style={{
                   borderRadius: "var(--radius-pill)",
                   background: isActive ? "var(--blue-500)" : isCompleted ? "var(--blue-500)" : "var(--grey-200)",
@@ -110,7 +110,7 @@ function StepIndicator({ current, labels }: { current: Step; labels: string[] })
                   step
                 )}
               </div>
-              <span className="text-[12px] font-semibold whitespace-nowrap" style={{ color: isActive ? "var(--blue-500)" : isCompleted ? "var(--grey-900)" : "var(--grey-500)" }}>
+              <span className="text-[14px] font-semibold whitespace-nowrap" style={{ color: isActive ? "var(--blue-500)" : isCompleted ? "var(--grey-900)" : "var(--grey-500)" }}>
                 {label}
               </span>
             </div>
@@ -154,6 +154,11 @@ export default function BookAppointmentPage() {
   const [reason, setReason] = useState("");
   const [notes, setNotes] = useState("");
 
+  // Active packages for selected patient
+  const [activePackages, setActivePackages] = useState<{ id: string; packageNumber: string; treatmentName: string; totalSessions: number; usedSessions: number; remaining: number }[]>([]);
+  const [activePackagesLoading, setActivePackagesLoading] = useState(false);
+  const [selectedPackageId, setSelectedPackageId] = useState<string | null>(null);
+
   // ─── Step 1: Search patients ──────────────────────────────────────────────
   const searchPatients = useCallback(() => {
     if (!patientSearch || patientSearch.length < 2) {
@@ -172,6 +177,32 @@ export default function BookAppointmentPage() {
     const timeout = setTimeout(searchPatients, 300);
     return () => clearTimeout(timeout);
   }, [searchPatients]);
+
+  // ─── Fetch active packages for selected patient ────────────────────────────
+  useEffect(() => {
+    if (selectedPatient) {
+      setActivePackagesLoading(true);
+      setSelectedPackageId(null);
+      fetch(`/api/patient-packages/active?patientId=${selectedPatient.id}`)
+        .then((r) => r.json())
+        .then((data) => {
+          const list = Array.isArray(data) ? data : data.packages || data.items || [];
+          setActivePackages(list.map((p: Record<string, unknown>) => ({
+            id: p.id as string,
+            packageNumber: (p.packageNumber as string) || "",
+            treatmentName: (p.treatmentName as string) || "",
+            totalSessions: (p.totalSessions as number) ?? 0,
+            usedSessions: (p.usedSessions as number) ?? 0,
+            remaining: ((p.totalSessions as number) ?? 0) - ((p.usedSessions as number) ?? 0),
+          })));
+        })
+        .catch(() => setActivePackages([]))
+        .finally(() => setActivePackagesLoading(false));
+    } else {
+      setActivePackages([]);
+      setSelectedPackageId(null);
+    }
+  }, [selectedPatient]);
 
   // ─── Step 2: Fetch doctors ────────────────────────────────────────────────
   useEffect(() => {
@@ -288,8 +319,8 @@ export default function BookAppointmentPage() {
           </svg>
         </Link>
         <div>
-          <h1 className="text-[22px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>Book Appointment</h1>
-          <p className="text-[13px] mt-0.5" style={{ color: "var(--grey-600)" }}>Step {step} of 5</p>
+          <h1 className="text-[24px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>Book Appointment</h1>
+          <p className="text-[15px] mt-0.5" style={{ color: "var(--grey-600)" }}>Step {step} of 5</p>
         </div>
       </div>
 
@@ -307,23 +338,23 @@ export default function BookAppointmentPage() {
               <div className="p-4 flex items-center justify-between" style={{ ...cardStyle, borderColor: "var(--blue-500)", background: "var(--blue-50)" }}>
                 <div className="flex items-center gap-3">
                   <div
-                    className="w-10 h-10 flex items-center justify-center text-[12px] font-bold flex-shrink-0"
+                    className="w-10 h-10 flex items-center justify-center text-[14px] font-bold flex-shrink-0"
                     style={{ background: "var(--blue-500)", color: "var(--white)", borderRadius: "var(--radius-pill)" }}
                   >
                     {selectedPatient.firstName[0]}{selectedPatient.lastName[0]}
                   </div>
                   <div>
-                    <p className="text-[14px] font-semibold" style={{ color: "var(--grey-900)" }}>
+                    <p className="text-[16px] font-semibold" style={{ color: "var(--grey-900)" }}>
                       {selectedPatient.firstName} {selectedPatient.lastName}
                     </p>
-                    <p className="text-[12px]" style={{ color: "var(--grey-600)" }}>
+                    <p className="text-[14px]" style={{ color: "var(--grey-600)" }}>
                       {selectedPatient.patientIdNumber} &middot; {selectedPatient.phone}
                     </p>
                   </div>
                 </div>
                 <button
                   onClick={() => setSelectedPatient(null)}
-                  className="text-[12px] font-semibold hover:underline"
+                  className="text-[14px] font-semibold hover:underline"
                   style={{ color: "var(--red)" }}
                 >
                   Change
@@ -340,7 +371,7 @@ export default function BookAppointmentPage() {
                     placeholder="Search by name, phone, or patient ID..."
                     value={patientSearch}
                     onChange={(e) => setPatientSearch(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 text-[13px]"
+                    className="w-full pl-10 pr-4 py-2.5 text-[15px]"
                     style={inputStyle}
                     autoFocus
                   />
@@ -355,7 +386,7 @@ export default function BookAppointmentPage() {
                 )}
 
                 {!patientsLoading && patientSearch.length >= 2 && patients.length === 0 && (
-                  <p className="text-[13px] text-center py-8" style={{ color: "var(--grey-500)" }}>
+                  <p className="text-[15px] text-center py-8" style={{ color: "var(--grey-500)" }}>
                     No patients found for &quot;{patientSearch}&quot;
                   </p>
                 )}
@@ -372,16 +403,16 @@ export default function BookAppointmentPage() {
                         onMouseLeave={(e) => { e.currentTarget.style.background = "var(--white)"; }}
                       >
                         <div
-                          className="w-9 h-9 flex items-center justify-center text-[11px] font-bold flex-shrink-0"
+                          className="w-9 h-9 flex items-center justify-center text-[13px] font-bold flex-shrink-0"
                           style={{ background: "var(--blue-50)", color: "var(--blue-500)", borderRadius: "var(--radius-pill)" }}
                         >
                           {p.firstName[0]}{p.lastName[0]}
                         </div>
                         <div>
-                          <p className="text-[13px] font-semibold" style={{ color: "var(--grey-900)" }}>
+                          <p className="text-[15px] font-semibold" style={{ color: "var(--grey-900)" }}>
                             {p.firstName} {p.lastName}
                           </p>
-                          <p className="text-[11px]" style={{ color: "var(--grey-500)" }}>
+                          <p className="text-[13px]" style={{ color: "var(--grey-500)" }}>
                             {p.patientIdNumber} &middot; {p.phone}
                           </p>
                         </div>
@@ -391,7 +422,7 @@ export default function BookAppointmentPage() {
                 )}
 
                 {!patientsLoading && patientSearch.length < 2 && (
-                  <p className="text-[13px] text-center py-8" style={{ color: "var(--grey-500)" }}>
+                  <p className="text-[15px] text-center py-8" style={{ color: "var(--grey-500)" }}>
                     Type at least 2 characters to search patients
                   </p>
                 )}
@@ -408,17 +439,17 @@ export default function BookAppointmentPage() {
             {selectedDoctor ? (
               <div className="p-4 flex items-center justify-between" style={{ ...cardStyle, borderColor: "var(--blue-500)", background: "var(--blue-50)" }}>
                 <div>
-                  <p className="text-[14px] font-semibold" style={{ color: "var(--grey-900)" }}>{selectedDoctor.name}</p>
-                  <p className="text-[12px]" style={{ color: "var(--grey-600)" }}>
+                  <p className="text-[16px] font-semibold" style={{ color: "var(--grey-900)" }}>{selectedDoctor.name}</p>
+                  <p className="text-[14px]" style={{ color: "var(--grey-600)" }}>
                     {selectedDoctor.specialization} &middot; {selectedDoctor.department}
                   </p>
-                  <p className="text-[12px] font-medium mt-0.5" style={{ color: "var(--blue-500)" }}>
+                  <p className="text-[14px] font-medium mt-0.5" style={{ color: "var(--blue-500)" }}>
                     Fee: &#8377;{selectedDoctor.consultationFee}
                   </p>
                 </div>
                 <button
                   onClick={() => { setSelectedDoctor(null); setSelectedDate(""); setSelectedSlot(""); setSlots([]); }}
-                  className="text-[12px] font-semibold hover:underline"
+                  className="text-[14px] font-semibold hover:underline"
                   style={{ color: "var(--red)" }}
                 >
                   Change
@@ -447,7 +478,7 @@ export default function BookAppointmentPage() {
                     ))}
                   </div>
                 ) : filteredDoctors.length === 0 ? (
-                  <p className="text-[13px] text-center py-8" style={{ color: "var(--grey-500)" }}>
+                  <p className="text-[15px] text-center py-8" style={{ color: "var(--grey-500)" }}>
                     No active doctors found{departmentFilter ? ` in ${departmentFilter}` : ""}
                   </p>
                 ) : (
@@ -461,13 +492,13 @@ export default function BookAppointmentPage() {
                         onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--blue-500)"; e.currentTarget.style.background = "var(--blue-50)"; }}
                         onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--grey-300)"; e.currentTarget.style.background = "var(--white)"; }}
                       >
-                        <p className="text-[14px] font-semibold" style={{ color: "var(--grey-900)" }}>{d.name}</p>
-                        <p className="text-[12px] mt-0.5" style={{ color: "var(--grey-600)" }}>{d.specialization}</p>
+                        <p className="text-[16px] font-semibold" style={{ color: "var(--grey-900)" }}>{d.name}</p>
+                        <p className="text-[14px] mt-0.5" style={{ color: "var(--grey-600)" }}>{d.specialization}</p>
                         <div className="flex items-center justify-between mt-2">
-                          <span className="text-[11px] px-2 py-0.5 font-medium" style={{ background: "var(--grey-100)", borderRadius: "var(--radius-sm)", color: "var(--grey-600)" }}>
+                          <span className="text-[13px] px-2 py-0.5 font-medium" style={{ background: "var(--grey-100)", borderRadius: "var(--radius-sm)", color: "var(--grey-600)" }}>
                             {d.department}
                           </span>
-                          <span className="text-[12px] font-semibold" style={{ color: "var(--blue-500)" }}>
+                          <span className="text-[14px] font-semibold" style={{ color: "var(--blue-500)" }}>
                             &#8377;{d.consultationFee}
                           </span>
                         </div>
@@ -486,7 +517,7 @@ export default function BookAppointmentPage() {
             <h2 className="text-[16px] font-bold mb-4" style={{ color: "var(--grey-900)" }}>Pick Date & Time</h2>
 
             <div className="mb-4">
-              <label className="block text-[12px] font-bold uppercase tracking-wider mb-1.5" style={{ color: "var(--grey-600)" }}>
+              <label className="block text-[14px] font-bold uppercase tracking-wider mb-1.5" style={{ color: "var(--grey-600)" }}>
                 Select Date
               </label>
               <input
@@ -498,7 +529,7 @@ export default function BookAppointmentPage() {
                 style={inputStyle}
               />
               {selectedDate && (
-                <p className="text-[12px] mt-1" style={{ color: "var(--grey-600)" }}>
+                <p className="text-[14px] mt-1" style={{ color: "var(--grey-600)" }}>
                   {formatDateDisplay(selectedDate)}
                 </p>
               )}
@@ -506,7 +537,7 @@ export default function BookAppointmentPage() {
 
             {selectedDate && (
               <div>
-                <label className="block text-[12px] font-bold uppercase tracking-wider mb-2" style={{ color: "var(--grey-600)" }}>
+                <label className="block text-[14px] font-bold uppercase tracking-wider mb-2" style={{ color: "var(--grey-600)" }}>
                   Available Time Slots
                 </label>
 
@@ -517,9 +548,9 @@ export default function BookAppointmentPage() {
                     ))}
                   </div>
                 ) : slotsMessage ? (
-                  <p className="text-[13px] py-4" style={{ color: "var(--grey-500)" }}>{slotsMessage}</p>
+                  <p className="text-[15px] py-4" style={{ color: "var(--grey-500)" }}>{slotsMessage}</p>
                 ) : slots.length === 0 ? (
-                  <p className="text-[13px] py-4" style={{ color: "var(--grey-500)" }}>No slots configured for this day.</p>
+                  <p className="text-[15px] py-4" style={{ color: "var(--grey-500)" }}>No slots configured for this day.</p>
                 ) : (
                   <div className="flex flex-wrap gap-2">
                     {slots.map((s) => {
@@ -529,7 +560,7 @@ export default function BookAppointmentPage() {
                           key={s.time}
                           disabled={!s.available}
                           onClick={() => setSelectedSlot(s.time)}
-                          className="px-3 py-2 text-[13px] font-medium transition-all"
+                          className="px-3 py-2 text-[15px] font-medium transition-all"
                           style={{
                             borderRadius: "var(--radius-sm)",
                             border: isSelected
@@ -557,7 +588,7 @@ export default function BookAppointmentPage() {
                 )}
 
                 {slots.length > 0 && (
-                  <div className="flex items-center gap-4 mt-3 text-[11px]" style={{ color: "var(--grey-500)" }}>
+                  <div className="flex items-center gap-4 mt-3 text-[13px]" style={{ color: "var(--grey-500)" }}>
                     <span className="flex items-center gap-1">
                       <span className="inline-block w-3 h-3" style={{ background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: 2 }} />
                       Available
@@ -584,7 +615,7 @@ export default function BookAppointmentPage() {
 
             <div className="space-y-4">
               <div>
-                <label className="block text-[12px] font-bold uppercase tracking-wider mb-1.5" style={{ color: "var(--grey-600)" }}>
+                <label className="block text-[14px] font-bold uppercase tracking-wider mb-1.5" style={{ color: "var(--grey-600)" }}>
                   Appointment Type <span style={{ color: "var(--red)" }}>*</span>
                 </label>
                 <select
@@ -600,8 +631,73 @@ export default function BookAppointmentPage() {
                 </select>
               </div>
 
+              {/* ── Active Packages Section ──────────────────────────── */}
+              {selectedPatient && (
+                <div>
+                  <label className="block text-[14px] font-bold uppercase tracking-wider mb-1.5" style={{ color: "var(--grey-600)" }}>
+                    Use Package
+                  </label>
+                  {activePackagesLoading ? (
+                    <div className="h-14 animate-pulse" style={{ background: "var(--grey-100)", borderRadius: "var(--radius-sm)" }} />
+                  ) : activePackages.length > 0 ? (
+                    <div className="space-y-2">
+                      {activePackages.map((pkg) => (
+                        <button
+                          key={pkg.id}
+                          onClick={() => setSelectedPackageId(selectedPackageId === pkg.id ? null : pkg.id)}
+                          className="w-full text-left p-3 transition-colors"
+                          style={{
+                            background: selectedPackageId === pkg.id ? "var(--blue-50)" : "var(--white)",
+                            border: selectedPackageId === pkg.id ? "2px solid var(--blue-500)" : "1px solid var(--grey-300)",
+                            borderRadius: "var(--radius-sm)",
+                            cursor: "pointer",
+                          }}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-[15px] font-semibold" style={{ color: "var(--grey-900)" }}>
+                                Use package {pkg.packageNumber}
+                              </p>
+                              <p className="text-[13px]" style={{ color: "var(--grey-600)" }}>
+                                {pkg.treatmentName} &middot; {pkg.remaining} of {pkg.totalSessions} sessions remaining
+                              </p>
+                            </div>
+                            <div
+                              className="w-5 h-5 flex items-center justify-center flex-shrink-0"
+                              style={{
+                                borderRadius: "var(--radius-pill)",
+                                border: selectedPackageId === pkg.id ? "none" : "2px solid var(--grey-400)",
+                                background: selectedPackageId === pkg.id ? "var(--blue-500)" : "transparent",
+                              }}
+                            >
+                              {selectedPackageId === pkg.id && (
+                                <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                </svg>
+                              )}
+                            </div>
+                          </div>
+                          {selectedPackageId === pkg.id && (
+                            <p className="text-[13px] mt-1 font-medium" style={{ color: "var(--green)" }}>
+                              Prepaid session — no additional charge for this booking
+                            </p>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="p-3 text-center" style={{ background: "var(--grey-50)", borderRadius: "var(--radius-sm)", border: "1px solid var(--grey-200)" }}>
+                      <p className="text-[14px]" style={{ color: "var(--grey-500)" }}>No active packages for this patient</p>
+                      <Link href="/packages/new" className="text-[13px] font-semibold hover:underline" style={{ color: "var(--blue-500)" }}>
+                        Or buy a package &rarr;
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div>
-                <label className="block text-[12px] font-bold uppercase tracking-wider mb-1.5" style={{ color: "var(--grey-600)" }}>
+                <label className="block text-[14px] font-bold uppercase tracking-wider mb-1.5" style={{ color: "var(--grey-600)" }}>
                   Reason <span style={{ color: "var(--red)" }}>*</span>
                 </label>
                 <textarea
@@ -613,13 +709,13 @@ export default function BookAppointmentPage() {
                   style={inputStyle}
                 />
                 {step === 4 && reason.trim() === "" && (
-                  <p className="text-[11px] mt-1" style={{ color: "var(--orange)" }}>Please provide a reason for the appointment</p>
+                  <p className="text-[13px] mt-1" style={{ color: "var(--orange)" }}>Please provide a reason for the appointment</p>
                 )}
               </div>
 
               <div>
-                <label className="block text-[12px] font-bold uppercase tracking-wider mb-1.5" style={{ color: "var(--grey-600)" }}>
-                  Notes <span className="text-[10px] font-normal normal-case" style={{ color: "var(--grey-500)" }}>(optional)</span>
+                <label className="block text-[14px] font-bold uppercase tracking-wider mb-1.5" style={{ color: "var(--grey-600)" }}>
+                  Notes <span className="text-[12px] font-normal normal-case" style={{ color: "var(--grey-500)" }}>(optional)</span>
                 </label>
                 <textarea
                   value={notes}
@@ -648,11 +744,11 @@ export default function BookAppointmentPage() {
                   </svg>
                 </div>
                 <div>
-                  <p className="text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-500)" }}>Patient</p>
-                  <p className="text-[14px] font-semibold" style={{ color: "var(--grey-900)" }}>
+                  <p className="text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-500)" }}>Patient</p>
+                  <p className="text-[16px] font-semibold" style={{ color: "var(--grey-900)" }}>
                     {selectedPatient?.firstName} {selectedPatient?.lastName}
                   </p>
-                  <p className="text-[12px]" style={{ color: "var(--grey-600)" }}>
+                  <p className="text-[14px]" style={{ color: "var(--grey-600)" }}>
                     {selectedPatient?.patientIdNumber} &middot; {selectedPatient?.phone}
                   </p>
                 </div>
@@ -668,14 +764,14 @@ export default function BookAppointmentPage() {
                   </svg>
                 </div>
                 <div>
-                  <p className="text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-500)" }}>Doctor</p>
-                  <p className="text-[14px] font-semibold" style={{ color: "var(--grey-900)" }}>
+                  <p className="text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-500)" }}>Doctor</p>
+                  <p className="text-[16px] font-semibold" style={{ color: "var(--grey-900)" }}>
                     {selectedDoctor?.name}
                   </p>
-                  <p className="text-[12px]" style={{ color: "var(--grey-600)" }}>
+                  <p className="text-[14px]" style={{ color: "var(--grey-600)" }}>
                     {selectedDoctor?.specialization} &middot; {selectedDoctor?.department}
                   </p>
-                  <p className="text-[12px] font-medium" style={{ color: "var(--blue-500)" }}>
+                  <p className="text-[14px] font-medium" style={{ color: "var(--blue-500)" }}>
                     Fee: &#8377;{selectedDoctor?.consultationFee}
                   </p>
                 </div>
@@ -691,11 +787,11 @@ export default function BookAppointmentPage() {
                   </svg>
                 </div>
                 <div>
-                  <p className="text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-500)" }}>Date & Time</p>
-                  <p className="text-[14px] font-semibold" style={{ color: "var(--grey-900)" }}>
+                  <p className="text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-500)" }}>Date & Time</p>
+                  <p className="text-[16px] font-semibold" style={{ color: "var(--grey-900)" }}>
                     {selectedDate && formatDateDisplay(selectedDate)}
                   </p>
-                  <p className="text-[13px] font-medium" style={{ color: "var(--grey-700)" }}>
+                  <p className="text-[15px] font-medium" style={{ color: "var(--grey-700)" }}>
                     {selectedSlot && formatTime12(selectedSlot)}
                   </p>
                 </div>
@@ -711,15 +807,15 @@ export default function BookAppointmentPage() {
                   </svg>
                 </div>
                 <div>
-                  <p className="text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-500)" }}>Details</p>
-                  <p className="text-[13px] capitalize" style={{ color: "var(--grey-900)" }}>
+                  <p className="text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-500)" }}>Details</p>
+                  <p className="text-[15px] capitalize" style={{ color: "var(--grey-900)" }}>
                     <span className="font-semibold">Type:</span> {apptType}
                   </p>
-                  <p className="text-[13px] mt-0.5" style={{ color: "var(--grey-900)" }}>
+                  <p className="text-[15px] mt-0.5" style={{ color: "var(--grey-900)" }}>
                     <span className="font-semibold">Reason:</span> {reason}
                   </p>
                   {notes && (
-                    <p className="text-[13px] mt-0.5" style={{ color: "var(--grey-600)" }}>
+                    <p className="text-[15px] mt-0.5" style={{ color: "var(--grey-600)" }}>
                       <span className="font-semibold">Notes:</span> {notes}
                     </p>
                   )}
@@ -731,7 +827,7 @@ export default function BookAppointmentPage() {
             <button
               onClick={handleBook}
               disabled={submitting}
-              className="mt-6 w-full py-3 text-white text-[14px] font-semibold transition-all duration-150 flex items-center justify-center gap-2"
+              className="mt-6 w-full py-3 text-white text-[16px] font-semibold transition-all duration-150 flex items-center justify-center gap-2"
               style={{
                 ...btnPrimary,
                 opacity: submitting ? 0.7 : 1,
@@ -764,7 +860,7 @@ export default function BookAppointmentPage() {
             <button
               onClick={goBack}
               disabled={step === 1}
-              className="px-4 py-2 text-[13px] font-semibold transition-colors"
+              className="px-4 py-2 text-[15px] font-semibold transition-colors"
               style={{
                 borderRadius: "var(--radius-sm)",
                 border: "1px solid var(--grey-300)",
@@ -778,7 +874,7 @@ export default function BookAppointmentPage() {
             <button
               onClick={goNext}
               disabled={!canProceed()}
-              className="px-6 py-2 text-[13px] font-semibold text-white transition-all"
+              className="px-6 py-2 text-[15px] font-semibold text-white transition-all"
               style={{
                 ...btnPrimary,
                 opacity: canProceed() ? 1 : 0.5,
@@ -794,7 +890,7 @@ export default function BookAppointmentPage() {
           <div className="mt-4">
             <button
               onClick={goBack}
-              className="text-[13px] font-semibold hover:underline"
+              className="text-[15px] font-semibold hover:underline"
               style={{ color: "var(--grey-600)" }}
             >
               &larr; Back to Details

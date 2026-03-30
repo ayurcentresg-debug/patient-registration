@@ -98,11 +98,11 @@ export default function ConfirmDialog({
             </svg>
           </div>
           {/* Title */}
-          <h3 className="text-[15px] font-bold mb-1.5" style={{ color: "var(--grey-900)" }}>
+          <h3 className="text-[17px] font-bold mb-1.5" style={{ color: "var(--grey-900)" }}>
             {title}
           </h3>
           {/* Message */}
-          <p className="text-[13px] leading-relaxed" style={{ color: "var(--grey-600)" }}>
+          <p className="text-[15px] leading-relaxed" style={{ color: "var(--grey-600)" }}>
             {message}
           </p>
         </div>
@@ -116,7 +116,7 @@ export default function ConfirmDialog({
             ref={cancelRef}
             onClick={onCancel}
             disabled={loading}
-            className="flex-1 px-4 py-2.5 text-[13px] font-semibold transition-colors disabled:opacity-50"
+            className="flex-1 px-4 py-2.5 text-[15px] font-semibold transition-colors disabled:opacity-50"
             style={{
               background: "var(--white)",
               border: "1px solid var(--grey-300)",
@@ -129,7 +129,7 @@ export default function ConfirmDialog({
           <button
             onClick={onConfirm}
             disabled={loading}
-            className="flex-1 px-4 py-2.5 text-[13px] font-semibold text-white transition-colors disabled:opacity-50"
+            className="flex-1 px-4 py-2.5 text-[15px] font-semibold text-white transition-colors disabled:opacity-50"
             style={{
               background: v.btnBg,
               borderRadius: "var(--radius-sm)",

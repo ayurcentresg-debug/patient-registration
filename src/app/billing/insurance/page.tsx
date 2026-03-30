@@ -45,7 +45,7 @@ type SortDir = "asc" | "desc";
 // ─── YODA Design Tokens ─────────────────────────────────────────────────────
 const cardStyle = { background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-card)" };
 const btnPrimary = { background: "var(--blue-500)", borderRadius: "var(--radius-sm)" };
-const chipBase = "inline-flex px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide";
+const chipBase = "inline-flex px-2 py-0.5 text-[12px] font-bold uppercase tracking-wide";
 
 // ─── Status colors ──────────────────────────────────────────────────────────
 const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
@@ -91,7 +91,7 @@ function SortHeader({ label, field, currentField, direction, onSort }: {
   const isActive = currentField === field;
   return (
     <th
-      className="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider cursor-pointer select-none"
+      className="text-left px-4 py-3 text-[13px] font-bold uppercase tracking-wider cursor-pointer select-none"
       style={{ color: isActive ? "var(--blue-500)" : "var(--grey-600)" }}
       onClick={() => onSort(field)}
       role="columnheader"
@@ -252,15 +252,15 @@ export default function InsuranceClaimsPage() {
       {/* ── Header ──────────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-[22px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>Insurance Claims</h1>
-          <p className="text-[13px] mt-0.5" style={{ color: "var(--grey-600)" }}>
+          <h1 className="text-[24px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>Insurance Claims</h1>
+          <p className="text-[15px] mt-0.5" style={{ color: "var(--grey-600)" }}>
             {sorted.length} claim{sorted.length !== 1 ? "s" : ""} found
           </p>
         </div>
         <div className="flex gap-2">
           <Link
             href="/billing/new?type=insurance"
-            className="inline-flex items-center justify-center gap-2 text-white px-5 py-2 text-[13px] font-semibold transition-colors duration-150"
+            className="inline-flex items-center justify-center gap-2 text-white px-5 py-2 text-[15px] font-semibold transition-colors duration-150"
             style={btnPrimary}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -276,9 +276,9 @@ export default function InsuranceClaimsPage() {
         <div className="p-4 transition-shadow duration-150 hover:shadow-md" style={{ ...cardStyle, boxShadow: "var(--shadow-sm)" }}>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-[12px] font-semibold uppercase tracking-wide" style={{ color: "var(--grey-600)" }}>Total Claims</p>
-              <p className="text-[11px]" style={{ color: "var(--grey-500)" }}>This month</p>
-              <p className="text-[28px] font-bold mt-1 tracking-tight" style={{ color: "var(--grey-900)" }}>{stats.totalClaims}</p>
+              <p className="text-[14px] font-semibold uppercase tracking-wide" style={{ color: "var(--grey-600)" }}>Total Claims</p>
+              <p className="text-[13px]" style={{ color: "var(--grey-500)" }}>This month</p>
+              <p className="text-[30px] font-bold mt-1 tracking-tight" style={{ color: "var(--grey-900)" }}>{stats.totalClaims}</p>
             </div>
             <div className="w-11 h-11 flex items-center justify-center" style={{ background: "var(--blue-100, #bbdefb)", borderRadius: "var(--radius-sm)", color: "var(--blue-500)" }}>
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
@@ -291,8 +291,8 @@ export default function InsuranceClaimsPage() {
         <div className="p-4 transition-shadow duration-150 hover:shadow-md" style={{ ...cardStyle, boxShadow: "var(--shadow-sm)" }}>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-[12px] font-semibold uppercase tracking-wide" style={{ color: "var(--grey-600)" }}>Pending Amount</p>
-              <p className="text-[11px]" style={{ color: "var(--grey-500)" }}>Submitted + Under Review</p>
+              <p className="text-[14px] font-semibold uppercase tracking-wide" style={{ color: "var(--grey-600)" }}>Pending Amount</p>
+              <p className="text-[13px]" style={{ color: "var(--grey-500)" }}>Submitted + Under Review</p>
               <p className="text-[24px] font-bold mt-1 tracking-tight" style={{ color: stats.pendingAmount > 0 ? "#f57c00" : "var(--grey-900)" }}>
                 <span className="text-[16px]" style={{ color: "var(--grey-500)" }}>{"S$"}</span>{(stats.pendingAmount ?? 0).toLocaleString("en-SG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </p>
@@ -308,8 +308,8 @@ export default function InsuranceClaimsPage() {
         <div className="p-4 transition-shadow duration-150 hover:shadow-md" style={{ ...cardStyle, boxShadow: "var(--shadow-sm)" }}>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-[12px] font-semibold uppercase tracking-wide" style={{ color: "var(--grey-600)" }}>Approved Awaiting</p>
-              <p className="text-[11px]" style={{ color: "var(--grey-500)" }}>Settlement pending</p>
+              <p className="text-[14px] font-semibold uppercase tracking-wide" style={{ color: "var(--grey-600)" }}>Approved Awaiting</p>
+              <p className="text-[13px]" style={{ color: "var(--grey-500)" }}>Settlement pending</p>
               <p className="text-[24px] font-bold mt-1 tracking-tight" style={{ color: "var(--grey-900)" }}>
                 <span className="text-[16px]" style={{ color: "var(--grey-500)" }}>{"S$"}</span>{(stats.approvedAwaitingSettlement ?? 0).toLocaleString("en-SG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </p>
@@ -325,8 +325,8 @@ export default function InsuranceClaimsPage() {
         <div className="p-4 transition-shadow duration-150 hover:shadow-md" style={{ ...cardStyle, boxShadow: "var(--shadow-sm)" }}>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-[12px] font-semibold uppercase tracking-wide" style={{ color: "var(--grey-600)" }}>Settled This Month</p>
-              <p className="text-[11px]" style={{ color: "var(--grey-500)" }}>Total received</p>
+              <p className="text-[14px] font-semibold uppercase tracking-wide" style={{ color: "var(--grey-600)" }}>Settled This Month</p>
+              <p className="text-[13px]" style={{ color: "var(--grey-500)" }}>Total received</p>
               <p className="text-[24px] font-bold mt-1 tracking-tight" style={{ color: "var(--grey-900)" }}>
                 <span className="text-[16px]" style={{ color: "var(--grey-500)" }}>{"S$"}</span>{(stats.settledThisMonth ?? 0).toLocaleString("en-SG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </p>
@@ -353,7 +353,7 @@ export default function InsuranceClaimsPage() {
               placeholder="Search by claim # or patient name..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 text-[13px]"
+              className="w-full pl-10 pr-4 py-2 text-[15px]"
               style={{ border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)" }}
               aria-label="Search claims"
             />
@@ -368,7 +368,7 @@ export default function InsuranceClaimsPage() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-2 text-[13px]"
+            className="px-3 py-2 text-[15px]"
             style={{ border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)", minWidth: 150 }}
           >
             {STATUS_OPTIONS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
@@ -378,7 +378,7 @@ export default function InsuranceClaimsPage() {
           <select
             value={providerFilter}
             onChange={(e) => setProviderFilter(e.target.value)}
-            className="px-3 py-2 text-[13px]"
+            className="px-3 py-2 text-[15px]"
             style={{ border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)", minWidth: 150 }}
           >
             <option value="all">All Providers</option>
@@ -390,7 +390,7 @@ export default function InsuranceClaimsPage() {
             type="date"
             value={dateFrom}
             onChange={(e) => setDateFrom(e.target.value)}
-            className="px-3 py-2 text-[13px]"
+            className="px-3 py-2 text-[15px]"
             style={{ border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)", minWidth: 140 }}
             aria-label="Date from"
           />
@@ -400,7 +400,7 @@ export default function InsuranceClaimsPage() {
             type="date"
             value={dateTo}
             onChange={(e) => setDateTo(e.target.value)}
-            className="px-3 py-2 text-[13px]"
+            className="px-3 py-2 text-[15px]"
             style={{ border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)", minWidth: 140 }}
             aria-label="Date to"
           />
@@ -410,7 +410,7 @@ export default function InsuranceClaimsPage() {
           <div className="flex items-center">
             <button
               onClick={() => { setSearch(""); setStatusFilter("all"); setProviderFilter("all"); setDateFrom(""); setDateTo(""); }}
-              className="text-[11px] font-semibold hover:underline"
+              className="text-[13px] font-semibold hover:underline"
               style={{ color: "var(--blue-500)" }}
             >
               Clear all filters
@@ -422,8 +422,8 @@ export default function InsuranceClaimsPage() {
       {/* ── Error State ─────────────────────────────────────────── */}
       {error && (
         <div className="mb-4 px-4 py-3 flex items-center justify-between" style={{ background: "#ffebee", color: "var(--red)", borderRadius: "var(--radius-sm)" }}>
-          <p className="text-[13px] font-medium">Failed to load claims: {error}</p>
-          <button onClick={fetchClaims} className="text-[12px] font-semibold underline">Retry</button>
+          <p className="text-[15px] font-medium">Failed to load claims: {error}</p>
+          <button onClick={fetchClaims} className="text-[14px] font-semibold underline">Retry</button>
         </div>
       )}
 
@@ -442,19 +442,19 @@ export default function InsuranceClaimsPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
           </div>
-          <p className="text-[14px] font-semibold" style={{ color: "var(--grey-700)" }}>
+          <p className="text-[16px] font-semibold" style={{ color: "var(--grey-700)" }}>
             {search || statusFilter !== "all" || providerFilter !== "all" || dateFrom || dateTo ? "No claims match your filters" : "No insurance claims found"}
           </p>
           {(search || statusFilter !== "all" || providerFilter !== "all" || dateFrom || dateTo) ? (
             <button
               onClick={() => { setSearch(""); setStatusFilter("all"); setProviderFilter("all"); setDateFrom(""); setDateTo(""); }}
-              className="text-[12px] font-semibold mt-2 hover:underline"
+              className="text-[14px] font-semibold mt-2 hover:underline"
               style={{ color: "var(--blue-500)" }}
             >
               Clear all filters
             </button>
           ) : (
-            <Link href="/billing/new?type=insurance" className="text-[12px] font-semibold mt-2 inline-block hover:underline" style={{ color: "var(--blue-500)" }}>
+            <Link href="/billing/new?type=insurance" className="text-[14px] font-semibold mt-2 inline-block hover:underline" style={{ color: "var(--blue-500)" }}>
               Submit your first claim
             </Link>
           )}
@@ -469,11 +469,11 @@ export default function InsuranceClaimsPage() {
                   <SortHeader label="Claim #" field="claimNumber" currentField={sortField} direction={sortDir} onSort={handleSort} />
                   <SortHeader label="Date" field="submittedDate" currentField={sortField} direction={sortDir} onSort={handleSort} />
                   <SortHeader label="Patient" field="patientName" currentField={sortField} direction={sortDir} onSort={handleSort} />
-                  <th className="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Provider</th>
+                  <th className="text-left px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Provider</th>
                   <SortHeader label="Claim Amt" field="claimAmount" currentField={sortField} direction={sortDir} onSort={handleSort} />
                   <SortHeader label="Status" field="status" currentField={sortField} direction={sortDir} onSort={handleSort} />
                   <SortHeader label="Approved Amt" field="approvedAmount" currentField={sortField} direction={sortDir} onSort={handleSort} />
-                  <th className="text-right px-4 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Actions</th>
+                  <th className="text-right px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -488,17 +488,17 @@ export default function InsuranceClaimsPage() {
                       onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
                     >
                       <td className="px-4 py-3">
-                        <span className="text-[13px] font-semibold" style={{ color: "var(--blue-500)" }}>
+                        <span className="text-[15px] font-semibold" style={{ color: "var(--blue-500)" }}>
                           {claim.claimNumber}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-[12px]" style={{ color: "var(--grey-600)" }}>{formatDate(claim.submittedDate)}</td>
-                      <td className="px-4 py-3 text-[13px] font-medium" style={{ color: "var(--grey-900)" }}>{claim.patientName}</td>
-                      <td className="px-4 py-3 text-[12px]" style={{ color: "var(--grey-700)" }}>
+                      <td className="px-4 py-3 text-[14px]" style={{ color: "var(--grey-600)" }}>{formatDate(claim.submittedDate)}</td>
+                      <td className="px-4 py-3 text-[15px] font-medium" style={{ color: "var(--grey-900)" }}>{claim.patientName}</td>
+                      <td className="px-4 py-3 text-[14px]" style={{ color: "var(--grey-700)" }}>
                         <span className="font-medium">{claim.provider?.name}</span>
-                        <span className="ml-1 text-[10px]" style={{ color: "var(--grey-500)" }}>({claim.provider?.code})</span>
+                        <span className="ml-1 text-[12px]" style={{ color: "var(--grey-500)" }}>({claim.provider?.code})</span>
                       </td>
-                      <td className="px-4 py-3 text-[13px] font-semibold" style={{ color: "var(--grey-900)" }}>{formatCurrency(claim.claimAmount)}</td>
+                      <td className="px-4 py-3 text-[15px] font-semibold" style={{ color: "var(--grey-900)" }}>{formatCurrency(claim.claimAmount)}</td>
                       <td className="px-4 py-3">
                         <span
                           className={chipBase}
@@ -507,11 +507,11 @@ export default function InsuranceClaimsPage() {
                           {formatStatusLabel(claim.status)}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-[13px]" style={{ color: claim.approvedAmount != null ? "var(--green)" : "var(--grey-400)" }}>
+                      <td className="px-4 py-3 text-[15px]" style={{ color: claim.approvedAmount != null ? "var(--green)" : "var(--grey-400)" }}>
                         {claim.approvedAmount != null ? formatCurrency(claim.approvedAmount) : "\u2014"}
                       </td>
                       <td className="px-4 py-3 text-right">
-                        <Link href={`/billing/${claim.invoiceId}`} className="text-[12px] font-semibold hover:underline" style={{ color: "var(--blue-500)" }}>
+                        <Link href={`/billing/${claim.invoiceId}`} className="text-[14px] font-semibold hover:underline" style={{ color: "var(--blue-500)" }}>
                           View
                         </Link>
                       </td>
@@ -535,8 +535,8 @@ export default function InsuranceClaimsPage() {
                 >
                   <div className="flex items-start justify-between mb-2">
                     <div>
-                      <p className="text-[13px] font-semibold" style={{ color: "var(--blue-500)" }}>{claim.claimNumber}</p>
-                      <p className="text-[11px]" style={{ color: "var(--grey-500)" }}>{formatDate(claim.submittedDate)}</p>
+                      <p className="text-[15px] font-semibold" style={{ color: "var(--blue-500)" }}>{claim.claimNumber}</p>
+                      <p className="text-[13px]" style={{ color: "var(--grey-500)" }}>{formatDate(claim.submittedDate)}</p>
                     </div>
                     <span
                       className={chipBase}
@@ -545,9 +545,9 @@ export default function InsuranceClaimsPage() {
                       {formatStatusLabel(claim.status)}
                     </span>
                   </div>
-                  <p className="text-[14px] font-semibold mb-1" style={{ color: "var(--grey-900)" }}>{claim.patientName}</p>
-                  <p className="text-[11px] mb-2" style={{ color: "var(--grey-500)" }}>{claim.provider?.name} ({claim.provider?.code})</p>
-                  <div className="flex gap-4 text-[12px]">
+                  <p className="text-[16px] font-semibold mb-1" style={{ color: "var(--grey-900)" }}>{claim.patientName}</p>
+                  <p className="text-[13px] mb-2" style={{ color: "var(--grey-500)" }}>{claim.provider?.name} ({claim.provider?.code})</p>
+                  <div className="flex gap-4 text-[14px]">
                     <span style={{ color: "var(--grey-600)" }}>Claim: <strong style={{ color: "var(--grey-900)" }}>{formatCurrency(claim.claimAmount)}</strong></span>
                     {claim.approvedAmount != null && (
                       <span style={{ color: "var(--grey-600)" }}>Approved: <strong style={{ color: "var(--green)" }}>{formatCurrency(claim.approvedAmount)}</strong></span>

@@ -213,7 +213,7 @@ export default function TreatmentPlanDetailPage({ params }: { params: Promise<{ 
   if (!plan) {
     return (
       <div className="p-6 md:p-8">
-        <Link href="/admin/treatments/plans" className="inline-flex items-center gap-1.5 text-[13px] font-semibold mb-6" style={{ color: "#2d6a4f" }}>
+        <Link href="/admin/treatments/plans" className="inline-flex items-center gap-1.5 text-[15px] font-semibold mb-6" style={{ color: "#2d6a4f" }}>
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
           Back to Plans
         </Link>
@@ -221,8 +221,8 @@ export default function TreatmentPlanDetailPage({ params }: { params: Promise<{ 
           <div className="w-14 h-14 mx-auto mb-4 flex items-center justify-center" style={{ background: "var(--grey-100)", borderRadius: "var(--radius-pill)" }}>
             <svg className="w-7 h-7" style={{ color: "var(--grey-400)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
           </div>
-          <p className="text-[14px] font-semibold" style={{ color: "var(--grey-700)" }}>Treatment plan not found</p>
-          <p className="text-[12px] mt-1" style={{ color: "var(--grey-500)" }}>The plan may have been deleted or does not exist</p>
+          <p className="text-[16px] font-semibold" style={{ color: "var(--grey-700)" }}>Treatment plan not found</p>
+          <p className="text-[14px] mt-1" style={{ color: "var(--grey-500)" }}>The plan may have been deleted or does not exist</p>
         </div>
       </div>
     );
@@ -239,12 +239,12 @@ export default function TreatmentPlanDetailPage({ params }: { params: Promise<{ 
       {/* Toast */}
       {toast && (
         <div className="fixed top-5 right-5 z-[200] px-4 py-3 rounded shadow-lg yoda-slide-in" style={{ background: toast.type === "success" ? "#e8f5e9" : "#ffebee", color: toast.type === "success" ? "#2e7d32" : "var(--red)", border: `1px solid ${toast.type === "success" ? "#a5d6a7" : "#ef9a9a"}` }}>
-          <p className="text-[13px] font-semibold">{toast.message}</p>
+          <p className="text-[15px] font-semibold">{toast.message}</p>
         </div>
       )}
 
       {/* Back button */}
-      <Link href="/admin/treatments/plans" className="inline-flex items-center gap-1.5 text-[13px] font-semibold mb-5" style={{ color: "#2d6a4f", textDecoration: "none" }}>
+      <Link href="/admin/treatments/plans" className="inline-flex items-center gap-1.5 text-[15px] font-semibold mb-5" style={{ color: "#2d6a4f", textDecoration: "none" }}>
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
         Back to Plans
       </Link>
@@ -258,13 +258,13 @@ export default function TreatmentPlanDetailPage({ params }: { params: Promise<{ 
           {/* Left: Info */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-2 flex-wrap">
-              <span className="text-[11px] font-mono" style={{ color: "var(--grey-500)" }}>{plan.planNumber}</span>
-              <h1 className="text-[22px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>{plan.name}</h1>
-              <span className="inline-flex px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide rounded" style={{ background: st.bg, color: st.color, borderRadius: "var(--radius-sm)" }}>
+              <span className="text-[13px] font-mono" style={{ color: "var(--grey-500)" }}>{plan.planNumber}</span>
+              <h1 className="text-[24px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>{plan.name}</h1>
+              <span className="inline-flex px-2.5 py-0.5 text-[13px] font-bold uppercase tracking-wide rounded" style={{ background: st.bg, color: st.color, borderRadius: "var(--radius-sm)" }}>
                 {st.label}
               </span>
             </div>
-            <div className="flex items-center gap-3 text-[13px] mb-2 flex-wrap" style={{ color: "var(--grey-600)" }}>
+            <div className="flex items-center gap-3 text-[15px] mb-2 flex-wrap" style={{ color: "var(--grey-600)" }}>
               <Link href={`/patients/${plan.patient.id}`} className="font-semibold hover:underline" style={{ color: "#2d6a4f", textDecoration: "none" }}>
                 {patientName}
               </Link>
@@ -274,7 +274,7 @@ export default function TreatmentPlanDetailPage({ params }: { params: Promise<{ 
               <span>{formatDate(plan.startDate)}{plan.endDate ? ` — ${formatDate(plan.endDate)}` : ""}</span>
             </div>
             {plan.diagnosis && (
-              <span className="inline-flex px-2 py-0.5 text-[10px] font-semibold rounded" style={{ background: "#faf3e6", color: "#b68d40", borderRadius: "var(--radius-sm)" }}>
+              <span className="inline-flex px-2 py-0.5 text-[12px] font-semibold rounded" style={{ background: "#faf3e6", color: "#b68d40", borderRadius: "var(--radius-sm)" }}>
                 {plan.diagnosis}
               </span>
             )}
@@ -287,7 +287,7 @@ export default function TreatmentPlanDetailPage({ params }: { params: Promise<{ 
                 <button
                   onClick={() => updateStatus("paused")}
                   disabled={actionLoading !== null}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-[12px] font-semibold rounded transition-opacity"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-[14px] font-semibold rounded transition-opacity"
                   style={{ background: "#f0faf4", color: "#37845e", border: "1px solid #fcd34d", borderRadius: "var(--radius-sm)", opacity: actionLoading ? 0.6 : 1 }}
                 >
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -298,7 +298,7 @@ export default function TreatmentPlanDetailPage({ params }: { params: Promise<{ 
                 <button
                   onClick={() => updateStatus("active")}
                   disabled={actionLoading !== null}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-[12px] font-semibold rounded transition-opacity"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-[14px] font-semibold rounded transition-opacity"
                   style={{ background: "#ecfdf5", color: "#059669", border: "1px solid #6ee7b7", borderRadius: "var(--radius-sm)", opacity: actionLoading ? 0.6 : 1 }}
                 >
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -309,7 +309,7 @@ export default function TreatmentPlanDetailPage({ params }: { params: Promise<{ 
                 <button
                   onClick={() => updateStatus("completed")}
                   disabled={actionLoading !== null}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-[12px] font-semibold rounded transition-opacity"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-[14px] font-semibold rounded transition-opacity"
                   style={{ background: "#f0faf4", color: "#2d6a4f", border: "1px solid #a7e3bd", borderRadius: "var(--radius-sm)", opacity: actionLoading ? 0.6 : 1 }}
                 >
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -319,7 +319,7 @@ export default function TreatmentPlanDetailPage({ params }: { params: Promise<{ 
               <button
                 onClick={() => updateStatus("cancelled")}
                 disabled={actionLoading !== null}
-                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-[12px] font-semibold rounded transition-opacity"
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-[14px] font-semibold rounded transition-opacity"
                 style={{ background: "#fef2f2", color: "#dc2626", border: "1px solid #fca5a5", borderRadius: "var(--radius-sm)", opacity: actionLoading ? 0.6 : 1 }}
               >
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
@@ -334,7 +334,7 @@ export default function TreatmentPlanDetailPage({ params }: { params: Promise<{ 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         {/* Progress Card */}
         <div className="p-5" style={cardStyle}>
-          <p className="text-[11px] font-semibold uppercase tracking-wider mb-3" style={{ color: "var(--grey-600)" }}>Overall Progress</p>
+          <p className="text-[13px] font-semibold uppercase tracking-wider mb-3" style={{ color: "var(--grey-600)" }}>Overall Progress</p>
           <div className="flex items-center gap-4">
             {/* Circular Progress */}
             <div className="relative flex-shrink-0" style={{ width: 80, height: 80 }}>
@@ -357,10 +357,10 @@ export default function TreatmentPlanDetailPage({ params }: { params: Promise<{ 
             </div>
             <div>
               <p className="text-[20px] font-bold" style={{ color: "var(--grey-900)" }}>
-                {plan.completedSessions}<span className="text-[14px] font-normal" style={{ color: "var(--grey-500)" }}>/{plan.totalSessions}</span>
+                {plan.completedSessions}<span className="text-[16px] font-normal" style={{ color: "var(--grey-500)" }}>/{plan.totalSessions}</span>
               </p>
-              <p className="text-[12px]" style={{ color: "var(--grey-500)" }}>sessions completed</p>
-              <p className="text-[12px] mt-1" style={{ color: "var(--grey-500)" }}>
+              <p className="text-[14px]" style={{ color: "var(--grey-500)" }}>sessions completed</p>
+              <p className="text-[14px] mt-1" style={{ color: "var(--grey-500)" }}>
                 {plan.items.length} treatment{plan.items.length !== 1 ? "s" : ""} in plan
               </p>
             </div>
@@ -369,11 +369,11 @@ export default function TreatmentPlanDetailPage({ params }: { params: Promise<{ 
 
         {/* Cost Summary Card */}
         <div className="p-5 md:col-span-2" style={cardStyle}>
-          <p className="text-[11px] font-semibold uppercase tracking-wider mb-3" style={{ color: "var(--grey-600)" }}>Cost Summary</p>
-          <p className="text-[22px] font-bold mb-3" style={{ color: "var(--grey-900)" }}>{formatCurrency(plan.totalCost)}</p>
+          <p className="text-[13px] font-semibold uppercase tracking-wider mb-3" style={{ color: "var(--grey-600)" }}>Cost Summary</p>
+          <p className="text-[24px] font-bold mb-3" style={{ color: "var(--grey-900)" }}>{formatCurrency(plan.totalCost)}</p>
           <div className="space-y-1.5" style={{ maxHeight: 120, overflowY: "auto" }}>
             {plan.items.map(item => (
-              <div key={item.id} className="flex items-center justify-between text-[12px]">
+              <div key={item.id} className="flex items-center justify-between text-[14px]">
                 <span style={{ color: "var(--grey-700)" }}>{item.treatmentName}</span>
                 <span className="font-semibold" style={{ color: "var(--grey-900)" }}>
                   {formatCurrency(item.totalCost)}
@@ -390,13 +390,13 @@ export default function TreatmentPlanDetailPage({ params }: { params: Promise<{ 
       {/* ═══ Treatment Items Table ═══ */}
       <div className="mb-6 overflow-x-auto" style={cardStyle}>
         <div className="p-4 pb-2">
-          <p className="text-[14px] font-bold" style={{ color: "var(--grey-900)" }}>Treatment Items</p>
+          <p className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>Treatment Items</p>
         </div>
-        <table className="w-full text-[12px]" style={{ borderCollapse: "collapse" }}>
+        <table className="w-full text-[14px]" style={{ borderCollapse: "collapse" }}>
           <thead>
             <tr style={{ borderBottom: "1px solid var(--grey-200)" }}>
               {["Treatment", "Category", "Sessions", "Session Price", "Total Cost", "Status", ""].map((h, i) => (
-                <th key={i} className="text-left px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wider" style={{ color: "var(--grey-600)", background: "var(--grey-50)" }}>
+                <th key={i} className="text-left px-4 py-2.5 text-[13px] font-semibold uppercase tracking-wider" style={{ color: "var(--grey-600)", background: "var(--grey-50)" }}>
                   {h}
                 </th>
               ))}
@@ -425,7 +425,7 @@ export default function TreatmentPlanDetailPage({ params }: { params: Promise<{ 
                   <td className="px-4 py-3" style={{ color: "var(--grey-700)" }}>{formatCurrency(item.sessionPrice)}</td>
                   <td className="px-4 py-3 font-semibold" style={{ color: "var(--grey-900)" }}>{formatCurrency(item.totalCost)}</td>
                   <td className="px-4 py-3">
-                    <span className="inline-flex px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide rounded" style={{ background: ist.bg, color: ist.color, borderRadius: "var(--radius-sm)" }}>
+                    <span className="inline-flex px-2 py-0.5 text-[12px] font-bold uppercase tracking-wide rounded" style={{ background: ist.bg, color: ist.color, borderRadius: "var(--radius-sm)" }}>
                       {ist.label}
                     </span>
                   </td>
@@ -434,7 +434,7 @@ export default function TreatmentPlanDetailPage({ params }: { params: Promise<{ 
                       <button
                         onClick={() => recordSession(item.id)}
                         disabled={actionLoading !== null}
-                        className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded transition-opacity"
+                        className="inline-flex items-center gap-1 px-2.5 py-1 text-[13px] font-semibold rounded transition-opacity"
                         style={{ background: "#2d6a4f", color: "#fff", border: "none", borderRadius: "var(--radius-sm)", cursor: "pointer", opacity: actionLoading ? 0.6 : 1 }}
                       >
                         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
@@ -447,7 +447,7 @@ export default function TreatmentPlanDetailPage({ params }: { params: Promise<{ 
             })}
             {plan.items.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-4 py-8 text-center text-[13px]" style={{ color: "var(--grey-500)" }}>
+                <td colSpan={7} className="px-4 py-8 text-center text-[15px]" style={{ color: "var(--grey-500)" }}>
                   No treatment items in this plan
                 </td>
               </tr>
@@ -458,10 +458,10 @@ export default function TreatmentPlanDetailPage({ params }: { params: Promise<{ 
 
       {/* ═══ Milestones Timeline ═══ */}
       <div className="p-5 mb-6" style={cardStyle}>
-        <p className="text-[14px] font-bold mb-4" style={{ color: "var(--grey-900)" }}>Milestones</p>
+        <p className="text-[16px] font-bold mb-4" style={{ color: "var(--grey-900)" }}>Milestones</p>
         {plan.milestones.length === 0 ? (
           <div className="text-center py-8">
-            <p className="text-[13px]" style={{ color: "var(--grey-500)" }}>No milestones set for this plan</p>
+            <p className="text-[15px]" style={{ color: "var(--grey-500)" }}>No milestones set for this plan</p>
           </div>
         ) : (
           <div className="relative pl-6">
@@ -500,15 +500,15 @@ export default function TreatmentPlanDetailPage({ params }: { params: Promise<{ 
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-[13px] font-semibold" style={{ color: "var(--grey-900)" }}>{ms.title}</span>
-                          <span className="inline-flex px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide rounded" style={{ background: mst.bg, color: mst.color, borderRadius: "var(--radius-sm)" }}>
+                          <span className="text-[15px] font-semibold" style={{ color: "var(--grey-900)" }}>{ms.title}</span>
+                          <span className="inline-flex px-2 py-0.5 text-[12px] font-bold uppercase tracking-wide rounded" style={{ background: mst.bg, color: mst.color, borderRadius: "var(--radius-sm)" }}>
                             {mst.label}
                           </span>
                         </div>
                         {ms.description && (
-                          <p className="text-[12px] mt-0.5" style={{ color: "var(--grey-600)" }}>{ms.description}</p>
+                          <p className="text-[14px] mt-0.5" style={{ color: "var(--grey-600)" }}>{ms.description}</p>
                         )}
-                        <p className="text-[11px] mt-1" style={{ color: "var(--grey-500)" }}>
+                        <p className="text-[13px] mt-1" style={{ color: "var(--grey-500)" }}>
                           Target: {formatDate(ms.targetDate)}
                           {ms.achievedDate && <span className="ml-2">Achieved: {formatDate(ms.achievedDate)}</span>}
                         </p>
@@ -518,7 +518,7 @@ export default function TreatmentPlanDetailPage({ params }: { params: Promise<{ 
                         <button
                           onClick={() => markMilestoneAchieved(ms.id)}
                           disabled={actionLoading !== null}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold rounded flex-shrink-0 transition-opacity"
+                          className="inline-flex items-center gap-1 px-2.5 py-1 text-[13px] font-semibold rounded flex-shrink-0 transition-opacity"
                           style={{ background: "#ecfdf5", color: "#059669", border: "1px solid #6ee7b7", borderRadius: "var(--radius-sm)", cursor: "pointer", opacity: actionLoading ? 0.6 : 1 }}
                         >
                           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
@@ -537,8 +537,8 @@ export default function TreatmentPlanDetailPage({ params }: { params: Promise<{ 
       {/* ═══ Goals ═══ */}
       {plan.goals && (
         <div className="p-5 mb-6" style={cardStyle}>
-          <p className="text-[14px] font-bold mb-2" style={{ color: "var(--grey-900)" }}>Goals</p>
-          <p className="text-[13px] leading-relaxed whitespace-pre-wrap" style={{ color: "var(--grey-700)" }}>{plan.goals}</p>
+          <p className="text-[16px] font-bold mb-2" style={{ color: "var(--grey-900)" }}>Goals</p>
+          <p className="text-[15px] leading-relaxed whitespace-pre-wrap" style={{ color: "var(--grey-700)" }}>{plan.goals}</p>
         </div>
       )}
     </div>

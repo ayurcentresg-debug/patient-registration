@@ -215,19 +215,19 @@ export default function ProgressTrackerPage() {
       {/* Toast */}
       {toast && (
         <div className="fixed top-5 right-5 z-[200] px-4 py-3 rounded shadow-lg yoda-slide-in" style={{ background: toast.type === "success" ? "#e8f5e9" : "#ffebee", color: toast.type === "success" ? "#2e7d32" : "var(--red)", border: `1px solid ${toast.type === "success" ? "#a5d6a7" : "#ef9a9a"}` }}>
-          <p className="text-[13px] font-semibold">{toast.message}</p>
+          <p className="text-[15px] font-semibold">{toast.message}</p>
         </div>
       )}
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-[22px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>Progress Tracker</h1>
-          <p className="text-[13px] mt-0.5" style={{ color: "var(--grey-600)" }}>
+          <h1 className="text-[24px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>Progress Tracker</h1>
+          <p className="text-[15px] mt-0.5" style={{ color: "var(--grey-600)" }}>
             Monitor treatment progress across all active plans
           </p>
         </div>
-        <button onClick={fetchData} className="inline-flex items-center gap-2 px-4 py-2 text-[13px] font-semibold rounded" style={{ background: "var(--grey-100)", color: "var(--grey-700)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)" }}>
+        <button onClick={fetchData} className="inline-flex items-center gap-2 px-4 py-2 text-[15px] font-semibold rounded" style={{ background: "var(--grey-100)", color: "var(--grey-700)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)" }}>
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
           Refresh
         </button>
@@ -252,8 +252,8 @@ export default function ProgressTrackerPage() {
             { label: "Upcoming Milestones", value: stats.upcomingMilestones?.length ?? 0, color: "#2d6a4f", bg: "#f0faf4" },
           ].map(s => (
             <div key={s.label} className="p-4 rounded-lg" style={{ ...cardStyle, borderLeft: `3px solid ${s.color}` }}>
-              <p className="text-[11px] font-semibold uppercase tracking-wider mb-1" style={{ color: "var(--grey-600)" }}>{s.label}</p>
-              <p className="text-[22px] font-bold" style={{ color: s.color }}>{s.value}</p>
+              <p className="text-[13px] font-semibold uppercase tracking-wider mb-1" style={{ color: "var(--grey-600)" }}>{s.label}</p>
+              <p className="text-[24px] font-bold" style={{ color: s.color }}>{s.value}</p>
             </div>
           ))}
         </div>
@@ -263,8 +263,8 @@ export default function ProgressTrackerPage() {
       {stats && !loading && stats.totalSessions > 0 && (
         <div className="mb-8 p-5" style={cardStyle}>
           <div className="flex items-center justify-between mb-3">
-            <p className="text-[14px] font-bold" style={{ color: "var(--grey-900)" }}>Overall Treatment Completion</p>
-            <p className="text-[13px] font-semibold" style={{ color: "#7c3aed" }}>{stats.completedSessions} / {stats.totalSessions} sessions ({stats.overallProgress}%)</p>
+            <p className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>Overall Treatment Completion</p>
+            <p className="text-[15px] font-semibold" style={{ color: "#7c3aed" }}>{stats.completedSessions} / {stats.totalSessions} sessions ({stats.overallProgress}%)</p>
           </div>
           <div className="w-full h-4 rounded-full overflow-hidden" style={{ background: "var(--grey-200)" }}>
             <div className="h-full rounded-full transition-all duration-700" style={{ width: `${stats.overallProgress}%`, background: "linear-gradient(90deg, #2d6a4f, #37845e)" }} />
@@ -276,7 +276,7 @@ export default function ProgressTrackerPage() {
               { label: "Completed", count: stats.completedPlans, color: "#059669" },
               { label: "Paused", count: stats.pausedPlans, color: "#b68d40" },
             ].map(b => (
-              <div key={b.label} className="flex items-center gap-1.5 text-[11px]" style={{ color: "var(--grey-600)" }}>
+              <div key={b.label} className="flex items-center gap-1.5 text-[13px]" style={{ color: "var(--grey-600)" }}>
                 <span className="inline-block w-2.5 h-2.5 rounded-sm" style={{ background: b.color }} />
                 {b.label}: {b.count}
               </div>
@@ -298,8 +298,8 @@ export default function ProgressTrackerPage() {
             <div className="w-14 h-14 mx-auto mb-4 flex items-center justify-center" style={{ background: "var(--grey-100)", borderRadius: "var(--radius-pill)" }}>
               <svg className="w-7 h-7" style={{ color: "var(--grey-400)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
             </div>
-            <p className="text-[14px] font-semibold" style={{ color: "var(--grey-700)" }}>No active treatment plans</p>
-            <p className="text-[12px] mt-1" style={{ color: "var(--grey-500)" }}>Create a treatment plan to start tracking progress</p>
+            <p className="text-[16px] font-semibold" style={{ color: "var(--grey-700)" }}>No active treatment plans</p>
+            <p className="text-[14px] mt-1" style={{ color: "var(--grey-500)" }}>Create a treatment plan to start tracking progress</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -314,13 +314,13 @@ export default function ProgressTrackerPage() {
                   <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 mb-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <span className="text-[11px] font-mono" style={{ color: "var(--grey-500)" }}>{plan.planNumber}</span>
-                        <span className="text-[15px] font-bold" style={{ color: "var(--grey-900)" }}>{plan.name}</span>
-                        <span className="inline-flex px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide rounded" style={{ background: "#ecfdf5", color: "#059669", borderRadius: "var(--radius-sm)" }}>
+                        <span className="text-[13px] font-mono" style={{ color: "var(--grey-500)" }}>{plan.planNumber}</span>
+                        <span className="text-[17px] font-bold" style={{ color: "var(--grey-900)" }}>{plan.name}</span>
+                        <span className="inline-flex px-2 py-0.5 text-[12px] font-bold uppercase tracking-wide rounded" style={{ background: "#ecfdf5", color: "#059669", borderRadius: "var(--radius-sm)" }}>
                           Active
                         </span>
                       </div>
-                      <div className="flex items-center gap-3 text-[12px]" style={{ color: "var(--grey-600)" }}>
+                      <div className="flex items-center gap-3 text-[14px]" style={{ color: "var(--grey-600)" }}>
                         <span>{patientName}</span>
                         <span>&middot;</span>
                         <span>Dr. {plan.doctorName}</span>
@@ -329,8 +329,8 @@ export default function ProgressTrackerPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-3 flex-shrink-0">
-                      <p className="text-[14px] font-bold" style={{ color: "var(--grey-900)" }}>{formatCurrency(plan.totalCost)}</p>
-                      <Link href={`/admin/treatments/plans/${plan.id}`} className="inline-flex items-center gap-1 px-3 py-1.5 text-[12px] font-semibold rounded" style={{ background: "#f0faf4", color: "#2d6a4f", borderRadius: "var(--radius-sm)", textDecoration: "none" }}>
+                      <p className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>{formatCurrency(plan.totalCost)}</p>
+                      <Link href={`/admin/treatments/plans/${plan.id}`} className="inline-flex items-center gap-1 px-3 py-1.5 text-[14px] font-semibold rounded" style={{ background: "#f0faf4", color: "#2d6a4f", borderRadius: "var(--radius-sm)", textDecoration: "none" }}>
                         View Plan
                         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                       </Link>
@@ -342,7 +342,7 @@ export default function ProgressTrackerPage() {
                     <div className="flex-1 h-3 rounded-full overflow-hidden" style={{ background: "var(--grey-200)" }}>
                       <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, background: pct === 100 ? "#059669" : "linear-gradient(90deg, #2d6a4f, #37845e)" }} />
                     </div>
-                    <span className="text-[12px] font-bold min-w-[80px] text-right" style={{ color: pct === 100 ? "#059669" : "var(--grey-700)" }}>
+                    <span className="text-[14px] font-bold min-w-[80px] text-right" style={{ color: pct === 100 ? "#059669" : "var(--grey-700)" }}>
                       {plan.completedSessions}/{plan.totalSessions} ({pct}%)
                     </span>
                   </div>
@@ -350,17 +350,17 @@ export default function ProgressTrackerPage() {
                   {/* Per-Item Mini Progress Bars */}
                   {plan.items && plan.items.length > 0 && (
                     <div className="space-y-2 p-3 rounded-lg" style={{ background: "var(--grey-50)", border: "1px solid var(--grey-200)", borderRadius: "var(--radius-sm)" }}>
-                      <p className="text-[11px] font-semibold uppercase tracking-wider mb-2" style={{ color: "var(--grey-500)" }}>Treatment Items</p>
+                      <p className="text-[13px] font-semibold uppercase tracking-wider mb-2" style={{ color: "var(--grey-500)" }}>Treatment Items</p>
                       {plan.items.map(item => {
                         const itemPct = item.totalSessions > 0 ? Math.round((item.completedSessions / item.totalSessions) * 100) : 0;
                         const itemStatusColor = item.status === "completed" ? "#059669" : item.status === "in_progress" ? "#2d6a4f" : "var(--grey-500)";
                         return (
                           <div key={item.id} className="flex items-center gap-3">
-                            <span className="text-[12px] font-medium min-w-[140px] truncate" style={{ color: "var(--grey-800)" }}>{item.treatmentName}</span>
+                            <span className="text-[14px] font-medium min-w-[140px] truncate" style={{ color: "var(--grey-800)" }}>{item.treatmentName}</span>
                             <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: "var(--grey-200)" }}>
                               <div className="h-full rounded-full transition-all duration-500" style={{ width: `${itemPct}%`, background: itemPct === 100 ? "#059669" : itemStatusColor }} />
                             </div>
-                            <span className="text-[11px] font-semibold min-w-[60px] text-right" style={{ color: itemStatusColor }}>
+                            <span className="text-[13px] font-semibold min-w-[60px] text-right" style={{ color: itemStatusColor }}>
                               {item.completedSessions}/{item.totalSessions}
                             </span>
                           </div>
@@ -387,7 +387,7 @@ export default function ProgressTrackerPage() {
             <div className="space-y-2">{[...Array(3)].map((_, i) => <div key={i} className="h-16 animate-pulse" style={{ background: "var(--grey-100)", borderRadius: "var(--radius)" }} />)}</div>
           ) : !stats?.upcomingMilestones?.length ? (
             <div className="text-center py-10" style={cardStyle}>
-              <p className="text-[13px]" style={{ color: "var(--grey-500)" }}>No upcoming milestones</p>
+              <p className="text-[15px]" style={{ color: "var(--grey-500)" }}>No upcoming milestones</p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -402,20 +402,20 @@ export default function ProgressTrackerPage() {
                   <div key={milestone.id} className="p-4" style={cardStyle}>
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
-                        <p className="text-[13px] font-bold truncate" style={{ color: "var(--grey-900)" }}>{milestone.title}</p>
-                        <p className="text-[11px] mt-0.5" style={{ color: "var(--grey-600)" }}>
+                        <p className="text-[15px] font-bold truncate" style={{ color: "var(--grey-900)" }}>{milestone.title}</p>
+                        <p className="text-[13px] mt-0.5" style={{ color: "var(--grey-600)" }}>
                           {milestone.plan.name} &middot; {planPatientName}
                         </p>
                         {milestone.targetDate && (
                           <div className="flex items-center gap-2 mt-1.5">
-                            <span className="text-[11px]" style={{ color: "var(--grey-500)" }}>Target: {formatDate(milestone.targetDate)}</span>
-                            <span className="inline-flex px-2 py-0.5 text-[10px] font-bold rounded" style={{ background: dueBg, color: dueColor, borderRadius: "var(--radius-sm)" }}>
+                            <span className="text-[13px]" style={{ color: "var(--grey-500)" }}>Target: {formatDate(milestone.targetDate)}</span>
+                            <span className="inline-flex px-2 py-0.5 text-[12px] font-bold rounded" style={{ background: dueBg, color: dueColor, borderRadius: "var(--radius-sm)" }}>
                               {days !== null ? (days < 0 ? `${Math.abs(days)}d overdue` : days === 0 ? "Due today" : `${days}d left`) : "No date"}
                             </span>
                           </div>
                         )}
                       </div>
-                      <span className="inline-flex px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide rounded flex-shrink-0" style={{ background: st.bg, color: st.color, borderRadius: "var(--radius-sm)" }}>
+                      <span className="inline-flex px-2 py-0.5 text-[12px] font-bold uppercase tracking-wide rounded flex-shrink-0" style={{ background: st.bg, color: st.color, borderRadius: "var(--radius-sm)" }}>
                         {st.label}
                       </span>
                     </div>
@@ -436,7 +436,7 @@ export default function ProgressTrackerPage() {
             <div className="space-y-2">{[...Array(5)].map((_, i) => <div key={i} className="h-14 animate-pulse" style={{ background: "var(--grey-100)", borderRadius: "var(--radius)" }} />)}</div>
           ) : !stats?.recentProgress?.length ? (
             <div className="text-center py-10" style={cardStyle}>
-              <p className="text-[13px]" style={{ color: "var(--grey-500)" }}>No recent activity</p>
+              <p className="text-[15px]" style={{ color: "var(--grey-500)" }}>No recent activity</p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -452,17 +452,17 @@ export default function ProgressTrackerPage() {
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[13px] font-semibold truncate" style={{ color: "var(--grey-900)" }}>{item.treatmentName}</p>
-                      <p className="text-[11px]" style={{ color: "var(--grey-600)" }}>
+                      <p className="text-[15px] font-semibold truncate" style={{ color: "var(--grey-900)" }}>{item.treatmentName}</p>
+                      <p className="text-[13px]" style={{ color: "var(--grey-600)" }}>
                         {planPatientName} &middot; {item.plan.name}
                       </p>
                     </div>
                     <div className="text-right flex-shrink-0">
-                      <p className="text-[12px] font-bold" style={{ color: item.completedSessions === item.totalSessions ? "#059669" : "#2d6a4f" }}>
+                      <p className="text-[14px] font-bold" style={{ color: item.completedSessions === item.totalSessions ? "#059669" : "#2d6a4f" }}>
                         Session {item.completedSessions} of {item.totalSessions}
                       </p>
                       {item.completedSessions === item.totalSessions && (
-                        <span className="text-[10px] font-bold uppercase" style={{ color: "#059669" }}>Completed</span>
+                        <span className="text-[12px] font-bold uppercase" style={{ color: "#059669" }}>Completed</span>
                       )}
                     </div>
                   </div>
@@ -476,7 +476,7 @@ export default function ProgressTrackerPage() {
       {/* Pure CSS Donut Chart - Plan Status Distribution */}
       {stats && !loading && stats.totalPlans > 0 && (
         <div className="mt-8 p-5" style={cardStyle}>
-          <h2 className="text-[14px] font-bold mb-4" style={{ color: "var(--grey-900)" }}>Plan Status Distribution</h2>
+          <h2 className="text-[16px] font-bold mb-4" style={{ color: "var(--grey-900)" }}>Plan Status Distribution</h2>
           <div className="flex items-center gap-8 flex-wrap">
             {/* CSS Donut */}
             <div className="relative" style={{ width: 120, height: 120 }}>
@@ -509,9 +509,9 @@ export default function ProgressTrackerPage() {
               ].filter(s => s.count > 0).map(s => (
                 <div key={s.label} className="flex items-center gap-2">
                   <span className="inline-block w-3 h-3 rounded-sm" style={{ background: s.color }} />
-                  <span className="text-[12px] font-medium" style={{ color: "var(--grey-700)" }}>{s.label}</span>
-                  <span className="text-[12px] font-bold" style={{ color: "var(--grey-900)" }}>{s.count}</span>
-                  <span className="text-[11px]" style={{ color: "var(--grey-500)" }}>({stats.totalPlans > 0 ? Math.round((s.count / stats.totalPlans) * 100) : 0}%)</span>
+                  <span className="text-[14px] font-medium" style={{ color: "var(--grey-700)" }}>{s.label}</span>
+                  <span className="text-[14px] font-bold" style={{ color: "var(--grey-900)" }}>{s.count}</span>
+                  <span className="text-[13px]" style={{ color: "var(--grey-500)" }}>({stats.totalPlans > 0 ? Math.round((s.count / stats.totalPlans) * 100) : 0}%)</span>
                 </div>
               ))}
             </div>

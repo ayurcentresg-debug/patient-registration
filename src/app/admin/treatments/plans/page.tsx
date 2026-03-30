@@ -129,19 +129,19 @@ export default function TreatmentPlansPage() {
       {/* Toast */}
       {toast && (
         <div className="fixed top-5 right-5 z-[200] px-4 py-3 rounded shadow-lg yoda-slide-in" style={{ background: toast.type === "success" ? "#e8f5e9" : "#ffebee", color: toast.type === "success" ? "#2e7d32" : "var(--red)", border: `1px solid ${toast.type === "success" ? "#a5d6a7" : "#ef9a9a"}` }}>
-          <p className="text-[13px] font-semibold">{toast.message}</p>
+          <p className="text-[15px] font-semibold">{toast.message}</p>
         </div>
       )}
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-[22px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>Treatment Plans</h1>
-          <p className="text-[13px] mt-0.5" style={{ color: "var(--grey-600)" }}>
+          <h1 className="text-[24px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>Treatment Plans</h1>
+          <p className="text-[15px] mt-0.5" style={{ color: "var(--grey-600)" }}>
             {plans.length} plan{plans.length !== 1 ? "s" : ""} &middot; Manage patient treatment programs
           </p>
         </div>
-        <Link href="/admin/treatments/plans/new" className="inline-flex items-center gap-2 text-white px-5 py-2 text-[13px] font-semibold rounded" style={{ background: "#2d6a4f", borderRadius: "var(--radius-sm)" }}>
+        <Link href="/admin/treatments/plans/new" className="inline-flex items-center gap-2 text-white px-5 py-2 text-[15px] font-semibold rounded" style={{ background: "#2d6a4f", borderRadius: "var(--radius-sm)" }}>
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
           + New Plan
         </Link>
@@ -159,8 +159,8 @@ export default function TreatmentPlansPage() {
           { label: "Total Sessions Done", value: totalSessionsDone, color: "#37845e", bg: "#e8f5e9" },
         ].map(s => (
           <div key={s.label} className="p-4 rounded-lg" style={{ ...cardStyle, borderLeft: `3px solid ${s.color}` }}>
-            <p className="text-[11px] font-semibold uppercase tracking-wider mb-1" style={{ color: "var(--grey-600)" }}>{s.label}</p>
-            <p className="text-[22px] font-bold" style={{ color: s.color }}>{s.value}</p>
+            <p className="text-[13px] font-semibold uppercase tracking-wider mb-1" style={{ color: "var(--grey-600)" }}>{s.label}</p>
+            <p className="text-[24px] font-bold" style={{ color: s.color }}>{s.value}</p>
           </div>
         ))}
       </div>
@@ -169,9 +169,9 @@ export default function TreatmentPlansPage() {
       <div className="flex flex-col sm:flex-row gap-3 mb-5">
         <div className="relative flex-1">
           <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: "var(--grey-500)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-          <input type="text" placeholder="Search plans, patients, diagnosis..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full pl-10 pr-4 py-2 text-[13px]" style={inputStyle} />
+          <input type="text" placeholder="Search plans, patients, diagnosis..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full pl-10 pr-4 py-2 text-[15px]" style={inputStyle} />
         </div>
-        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="px-3 py-2 text-[13px]" style={{ ...inputStyle, minWidth: 160 }}>
+        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="px-3 py-2 text-[15px]" style={{ ...inputStyle, minWidth: 160 }}>
           <option value="all">All Statuses</option>
           <option value="active">Active</option>
           <option value="completed">Completed</option>
@@ -188,8 +188,8 @@ export default function TreatmentPlansPage() {
           <div className="w-14 h-14 mx-auto mb-4 flex items-center justify-center" style={{ background: "var(--grey-100)", borderRadius: "var(--radius-pill)" }}>
             <svg className="w-7 h-7" style={{ color: "var(--grey-400)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
           </div>
-          <p className="text-[14px] font-semibold" style={{ color: "var(--grey-700)" }}>No treatment plans found</p>
-          <p className="text-[12px] mt-1" style={{ color: "var(--grey-500)" }}>Create a new plan to get started</p>
+          <p className="text-[16px] font-semibold" style={{ color: "var(--grey-700)" }}>No treatment plans found</p>
+          <p className="text-[14px] mt-1" style={{ color: "var(--grey-500)" }}>Create a new plan to get started</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -206,19 +206,19 @@ export default function TreatmentPlansPage() {
                     {/* Left section */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <span className="text-[11px] font-mono" style={{ color: "var(--grey-500)" }}>{plan.planNumber}</span>
-                        <span className="text-[14px] font-bold" style={{ color: "var(--grey-900)" }}>{plan.name}</span>
-                        <span className="inline-flex px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide rounded" style={{ background: st.bg, color: st.color, borderRadius: "var(--radius-sm)" }}>
+                        <span className="text-[13px] font-mono" style={{ color: "var(--grey-500)" }}>{plan.planNumber}</span>
+                        <span className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>{plan.name}</span>
+                        <span className="inline-flex px-2 py-0.5 text-[12px] font-bold uppercase tracking-wide rounded" style={{ background: st.bg, color: st.color, borderRadius: "var(--radius-sm)" }}>
                           {st.label}
                         </span>
                       </div>
-                      <div className="flex items-center gap-3 text-[12px] mb-2" style={{ color: "var(--grey-600)" }}>
+                      <div className="flex items-center gap-3 text-[14px] mb-2" style={{ color: "var(--grey-600)" }}>
                         <span>{patientName}</span>
                         <span>&middot;</span>
                         <span>Dr. {plan.doctorName}</span>
                       </div>
                       {plan.diagnosis && (
-                        <span className="inline-flex px-2 py-0.5 text-[10px] font-semibold rounded mb-2" style={{ background: "#faf3e6", color: "#b68d40", borderRadius: "var(--radius-sm)" }}>
+                        <span className="inline-flex px-2 py-0.5 text-[12px] font-semibold rounded mb-2" style={{ background: "#faf3e6", color: "#b68d40", borderRadius: "var(--radius-sm)" }}>
                           {plan.diagnosis}
                         </span>
                       )}
@@ -227,7 +227,7 @@ export default function TreatmentPlansPage() {
                         <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: "var(--grey-200)", maxWidth: 200 }}>
                           <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: pct === 100 ? "#059669" : "#2d6a4f" }} />
                         </div>
-                        <span className="text-[11px] font-semibold" style={{ color: pct === 100 ? "#059669" : "var(--grey-700)" }}>
+                        <span className="text-[13px] font-semibold" style={{ color: pct === 100 ? "#059669" : "var(--grey-700)" }}>
                           {plan.completedSessions}/{plan.totalSessions} ({pct}%)
                         </span>
                       </div>
@@ -236,10 +236,10 @@ export default function TreatmentPlansPage() {
                     {/* Right section */}
                     <div className="flex flex-col items-end gap-1 flex-shrink-0">
                       <p className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>{formatCurrency(plan.totalCost)}</p>
-                      <p className="text-[11px]" style={{ color: "var(--grey-500)" }}>
+                      <p className="text-[13px]" style={{ color: "var(--grey-500)" }}>
                         {itemCount} treatment{itemCount !== 1 ? "s" : ""}
                       </p>
-                      <p className="text-[11px]" style={{ color: "var(--grey-500)" }}>
+                      <p className="text-[13px]" style={{ color: "var(--grey-500)" }}>
                         {formatDate(plan.startDate)}{plan.endDate ? ` — ${formatDate(plan.endDate)}` : ""}
                       </p>
                     </div>

@@ -23,8 +23,8 @@ type SortDir = "asc" | "desc";
 // ─── YODA Design Tokens ─────────────────────────────────────────────────────
 const cardStyle = { background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-card)" };
 const btnPrimary = { background: "var(--blue-500)", borderRadius: "var(--radius-sm)" };
-const chipBase = "inline-flex px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide";
-const inputStyle = { border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)", fontSize: "13px" };
+const chipBase = "inline-flex px-2 py-0.5 text-[12px] font-bold uppercase tracking-wide";
+const inputStyle = { border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)", fontSize: "15px" };
 
 const DEPARTMENTS = [
   "General Ayurveda", "Panchakarma", "Kayachikitsa", "Yoga & Naturopathy", "Marma Therapy",
@@ -38,7 +38,7 @@ function SortHeader({ label, field, currentField, direction, onSort }: {
   const isActive = currentField === field;
   return (
     <th
-      className="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-wider cursor-pointer select-none"
+      className="text-left px-4 py-3 text-[13px] font-bold uppercase tracking-wider cursor-pointer select-none"
       style={{ color: isActive ? "var(--blue-500)" : "var(--grey-600)" }}
       onClick={() => onSort(field)}
       role="columnheader"
@@ -137,14 +137,14 @@ export default function DoctorsPage() {
       {/* ── Header ──────────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-[22px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>Ayurveda Doctors</h1>
-          <p className="text-[13px] mt-0.5" style={{ color: "var(--grey-600)" }}>
+          <h1 className="text-[24px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>Ayurveda Doctors</h1>
+          <p className="text-[15px] mt-0.5" style={{ color: "var(--grey-600)" }}>
             {sorted.length} total doctors{activeCount > 0 && ` · ${activeCount} active`} · Consultation only
           </p>
         </div>
         <Link
           href="/doctors/new"
-          className="inline-flex items-center justify-center gap-2 text-white px-5 py-2 text-[13px] font-semibold transition-colors duration-150"
+          className="inline-flex items-center justify-center gap-2 text-white px-5 py-2 text-[15px] font-semibold transition-colors duration-150"
           style={btnPrimary}
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -166,7 +166,7 @@ export default function DoctorsPage() {
             placeholder="Search by doctor name..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 text-[13px]"
+            className="w-full pl-10 pr-4 py-2 text-[15px]"
             style={inputStyle}
             aria-label="Search doctors"
           />
@@ -188,7 +188,7 @@ export default function DoctorsPage() {
         <select
           value={departmentFilter}
           onChange={(e) => setDepartmentFilter(e.target.value)}
-          className="px-3 py-2 text-[13px] sm:w-[200px]"
+          className="px-3 py-2 text-[15px] sm:w-[200px]"
           style={inputStyle}
           aria-label="Filter by department"
         >
@@ -202,8 +202,8 @@ export default function DoctorsPage() {
       {/* ── Error State ─────────────────────────────────────────── */}
       {error && (
         <div className="mb-4 px-4 py-3 flex items-center justify-between" style={{ background: "var(--red-light)", color: "var(--red)", borderRadius: "var(--radius-sm)" }}>
-          <p className="text-[13px] font-medium">Failed to load doctors: {error}</p>
-          <button onClick={fetchDoctors} className="text-[12px] font-semibold underline">Retry</button>
+          <p className="text-[15px] font-medium">Failed to load doctors: {error}</p>
+          <button onClick={fetchDoctors} className="text-[14px] font-semibold underline">Retry</button>
         </div>
       )}
 
@@ -222,19 +222,19 @@ export default function DoctorsPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          <p className="text-[14px] font-semibold" style={{ color: "var(--grey-700)" }}>
+          <p className="text-[16px] font-semibold" style={{ color: "var(--grey-700)" }}>
             {search || departmentFilter !== "all" ? "No doctors match your filters" : "No doctors found"}
           </p>
           {(search || departmentFilter !== "all") ? (
             <button
               onClick={() => { setSearch(""); setDepartmentFilter("all"); }}
-              className="text-[12px] font-semibold mt-2 hover:underline"
+              className="text-[14px] font-semibold mt-2 hover:underline"
               style={{ color: "var(--blue-500)" }}
             >
               Clear all filters
             </button>
           ) : (
-            <Link href="/doctors/new" className="text-[12px] font-semibold mt-2 inline-block hover:underline" style={{ color: "var(--blue-500)" }}>
+            <Link href="/doctors/new" className="text-[14px] font-semibold mt-2 inline-block hover:underline" style={{ color: "var(--blue-500)" }}>
               Add your first doctor
             </Link>
           )}
@@ -251,7 +251,7 @@ export default function DoctorsPage() {
                   <SortHeader label="Department" field="department" currentField={sortField} direction={sortDir} onSort={handleSort} />
                   <SortHeader label="Fee" field="fee" currentField={sortField} direction={sortDir} onSort={handleSort} />
                   <SortHeader label="Status" field="status" currentField={sortField} direction={sortDir} onSort={handleSort} />
-                  <th className="text-right px-4 py-3 text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Actions</th>
+                  <th className="text-right px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -266,26 +266,26 @@ export default function DoctorsPage() {
                     <td className="px-4 py-3">
                       <Link href={`/doctors/${d.id}`} className="flex items-center gap-3 group/link">
                         <div
-                          className="w-8 h-8 flex items-center justify-center text-[11px] font-bold flex-shrink-0"
+                          className="w-8 h-8 flex items-center justify-center text-[13px] font-bold flex-shrink-0"
                           style={{ background: "var(--blue-50)", color: "var(--blue-500)", borderRadius: "var(--radius-pill)" }}
                         >
                           {d.name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase()}
                         </div>
                         <div>
-                          <p className="text-[13px] font-semibold group-hover/link:underline" style={{ color: "var(--grey-900)" }}>
+                          <p className="text-[15px] font-semibold group-hover/link:underline" style={{ color: "var(--grey-900)" }}>
                             {d.name}
                           </p>
-                          {d.phone && <p className="text-[11px]" style={{ color: "var(--grey-500)" }}>{d.phone}</p>}
+                          {d.phone && <p className="text-[13px]" style={{ color: "var(--grey-500)" }}>{d.phone}</p>}
                         </div>
                       </Link>
                     </td>
-                    <td className="px-4 py-3 text-[13px]" style={{ color: "var(--grey-800)" }}>{d.specialization}</td>
+                    <td className="px-4 py-3 text-[15px]" style={{ color: "var(--grey-800)" }}>{d.specialization}</td>
                     <td className="px-4 py-3">
-                      <span className="text-[12px] px-2 py-0.5" style={{ background: "var(--blue-50)", color: "var(--blue-500)", borderRadius: "var(--radius-sm)" }}>
+                      <span className="text-[14px] px-2 py-0.5" style={{ background: "var(--blue-50)", color: "var(--blue-500)", borderRadius: "var(--radius-sm)" }}>
                         {d.department}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-[13px] font-medium" style={{ color: "var(--grey-800)" }}>
+                    <td className="px-4 py-3 text-[15px] font-medium" style={{ color: "var(--grey-800)" }}>
                       {d.consultationFee != null ? `$${d.consultationFee}` : "\u2014"}
                     </td>
                     <td className="px-4 py-3">
@@ -301,7 +301,7 @@ export default function DoctorsPage() {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <Link href={`/doctors/${d.id}`} className="text-[12px] font-semibold hover:underline" style={{ color: "var(--blue-500)" }}>
+                      <Link href={`/doctors/${d.id}`} className="text-[14px] font-semibold hover:underline" style={{ color: "var(--blue-500)" }}>
                         View
                       </Link>
                     </td>
@@ -323,14 +323,14 @@ export default function DoctorsPage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div
-                      className="w-9 h-9 flex items-center justify-center text-[11px] font-bold"
+                      className="w-9 h-9 flex items-center justify-center text-[13px] font-bold"
                       style={{ background: "var(--blue-50)", color: "var(--blue-500)", borderRadius: "var(--radius-pill)" }}
                     >
                       {d.name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase()}
                     </div>
                     <div>
-                      <p className="text-[14px] font-semibold" style={{ color: "var(--grey-900)" }}>{d.name}</p>
-                      <p className="text-[12px]" style={{ color: "var(--grey-600)" }}>{d.specialization}</p>
+                      <p className="text-[16px] font-semibold" style={{ color: "var(--grey-900)" }}>{d.name}</p>
+                      <p className="text-[14px]" style={{ color: "var(--grey-600)" }}>{d.specialization}</p>
                     </div>
                   </div>
                   <span
@@ -345,8 +345,8 @@ export default function DoctorsPage() {
                   </span>
                 </div>
                 <div className="flex gap-4 mt-2 ml-12">
-                  <span className="text-[11px]" style={{ color: "var(--grey-500)" }}>{d.department}</span>
-                  <span className="text-[11px]" style={{ color: "var(--grey-500)" }}>
+                  <span className="text-[13px]" style={{ color: "var(--grey-500)" }}>{d.department}</span>
+                  <span className="text-[13px]" style={{ color: "var(--grey-500)" }}>
                     {d.consultationFee != null ? `$${d.consultationFee}` : "No fee set"}
                   </span>
                 </div>

@@ -110,16 +110,16 @@ export default function SecurityPage() {
 
   return (
     <div className="p-6 max-w-2xl mx-auto">
-      <h1 className="text-[22px] font-bold mb-1" style={{ color: "var(--grey-900)" }}>Security Settings</h1>
-      <p className="text-[14px] mb-6" style={{ color: "var(--grey-500)" }}>Manage your account security and two-factor authentication</p>
+      <h1 className="text-[24px] font-bold mb-1" style={{ color: "var(--grey-900)" }}>Security Settings</h1>
+      <p className="text-[16px] mb-6" style={{ color: "var(--grey-500)" }}>Manage your account security and two-factor authentication</p>
 
       {error && (
-        <div className="mb-4 px-4 py-3 rounded-lg text-[13px] font-medium" style={{ background: "#fef2f2", color: "#dc2626", border: "1px solid #fecaca" }}>
+        <div className="mb-4 px-4 py-3 rounded-lg text-[15px] font-medium" style={{ background: "#fef2f2", color: "#dc2626", border: "1px solid #fecaca" }}>
           {error}
         </div>
       )}
       {success && (
-        <div className="mb-4 px-4 py-3 rounded-lg text-[13px] font-medium" style={{ background: "#f0fdf4", color: "#16a34a", border: "1px solid #bbf7d0" }}>
+        <div className="mb-4 px-4 py-3 rounded-lg text-[15px] font-medium" style={{ background: "#f0fdf4", color: "#16a34a", border: "1px solid #bbf7d0" }}>
           {success}
         </div>
       )}
@@ -134,14 +134,14 @@ export default function SecurityPage() {
               </svg>
             </div>
             <div>
-              <h2 className="text-[15px] font-bold" style={{ color: "var(--grey-900)" }}>Two-Factor Authentication (2FA)</h2>
-              <p className="text-[13px]" style={{ color: "var(--grey-500)" }}>
+              <h2 className="text-[17px] font-bold" style={{ color: "var(--grey-900)" }}>Two-Factor Authentication (2FA)</h2>
+              <p className="text-[15px]" style={{ color: "var(--grey-500)" }}>
                 Use Google Authenticator or any TOTP app
               </p>
             </div>
           </div>
           <span
-            className="px-3 py-1 rounded-full text-[11px] font-bold uppercase"
+            className="px-3 py-1 rounded-full text-[13px] font-bold uppercase"
             style={{
               background: totpEnabled ? "#f0fdf4" : "#fef2f2",
               color: totpEnabled ? "#16a34a" : "#dc2626",
@@ -155,7 +155,7 @@ export default function SecurityPage() {
         {!setupMode && !totpEnabled && (
           <button
             onClick={startSetup}
-            className="px-5 py-2.5 text-[13px] font-bold text-white rounded-lg transition-all hover:opacity-90"
+            className="px-5 py-2.5 text-[15px] font-bold text-white rounded-lg transition-all hover:opacity-90"
             style={{ background: "#2d6a4f" }}
           >
             Enable 2FA
@@ -165,7 +165,7 @@ export default function SecurityPage() {
         {!setupMode && totpEnabled && (
           <button
             onClick={disable2FA}
-            className="px-5 py-2.5 text-[13px] font-bold rounded-lg transition-all hover:opacity-90"
+            className="px-5 py-2.5 text-[15px] font-bold rounded-lg transition-all hover:opacity-90"
             style={{ background: "#fef2f2", color: "#dc2626", border: "1px solid #fecaca" }}
           >
             Disable 2FA
@@ -179,8 +179,8 @@ export default function SecurityPage() {
               {/* Step 1 */}
               <div>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold text-white" style={{ background: "#2d6a4f" }}>1</span>
-                  <span className="text-[13px] font-bold" style={{ color: "var(--grey-800)" }}>Scan QR code with your authenticator app</span>
+                  <span className="w-6 h-6 rounded-full flex items-center justify-center text-[13px] font-bold text-white" style={{ background: "#2d6a4f" }}>1</span>
+                  <span className="text-[15px] font-bold" style={{ color: "var(--grey-800)" }}>Scan QR code with your authenticator app</span>
                 </div>
                 {qrCode ? (
                   <div className="flex flex-col items-center gap-3 py-4">
@@ -188,8 +188,8 @@ export default function SecurityPage() {
                       <img src={qrCode} alt="QR Code" className="w-48 h-48" />
                     </div>
                     <div className="text-center">
-                      <p className="text-[11px] mb-1" style={{ color: "var(--grey-500)" }}>Or enter this key manually:</p>
-                      <code className="px-3 py-1.5 rounded text-[12px] font-mono font-bold" style={{ background: "#f3f4f6", color: "var(--grey-800)" }}>
+                      <p className="text-[13px] mb-1" style={{ color: "var(--grey-500)" }}>Or enter this key manually:</p>
+                      <code className="px-3 py-1.5 rounded text-[14px] font-mono font-bold" style={{ background: "#f3f4f6", color: "var(--grey-800)" }}>
                         {secret}
                       </code>
                     </div>
@@ -204,8 +204,8 @@ export default function SecurityPage() {
               {/* Step 2 */}
               <div>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold text-white" style={{ background: "#2d6a4f" }}>2</span>
-                  <span className="text-[13px] font-bold" style={{ color: "var(--grey-800)" }}>Enter the 6-digit code from your app</span>
+                  <span className="w-6 h-6 rounded-full flex items-center justify-center text-[13px] font-bold text-white" style={{ background: "#2d6a4f" }}>2</span>
+                  <span className="text-[15px] font-bold" style={{ color: "var(--grey-800)" }}>Enter the 6-digit code from your app</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <input
@@ -222,7 +222,7 @@ export default function SecurityPage() {
                   <button
                     onClick={verifyAndEnable}
                     disabled={verifying || verifyCode.length !== 6}
-                    className="px-5 py-3 text-[13px] font-bold text-white rounded-lg transition-all"
+                    className="px-5 py-3 text-[15px] font-bold text-white rounded-lg transition-all"
                     style={{ background: "#2d6a4f", opacity: (verifying || verifyCode.length !== 6) ? 0.6 : 1 }}
                   >
                     {verifying ? "Verifying..." : "Verify & Enable"}
@@ -232,7 +232,7 @@ export default function SecurityPage() {
 
               <button
                 onClick={() => { setSetupMode(false); setQrCode(""); setSecret(""); setVerifyCode(""); setError(""); }}
-                className="text-[13px] font-semibold hover:underline"
+                className="text-[15px] font-semibold hover:underline"
                 style={{ color: "#6b7280" }}
               >
                 Cancel setup
@@ -243,7 +243,7 @@ export default function SecurityPage() {
       </div>
 
       {/* Info */}
-      <div className="mt-4 px-4 py-3 rounded-lg text-[12px]" style={{ background: "#d1f2e0", color: "#14532d" }}>
+      <div className="mt-4 px-4 py-3 rounded-lg text-[14px]" style={{ background: "#d1f2e0", color: "#14532d" }}>
         <strong>Recommended apps:</strong> Google Authenticator, Microsoft Authenticator, Authy, or 1Password
       </div>
     </div>
