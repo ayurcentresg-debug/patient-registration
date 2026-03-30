@@ -187,7 +187,7 @@ export default function BranchStockPage() {
 
   // ─── Render ───────────────────────────────────────────────────────────────
   return (
-    <div className="p-6 max-w-[1600px] mx-auto">
+    <div className="p-6 md:p-8 yoda-fade-in">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <div>

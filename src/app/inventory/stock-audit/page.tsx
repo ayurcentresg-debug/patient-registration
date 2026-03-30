@@ -409,7 +409,7 @@ export default function StockAuditPage() {
   }, []);
 
   return (
-    <div className="p-6 min-h-screen" style={{ background: "var(--grey-50)" }}>
+    <div className="p-6 md:p-8 yoda-fade-in">
       {/* Toast Notification */}
       {toast && (
         <div

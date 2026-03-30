@@ -523,7 +523,7 @@ export default function StockReportsPage() {
   ];
 
   return (
-    <>
+    <div className="p-6 md:p-8 yoda-fade-in">
       {/* ─── Print-only Header ──────────────────────────────────────────── */}
       <div className="print-header" style={{ display: "none" }}>
         <h1 style={{ fontSize: "18px", fontWeight: "bold", textAlign: "center", margin: 0 }}>
@@ -536,11 +536,11 @@ export default function StockReportsPage() {
       </div>
 
       {/* ─── Screen Layout ──────────────────────────────────────────────── */}
-      <div className="no-print" style={{ padding: "32px 32px 0" }}>
+      <div className="no-print">
         <InventoryTabs />
       </div>
 
-      <div style={{ padding: "0 32px 32px" }}>
+      <div>
         {/* ─── Page Header ──────────────────────────────────────────────── */}
         <div className="no-print" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24, flexWrap: "wrap", gap: 12 }}>
           <h1 style={{ fontSize: "22px", fontWeight: 800, color: "var(--grey-900)" }}>
@@ -1297,6 +1297,6 @@ export default function StockReportsPage() {
           }
         }
       `}</style>
-    </>
+    </div>
   );
 }

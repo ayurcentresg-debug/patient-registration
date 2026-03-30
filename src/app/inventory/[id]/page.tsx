@@ -717,31 +717,27 @@ export default function InventoryDetailPage() {
     <div className="p-6 md:p-8 yoda-fade-in">
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
+      {/* ── Back Link ─────────────────────────────────────────────── */}
+      <Link href="/inventory" className="inline-flex items-center gap-1 text-[15px] font-semibold hover:underline mb-4" style={{ color: "var(--blue-500)" }}>
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+        Back to Inventory
+      </Link>
+
       {/* ── Header ──────────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <div className="flex items-center gap-3">
-          <Link
-            href="/inventory"
-            className="w-8 h-8 flex items-center justify-center transition-colors flex-shrink-0"
-            style={{ borderRadius: "var(--radius-sm)", border: "1px solid var(--grey-300)", color: "var(--grey-600)" }}
-            aria-label="Back to inventory"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-          </Link>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-[24px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>{item.name}</h1>
-              <span className={chipBase} style={{
-                borderRadius: "var(--radius-sm)",
-                background: item.status === "active" ? "#e8f5e9" : item.status === "discontinued" ? "#ffebee" : "var(--grey-200)",
-                color: item.status === "active" ? "var(--green)" : item.status === "discontinued" ? "var(--red)" : "var(--grey-600)",
-              }}>{item.status}</span>
-            </div>
-            <p className="text-[15px] mt-0.5" style={{ color: "var(--grey-600)" }}>
-              SKU: {item.sku} &middot; {CATEGORIES.find(c => c.value === item.category)?.label || item.category}
-              {item.subcategory && ` / ${item.subcategory}`}
-            </p>
+        <div>
+          <div className="flex items-center gap-2">
+            <h1 className="text-[24px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>{item.name}</h1>
+            <span className={chipBase} style={{
+              borderRadius: "var(--radius-sm)",
+              background: item.status === "active" ? "#e8f5e9" : item.status === "discontinued" ? "#ffebee" : "var(--grey-200)",
+              color: item.status === "active" ? "var(--green)" : item.status === "discontinued" ? "var(--red)" : "var(--grey-600)",
+            }}>{item.status}</span>
           </div>
+          <p className="text-[15px] mt-0.5" style={{ color: "var(--grey-600)" }}>
+            SKU: {item.sku} &middot; {CATEGORIES.find(c => c.value === item.category)?.label || item.category}
+            {item.subcategory && ` / ${item.subcategory}`}
+          </p>
         </div>
         <div className="flex items-center gap-2">
           {!editMode ? (

@@ -36,7 +36,7 @@ export default function InventoryTabs() {
           <Link
             key={tab.href}
             href={tab.href}
-            className="px-5 py-2.5 text-[15px] font-semibold whitespace-nowrap transition-colors duration-150"
+            className="px-3 py-2.5 text-[13px] font-semibold whitespace-nowrap transition-colors duration-150"
             style={{
               color: active ? "var(--blue-500)" : "var(--grey-600)",
               borderBottom: active ? "2px solid var(--blue-500)" : "2px solid transparent",

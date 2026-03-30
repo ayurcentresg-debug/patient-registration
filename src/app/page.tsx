@@ -220,7 +220,7 @@ export default function Dashboard() {
       <div className="p-6 md:p-8">
         <div className="space-y-6">
           <div className="h-7 rounded w-40" style={{ background: "var(--grey-200)" }} />
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[...Array(4)].map((_, i) => (
               <div key={i} className="h-24 rounded-md animate-pulse" style={{ background: "var(--grey-200)" }} />
             ))}
@@ -282,7 +282,7 @@ export default function Dashboard() {
       />
 
       {/* ═══════ Row 1: Key Metrics ═══════ */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         {/* Today's Revenue */}
         <div className="p-4 transition-shadow duration-150 hover:shadow-md" style={{ ...cardStyle, boxShadow: "var(--shadow-sm)" }}>
           <div className="flex items-center justify-between">
@@ -370,7 +370,7 @@ export default function Dashboard() {
             </select>
           )}
         </div>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Link href="/inventory" className="block">
             <div className="p-4 transition-shadow duration-150 hover:shadow-md" style={{ ...cardStyle, boxShadow: "var(--shadow-sm)" }}>
               <div className="flex items-center justify-between">

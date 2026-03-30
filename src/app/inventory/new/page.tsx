@@ -212,20 +212,16 @@ export default function NewInventoryItemPage() {
     <div className="p-6 md:p-8 yoda-fade-in">
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
+      {/* ── Back Link ─────────────────────────────────────────────── */}
+      <Link href="/inventory" className="inline-flex items-center gap-1 text-[15px] font-semibold hover:underline mb-4" style={{ color: "var(--blue-500)" }}>
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+        Back to Inventory
+      </Link>
+
       {/* ── Header ──────────────────────────────────────────────── */}
-      <div className="flex items-center gap-3 mb-6">
-        <Link
-          href="/inventory"
-          className="w-8 h-8 flex items-center justify-center transition-colors"
-          style={{ borderRadius: "var(--radius-sm)", border: "1px solid var(--grey-300)", color: "var(--grey-600)" }}
-          aria-label="Back to inventory"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-        </Link>
-        <div>
-          <h1 className="text-[24px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>Add Inventory Item</h1>
-          <p className="text-[15px] mt-0.5" style={{ color: "var(--grey-600)" }}>Add a new item to your Ayurveda clinic inventory</p>
-        </div>
+      <div className="mb-6">
+        <h1 className="text-[24px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>Add Inventory Item</h1>
+        <p className="text-[15px] mt-0.5" style={{ color: "var(--grey-600)" }}>Add a new item to your Ayurveda clinic inventory</p>
       </div>
 
       <SectionNote type="tip" text="Fill in the item details below. SKU is auto-generated. Required fields are marked with *. Set a reorder level so you get alerts when stock is low." />

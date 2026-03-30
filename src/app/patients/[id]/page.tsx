@@ -1464,12 +1464,17 @@ export default function PatientDetailPage() {
         onCancel={() => { setConfirmDialog(prev => ({ ...prev, open: false })); setConfirmLoading(false); }}
       />
 
+      {/* ══════════ BACK LINK ══════════ */}
+      <div className="px-4 pt-4">
+        <Link href="/patients" className="inline-flex items-center gap-1 text-[15px] font-semibold hover:underline mb-4" style={{ color: "var(--blue-500)" }}>
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+          Back to Patients
+        </Link>
+      </div>
+
       {/* ══════════ COMPACT TOP BAR ══════════ */}
       <div className="flex-shrink-0 px-4 py-2.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2" style={{ background: "var(--white)", borderBottom: "1px solid var(--grey-200)" }}>
         <div className="flex items-center gap-2.5">
-          <Link href="/patients" className="p-1 hover:bg-gray-100 rounded" style={{ color: "var(--grey-400)" }}>
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-          </Link>
           <div className="w-9 h-9 flex items-center justify-center text-[15px] font-bold flex-shrink-0 overflow-hidden" style={{ background: "#f0faf4", color: "#2d6a4f", borderRadius: "var(--radius-pill)" }}>
             {patient.photoUrl ? (
               <img src={patient.photoUrl} alt="" className="w-full h-full object-cover" />
