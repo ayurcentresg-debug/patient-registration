@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import InventoryTabs from "@/components/InventoryTabs";
+import BarcodeScanner from "@/components/BarcodeScanner";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface InventoryItem {
@@ -115,6 +116,13 @@ export default function StockAuditPage() {
   const [auditResult, setAuditResult] = useState<AuditResult | null>(null);
   const [lastAuditedAt, setLastAuditedAt] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+
+  // Scan mode state
+  const [scanMode, setScanMode] = useState(false);
+  const [highlightedItemId, setHighlightedItemId] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const rowRefs = useRef<Record<string, HTMLTableRowElement | null>>({});
+  const toastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Branch-aware state
   const [branches, setBranches] = useState<BranchOption[]>([]);
@@ -328,8 +336,116 @@ export default function StockAuditPage() {
     }
   };
 
+  // Show toast notification
+  const showToast = useCallback((message: string, type: "success" | "error") => {
+    if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+    setToast({ message, type });
+    toastTimeoutRef.current = setTimeout(() => setToast(null), 4000);
+  }, []);
+
+  // Handle barcode scan
+  const handleBarcodeScan = useCallback(async (code: string) => {
+    try {
+      const res = await fetch(`/api/inventory/lookup?code=${encodeURIComponent(code)}`);
+      if (!res.ok) {
+        showToast(`Item not found: ${code}`, "error");
+        return;
+      }
+      const data = await res.json();
+      const itemId = data.id as string;
+      const itemName = data.name as string;
+
+      // Check if item is in the current filtered list
+      const itemInList = filteredItems.find((i) => i.id === itemId);
+      if (!itemInList) {
+        // Item exists but not in current filter view - clear filters to show it
+        setSearch("");
+        setCategory("all");
+        setSubcategory("all");
+        setShowOnlyEntered(false);
+      }
+
+      // Highlight the row
+      setHighlightedItemId(itemId);
+      setTimeout(() => setHighlightedItemId(null), 2000);
+
+      // Scroll to the row and focus the physical count input
+      // Use a short delay to allow any filter changes to render
+      setTimeout(() => {
+        const row = rowRefs.current[itemId];
+        if (row) {
+          row.scrollIntoView({ behavior: "smooth", block: "center" });
+          const input = row.querySelector<HTMLInputElement>('input[data-audit-input]');
+          if (input) {
+            input.focus();
+            input.select();
+          }
+        }
+      }, 150);
+
+      showToast(`Found: ${itemName}`, "success");
+    } catch {
+      showToast(`Lookup failed for: ${code}`, "error");
+    }
+  }, [filteredItems, showToast]);
+
+  // Handle Enter/Tab on physical count input in scan mode - refocus scanner
+  const handleCountKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (scanMode && (e.key === "Enter" || e.key === "Tab")) {
+      e.preventDefault();
+      // Refocus scanner input after a brief delay
+      setTimeout(() => {
+        const scannerInput = document.querySelector<HTMLInputElement>('[data-scanner-input]');
+        if (scannerInput) scannerInput.focus();
+      }, 50);
+    }
+  }, [scanMode]);
+
+  // Cleanup toast timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+    };
+  }, []);
+
   return (
     <div className="p-6 min-h-screen" style={{ background: "var(--grey-50)" }}>
+      {/* Toast Notification */}
+      {toast && (
+        <div
+          className="fixed top-6 right-6 z-50 px-5 py-3 rounded-lg text-[14px] font-semibold flex items-center gap-2 shadow-lg"
+          style={{
+            background: toast.type === "success" ? "var(--green, #43a047)" : "var(--red, #e53935)",
+            color: "white",
+            animation: "slideInRight 0.3s ease",
+          }}
+        >
+          {toast.type === "success" ? (
+            <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          ) : (
+            <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          )}
+          {toast.message}
+          <button onClick={() => setToast(null)} className="ml-2 opacity-80 hover:opacity-100">
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      )}
+
+      {/* Toast animation */}
+      <style jsx>{`
+        @keyframes slideInRight {
+          from { transform: translateX(100%); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+      `}</style>
+
       <InventoryTabs />
 
       {/* Header */}
@@ -348,6 +464,23 @@ export default function StockAuditPage() {
           )}
         </div>
         <div className="flex items-center gap-3">
+          {/* Scan Mode Toggle */}
+          <button
+            onClick={() => setScanMode((prev) => !prev)}
+            className="px-4 py-2.5 text-[14px] font-semibold inline-flex items-center gap-2 transition-colors"
+            style={{
+              borderRadius: "var(--radius-sm)",
+              background: scanMode ? "var(--blue-500)" : "var(--white)",
+              color: scanMode ? "white" : "var(--grey-700)",
+              border: scanMode ? "1px solid var(--blue-500)" : "1px solid var(--grey-400)",
+            }}
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+            </svg>
+            {scanMode ? "Scan Mode ON" : "Scan Mode"}
+          </button>
+
           {enteredCount > 0 && (
             <button
               onClick={handleClearAll}
@@ -469,6 +602,24 @@ export default function StockAuditPage() {
         </div>
       )}
 
+      {/* Barcode Scanner (visible when scan mode is on) */}
+      {scanMode && (
+        <div className="mb-6 p-4 rounded-lg" style={{ ...cardStyle, border: "2px solid var(--blue-500)", background: "var(--blue-50, #eff6ff)" }}>
+          <div className="flex items-center gap-2 mb-3">
+            <svg className="w-5 h-5" style={{ color: "var(--blue-500)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+            </svg>
+            <span className="text-[14px] font-bold" style={{ color: "var(--blue-500)" }}>
+              Barcode Scanner Active
+            </span>
+            <span className="text-[13px] ml-2" style={{ color: "var(--grey-500)" }}>
+              Scan a barcode to find and jump to an item
+            </span>
+          </div>
+          <BarcodeScanner onScan={handleBarcodeScan} placeholder="Scan barcode or type SKU / manufacturer code..." />
+        </div>
+      )}
+
       {/* Filters */}
       <div className="p-4 rounded-lg mb-6" style={cardStyle}>
         <div className="flex flex-wrap items-center gap-3">
@@ -579,19 +730,25 @@ export default function StockAuditPage() {
                   const physical = hasCount ? parseInt(countStr, 10) : NaN;
                   const diff = hasCount && !isNaN(physical) ? physical - systemStock : null;
 
+                  const isHighlighted = highlightedItemId === item.id;
+
                   return (
                     <tr
                       key={item.id}
+                      ref={(el) => { rowRefs.current[item.id] = el; }}
                       className="transition-colors"
                       style={{
                         borderBottom: "1px solid var(--grey-200)",
-                        background: hasCount
-                          ? diff !== null && diff !== 0
-                            ? diff < 0
-                              ? "rgba(229,57,53,0.04)"
-                              : "rgba(67,160,71,0.04)"
-                            : "rgba(33,150,243,0.03)"
-                          : "transparent",
+                        background: isHighlighted
+                          ? "rgba(255, 235, 59, 0.35)"
+                          : hasCount
+                            ? diff !== null && diff !== 0
+                              ? diff < 0
+                                ? "rgba(229,57,53,0.04)"
+                                : "rgba(67,160,71,0.04)"
+                              : "rgba(33,150,243,0.03)"
+                            : "transparent",
+                        transition: "background-color 0.5s ease",
                       }}
                     >
                       <td className="px-4 py-3">
@@ -625,6 +782,8 @@ export default function StockAuditPage() {
                           placeholder="—"
                           value={countStr}
                           onChange={(e) => handleCountChange(item.id, e.target.value)}
+                          onKeyDown={handleCountKeyDown}
+                          data-audit-input
                           className="w-24 px-3 py-1.5 text-center mx-auto block"
                           style={{
                             ...inputStyle,
