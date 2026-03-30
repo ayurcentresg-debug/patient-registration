@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useMemo } from "react";
+import Link from "next/link";
 import InventoryTabs from "@/components/InventoryTabs";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -22,7 +23,44 @@ interface InventoryItem {
   status: string;
 }
 
-type ReportTab = "stock-summary" | "low-stock" | "expiry";
+type ReportTab = "stock-summary" | "low-stock" | "expiry" | "transfers";
+
+interface TransferData {
+  summary: {
+    totalTransfers: number;
+    inTransit: number;
+    received: number;
+    cancelled: number;
+    totalItemsMoved: number;
+    totalValueMoved: number;
+  };
+  transfers: Array<{
+    id: string;
+    transferNumber: string;
+    fromBranch: { name: string; code: string };
+    toBranch: { name: string; code: string };
+    status: string;
+    itemCount: number;
+    totalQty: number;
+    totalValue: number;
+    transferDate: string;
+    receivedDate: string | null;
+  }>;
+  branchSummary: Array<{
+    branchName: string;
+    branchCode: string;
+    sentCount: number;
+    sentQty: number;
+    receivedCount: number;
+    receivedQty: number;
+    netQty: number;
+  }>;
+  topTransferredItems: Array<{
+    name: string;
+    totalQty: number;
+    transferCount: number;
+  }>;
+}
 
 // ─── YODA Design Tokens ─────────────────────────────────────────────────────
 const cardStyle = {
@@ -112,6 +150,8 @@ export default function StockReportsPage() {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [branches, setBranches] = useState<Array<{ id: string; name: string }>>([]);
   const [selectedBranchId, setSelectedBranchId] = useState("");
+  const [transferData, setTransferData] = useState<TransferData | null>(null);
+  const [transferLoading, setTransferLoading] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -196,11 +236,34 @@ export default function StockReportsPage() {
       .catch(() => {});
   }, []);
 
+  const fetchTransfers = useCallback(() => {
+    setTransferLoading(true);
+    fetch("/api/reports/transfers?period=month")
+      .then((r) => {
+        if (!r.ok) throw new Error("Failed to fetch transfer reports");
+        return r.json();
+      })
+      .then((data) => {
+        setTransferData(data);
+        setTransferLoading(false);
+      })
+      .catch(() => {
+        setTransferLoading(false);
+      });
+  }, []);
+
   useEffect(() => {
     fetchAllItems();
     fetchLowStock();
     fetchExpiryItems();
   }, [fetchAllItems, fetchLowStock, fetchExpiryItems]);
+
+  // Lazy-load transfers when tab is selected
+  useEffect(() => {
+    if (activeTab === "transfers" && !transferData && !transferLoading) {
+      fetchTransfers();
+    }
+  }, [activeTab, transferData, transferLoading, fetchTransfers]);
 
   // ─── Branch-aware low stock (derived from overlaid allItems) ────────────────
   const effectiveLowStockItems = useMemo(() => {
@@ -397,6 +460,30 @@ export default function StockReportsPage() {
     downloadCSV(`expiry-report-${dateStr}.csv`, csv);
   }
 
+  // ─── CSV Export: Transfers ────────────────────────────────────────────────
+  function exportTransfersCSV() {
+    if (!transferData) return;
+    const headers = [
+      "Transfer #", "From Branch", "To Branch", "Status",
+      "Items", "Qty", "Value", "Transfer Date", "Received Date",
+    ];
+    const rows = transferData.transfers.map((t) => [
+      escapeCSV(t.transferNumber),
+      escapeCSV(`${t.fromBranch.name} (${t.fromBranch.code})`),
+      escapeCSV(`${t.toBranch.name} (${t.toBranch.code})`),
+      escapeCSV(t.status),
+      escapeCSV(t.itemCount),
+      escapeCSV(t.totalQty),
+      escapeCSV(t.totalValue.toFixed(2)),
+      escapeCSV(t.transferDate ? formatDate(t.transferDate) : ""),
+      escapeCSV(t.receivedDate ? formatDate(t.receivedDate) : ""),
+    ]);
+
+    const csv = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+    const dateStr = new Date().toISOString().slice(0, 10);
+    downloadCSV(`transfer-report-${dateStr}.csv`, csv);
+  }
+
   // ─── Print Handler ────────────────────────────────────────────────────────
   function handlePrint() {
     window.print();
@@ -432,6 +519,7 @@ export default function StockReportsPage() {
     { key: "stock-summary", label: "Current Stock Summary", icon: "📦" },
     { key: "low-stock", label: "Low Stock / Reorder", icon: "⚠️" },
     { key: "expiry", label: "Expiry Report", icon: "📅" },
+    { key: "transfers", label: "Transfers", icon: "🔄" },
   ];
 
   return (
@@ -910,6 +998,222 @@ export default function StockReportsPage() {
                 )}
               </table>
             </div>
+          </div>
+        )}
+        {/* ═══════════════════════════════════════════════════════════════ */}
+        {/* REPORT 4: TRANSFERS                                             */}
+        {/* ═══════════════════════════════════════════════════════════════ */}
+        {!loading && !error && activeTab === "transfers" && (
+          <div>
+            {/* ─── Loading ─────────────────────────────────────────────── */}
+            {transferLoading && (
+              <div style={{ ...cardStyle, padding: 40, textAlign: "center" }}>
+                <p style={{ color: "var(--grey-500)", fontSize: 15 }}>Loading transfer data...</p>
+              </div>
+            )}
+
+            {!transferLoading && !transferData && (
+              <div style={{ ...cardStyle, padding: 40, textAlign: "center" }}>
+                <p style={{ color: "var(--grey-400)", fontSize: 15 }}>No transfer data available.</p>
+              </div>
+            )}
+
+            {!transferLoading && transferData && (
+              <>
+                {/* ─── Toolbar ──────────────────────────────────────────── */}
+                <div className="no-print" style={{ display: "flex", gap: 12, marginBottom: 16, alignItems: "center", flexWrap: "wrap" }}>
+                  <div style={{ flex: 1 }} />
+                  <button
+                    onClick={handlePrint}
+                    className="px-4 py-2 text-[13px] font-semibold"
+                    style={btnSecondary}
+                  >
+                    🖨️ Print
+                  </button>
+                  <button
+                    onClick={exportTransfersCSV}
+                    className="px-4 py-2 text-[13px] font-semibold"
+                    style={btnPrimary}
+                  >
+                    📥 Export CSV
+                  </button>
+                </div>
+
+                {/* ─── Summary Stats ────────────────────────────────────── */}
+                <div className="no-print" style={{ display: "flex", gap: 16, marginBottom: 20, flexWrap: "wrap" }}>
+                  <div style={{ ...cardStyle, padding: "12px 20px", flex: 1, minWidth: 140 }}>
+                    <p style={{ fontSize: 12, color: "var(--grey-500)", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.5px" }}>Total Transfers</p>
+                    <p style={{ fontSize: 22, fontWeight: 800, color: "var(--grey-900)" }}>{transferData.summary.totalTransfers}</p>
+                  </div>
+                  <div style={{ ...cardStyle, padding: "12px 20px", flex: 1, minWidth: 140 }}>
+                    <p style={{ fontSize: 12, color: "var(--grey-500)", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.5px" }}>Items Moved</p>
+                    <p style={{ fontSize: 22, fontWeight: 800, color: "var(--blue-500)" }}>{transferData.summary.totalItemsMoved}</p>
+                  </div>
+                  <div style={{ ...cardStyle, padding: "12px 20px", flex: 1, minWidth: 140 }}>
+                    <p style={{ fontSize: 12, color: "var(--grey-500)", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.5px" }}>Value Moved</p>
+                    <p style={{ fontSize: 22, fontWeight: 800, color: "#2e7d32" }}>{formatCurrency(transferData.summary.totalValueMoved)}</p>
+                  </div>
+                  <div style={{ ...cardStyle, padding: "12px 20px", flex: 1, minWidth: 140 }}>
+                    <p style={{ fontSize: 12, color: "var(--grey-500)", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.5px" }}>In Transit</p>
+                    <p style={{ fontSize: 22, fontWeight: 800, color: "#1976d2" }}>{transferData.summary.inTransit}</p>
+                  </div>
+                </div>
+
+                {/* ─── Transfers Table ──────────────────────────────────── */}
+                <div style={{ ...cardStyle, overflow: "auto", marginBottom: 24 }}>
+                  <table className="report-table" style={{ width: "100%", borderCollapse: "collapse" }}>
+                    <thead>
+                      <tr style={{ borderBottom: "2px solid var(--grey-200)" }}>
+                        {["Transfer #", "From → To", "Items", "Qty", "Value", "Status", "Date"].map((h) => (
+                          <th
+                            key={h}
+                            className="text-left px-4 py-3 text-[12px] font-bold uppercase tracking-wider"
+                            style={{ color: "var(--grey-600)", whiteSpace: "nowrap" }}
+                          >
+                            {h}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {transferData.transfers.length === 0 ? (
+                        <tr>
+                          <td colSpan={7} style={{ padding: 32, textAlign: "center", color: "var(--grey-400)" }}>
+                            No transfers in this period
+                          </td>
+                        </tr>
+                      ) : (
+                        transferData.transfers.map((t) => {
+                          const statusColors: Record<string, { bg: string; color: string }> = {
+                            received: { bg: "#e8f5e9", color: "#2e7d32" },
+                            in_transit: { bg: "#e3f2fd", color: "#1565c0" },
+                            cancelled: { bg: "#ffebee", color: "#c62828" },
+                            draft: { bg: "#f5f5f5", color: "#757575" },
+                          };
+                          const sc = statusColors[t.status] || statusColors.draft;
+                          return (
+                            <tr key={t.id} style={{ borderBottom: "1px solid var(--grey-100)" }}>
+                              <td className="px-4 py-2.5 text-[13px] font-semibold">
+                                <Link
+                                  href={`/inventory/transfers/${t.id}`}
+                                  style={{ color: "var(--blue-500)", textDecoration: "none" }}
+                                >
+                                  {t.transferNumber}
+                                </Link>
+                              </td>
+                              <td className="px-4 py-2.5 text-[13px]" style={{ color: "var(--grey-700)" }}>
+                                <span style={{ fontWeight: 600 }}>{t.fromBranch.code}</span>
+                                <span style={{ margin: "0 4px", color: "var(--grey-400)" }}>→</span>
+                                <span style={{ fontWeight: 600 }}>{t.toBranch.code}</span>
+                              </td>
+                              <td className="px-4 py-2.5 text-[13px]" style={{ color: "var(--grey-700)" }}>
+                                {t.itemCount}
+                              </td>
+                              <td className="px-4 py-2.5 text-[13px] font-bold" style={{ color: "var(--grey-900)" }}>
+                                {t.totalQty}
+                              </td>
+                              <td className="px-4 py-2.5 text-[13px] font-semibold" style={{ color: "var(--grey-700)", textAlign: "right" }}>
+                                {formatCurrency(t.totalValue)}
+                              </td>
+                              <td className="px-4 py-2.5 text-[12px]">
+                                <span
+                                  className="inline-flex px-2 py-0.5 font-bold uppercase tracking-wide"
+                                  style={{ borderRadius: "var(--radius-sm)", background: sc.bg, color: sc.color }}
+                                >
+                                  {t.status.replace("_", " ")}
+                                </span>
+                              </td>
+                              <td className="px-4 py-2.5 text-[13px]" style={{ color: "var(--grey-600)" }}>
+                                {formatDate(t.transferDate)}
+                              </td>
+                            </tr>
+                          );
+                        })
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* ─── Branch Flow Summary ──────────────────────────────── */}
+                {transferData.branchSummary.length > 0 && (
+                  <div style={{ marginBottom: 24 }}>
+                    <h3 style={{ fontSize: 15, fontWeight: 700, color: "var(--grey-800)", marginBottom: 12 }}>Branch Flow Summary</h3>
+                    <div style={{ ...cardStyle, overflow: "auto" }}>
+                      <table className="report-table" style={{ width: "100%", borderCollapse: "collapse" }}>
+                        <thead>
+                          <tr style={{ borderBottom: "2px solid var(--grey-200)" }}>
+                            {["Branch", "Sent (Count)", "Sent (Qty)", "Received (Count)", "Received (Qty)", "Net Qty"].map((h) => (
+                              <th
+                                key={h}
+                                className="text-left px-4 py-3 text-[12px] font-bold uppercase tracking-wider"
+                                style={{ color: "var(--grey-600)", whiteSpace: "nowrap" }}
+                              >
+                                {h}
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {transferData.branchSummary.map((b) => (
+                            <tr key={b.branchCode} style={{ borderBottom: "1px solid var(--grey-100)" }}>
+                              <td className="px-4 py-2.5 text-[13px] font-semibold" style={{ color: "var(--grey-900)" }}>
+                                {b.branchName} <span style={{ color: "var(--grey-400)", fontWeight: 400 }}>({b.branchCode})</span>
+                              </td>
+                              <td className="px-4 py-2.5 text-[13px]" style={{ color: "var(--grey-700)" }}>{b.sentCount}</td>
+                              <td className="px-4 py-2.5 text-[13px]" style={{ color: "var(--grey-700)" }}>{b.sentQty}</td>
+                              <td className="px-4 py-2.5 text-[13px]" style={{ color: "var(--grey-700)" }}>{b.receivedCount}</td>
+                              <td className="px-4 py-2.5 text-[13px]" style={{ color: "var(--grey-700)" }}>{b.receivedQty}</td>
+                              <td className="px-4 py-2.5 text-[13px] font-bold" style={{ color: b.netQty > 0 ? "#2e7d32" : b.netQty < 0 ? "#c62828" : "var(--grey-700)" }}>
+                                {b.netQty > 0 ? "+" : ""}{b.netQty}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+                {/* ─── Top Transferred Items ────────────────────────────── */}
+                {transferData.topTransferredItems.length > 0 && (
+                  <div style={{ marginBottom: 24 }}>
+                    <h3 style={{ fontSize: 15, fontWeight: 700, color: "var(--grey-800)", marginBottom: 12 }}>Top Transferred Items</h3>
+                    <div style={{ ...cardStyle, overflow: "auto" }}>
+                      <table className="report-table" style={{ width: "100%", borderCollapse: "collapse" }}>
+                        <thead>
+                          <tr style={{ borderBottom: "2px solid var(--grey-200)" }}>
+                            {["Item Name", "Total Qty", "# Transfers"].map((h) => (
+                              <th
+                                key={h}
+                                className="text-left px-4 py-3 text-[12px] font-bold uppercase tracking-wider"
+                                style={{ color: "var(--grey-600)", whiteSpace: "nowrap" }}
+                              >
+                                {h}
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {transferData.topTransferredItems.map((item) => (
+                            <tr key={item.name} style={{ borderBottom: "1px solid var(--grey-100)" }}>
+                              <td className="px-4 py-2.5 text-[13px] font-semibold" style={{ color: "var(--grey-900)" }}>
+                                {item.name}
+                              </td>
+                              <td className="px-4 py-2.5 text-[13px] font-bold" style={{ color: "var(--blue-500)" }}>
+                                {item.totalQty}
+                              </td>
+                              <td className="px-4 py-2.5 text-[13px]" style={{ color: "var(--grey-700)" }}>
+                                {item.transferCount}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
           </div>
         )}
       </div>

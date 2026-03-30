@@ -381,6 +381,9 @@ export default function ReportsPage() {
   const [insuranceLoading, setInsuranceLoading] = useState(false);
   const [insuranceFetched, setInsuranceFetched] = useState(false);
 
+  const [transferSummary, setTransferSummary] = useState<{ totalTransfers: number; totalItemsMoved: number; inTransit: number } | null>(null);
+  const [transferSummaryFetched, setTransferSummaryFetched] = useState(false);
+
   const [branches, setBranches] = useState<Array<{ id: string; name: string }>>([]);
   const [selectedBranchId, setSelectedBranchId] = useState("");
 
@@ -431,8 +434,10 @@ export default function ReportsPage() {
     // Reset lazy-loaded sections so they refetch on next tab visit
     setInventoryFetched(false);
     setInsuranceFetched(false);
+    setTransferSummaryFetched(false);
     setInventoryData(null);
     setInsuranceData(null);
+    setTransferSummary(null);
   }, [period, customFrom, customTo, selectedBranchId]);
 
   const fetchInventory = useCallback(async () => {
@@ -505,13 +510,32 @@ export default function ReportsPage() {
     setInsuranceLoading(false);
   }, [period, customFrom, customTo, insuranceFetched, insuranceLoading]);
 
+  const fetchTransferSummary = useCallback(async () => {
+    if (transferSummaryFetched) return;
+    try {
+      const res = await fetch(`/api/reports/transfers?period=${period}${period === "custom" && customFrom ? `&from=${customFrom}` : ""}${period === "custom" && customTo ? `&to=${customTo}` : ""}`);
+      if (res.ok) {
+        const raw = await res.json();
+        setTransferSummary({
+          totalTransfers: raw.summary?.totalTransfers ?? 0,
+          totalItemsMoved: raw.summary?.totalItemsMoved ?? 0,
+          inTransit: raw.summary?.inTransit ?? 0,
+        });
+        setTransferSummaryFetched(true);
+      }
+    } catch { /* ignore */ }
+  }, [period, customFrom, customTo, transferSummaryFetched]);
+
   useEffect(() => { fetchReport(); }, [fetchReport]);
 
-  // Lazy-load inventory/insurance when their tab is selected
+  // Lazy-load inventory/insurance/transfers when their tab is selected
   useEffect(() => {
-    if (activeSection === "inventory") fetchInventory();
+    if (activeSection === "inventory") {
+      fetchInventory();
+      fetchTransferSummary();
+    }
     if (activeSection === "insurance") fetchInsurance();
-  }, [activeSection, fetchInventory, fetchInsurance]);
+  }, [activeSection, fetchInventory, fetchInsurance, fetchTransferSummary]);
 
   const handlePrint = useCallback(() => {
     const printWindow = window.open("", "_blank");
@@ -1086,6 +1110,32 @@ export default function ReportsPage() {
                 <StatCard label="Stock Value" value={formatCurrency(inventoryData.stockValue)} color="#16a34a"
                   icon="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8V7m0 10v1" />
               </div>
+
+              {/* Transfer Activity mini card */}
+              {transferSummary && (
+                <Card>
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-[15px] font-bold" style={{ color: "var(--grey-800)" }}>Transfer Activity</h3>
+                    <Link href="/inventory/reports" className="text-[13px] font-semibold" style={{ color: "var(--blue-500)", textDecoration: "none" }}>
+                      View Details →
+                    </Link>
+                  </div>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <p className="text-[12px] font-bold uppercase tracking-wide" style={{ color: "var(--grey-500)" }}>Transfers</p>
+                      <p className="text-[20px] font-bold" style={{ color: "var(--grey-900)" }}>{transferSummary.totalTransfers}</p>
+                    </div>
+                    <div>
+                      <p className="text-[12px] font-bold uppercase tracking-wide" style={{ color: "var(--grey-500)" }}>Items Moved</p>
+                      <p className="text-[20px] font-bold" style={{ color: "var(--blue-500)" }}>{transferSummary.totalItemsMoved}</p>
+                    </div>
+                    <div>
+                      <p className="text-[12px] font-bold uppercase tracking-wide" style={{ color: "var(--grey-500)" }}>In Transit</p>
+                      <p className="text-[20px] font-bold" style={{ color: transferSummary.inTransit > 0 ? "#1976d2" : "var(--grey-700)" }}>{transferSummary.inTransit}</p>
+                    </div>
+                  </div>
+                </Card>
+              )}
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 {/* Low stock alert table */}
