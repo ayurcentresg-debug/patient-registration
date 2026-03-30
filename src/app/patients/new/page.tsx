@@ -4,9 +4,58 @@ import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
-const ETHNICITIES = ["Chinese", "Malay", "Indian", "Eurasian", "Caucasian", "Other"];
-const NATIONALITIES = ["Singaporean", "Malaysian", "Indian", "Indonesian", "Filipino", "Other"];
-const OCCUPATIONS = ["Doctor", "Engineer", "Teacher", "Student", "Business Owner", "Homemaker", "Retired", "Other"];
+const ETHNICITIES = ["Chinese", "Indian", "Malay", "Others"];
+const NATIONALITIES = [
+  "Singaporean", "Afghan", "Albanian", "Algerian", "American", "Andorran", "Angolan", "Argentine", "Armenian", "Australian", "Austrian", "Azerbaijani",
+  "Bahamian", "Bahraini", "Bangladeshi", "Barbadian", "Belarusian", "Belgian", "Belizean", "Beninese", "Bhutanese", "Bolivian", "Bosnian", "Brazilian", "British", "Bruneian", "Bulgarian", "Burkinabe", "Burmese", "Burundian",
+  "Cambodian", "Cameroonian", "Canadian", "Chilean", "Chinese", "Colombian", "Congolese", "Costa Rican", "Croatian", "Cuban", "Cypriot", "Czech",
+  "Danish", "Dominican", "Dutch",
+  "Ecuadorian", "Egyptian", "Emirati", "Eritrean", "Estonian", "Ethiopian",
+  "Fijian", "Filipino", "Finnish", "French",
+  "Gabonese", "Gambian", "Georgian", "German", "Ghanaian", "Greek", "Grenadian", "Guatemalan", "Guinean", "Guyanese",
+  "Haitian", "Honduran", "Hungarian",
+  "Icelandic", "Indian", "Indonesian", "Iranian", "Iraqi", "Irish", "Israeli", "Italian",
+  "Jamaican", "Japanese", "Jordanian",
+  "Kazakh", "Kenyan", "Korean", "Kuwaiti", "Kyrgyz",
+  "Lao", "Latvian", "Lebanese", "Liberian", "Libyan", "Lithuanian", "Luxembourgish",
+  "Macedonian", "Malagasy", "Malawian", "Malaysian", "Maldivian", "Malian", "Maltese", "Mauritanian", "Mauritian", "Mexican", "Moldovan", "Mongolian", "Montenegrin", "Moroccan", "Mozambican", "Myanmar",
+  "Namibian", "Nepalese", "New Zealander", "Nicaraguan", "Nigerian", "Norwegian",
+  "Omani",
+  "Pakistani", "Palestinian", "Panamanian", "Paraguayan", "Peruvian", "Polish", "Portuguese",
+  "Qatari",
+  "Romanian", "Russian", "Rwandan",
+  "Saudi", "Senegalese", "Serbian", "Sierra Leonean", "Slovak", "Slovenian", "Somali", "South African", "Spanish", "Sri Lankan", "Sudanese", "Surinamese", "Swedish", "Swiss", "Syrian",
+  "Taiwanese", "Tajik", "Tanzanian", "Thai", "Togolese", "Trinidadian", "Tunisian", "Turkish", "Turkmen",
+  "Ugandan", "Ukrainian", "Uruguayan", "Uzbek",
+  "Venezuelan", "Vietnamese",
+  "Yemeni",
+  "Zambian", "Zimbabwean",
+];
+const OCCUPATIONS = [
+  "Accountant", "Actor", "Administrative Assistant", "Architect", "Artist",
+  "Baker", "Banker", "Barber", "Business Owner",
+  "Carpenter", "Cashier", "Chef", "Civil Servant", "Cleaner", "Clerk", "Coach", "Construction Worker", "Consultant", "Counsellor",
+  "Delivery Driver", "Dentist", "Designer", "Director", "Doctor", "Driver",
+  "Economist", "Editor", "Electrician", "Engineer", "Entrepreneur",
+  "Factory Worker", "Farmer", "Financial Analyst", "Firefighter", "Fisherman", "Flight Attendant",
+  "Government Officer", "Graphic Designer",
+  "Hairdresser", "Homemaker", "Hotel Staff",
+  "Insurance Agent", "Interior Designer", "IT Professional",
+  "Journalist",
+  "Kindergarten Teacher",
+  "Laborer", "Lawyer", "Lecturer", "Librarian", "Logistics Officer",
+  "Manager", "Marine Engineer", "Mechanic", "Medical Professional", "Military Personnel", "Musician",
+  "Nurse", "Nutritionist",
+  "Optician",
+  "Paramedic", "Pharmacist", "Photographer", "Physiotherapist", "Pilot", "Plumber", "Police Officer", "Postman", "Professor", "Programmer",
+  "Real Estate Agent", "Receptionist", "Researcher", "Retired",
+  "Sales Executive", "Scientist", "Security Guard", "Self-Employed", "Social Worker", "Software Developer", "Student", "Surgeon", "Surveyor",
+  "Tailor", "Teacher", "Technician", "Therapist", "Tour Guide", "Trader", "Translator",
+  "Unemployed",
+  "Veterinarian",
+  "Waiter", "Writer",
+  "Other",
+];
 const REFERRAL_SOURCES = ["Walk-in", "Doctor Referral", "Friend/Family", "Online/Website", "Social Media", "Insurance", "Other"];
 
 const FAMILY_RELATIONS = [
@@ -138,6 +187,7 @@ export default function NewPatientPage() {
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [calculatedAge, setCalculatedAge] = useState<string>("");
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const [dobMode, setDobMode] = useState<"dob" | "age">("dob");
   const [selectedConditions, setSelectedConditions] = useState<string[]>([]);
@@ -183,6 +233,23 @@ export default function NewPatientPage() {
   const markDirty = useCallback(() => {
     if (!isDirty) setIsDirty(true);
   }, [isDirty]);
+
+  function handleDobChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const dob = e.target.value;
+    if (!dob) { setCalculatedAge(""); return; }
+    const birth = new Date(dob);
+    const now = new Date();
+    let years = now.getFullYear() - birth.getFullYear();
+    let months = now.getMonth() - birth.getMonth();
+    if (months < 0 || (months === 0 && now.getDate() < birth.getDate())) {
+      years--;
+      months += 12;
+    }
+    if (now.getDate() < birth.getDate()) months--;
+    if (months < 0) months += 12;
+    setCalculatedAge(`${years} yr${years !== 1 ? "s" : ""} ${months} mo${months !== 1 ? "s" : ""}`);
+    markDirty();
+  }
 
   function toggleCondition(c: string) {
     setSelectedConditions((p) => p.includes(c) ? p.filter((x) => x !== c) : [...p, c]);
@@ -337,6 +404,20 @@ export default function NewPatientPage() {
     data.medicalHistory = JSON.stringify(selectedConditions);
     data.groups = JSON.stringify(selectedGroups);
 
+    // Map Singapore address fields to API fields
+    const blockNumber = (data.blockNumber as string) || "";
+    const streetName = (data.streetName as string) || "";
+    data.address = [blockNumber, streetName].filter(Boolean).join(", ");
+    data.unitNumber = data.unitNumber || null;
+    data.buildingName = data.buildingName || null;
+    data.city = "Singapore";
+    data.state = "Singapore";
+    data.zipCode = data.postalCode || null;
+    // Clean up temporary fields
+    delete data.blockNumber;
+    delete data.streetName;
+    delete data.postalCode;
+
     try {
       const res = await fetch("/api/patients", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
       if (!res.ok) {
@@ -445,6 +526,7 @@ export default function NewPatientPage() {
                 </div>
 
                 <div className="flex-1 space-y-3">
+                  {/* Row 1: First Name | Last Name */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label htmlFor="firstName" className="block mb-1" style={labelStyle}><span style={{ color: "var(--red)" }}>*</span> First Name</label>
@@ -457,260 +539,288 @@ export default function NewPatientPage() {
                       {fieldErrors.lastName && <p id="err-lastName" className="mt-0.5 text-[13px] font-medium" style={{ color: "var(--red)" }}>{fieldErrors.lastName}</p>}
                     </div>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* Row 2: Patient ID | NRIC | Gender */}
+                  <div className="grid gap-3" style={{ gridTemplateColumns: "1fr 1fr auto" }}>
                     <div>
                       <label className="block mb-1" style={labelStyle}>Patient ID</label>
-                      <input disabled placeholder="Auto-generated" className="w-full px-3 py-2" style={{ ...inputStyle, background: "var(--grey-100)", color: "var(--grey-500)" }} />
+                      <input disabled placeholder="Auto-generated" className="px-3 py-2 max-w-[200px]" style={{ ...inputStyle, background: "var(--grey-100)", color: "var(--grey-500)", width: "100%" }} />
                     </div>
                     <div>
                       <label htmlFor="nricId" className="block mb-1" style={labelStyle}>NRIC ID</label>
-                      <input id="nricId" name="nricId" className="w-full px-3 py-2" style={inputStyle} />
+                      <input id="nricId" name="nricId" className="px-3 py-2 max-w-[200px]" style={{ ...inputStyle, width: "100%" }} />
+                    </div>
+                    <div>
+                      <label className="block mb-1.5" style={labelStyle}><span style={{ color: "var(--red)" }}>*</span> Gender</label>
+                      <div className="flex gap-5 pt-1" role="radiogroup" aria-label="Gender">
+                        {["male", "female", "other"].map((g) => (
+                          <label key={g} className="flex items-center gap-2 text-[15px] cursor-pointer whitespace-nowrap" style={{ color: "var(--grey-800)" }}>
+                            <input type="radio" name="gender" value={g} required /> {g.charAt(0).toUpperCase() + g.slice(1)}
+                          </label>
+                        ))}
+                      </div>
+                      <FieldError error={fieldErrors.gender} />
                     </div>
                   </div>
-                  <div>
-                    <label className="block mb-1.5" style={labelStyle}><span style={{ color: "var(--red)" }}>*</span> Gender</label>
-                    <div className="flex gap-5" role="radiogroup" aria-label="Gender">
-                      {["male", "female", "other"].map((g) => (
-                        <label key={g} className="flex items-center gap-2 text-[15px] cursor-pointer" style={{ color: "var(--grey-800)" }}>
-                          <input type="radio" name="gender" value={g} required /> {g.charAt(0).toUpperCase() + g.slice(1)}
-                        </label>
-                      ))}
-                    </div>
-                    <FieldError error={fieldErrors.gender} />
-                  </div>
-                  <div>
-                    <label className="block mb-1" style={labelStyle}>Date of Birth</label>
-                    <div className="flex items-center gap-2">
-                      {dobMode === "dob" ? (
-                        <input name="dateOfBirth" type="date" className="flex-1 px-3 py-2" style={inputStyle} />
-                      ) : (
-                        <input name="age" type="number" min="0" max="150" placeholder="Enter age" className="flex-1 px-3 py-2" style={inputStyle} />
-                      )}
-                      <button type="button" onClick={() => setDobMode(dobMode === "dob" ? "age" : "dob")} className="text-[14px] font-semibold whitespace-nowrap" style={{ color: "var(--blue-500)" }}>
+                  {/* Row 3: DOB | Age | Blood Group | Ethnicity */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div>
+                      <label className="block mb-1" style={labelStyle}>Date of Birth</label>
+                      <div className="flex items-center gap-2">
+                        {dobMode === "dob" ? (
+                          <input name="dateOfBirth" type="date" className="px-3 py-2 max-w-[200px]" style={{ ...inputStyle, width: "100%" }} onChange={handleDobChange} />
+                        ) : (
+                          <input name="age" type="number" min="0" max="150" placeholder="Enter age" className="px-3 py-2 max-w-[200px]" style={{ ...inputStyle, width: "100%" }} />
+                        )}
+                      </div>
+                      <button type="button" onClick={() => { setDobMode(dobMode === "dob" ? "age" : "dob"); setCalculatedAge(""); }} className="text-[13px] font-semibold mt-0.5" style={{ color: "var(--blue-500)" }}>
                         Or {dobMode === "dob" ? "age" : "DOB"}
                       </button>
+                    </div>
+                    <div className="flex flex-col justify-center">
+                      <label className="block mb-1" style={labelStyle}>Age</label>
+                      {calculatedAge ? (
+                        <span className="text-[14px] font-semibold pt-1" style={{ color: "var(--blue-500)" }}>
+                          {calculatedAge}
+                        </span>
+                      ) : (
+                        <span className="text-[14px] pt-1" style={{ color: "var(--grey-400)" }}>--</span>
+                      )}
+                    </div>
+                    <div>
+                      <label htmlFor="bloodGroup" className="block mb-1" style={labelStyle}>Blood Group</label>
+                      <select id="bloodGroup" name="bloodGroup" className="w-full px-3 py-2" style={inputStyle}>
+                        <option value="">Select</option>
+                        {BLOOD_GROUPS.map((bg) => <option key={bg} value={bg}>{bg}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label htmlFor="ethnicity" className="block mb-1" style={labelStyle}>Ethnicity</label>
+                      <select id="ethnicity" name="ethnicity" className="w-full px-3 py-2" style={inputStyle}>
+                        <option value="">Select</option>
+                        {ETHNICITIES.map((e) => <option key={e} value={e}>{e}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                  {/* Row 4: Nationality | Occupation | Referred By */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                      <label htmlFor="nationality" className="block mb-1" style={labelStyle}>Nationality</label>
+                      <select id="nationality" name="nationality" className="w-full px-3 py-2" style={inputStyle}>
+                        <option value="">Select</option>
+                        {NATIONALITIES.map((n) => <option key={n} value={n}>{n}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block mb-1" style={labelStyle}>Occupation</label>
+                      <div className="flex items-center gap-2">
+                        {showNewOccupation ? (
+                          <input name="occupation" placeholder="Enter occupation" className="flex-1 px-3 py-2" style={inputStyle} />
+                        ) : (
+                          <select name="occupation" className="flex-1 px-3 py-2" style={inputStyle}>
+                            <option value="">Select</option>
+                            {OCCUPATIONS.map((o) => <option key={o} value={o}>{o}</option>)}
+                          </select>
+                        )}
+                        <button type="button" onClick={() => setShowNewOccupation(!showNewOccupation)} className="text-[13px] font-semibold whitespace-nowrap" style={{ color: "var(--blue-500)" }}>
+                          {showNewOccupation ? "Select" : "+ New"}
+                        </button>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block mb-1" style={labelStyle}>Referred by</label>
+                      <div className="flex items-center gap-2">
+                        {showNewReferral ? (
+                          <input name="referredBy" placeholder="Enter referral" className="flex-1 px-3 py-2" style={inputStyle} />
+                        ) : (
+                          <select name="referredBy" className="flex-1 px-3 py-2" style={inputStyle}>
+                            <option value="">Select</option>
+                            {REFERRAL_SOURCES.map((r) => <option key={r} value={r}>{r}</option>)}
+                          </select>
+                        )}
+                        <button type="button" onClick={() => setShowNewReferral(!showNewReferral)} className="text-[13px] font-semibold whitespace-nowrap" style={{ color: "var(--blue-500)" }}>
+                          {showNewReferral ? "Select" : "+ New"}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Additional fields grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block mb-1" style={labelStyle}>Referred by</label>
-                  <div className="flex items-center gap-2">
-                    {showNewReferral ? (
-                      <input name="referredBy" placeholder="Enter referral" className="flex-1 px-3 py-2" style={inputStyle} />
-                    ) : (
-                      <select name="referredBy" className="flex-1 px-3 py-2" style={inputStyle}>
-                        <option value="">Select</option>
-                        {REFERRAL_SOURCES.map((r) => <option key={r} value={r}>{r}</option>)}
-                      </select>
-                    )}
-                    <button type="button" onClick={() => setShowNewReferral(!showNewReferral)} className="text-[13px] font-semibold whitespace-nowrap" style={{ color: "var(--blue-500)" }}>
-                      {showNewReferral ? "Select" : "Or add new"}
-                    </button>
-                  </div>
-                </div>
-                <div>
-                  <label htmlFor="bloodGroup" className="block mb-1" style={labelStyle}>Blood Group</label>
-                  <select id="bloodGroup" name="bloodGroup" className="w-full px-3 py-2" style={inputStyle}>
-                    <option value="">Select Blood Group</option>
-                    {BLOOD_GROUPS.map((bg) => <option key={bg} value={bg}>{bg}</option>)}
-                  </select>
-                </div>
-                <div className="sm:col-span-2">
-                  <label className="block mb-1" style={labelStyle}>Family</label>
+              {/* Row 5: Family (full width) */}
+              <div>
+                <label className="block mb-1" style={labelStyle}>Family</label>
 
-                  {/* Added members list */}
-                  {familyMembers.length > 0 && (
-                    <div className="space-y-1.5 mb-2">
-                      {familyMembers.map((fm, idx) => (
-                        <div key={idx} className="flex items-center gap-2 px-3 py-1.5 rounded" style={{ background: "var(--grey-50)", border: "1px solid var(--grey-200)" }}>
-                          <span className="text-[15px] font-semibold" style={{ color: "var(--grey-700)" }}>
-                            {genderRelationLabel(fm.relation, fm.memberGender)}
-                          </span>
-                          <span className="text-[15px]" style={{ color: "var(--grey-500)" }}>:</span>
-                          <span className="text-[15px] font-semibold flex-1" style={{ color: "var(--blue-500)" }}>
-                            {fm.memberName}
-                          </span>
-                          {fm.memberPhone && (
-                            <span className="text-[13px]" style={{ color: "var(--grey-500)" }}>{fm.memberPhone}</span>
-                          )}
-                          <button
-                            type="button"
-                            onClick={() => removeFamilyMember(idx)}
-                            className="text-[16px] font-bold leading-none hover:opacity-70"
-                            style={{ color: "var(--grey-400)" }}
-                            aria-label={`Remove ${fm.memberName}`}
-                          >
-                            &times;
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Add new member row */}
-                  <div className="flex gap-2" ref={familySearchRef}>
-                    <select
-                      value={familyRelation}
-                      onChange={(e) => { setFamilyRelation(e.target.value); setFamilySearch(""); setFamilySearchResults([]); }}
-                      className="w-1/3 px-2 py-2"
-                      style={inputStyle}
-                      aria-label="Family relation"
-                    >
-                      <option value="">Relation</option>
-                      {FAMILY_RELATIONS.map((r) => (
-                        <option key={r} value={r}>{RELATION_LABELS[r]}</option>
-                      ))}
-                    </select>
-
-                    <div className="flex-1 relative">
-                      <input
-                        value={familySearch}
-                        onChange={(e) => { setFamilySearch(e.target.value); if (e.target.value.length >= 2) setShowFamilyDropdown(true); }}
-                        onFocus={() => { if (familySearchResults.length > 0) setShowFamilyDropdown(true); }}
-                        placeholder={familyRelation ? "Search patient by name, phone, or ID..." : "Select relation first"}
-                        disabled={!familyRelation}
-                        className="w-full px-3 py-2"
-                        style={inputStyle}
-                        aria-label="Search family member"
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") { e.preventDefault(); addManualFamilyMember(); }
-                        }}
-                      />
-
-                      {/* Search results dropdown */}
-                      {showFamilyDropdown && familyRelation && familySearch.length >= 2 && (
-                        <div
-                          className="absolute z-20 left-0 right-0 mt-1 max-h-52 overflow-y-auto"
-                          style={{ background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", boxShadow: "0 4px 16px rgba(0,0,0,0.1)" }}
+                {/* Added members list */}
+                {familyMembers.length > 0 && (
+                  <div className="space-y-1.5 mb-2">
+                    {familyMembers.map((fm, idx) => (
+                      <div key={idx} className="flex items-center gap-2 px-3 py-1.5 rounded" style={{ background: "var(--grey-50)", border: "1px solid var(--grey-200)" }}>
+                        <span className="text-[15px] font-semibold" style={{ color: "var(--grey-700)" }}>
+                          {genderRelationLabel(fm.relation, fm.memberGender)}
+                        </span>
+                        <span className="text-[15px]" style={{ color: "var(--grey-500)" }}>:</span>
+                        <span className="text-[15px] font-semibold flex-1" style={{ color: "var(--blue-500)" }}>
+                          {fm.memberName}
+                        </span>
+                        {fm.memberPhone && (
+                          <span className="text-[13px]" style={{ color: "var(--grey-500)" }}>{fm.memberPhone}</span>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => removeFamilyMember(idx)}
+                          className="text-[16px] font-bold leading-none hover:opacity-70"
+                          style={{ color: "var(--grey-400)" }}
+                          aria-label={`Remove ${fm.memberName}`}
                         >
-                          {familySearchLoading ? (
-                            <div className="px-3 py-2 text-[14px]" style={{ color: "var(--grey-500)" }}>Searching...</div>
-                          ) : familySearchResults.length > 0 ? (
-                            familySearchResults.map((p) => (
-                              <button
-                                key={p.id}
-                                type="button"
-                                onClick={() => addFamilyMember(p)}
-                                className="w-full text-left px-3 py-2 hover:bg-blue-50 transition-colors flex items-center gap-2"
-                                style={{ borderBottom: "1px solid var(--grey-100)" }}
-                              >
-                                <div className="flex-1 min-w-0">
-                                  <span className="text-[15px] font-semibold" style={{ color: "var(--grey-900)" }}>
-                                    {p.firstName} {p.lastName}
-                                  </span>
-                                  <span className="text-[13px] ml-2" style={{ color: "var(--grey-500)" }}>
-                                    {p.patientIdNumber} · {p.phone}
-                                    {p.gender ? ` · ${p.gender.charAt(0).toUpperCase() + p.gender.slice(1)}` : ""}
-                                  </span>
-                                </div>
-                              </button>
-                            ))
-                          ) : (
-                            <div className="px-3 py-2">
-                              <p className="text-[14px]" style={{ color: "var(--grey-500)" }}>No patients found</p>
-                              <button
-                                type="button"
-                                onClick={addManualFamilyMember}
-                                className="text-[14px] font-semibold mt-1"
-                                style={{ color: "var(--blue-500)" }}
-                              >
-                                + Add &quot;{familySearch}&quot; as manual entry
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
+                          &times;
+                        </button>
+                      </div>
+                    ))}
                   </div>
-                  <p className="text-[12px] mt-1" style={{ color: "var(--grey-500)" }}>
-                    Select relation, then search for an existing patient or type a name and press Enter
-                  </p>
-                </div>
-                <div>
-                  <label htmlFor="ethnicity" className="block mb-1" style={labelStyle}>Ethnicity</label>
-                  <select id="ethnicity" name="ethnicity" className="w-full px-3 py-2" style={inputStyle}>
-                    <option value="">Select</option>
-                    {ETHNICITIES.map((e) => <option key={e} value={e}>{e}</option>)}
+                )}
+
+                {/* Add new member row */}
+                <div className="flex gap-2" ref={familySearchRef}>
+                  <select
+                    value={familyRelation}
+                    onChange={(e) => { setFamilyRelation(e.target.value); setFamilySearch(""); setFamilySearchResults([]); }}
+                    className="w-1/3 px-2 py-2"
+                    style={inputStyle}
+                    aria-label="Family relation"
+                  >
+                    <option value="">Relation</option>
+                    {FAMILY_RELATIONS.map((r) => (
+                      <option key={r} value={r}>{RELATION_LABELS[r]}</option>
+                    ))}
                   </select>
-                </div>
-                <div>
-                  <label htmlFor="nationality" className="block mb-1" style={labelStyle}>Nationality</label>
-                  <select id="nationality" name="nationality" className="w-full px-3 py-2" style={inputStyle}>
-                    <option value="">Select</option>
-                    {NATIONALITIES.map((n) => <option key={n} value={n}>{n}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="block mb-1" style={labelStyle}>Occupation</label>
-                  <div className="flex items-center gap-2">
-                    {showNewOccupation ? (
-                      <input name="occupation" placeholder="Enter occupation" className="flex-1 px-3 py-2" style={inputStyle} />
-                    ) : (
-                      <select name="occupation" className="flex-1 px-3 py-2" style={inputStyle}>
-                        <option value="">Select</option>
-                        {OCCUPATIONS.map((o) => <option key={o} value={o}>{o}</option>)}
-                      </select>
+
+                  <div className="flex-1 relative">
+                    <input
+                      value={familySearch}
+                      onChange={(e) => { setFamilySearch(e.target.value); if (e.target.value.length >= 2) setShowFamilyDropdown(true); }}
+                      onFocus={() => { if (familySearchResults.length > 0) setShowFamilyDropdown(true); }}
+                      placeholder={familyRelation ? "Search patient by name, phone, or ID..." : "Select relation first"}
+                      disabled={!familyRelation}
+                      className="w-full px-3 py-2"
+                      style={inputStyle}
+                      aria-label="Search family member"
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") { e.preventDefault(); addManualFamilyMember(); }
+                      }}
+                    />
+
+                    {/* Search results dropdown */}
+                    {showFamilyDropdown && familyRelation && familySearch.length >= 2 && (
+                      <div
+                        className="absolute z-20 left-0 right-0 mt-1 max-h-52 overflow-y-auto"
+                        style={{ background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", boxShadow: "0 4px 16px rgba(0,0,0,0.1)" }}
+                      >
+                        {familySearchLoading ? (
+                          <div className="px-3 py-2 text-[14px]" style={{ color: "var(--grey-500)" }}>Searching...</div>
+                        ) : familySearchResults.length > 0 ? (
+                          familySearchResults.map((p) => (
+                            <button
+                              key={p.id}
+                              type="button"
+                              onClick={() => addFamilyMember(p)}
+                              className="w-full text-left px-3 py-2 hover:bg-blue-50 transition-colors flex items-center gap-2"
+                              style={{ borderBottom: "1px solid var(--grey-100)" }}
+                            >
+                              <div className="flex-1 min-w-0">
+                                <span className="text-[15px] font-semibold" style={{ color: "var(--grey-900)" }}>
+                                  {p.firstName} {p.lastName}
+                                </span>
+                                <span className="text-[13px] ml-2" style={{ color: "var(--grey-500)" }}>
+                                  {p.patientIdNumber} · {p.phone}
+                                  {p.gender ? ` · ${p.gender.charAt(0).toUpperCase() + p.gender.slice(1)}` : ""}
+                                </span>
+                              </div>
+                            </button>
+                          ))
+                        ) : (
+                          <div className="px-3 py-2">
+                            <p className="text-[14px]" style={{ color: "var(--grey-500)" }}>No patients found</p>
+                            <button
+                              type="button"
+                              onClick={addManualFamilyMember}
+                              className="text-[14px] font-semibold mt-1"
+                              style={{ color: "var(--blue-500)" }}
+                            >
+                              + Add &quot;{familySearch}&quot; as manual entry
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     )}
-                    <button type="button" onClick={() => setShowNewOccupation(!showNewOccupation)} className="text-[13px] font-semibold whitespace-nowrap" style={{ color: "var(--blue-500)" }}>
-                      {showNewOccupation ? "Select" : "Or add new"}
-                    </button>
                   </div>
                 </div>
+                <p className="text-[12px] mt-1" style={{ color: "var(--grey-500)" }}>
+                  Select relation, then search for an existing patient or type a name and press Enter
+                </p>
               </div>
             </div>
 
             {/* Contact Details */}
             <div className="p-5" style={cardStyle}>
               <h2 className="mb-4 pb-3" style={{ ...sectionTitle, borderBottom: "1px solid var(--grey-200)" }}>Contact Details</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label htmlFor="phone" className="block mb-1" style={labelStyle}><span style={{ color: "var(--red)" }}>*</span> Primary Mobile No.</label>
-                  <input id="phone" name="phone" type="tel" required defaultValue={prefill.phone} placeholder="+91 98765 43210" className="w-full px-3 py-2" style={fieldErrors.phone ? inputErrorStyle : inputStyle} aria-invalid={!!fieldErrors.phone} aria-describedby={fieldErrors.phone ? "err-phone" : undefined} />
-                  {fieldErrors.phone && <p id="err-phone" className="mt-0.5 text-[13px] font-medium" style={{ color: "var(--red)" }}>{fieldErrors.phone}</p>}
+              <div className="space-y-3">
+                {/* Row 1: Primary Mobile | Secondary Mobile */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label htmlFor="phone" className="block mb-1" style={labelStyle}><span style={{ color: "var(--red)" }}>*</span> Primary Mobile No.</label>
+                    <input id="phone" name="phone" type="tel" required defaultValue={prefill.phone} placeholder="+65 9123 4567" className="w-full px-3 py-2" style={fieldErrors.phone ? inputErrorStyle : inputStyle} aria-invalid={!!fieldErrors.phone} aria-describedby={fieldErrors.phone ? "err-phone" : undefined} />
+                    {fieldErrors.phone && <p id="err-phone" className="mt-0.5 text-[13px] font-medium" style={{ color: "var(--red)" }}>{fieldErrors.phone}</p>}
+                  </div>
+                  <div>
+                    <label htmlFor="secondaryMobile" className="block mb-1" style={labelStyle}>Secondary Mobile No.</label>
+                    <input id="secondaryMobile" name="secondaryMobile" type="tel" className="w-full px-3 py-2" style={fieldErrors.secondaryMobile ? inputErrorStyle : inputStyle} />
+                    <FieldError error={fieldErrors.secondaryMobile} />
+                  </div>
                 </div>
-                <div>
-                  <label htmlFor="secondaryMobile" className="block mb-1" style={labelStyle}>Secondary Mobile No.</label>
-                  <input id="secondaryMobile" name="secondaryMobile" type="tel" className="w-full px-3 py-2" style={fieldErrors.secondaryMobile ? inputErrorStyle : inputStyle} />
-                  <FieldError error={fieldErrors.secondaryMobile} />
+                {/* Row 2: Landline | WhatsApp */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label htmlFor="landline" className="block mb-1" style={labelStyle}>Land Line Nos.</label>
+                    <input id="landline" name="landline" type="tel" className="w-full px-3 py-2" style={fieldErrors.landline ? inputErrorStyle : inputStyle} />
+                    <FieldError error={fieldErrors.landline} />
+                  </div>
+                  <div>
+                    <label htmlFor="whatsapp" className="block mb-1" style={labelStyle}>WhatsApp Number</label>
+                    <input id="whatsapp" name="whatsapp" type="tel" placeholder="Same as primary if blank" className="w-full px-3 py-2" style={fieldErrors.whatsapp ? inputErrorStyle : inputStyle} />
+                    <FieldError error={fieldErrors.whatsapp} />
+                  </div>
                 </div>
+                {/* Row 3: Email (full width) */}
                 <div>
-                  <label htmlFor="landline" className="block mb-1" style={labelStyle}>Land Line Nos.</label>
-                  <input id="landline" name="landline" type="tel" className="w-full px-3 py-2" style={fieldErrors.landline ? inputErrorStyle : inputStyle} />
-                  <FieldError error={fieldErrors.landline} />
-                </div>
-                <div>
-                  <label htmlFor="whatsapp" className="block mb-1" style={labelStyle}>WhatsApp Number</label>
-                  <input id="whatsapp" name="whatsapp" type="tel" placeholder="Same as primary if blank" className="w-full px-3 py-2" style={fieldErrors.whatsapp ? inputErrorStyle : inputStyle} />
-                  <FieldError error={fieldErrors.whatsapp} />
-                </div>
-                <div className="sm:col-span-2">
                   <label htmlFor="email" className="block mb-1" style={labelStyle}>Email Address</label>
                   <input id="email" name="email" type="email" placeholder="patient@example.com" className="w-full px-3 py-2" style={fieldErrors.email ? inputErrorStyle : inputStyle} aria-invalid={!!fieldErrors.email} aria-describedby={fieldErrors.email ? "err-email" : undefined} />
                   {fieldErrors.email && <p id="err-email" className="mt-0.5 text-[13px] font-medium" style={{ color: "var(--red)" }}>{fieldErrors.email}</p>}
                 </div>
-                <div className="sm:col-span-2">
-                  <label htmlFor="address" className="block mb-1" style={labelStyle}>Street Address</label>
-                  <input id="address" name="address" className="w-full px-3 py-2" style={inputStyle} />
+                {/* Row 4: Block/House No. | Street Name */}
+                <div className="grid gap-3" style={{ gridTemplateColumns: "1fr 3fr" }}>
+                  <div>
+                    <label htmlFor="blockNumber" className="block mb-1" style={labelStyle}>Blk / House No.</label>
+                    <input id="blockNumber" name="blockNumber" placeholder="e.g., 84" className="w-full px-3 py-2" style={inputStyle} />
+                  </div>
+                  <div>
+                    <label htmlFor="streetName" className="block mb-1" style={labelStyle}>Street Name</label>
+                    <input id="streetName" name="streetName" placeholder="e.g., Bedok North Street 4" className="w-full px-3 py-2" style={inputStyle} />
+                  </div>
                 </div>
-                <div>
-                  <label htmlFor="locality" className="block mb-1" style={labelStyle}>Locality</label>
-                  <input id="locality" name="locality" className="w-full px-3 py-2" style={inputStyle} />
-                </div>
-                <div>
-                  <label htmlFor="city" className="block mb-1" style={labelStyle}>City</label>
-                  <input id="city" name="city" className="w-full px-3 py-2" style={inputStyle} />
-                </div>
-                <div>
-                  <label htmlFor="state" className="block mb-1" style={labelStyle}>State</label>
-                  <input id="state" name="state" className="w-full px-3 py-2" style={inputStyle} />
-                </div>
-                <div>
-                  <label htmlFor="zipCode" className="block mb-1" style={labelStyle}>ZIP / Pin Code</label>
-                  <input id="zipCode" name="zipCode" className="w-full px-3 py-2" style={inputStyle} />
+                {/* Row 5: Unit No. | Building Name | Postal Code */}
+                <div className="grid gap-3" style={{ gridTemplateColumns: "1fr 2fr 1fr" }}>
+                  <div>
+                    <label htmlFor="unitNumber" className="block mb-1" style={labelStyle}>Unit No.</label>
+                    <input id="unitNumber" name="unitNumber" placeholder="e.g., #01-17" className="w-full px-3 py-2" style={inputStyle} />
+                  </div>
+                  <div>
+                    <label htmlFor="buildingName" className="block mb-1" style={labelStyle}>Building Name</label>
+                    <input id="buildingName" name="buildingName" placeholder="Optional" className="w-full px-3 py-2" style={inputStyle} />
+                  </div>
+                  <div>
+                    <label htmlFor="postalCode" className="block mb-1" style={labelStyle}>Postal Code</label>
+                    <input id="postalCode" name="postalCode" placeholder="e.g., 460084" maxLength={6} pattern="[0-9]{6}" className="w-full px-3 py-2" style={inputStyle} />
+                  </div>
                 </div>
               </div>
             </div>
