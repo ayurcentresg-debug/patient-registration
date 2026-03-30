@@ -481,7 +481,7 @@ export default function NewInvoicePage() {
         items: items.map((item) => ({
           type: item.type,
           description: item.description,
-          qty: item.qty,
+          quantity: item.qty,
           unitPrice: item.unitPrice,
           discount: item.discount,
           gstPercent: item.gstPercent,
@@ -489,7 +489,7 @@ export default function NewInvoicePage() {
           variantId: item.variantId || null,
         })),
         discountPercent: effectiveDiscountPercent,
-        amountPaid,
+        paidAmount: amountPaid,
         paymentMethod,
         notes,
       };

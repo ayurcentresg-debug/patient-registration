@@ -102,6 +102,17 @@ export async function POST(request: NextRequest) {
             );
           }
 
+          // Also update the global InventoryItem.currentStock by the same delta
+          const delta = newStock - previousStock;
+          txns.push(
+            prisma.inventoryItem.update({
+              where: { id: itemId },
+              data: {
+                currentStock: { increment: delta },
+              },
+            })
+          );
+
           await prisma.$transaction(txns);
           adjusted++;
         } else {

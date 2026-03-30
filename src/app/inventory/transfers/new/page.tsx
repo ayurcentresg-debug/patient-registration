@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/components/AuthProvider";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface Branch {
@@ -67,6 +68,7 @@ function Toast({ message, type, onClose }: { message: string; type: "success" | 
 // ═══════════════════════════════════════════════════════════════════════════════
 export default function NewTransferPage() {
   const router = useRouter();
+  const { user } = useAuth();
 
   const [mounted, setMounted] = useState(false);
   const [branches, setBranches] = useState<Branch[]>([]);
@@ -197,6 +199,7 @@ export default function NewTransferPage() {
           fromBranchId,
           toBranchId,
           notes: notes || undefined,
+          initiatedBy: user?.id,
           items: lineItems.map((li) => ({
             itemId: li.itemId,
             variantId: li.variantId || undefined,

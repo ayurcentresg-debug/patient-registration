@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import BarcodeScanner from "@/components/BarcodeScanner";
+import { useAuth } from "@/components/AuthProvider";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface TransferItem {
@@ -115,6 +116,7 @@ function Toast({ message, type, onClose }: { message: string; type: "success" | 
 export default function TransferDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const { user } = useAuth();
   const id = params.id as string;
 
   const [mounted, setMounted] = useState(false);
@@ -219,7 +221,7 @@ export default function TransferDetailPage() {
         setConfirmLoading(true);
         setActionLoading(true);
         try {
-          const res = await fetch(`/api/transfers/${id}/submit`, {
+          const res = await fetch(`/api/transfers/${id}/cancel`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ action: "cancel" }),
@@ -322,7 +324,7 @@ export default function TransferDetailPage() {
       const res = await fetch(`/api/transfers/${id}/receive`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ items }),
+        body: JSON.stringify({ items, receivedBy: user?.id }),
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
