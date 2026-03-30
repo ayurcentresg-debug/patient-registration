@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
         },
         ...(includeVariants ? { variants: { orderBy: { packing: "asc" } } } : {}),
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: { name: "asc" },
     });
 
     // Post-filter for lowStock since Prisma can't compare two fields

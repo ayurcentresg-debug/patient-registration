@@ -14,6 +14,7 @@ export async function GET(request: NextRequest) {
 
     const branchStock = await prisma.branchStock.findMany({
       where: { branchId },
+      orderBy: { item: { name: "asc" } },
       include: {
         item: {
           select: {
