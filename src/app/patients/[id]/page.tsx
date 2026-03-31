@@ -4,6 +4,7 @@ import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import { DetailPageSkeleton } from "@/components/Skeleton";
 import { validateName } from "@/lib/validation";
 
 const inputStyle = { border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)", fontSize: "15px" };
@@ -1422,15 +1423,7 @@ export default function PatientDetailPage() {
   }
 
   /* SSR + Loading: render a consistent placeholder on both server and client */
-  if (!mounted || loading) return (
-    <div className="p-6 md:p-8">
-      <div className="space-y-4">
-        <div className="h-14 animate-pulse" style={{ background: "var(--grey-100)", borderRadius: "var(--radius)" }} />
-        <div className="h-64 animate-pulse" style={{ background: "var(--grey-100)", borderRadius: "var(--radius)" }} />
-        <div className="h-48 animate-pulse" style={{ background: "var(--grey-100)", borderRadius: "var(--radius)" }} />
-      </div>
-    </div>
-  );
+  if (!mounted || loading) return <DetailPageSkeleton />;
 
   /* Error */
   if (error) return (
@@ -1469,101 +1462,119 @@ export default function PatientDetailPage() {
         onCancel={() => { setConfirmDialog(prev => ({ ...prev, open: false })); setConfirmLoading(false); }}
       />
 
-      {/* ══════════ BACK LINK ══════════ */}
-      <div className="px-4 pt-4">
-        <Link href="/patients" className="inline-flex items-center gap-1 text-[15px] font-semibold hover:underline mb-4" style={{ color: "var(--blue-500)" }}>
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-          Back to Patients
-        </Link>
-      </div>
-
-      {/* ══════════ COMPACT TOP BAR ══════════ */}
-      <div className="flex-shrink-0 px-4 py-2.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2" style={{ background: "var(--white)", borderBottom: "1px solid var(--grey-200)" }}>
-        <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 flex items-center justify-center text-[15px] font-bold flex-shrink-0 overflow-hidden" style={{ background: "#f0faf4", color: "#2d6a4f", borderRadius: "var(--radius-pill)" }}>
-            {patient.photoUrl ? (
-              <img src={patient.photoUrl} alt="" className="w-full h-full object-cover" />
+      {/* ══════════ PATIENT HERO HEADER ══════════ */}
+      <div className="flex-shrink-0 px-4 md:px-6 pt-4 pb-3" style={{ background: "var(--white)", borderBottom: "1px solid var(--grey-200)" }}>
+        {/* Back + Actions row */}
+        <div className="flex items-center justify-between mb-3">
+          <Link href="/patients" className="inline-flex items-center gap-1 text-[14px] font-semibold hover:underline" style={{ color: "var(--grey-500)" }}>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+            Patients
+          </Link>
+          <div className="flex items-center gap-2 print:hidden">
+            {!editing ? (
+              <button onClick={startEdit} className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-semibold text-white" style={{ background: "#2d6a4f", borderRadius: "var(--radius-sm)" }}>
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>Edit
+              </button>
             ) : (
-              <>{patient.firstName[0]}{patient.lastName[0]}</>
+              <>
+                <button onClick={saveEdit} disabled={saving} className="px-3 py-1.5 text-[13px] font-semibold text-white disabled:opacity-50" style={{ background: "var(--green)", borderRadius: "var(--radius-sm)" }}>{saving ? "Saving..." : "Save"}</button>
+                <button onClick={() => setEditing(false)} className="px-3 py-1.5 text-[13px] font-semibold" style={{ background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", color: "var(--grey-700)" }}>Cancel</button>
+              </>
             )}
+            <div className="relative" ref={moreMenuRef}>
+              <button onClick={() => setMoreMenuOpen(!moreMenuOpen)} className="inline-flex items-center px-2 py-1.5" style={{ background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", color: "var(--grey-600)" }} title="More actions">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" /></svg>
+              </button>
+              {moreMenuOpen && (
+                <div className="absolute right-0 top-full mt-1 py-1 min-w-[180px] z-50" style={{ background: "var(--white)", border: "1px solid var(--grey-200)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-lg)" }}>
+                  {patient.email && (
+                    <a href={`mailto:${patient.email}`} onClick={() => setMoreMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2 text-[14px] font-medium hover:bg-gray-50 transition-colors" style={{ color: "var(--grey-700)" }}>
+                      <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                      Send Email
+                    </a>
+                  )}
+                  <button onClick={() => { handleShareWhatsApp(); setMoreMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[14px] font-medium hover:bg-gray-50 transition-colors text-left" style={{ color: "var(--grey-700)" }}>
+                    <svg className="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" /></svg>
+                    Share via WhatsApp
+                  </button>
+                  <div style={{ height: 1, background: "var(--grey-200)", margin: "4px 0" }} />
+                  <p className="px-3 pt-1.5 pb-0.5 text-[9px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-400)" }}>Export PDF</p>
+                  <button onClick={() => { handlePrintSummary(); setMoreMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[14px] font-medium hover:bg-gray-50 transition-colors text-left" style={{ color: "var(--grey-700)" }}>
+                    <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                    Patient Summary
+                  </button>
+                  <button onClick={() => { handlePrintVisitHistory(); setMoreMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[14px] font-medium hover:bg-gray-50 transition-colors text-left" style={{ color: "var(--grey-700)" }}>
+                    <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                    Visit History
+                  </button>
+                  <button onClick={() => { handlePrintBillingStatement(); setMoreMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[14px] font-medium hover:bg-gray-50 transition-colors text-left" style={{ color: "var(--grey-700)" }}>
+                    <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                    Billing Statement
+                  </button>
+                  <div style={{ height: 1, background: "var(--grey-200)", margin: "4px 0" }} />
+                  <button onClick={() => { window.print(); setMoreMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[14px] font-medium hover:bg-gray-50 transition-colors text-left" style={{ color: "var(--grey-700)" }}>
+                    <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
+                    Print Page
+                  </button>
+                  <div style={{ height: 1, background: "var(--grey-200)", margin: "4px 0" }} />
+                  <button onClick={() => { handleDelete(); setMoreMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[14px] font-medium hover:bg-red-50 transition-colors text-left" style={{ color: "var(--red)" }}>
+                    <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                    Delete Patient
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
-          <div className="min-w-0">
+        </div>
+
+        {/* Patient Identity Row */}
+        <div className="flex items-center gap-4">
+          {/* Photo */}
+          <div className="w-16 h-16 sm:w-20 sm:h-20 flex-shrink-0 flex items-center justify-center overflow-hidden relative group cursor-pointer"
+            style={{ background: patient.photoUrl ? "transparent" : "linear-gradient(135deg, #f0faf4, #d1f2e0)", borderRadius: "var(--radius-pill)", border: patient.photoUrl ? "2px solid var(--grey-200)" : "2px solid #a7e3bd" }}
+            onClick={() => { setPhotoFile(null); setPhotoPreview(null); setShowPhotoModal(true); }}>
+            {patient.photoUrl ? (
+              <img src={patient.photoUrl} alt="" className="w-full h-full object-cover" style={{ borderRadius: "var(--radius-pill)" }} />
+            ) : (
+              <span className="text-[22px] sm:text-[26px] font-bold" style={{ color: "#2d6a4f" }}>{patient.firstName[0]}{patient.lastName[0]}</span>
+            )}
+            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity" style={{ background: "rgba(0,0,0,0.35)", borderRadius: "var(--radius-pill)" }}>
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+            </div>
+          </div>
+
+          {/* Name + Meta */}
+          <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-[17px] font-bold tracking-tight truncate" style={{ color: "var(--grey-900)" }}>{patient.firstName} {patient.lastName}</h1>
+              <h1 className="text-[20px] sm:text-[24px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>{patient.firstName} {patient.lastName}</h1>
               <button onClick={toggleStatus} disabled={togglingStatus}
-                className="px-2 py-px text-[9px] font-bold uppercase tracking-wide cursor-pointer disabled:opacity-50 flex-shrink-0"
+                className="px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide cursor-pointer disabled:opacity-50 flex-shrink-0"
                 style={{ borderRadius: "var(--radius-pill)", background: patient.status === "active" ? "var(--green-light)" : "var(--grey-200)", color: patient.status === "active" ? "var(--green)" : "var(--grey-600)", border: "none" }}>
                 {togglingStatus ? "..." : patient.status}
               </button>
             </div>
-            <p className="text-[13px] truncate" style={{ color: "var(--grey-500)" }}>
-              {patient.gender?.charAt(0).toUpperCase() + patient.gender?.slice(1)}{patient.dateOfBirth ? `, ${calcAge(patient.dateOfBirth)}` : ""} &nbsp;&middot;&nbsp; ID : {patient.patientIdNumber}
+            <p className="text-[14px] mt-0.5" style={{ color: "var(--grey-500)" }}>
+              {patient.patientIdNumber} &nbsp;&middot;&nbsp; {patient.gender?.charAt(0).toUpperCase() + patient.gender?.slice(1)}{patient.dateOfBirth ? <> &middot; {calcAge(patient.dateOfBirth)}</> : ""}
+              {patient.bloodGroup ? <> &middot; {patient.bloodGroup}</> : ""}
             </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2 print:hidden">
-          {/* Primary actions — always visible */}
-          <a href={`tel:${patient.phone}`} className="inline-flex items-center gap-1 px-3 py-1.5 text-[13px] font-semibold" style={{ background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", color: "var(--grey-700)" }}>
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>Call
-          </a>
-          <a href={`https://wa.me/${(patient.whatsapp || patient.phone).replace(/[^0-9]/g, "")}`} target="_blank" rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 px-3 py-1.5 text-[13px] font-semibold" style={{ background: "var(--green-light)", border: "1px solid var(--green)", borderRadius: "var(--radius-sm)", color: "var(--green)" }}>
-            <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" /></svg>WhatsApp
-          </a>
-          {!editing ? (
-            <button onClick={startEdit} className="inline-flex items-center gap-1 px-3 py-1.5 text-[13px] font-semibold text-white" style={{ background: "#2d6a4f", borderRadius: "var(--radius-sm)" }}>
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>Edit Profile
-            </button>
-          ) : (
-            <>
-              <button onClick={saveEdit} disabled={saving} className="px-3 py-1.5 text-[13px] font-semibold text-white disabled:opacity-50" style={{ background: "var(--green)", borderRadius: "var(--radius-sm)" }}>{saving ? "Saving..." : "Save Changes"}</button>
-              <button onClick={() => setEditing(false)} className="px-3 py-1.5 text-[13px] font-semibold" style={{ background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", color: "var(--grey-700)" }}>Cancel</button>
-            </>
-          )}
-          {/* More actions dropdown */}
-          <div className="relative" ref={moreMenuRef}>
-            <button onClick={() => setMoreMenuOpen(!moreMenuOpen)} className="inline-flex items-center gap-1 px-2 py-1.5 text-[13px] font-semibold" style={{ background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", color: "var(--grey-700)" }} title="More actions">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" /></svg>
-            </button>
-            {moreMenuOpen && (
-              <div className="absolute right-0 top-full mt-1 py-1 min-w-[180px] z-50" style={{ background: "var(--white)", border: "1px solid var(--grey-200)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-lg)" }}>
-                {patient.email && (
-                  <a href={`mailto:${patient.email}`} onClick={() => setMoreMenuOpen(false)} className="flex items-center gap-2.5 px-3 py-2 text-[14px] font-medium hover:bg-gray-50 transition-colors" style={{ color: "var(--grey-700)" }}>
-                    <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
-                    Send Email
-                  </a>
-                )}
-                <button onClick={() => { handleShareWhatsApp(); setMoreMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[14px] font-medium hover:bg-gray-50 transition-colors text-left" style={{ color: "var(--grey-700)" }}>
-                  <svg className="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" /></svg>
-                  Share via WhatsApp
-                </button>
-                <div style={{ height: 1, background: "var(--grey-200)", margin: "4px 0" }} />
-                <p className="px-3 pt-1.5 pb-0.5 text-[9px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-400)" }}>Export PDF</p>
-                <button onClick={() => { handlePrintSummary(); setMoreMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[14px] font-medium hover:bg-gray-50 transition-colors text-left" style={{ color: "var(--grey-700)" }}>
-                  <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                  Patient Summary
-                </button>
-                <button onClick={() => { handlePrintVisitHistory(); setMoreMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[14px] font-medium hover:bg-gray-50 transition-colors text-left" style={{ color: "var(--grey-700)" }}>
-                  <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                  Visit History
-                </button>
-                <button onClick={() => { handlePrintBillingStatement(); setMoreMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[14px] font-medium hover:bg-gray-50 transition-colors text-left" style={{ color: "var(--grey-700)" }}>
-                  <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-                  Billing Statement
-                </button>
-                <div style={{ height: 1, background: "var(--grey-200)", margin: "4px 0" }} />
-                <button onClick={() => { window.print(); setMoreMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[14px] font-medium hover:bg-gray-50 transition-colors text-left" style={{ color: "var(--grey-700)" }}>
-                  <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
-                  Print Page
-                </button>
-                <div style={{ height: 1, background: "var(--grey-200)", margin: "4px 0" }} />
-                <button onClick={() => { handleDelete(); setMoreMenuOpen(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 text-[14px] font-medium hover:bg-red-50 transition-colors text-left" style={{ color: "var(--red)" }}>
-                  <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                  Delete Patient
-                </button>
-              </div>
-            )}
+            {/* Quick contact actions */}
+            <div className="flex items-center gap-2 mt-2">
+              <a href={`tel:${patient.phone}`} className="inline-flex items-center gap-1 px-2.5 py-1 text-[12px] font-semibold transition-colors hover:opacity-80" style={{ background: "var(--grey-50)", border: "1px solid var(--grey-200)", borderRadius: "var(--radius-pill)", color: "var(--grey-700)" }}>
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+                {patient.phone}
+              </a>
+              <a href={`https://wa.me/${(patient.whatsapp || patient.phone).replace(/[^0-9]/g, "")}`} target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 px-2.5 py-1 text-[12px] font-semibold transition-colors hover:opacity-80" style={{ background: "#f0faf4", border: "1px solid #a7e3bd", borderRadius: "var(--radius-pill)", color: "#25d366" }}>
+                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" /></svg>
+                WhatsApp
+              </a>
+              {patient.email && (
+                <a href={`mailto:${patient.email}`} className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 text-[12px] font-semibold transition-colors hover:opacity-80" style={{ background: "var(--grey-50)", border: "1px solid var(--grey-200)", borderRadius: "var(--radius-pill)", color: "var(--grey-600)" }}>
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                  {patient.email}
+                </a>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -1689,89 +1700,180 @@ export default function PatientDetailPage() {
               )}
 
               {!editing ? (
-                <div className="px-6 py-5" style={{ background: "var(--white)", borderRadius: "var(--radius)" }}>
+                <div className="space-y-4">
 
-                  <div className="flex flex-col sm:flex-row gap-8 items-start">
-                    {/* Photo — Practo size */}
-                    <div className="flex-shrink-0 text-center">
-                      <div className="w-[140px] h-[170px] mx-auto flex items-center justify-center overflow-hidden relative group cursor-pointer"
-                        style={{ background: "var(--grey-100)", borderRadius: "var(--radius)", border: "1px solid var(--grey-300)" }}
-                        onClick={() => { setPhotoFile(null); setPhotoPreview(null); setShowPhotoModal(true); }}>
-                        {patient.photoUrl ? (
-                          <img src={patient.photoUrl} alt={`${patient.firstName} ${patient.lastName}`} className="w-full h-full object-cover" />
-                        ) : (
-                          <svg className="w-16 h-16" style={{ color: "var(--grey-300)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={0.8} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-                        )}
-                        {/* Hover overlay */}
-                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity" style={{ background: "rgba(0,0,0,0.4)", borderRadius: "var(--radius)" }}>
-                          <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                        </div>
-                      </div>
-                      <button onClick={() => { setPhotoFile(null); setPhotoPreview(null); setShowPhotoModal(true); }} className="text-[13px] font-semibold mt-2 hover:underline" style={{ color: "#2d6a4f" }}>
-                        {patient.photoUrl ? "Change Photo" : "Add Photo"}
-                      </button>
+                  {/* ── Quick Stats Row ── */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div className="p-3 text-center" style={{ ...cardStyle }}>
+                      <p className="text-[22px] font-bold" style={{ color: "#2d6a4f" }}>{patient.appointments.length}</p>
+                      <p className="text-[12px] font-medium uppercase tracking-wide" style={{ color: "var(--grey-500)" }}>Visits</p>
                     </div>
-                    {/* Data */}
-                    <div className="flex-1 min-w-0">
-                      <table className="w-full" style={{ borderCollapse: "collapse" }}><tbody>
-                        <ProfileRow label="Full Name" value={`${patient.firstName} ${patient.lastName}`} always />
-                        <ProfileRow label="Patient ID" value={patient.patientIdNumber} always />
-                        <ProfileRow label="NRIC ID" value={patient.nricId} />
-                        <ProfileRow label="Gender" value={patient.gender?.charAt(0).toUpperCase() + patient.gender?.slice(1)} always />
-                        <ProfileRow label="Date of Birth" value={patient.dateOfBirth ? formatDate(patient.dateOfBirth) : null} />
-                        <ProfileRow label="Age" value={patient.dateOfBirth ? calcAge(patient.dateOfBirth) : patient.age ? `${patient.age} Years` : null} />
-                        <ProfileRow label="Referred by" value={patient.referredBy} />
-                        <ProfileRow label="Blood Group" value={patient.bloodGroup} />
-                        {familyMembers.length > 0 ? (
-                          <tr>
-                            <td className="py-[8px] pr-4 text-[15px] font-normal text-right whitespace-nowrap align-top" style={{ color: "var(--grey-600)", width: 180 }}>Family :</td>
-                            <td className="py-[8px] pl-2">
-                              <div className="space-y-1">
-                                {familyMembers.map((fm) => (
-                                  <div key={fm.id} className="text-[15px]">
-                                    <span className="font-semibold" style={{ color: "var(--grey-700)" }}>{genderRelationLabel(fm.relation, fm.memberGender)}</span>
-                                    <span style={{ color: "var(--grey-500)" }}> : </span>
-                                    {fm.linkedPatientId ? (
-                                      <Link href={`/patients/${fm.linkedPatientId}`} className="font-medium hover:underline" style={{ color: "#2d6a4f" }}>{fm.memberName}</Link>
-                                    ) : (
-                                      <span className="font-medium" style={{ color: "var(--grey-900)" }}>{fm.memberName}</span>
-                                    )}
-                                  </div>
-                                ))}
-                              </div>
-                            </td>
-                          </tr>
-                        ) : (
-                          <ProfileRow label="Family" value={patient.familyRelation && patient.familyMemberName ? `${patient.familyRelation.charAt(0).toUpperCase() + patient.familyRelation.slice(1)} : ${patient.familyMemberName}` : null} />
-                        )}
-                        <ProfileRow label="Ethnicity" value={patient.ethnicity} />
-                        <ProfileRow label="Nationality" value={patient.nationality} />
-                        <ProfileRow label="Occupation" value={patient.occupation} />
-                      </tbody></table>
+                    <div className="p-3 text-center" style={{ ...cardStyle }}>
+                      <p className="text-[22px] font-bold" style={{ color: "#2d6a4f" }}>{clinicalNotes.length}</p>
+                      <p className="text-[12px] font-medium uppercase tracking-wide" style={{ color: "var(--grey-500)" }}>Notes</p>
+                    </div>
+                    <div className="p-3 text-center" style={{ ...cardStyle }}>
+                      <p className="text-[22px] font-bold" style={{ color: pendingBalance.total > 0 ? "#b68d40" : "#2d6a4f" }}>{pendingBalance.total > 0 ? formatCurrency(pendingBalance.total) : "S$0"}</p>
+                      <p className="text-[12px] font-medium uppercase tracking-wide" style={{ color: "var(--grey-500)" }}>Balance</p>
+                    </div>
+                    <div className="p-3 text-center" style={{ ...cardStyle }}>
+                      <p className="text-[22px] font-bold" style={{ color: "#2d6a4f" }}>{patient.createdAt ? formatDate(patient.createdAt).split(" ").slice(0, 2).join(" ") : "—"}</p>
+                      <p className="text-[12px] font-medium uppercase tracking-wide" style={{ color: "var(--grey-500)" }}>Since</p>
                     </div>
                   </div>
 
-                  {/* Contact Details — Practo style heading */}
-                  <h4 className="text-[17px] font-semibold mt-6 mb-3 pt-4" style={{ color: "var(--grey-800)", borderTop: "1px solid var(--grey-200)" }}>Contact Details</h4>
-                  <table className="w-full" style={{ borderCollapse: "collapse" }}><tbody>
-                    <ProfileRow label="Mobile" value={patient.phone} href={`tel:${patient.phone}`} always />
-                    <ProfileRow label="Secondary Mobile" value={patient.secondaryMobile} href={patient.secondaryMobile ? `tel:${patient.secondaryMobile}` : undefined} />
-                    <ProfileRow label="Landline" value={patient.landline} />
-                    <ProfileRow label="Email Address" value={patient.email} href={patient.email ? `mailto:${patient.email}` : undefined} />
-                  </tbody></table>
-
-                  {/* Address */}
-                  {(patient.address || patient.locality || patient.city || patient.state || patient.zipCode) && (<>
-                    <div className="mt-2">
-                      <table className="w-full" style={{ borderCollapse: "collapse" }}><tbody>
-                        <ProfileRow label="Street Address" value={patient.address} />
-                        <ProfileRow label="Locality" value={patient.locality} />
-                        <ProfileRow label="City" value={patient.city} />
-                        <ProfileRow label="State" value={patient.state} />
-                        <ProfileRow label="Postal Code" value={patient.zipCode} />
-                      </tbody></table>
+                  {/* ── Personal Information Card ── */}
+                  <div className="p-5" style={{ ...cardStyle }}>
+                    <h4 className="text-[14px] font-bold uppercase tracking-wide mb-4 pb-2" style={{ color: "var(--grey-500)", borderBottom: "1px solid var(--grey-100)" }}>
+                      <span className="inline-flex items-center gap-1.5">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                        Personal Information
+                      </span>
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
+                      <div>
+                        <p className="text-[12px] font-medium uppercase tracking-wide" style={{ color: "var(--grey-400)" }}>Full Name</p>
+                        <p className="text-[15px] font-semibold mt-0.5" style={{ color: "var(--grey-900)" }}>{patient.firstName} {patient.lastName}</p>
+                      </div>
+                      <div>
+                        <p className="text-[12px] font-medium uppercase tracking-wide" style={{ color: "var(--grey-400)" }}>Patient ID</p>
+                        <p className="text-[15px] font-semibold mt-0.5" style={{ color: "var(--grey-900)" }}>{patient.patientIdNumber}</p>
+                      </div>
+                      {patient.nricId && (
+                        <div>
+                          <p className="text-[12px] font-medium uppercase tracking-wide" style={{ color: "var(--grey-400)" }}>NRIC ID</p>
+                          <p className="text-[15px] font-semibold mt-0.5" style={{ color: "var(--grey-900)" }}>{patient.nricId}</p>
+                        </div>
+                      )}
+                      <div>
+                        <p className="text-[12px] font-medium uppercase tracking-wide" style={{ color: "var(--grey-400)" }}>Gender</p>
+                        <p className="text-[15px] font-semibold mt-0.5" style={{ color: "var(--grey-900)" }}>{patient.gender?.charAt(0).toUpperCase() + patient.gender?.slice(1)}</p>
+                      </div>
+                      {patient.dateOfBirth && (
+                        <div>
+                          <p className="text-[12px] font-medium uppercase tracking-wide" style={{ color: "var(--grey-400)" }}>Date of Birth</p>
+                          <p className="text-[15px] font-semibold mt-0.5" style={{ color: "var(--grey-900)" }}>{formatDate(patient.dateOfBirth)} ({calcAge(patient.dateOfBirth)})</p>
+                        </div>
+                      )}
+                      {patient.bloodGroup && (
+                        <div>
+                          <p className="text-[12px] font-medium uppercase tracking-wide" style={{ color: "var(--grey-400)" }}>Blood Group</p>
+                          <p className="text-[15px] font-semibold mt-0.5" style={{ color: "var(--grey-900)" }}>
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5" style={{ background: "#fef2f2", color: "#dc2626", borderRadius: "var(--radius-sm)", fontSize: "14px", fontWeight: 700 }}>{patient.bloodGroup}</span>
+                          </p>
+                        </div>
+                      )}
+                      {patient.referredBy && (
+                        <div>
+                          <p className="text-[12px] font-medium uppercase tracking-wide" style={{ color: "var(--grey-400)" }}>Referred By</p>
+                          <p className="text-[15px] font-semibold mt-0.5" style={{ color: "var(--grey-900)" }}>{patient.referredBy}</p>
+                        </div>
+                      )}
+                      {patient.ethnicity && (
+                        <div>
+                          <p className="text-[12px] font-medium uppercase tracking-wide" style={{ color: "var(--grey-400)" }}>Ethnicity</p>
+                          <p className="text-[15px] font-semibold mt-0.5" style={{ color: "var(--grey-900)" }}>{patient.ethnicity}</p>
+                        </div>
+                      )}
+                      {patient.nationality && (
+                        <div>
+                          <p className="text-[12px] font-medium uppercase tracking-wide" style={{ color: "var(--grey-400)" }}>Nationality</p>
+                          <p className="text-[15px] font-semibold mt-0.5" style={{ color: "var(--grey-900)" }}>{patient.nationality}</p>
+                        </div>
+                      )}
+                      {patient.occupation && (
+                        <div>
+                          <p className="text-[12px] font-medium uppercase tracking-wide" style={{ color: "var(--grey-400)" }}>Occupation</p>
+                          <p className="text-[15px] font-semibold mt-0.5" style={{ color: "var(--grey-900)" }}>{patient.occupation}</p>
+                        </div>
+                      )}
                     </div>
-                  </>)}
+
+                    {/* Family Members */}
+                    {(familyMembers.length > 0 || (patient.familyRelation && patient.familyMemberName)) && (
+                      <div className="mt-4 pt-3" style={{ borderTop: "1px solid var(--grey-100)" }}>
+                        <p className="text-[12px] font-medium uppercase tracking-wide mb-2" style={{ color: "var(--grey-400)" }}>Family</p>
+                        <div className="flex flex-wrap gap-2">
+                          {familyMembers.length > 0 ? familyMembers.map((fm) => (
+                            <div key={fm.id} className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[14px]" style={{ background: "var(--grey-50)", border: "1px solid var(--grey-200)", borderRadius: "var(--radius-pill)" }}>
+                              <span className="font-medium" style={{ color: "var(--grey-500)" }}>{genderRelationLabel(fm.relation, fm.memberGender)}:</span>
+                              {fm.linkedPatientId ? (
+                                <Link href={`/patients/${fm.linkedPatientId}`} className="font-semibold hover:underline" style={{ color: "#2d6a4f" }}>{fm.memberName}</Link>
+                              ) : (
+                                <span className="font-semibold" style={{ color: "var(--grey-900)" }}>{fm.memberName}</span>
+                              )}
+                            </div>
+                          )) : (
+                            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[14px]" style={{ background: "var(--grey-50)", border: "1px solid var(--grey-200)", borderRadius: "var(--radius-pill)" }}>
+                              <span className="font-medium" style={{ color: "var(--grey-500)" }}>{patient.familyRelation}:</span>
+                              <span className="font-semibold" style={{ color: "var(--grey-900)" }}>{patient.familyMemberName}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Groups / Tags */}
+                    {groups.length > 0 && (
+                      <div className="mt-4 pt-3" style={{ borderTop: "1px solid var(--grey-100)" }}>
+                        <p className="text-[12px] font-medium uppercase tracking-wide mb-2" style={{ color: "var(--grey-400)" }}>Groups</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {groups.map((g, i) => (
+                            <span key={i} className="px-2.5 py-0.5 text-[12px] font-semibold" style={{ background: "#f0faf4", color: "#2d6a4f", borderRadius: "var(--radius-pill)" }}>{g}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* ── Contact Details Card ── */}
+                  <div className="p-5" style={{ ...cardStyle }}>
+                    <h4 className="text-[14px] font-bold uppercase tracking-wide mb-4 pb-2" style={{ color: "var(--grey-500)", borderBottom: "1px solid var(--grey-100)" }}>
+                      <span className="inline-flex items-center gap-1.5">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+                        Contact Details
+                      </span>
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
+                      <div>
+                        <p className="text-[12px] font-medium uppercase tracking-wide" style={{ color: "var(--grey-400)" }}>Mobile</p>
+                        <a href={`tel:${patient.phone}`} className="text-[15px] font-semibold mt-0.5 hover:underline block" style={{ color: "#2d6a4f" }}>{patient.phone}</a>
+                      </div>
+                      {patient.secondaryMobile && (
+                        <div>
+                          <p className="text-[12px] font-medium uppercase tracking-wide" style={{ color: "var(--grey-400)" }}>Secondary Mobile</p>
+                          <a href={`tel:${patient.secondaryMobile}`} className="text-[15px] font-semibold mt-0.5 hover:underline block" style={{ color: "#2d6a4f" }}>{patient.secondaryMobile}</a>
+                        </div>
+                      )}
+                      {patient.landline && (
+                        <div>
+                          <p className="text-[12px] font-medium uppercase tracking-wide" style={{ color: "var(--grey-400)" }}>Landline</p>
+                          <p className="text-[15px] font-semibold mt-0.5" style={{ color: "var(--grey-900)" }}>{patient.landline}</p>
+                        </div>
+                      )}
+                      {patient.email && (
+                        <div>
+                          <p className="text-[12px] font-medium uppercase tracking-wide" style={{ color: "var(--grey-400)" }}>Email</p>
+                          <a href={`mailto:${patient.email}`} className="text-[15px] font-semibold mt-0.5 hover:underline block" style={{ color: "#2d6a4f" }}>{patient.email}</a>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* ── Address Card ── */}
+                  {(patient.address || patient.locality || patient.city || patient.state || patient.zipCode) && (
+                    <div className="p-5" style={{ ...cardStyle }}>
+                      <h4 className="text-[14px] font-bold uppercase tracking-wide mb-4 pb-2" style={{ color: "var(--grey-500)", borderBottom: "1px solid var(--grey-100)" }}>
+                        <span className="inline-flex items-center gap-1.5">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                          Address
+                        </span>
+                      </h4>
+                      <p className="text-[15px] font-medium leading-relaxed" style={{ color: "var(--grey-800)" }}>
+                        {[patient.address, patient.locality, patient.city, patient.state, patient.zipCode].filter(Boolean).join(", ")}
+                      </p>
+                    </div>
+                  )}
                 </div>
               ) : (
                 /* Edit Mode */

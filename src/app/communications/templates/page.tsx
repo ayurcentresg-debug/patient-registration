@@ -63,6 +63,9 @@ export default function TemplatesPage() {
   const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; title: string; message: string; confirmLabel: string; variant: "danger" | "warning" | "default"; onConfirm: () => void }>({ open: false, title: "", message: "", confirmLabel: "Confirm", variant: "default", onConfirm: () => {} });
   const [confirmLoading, setConfirmLoading] = useState(false);
 
+  // Seed loading
+  const [seeding, setSeeding] = useState(false);
+
   // Toast
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
@@ -84,6 +87,23 @@ export default function TemplatesPage() {
   }, [showToast]);
 
   useEffect(() => { fetchTemplates(); }, [fetchTemplates]);
+
+  async function handleSeedTemplates() {
+    setSeeding(true);
+    try {
+      const res = await fetch("/api/templates/seed", { method: "POST" });
+      const data = await res.json();
+      if (res.ok) {
+        showToast(`${data.created} templates added (${data.skipped} already existed)`, "success");
+        fetchTemplates();
+      } else {
+        showToast(data.error || "Failed to seed templates", "error");
+      }
+    } catch {
+      showToast("Failed to seed templates", "error");
+    }
+    setSeeding(false);
+  }
 
   function openNewForm() {
     setEditingTemplate(null);
@@ -249,16 +269,29 @@ export default function TemplatesPage() {
           <h1 className="text-[24px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>Message Templates</h1>
           <p className="text-[15px] mt-0.5" style={{ color: "var(--grey-600)" }}>Create and manage reusable message templates</p>
         </div>
-        <button
-          onClick={openNewForm}
-          className="inline-flex items-center justify-center gap-2 text-white px-5 py-2 text-[15px] font-semibold transition-colors duration-150"
-          style={{ background: "var(--blue-500)", borderRadius: "var(--radius-sm)" }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = "var(--blue-700)"; }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = "var(--blue-500)"; }}
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-          + New Template
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={handleSeedTemplates}
+            disabled={seeding}
+            className="inline-flex items-center justify-center gap-2 px-4 py-2 text-[15px] font-semibold transition-colors duration-150 disabled:opacity-50"
+            style={{ background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", color: "var(--grey-700)" }}
+            onMouseEnter={(e) => { if (!seeding) { e.currentTarget.style.background = "var(--grey-100)"; } }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = "var(--white)"; }}
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+            {seeding ? "Loading..." : "Load Defaults"}
+          </button>
+          <button
+            onClick={openNewForm}
+            className="inline-flex items-center justify-center gap-2 text-white px-5 py-2 text-[15px] font-semibold transition-colors duration-150"
+            style={{ background: "var(--blue-500)", borderRadius: "var(--radius-sm)" }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = "var(--blue-700)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = "var(--blue-500)"; }}
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+            + New Template
+          </button>
+        </div>
       </div>
 
       {/* Filter Tabs: Channel */}

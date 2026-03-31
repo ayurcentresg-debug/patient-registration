@@ -43,6 +43,7 @@ export async function GET(
         communications: { orderBy: { sentAt: "desc" } },
         clinicalNotes: { orderBy: { createdAt: "desc" } },
         documents: { orderBy: { uploadedAt: "desc" } },
+        familyMembers: { orderBy: { createdAt: "asc" } },
       },
     });
 
