@@ -57,6 +57,59 @@
   --radius-pill: 100px;
 }
 
+/* ========================================
+   DARK MODE OVERRIDES
+   ======================================== */
+[data-theme="dark"] {
+  /* Primary — Forest Green (brighter for dark bg) */
+  --blue-500: #4ade80;
+  --blue-600: #3dcc72;
+  --blue-700: #2db85e;
+  --blue-800: #22c55e;
+  --blue-50: rgba(74, 222, 128, 0.08);
+  --blue-100: rgba(74, 222, 128, 0.15);
+
+  /* Accent — Earthy Gold */
+  --accent: #d4a94e;
+  --accent-light: rgba(212, 169, 78, 0.1);
+
+  /* Neutrals — inverted */
+  --black: #f5f7f6;
+  --grey-900: #f0f2f1;
+  --grey-800: #d8ddd9;
+  --grey-700: #b8c0bb;
+  --grey-600: #95a19a;
+  --grey-500: #6b7f73;
+  --grey-400: #3d4f45;
+  --grey-300: #2a3830;
+  --grey-200: #1e2b24;
+  --grey-100: #172019;
+  --grey-50: #131a16;
+  --white: #0f1512;
+
+  /* Semantic */
+  --green: #34d399;
+  --green-light: rgba(52, 211, 153, 0.1);
+  --red: #f87171;
+  --red-light: rgba(248, 113, 113, 0.1);
+  --orange: #fb923c;
+  --orange-light: rgba(251, 146, 60, 0.1);
+  --purple: #a78bfa;
+  --purple-light: rgba(167, 139, 250, 0.1);
+
+  /* Shadows — darker */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-card: 0 1px 10px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 5px 20px rgba(0, 0, 0, 0.3);
+  --shadow-blue: 0 1px 4px rgba(74, 222, 128, 0.15);
+  --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.4);
+
+  /* Layout */
+  --background: #0f1512;
+  --foreground: #d8ddd9;
+  --sidebar-bg: #0a0f0c;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -130,6 +183,18 @@ input[type="radio"] {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--grey-600);
+}
+
+/* Dark mode specific overrides */
+[data-theme="dark"] input:focus,
+[data-theme="dark"] select:focus,
+[data-theme="dark"] textarea:focus {
+  box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.15) !important;
+}
+
+[data-theme="dark"] ::selection {
+  background: rgba(74, 222, 128, 0.25);
+  color: #f0f2f1;
 }
 
 /* ========================================

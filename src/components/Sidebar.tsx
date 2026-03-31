@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useAuth } from "@/components/AuthProvider";
+import { useTheme } from "@/components/ThemeProvider";
 
 // roles: "all" = everyone, "admin" = admin/receptionist/staff only, "clinical" = doctor/therapist + admin
 const navItems = [
@@ -60,6 +61,7 @@ export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { user } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -425,8 +427,69 @@ export default function Sidebar() {
               })}
             </div>
 
-            {/* Logout */}
+            {/* Dark mode toggle + Logout */}
             <div style={{ padding: "8px 10px", borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+              {/* Dark Mode Toggle */}
+              <button
+                onClick={toggleTheme}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "12px 14px",
+                  borderRadius: 8,
+                  color: "rgba(255,255,255,0.7)",
+                  backgroundColor: "transparent",
+                  border: "none",
+                  width: "100%",
+                  fontSize: 15,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  textAlign: "left",
+                  marginBottom: 6,
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                  {theme === "dark" ? (
+                    <svg style={{ width: 22, height: 22, flexShrink: 0 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                  ) : (
+                    <svg style={{ width: 22, height: 22, flexShrink: 0 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                    </svg>
+                  )}
+                  {theme === "dark" ? "Light Mode" : "Dark Mode"}
+                </div>
+                {/* Toggle pill */}
+                <div
+                  style={{
+                    width: 44,
+                    height: 24,
+                    borderRadius: 12,
+                    background: theme === "dark" ? "#4ade80" : "rgba(255,255,255,0.2)",
+                    position: "relative",
+                    transition: "background 0.2s",
+                    flexShrink: 0,
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 18,
+                      height: 18,
+                      borderRadius: 9,
+                      background: "#fff",
+                      position: "absolute",
+                      top: 3,
+                      left: theme === "dark" ? 23 : 3,
+                      transition: "left 0.2s",
+                      boxShadow: "0 1px 3px rgba(0,0,0,0.3)",
+                    }}
+                  />
+                </div>
+              </button>
+
+              {/* Logout */}
               <button
                 onClick={async () => {
                   await fetch("/api/auth/logout", { method: "POST" });
@@ -1138,8 +1201,42 @@ export default function Sidebar() {
           </div>
         </nav>
 
-        {/* Logout button */}
+        {/* Dark mode toggle + Logout */}
         <div style={{ padding: expanded ? "0 10px 8px" : "0 8px 8px" }}>
+          {/* Dark Mode Toggle */}
+          <button
+            onClick={toggleTheme}
+            title={!expanded ? (theme === "dark" ? "Light Mode" : "Dark Mode") : undefined}
+            className="flex items-center transition-all duration-150 w-full"
+            style={{
+              borderRadius: 8,
+              color: "rgba(255,255,255,0.55)",
+              backgroundColor: "transparent",
+              height: 44,
+              paddingLeft: expanded ? 14 : 0,
+              justifyContent: expanded ? "flex-start" : "center",
+              gap: 12,
+              border: "none",
+              marginBottom: 6,
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.08)"; e.currentTarget.style.color = "#fff"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; e.currentTarget.style.color = "rgba(255,255,255,0.55)"; }}
+          >
+            {theme === "dark" ? (
+              <svg className="flex-shrink-0" style={{ width: 24, height: 24 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+            ) : (
+              <svg className="flex-shrink-0" style={{ width: 24, height: 24 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+              </svg>
+            )}
+            <span className="text-[15px] font-semibold whitespace-nowrap overflow-hidden" style={{ opacity: expanded ? 1 : 0, width: expanded ? "auto" : 0, transition: "opacity 0.15s ease" }}>
+              {theme === "dark" ? "Light Mode" : "Dark Mode"}
+            </span>
+          </button>
+
+          {/* Logout */}
           <button
             onClick={async () => {
               await fetch("/api/auth/logout", { method: "POST" });
