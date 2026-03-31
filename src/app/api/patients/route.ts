@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
       const prefix = nric[0];
       const digits = nric.slice(1, 8).split("").map(Number);
       const weights = [2, 7, 6, 5, 4, 3, 2];
-      let sum = digits.reduce((acc, d, i) => acc + d * weights[i], 0);
+      let sum = digits.reduce((acc: number, d: number, i: number) => acc + d * weights[i], 0);
       if (prefix === "T" || prefix === "G") sum += 4;
       if (prefix === "M") sum += 3;
       const remainder = sum % 11;
