@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import CommunicationTabs from "@/components/CommunicationTabs";
 import { PageGuide } from "@/components/HelpTip";
+import { TablePageSkeleton } from "@/components/Skeleton";
 
 const inputStyle = { border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)", fontSize: "15px" };
 const cardStyle = { background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-card)" };
@@ -212,13 +213,7 @@ export default function MessagesPage() {
     return (
       <div className="p-6 md:p-8">
         <CommunicationTabs />
-        <div className="space-y-3">
-          <div className="h-7 w-40 animate-pulse" style={{ background: "var(--grey-200)", borderRadius: "var(--radius-sm)" }} />
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-            {[...Array(5)].map((_, i) => <div key={i} className="h-20 animate-pulse" style={{ background: "var(--grey-100)", borderRadius: "var(--radius)" }} />)}
-          </div>
-          {[...Array(5)].map((_, i) => <div key={i} className="h-20 animate-pulse" style={{ background: "var(--grey-100)", borderRadius: "var(--radius-sm)" }} />)}
-        </div>
+        <TablePageSkeleton columns={4} rows={5} filters={3} />
       </div>
     );
   }

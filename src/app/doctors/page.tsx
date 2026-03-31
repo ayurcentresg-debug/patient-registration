@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
+import { TablePageSkeleton } from "@/components/Skeleton";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface Doctor {
@@ -209,11 +210,7 @@ export default function DoctorsPage() {
 
       {/* ── Loading State ───────────────────────────────────────── */}
       {loading ? (
-        <div className="space-y-2">
-          {[...Array(5)].map((_, i) => (
-            <div key={i} className="h-14 animate-pulse" style={{ background: "var(--grey-100)", borderRadius: "var(--radius-sm)" }} />
-          ))}
-        </div>
+        <TablePageSkeleton columns={5} rows={5} />
       ) : sorted.length === 0 ? (
         /* ── Empty State ─────────────────────────────────────────── */
         <div className="text-center py-16">

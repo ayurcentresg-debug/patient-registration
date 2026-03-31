@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import BillingTabs from "@/components/BillingTabs";
 import { PageGuide } from "@/components/HelpTip";
+import { TablePageSkeleton } from "@/components/Skeleton";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface Invoice {
@@ -448,11 +449,7 @@ export default function BillingPage() {
 
       {/* ── Loading State ───────────────────────────────────────── */}
       {loading ? (
-        <div className="space-y-2">
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className="h-14 animate-pulse" style={{ background: "var(--grey-100)", borderRadius: "var(--radius-sm)" }} />
-          ))}
-        </div>
+        <TablePageSkeleton columns={6} rows={6} />
       ) : sorted.length === 0 ? (
         /* ── Empty State ─────────────────────────────────────────── */
         <div className="text-center py-16">

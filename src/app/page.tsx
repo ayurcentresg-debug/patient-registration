@@ -11,6 +11,7 @@ import {
   RevenueByMethodChart,
   TopTreatmentsChart,
 } from "@/components/DashboardCharts";
+import { DashboardSkeleton } from "@/components/Skeleton";
 
 interface TodayAppointment {
   id: string;
@@ -192,23 +193,7 @@ export default function Dashboard() {
   }, []);
 
   if (loading) {
-    return (
-      <div className="p-6 md:p-8">
-        <div className="space-y-6">
-          <div className="h-7 rounded w-40" style={{ background: "var(--grey-200)" }} />
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-24 rounded-md animate-pulse" style={{ background: "var(--grey-200)" }} />
-            ))}
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-            {[...Array(2)].map((_, i) => (
-              <div key={i} className="h-64 rounded-md animate-pulse" style={{ background: "var(--grey-200)" }} />
-            ))}
-          </div>
-        </div>
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   // Revenue calculations

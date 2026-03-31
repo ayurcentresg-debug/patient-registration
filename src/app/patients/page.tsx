@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { PageGuide } from "@/components/HelpTip";
+import { PatientListSkeleton } from "@/components/Skeleton";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface Patient {
@@ -262,11 +263,7 @@ export default function PatientsPage() {
 
       {/* ── Loading State ───────────────────────────────────────── */}
       {loading ? (
-        <div className="space-y-2">
-          {[...Array(5)].map((_, i) => (
-            <div key={i} className="h-14 animate-pulse" style={{ background: "var(--grey-100)", borderRadius: "var(--radius-sm)" }} />
-          ))}
-        </div>
+        <PatientListSkeleton />
       ) : filteredAndSorted.length === 0 ? (
         /* ── Empty State ─────────────────────────────────────────── */
         <div className="text-center py-16">
