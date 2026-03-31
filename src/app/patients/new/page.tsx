@@ -112,17 +112,20 @@ const MEDICAL_CONDITIONS = [
 const PATIENT_GROUPS = ["Diabetes", "Hypertension", "Senior Citizen", "Pediatric", "Prenatal", "VIP", "Insurance"];
 
 /* YODA shared styles */
+const fieldMaxWidth = "350px";
 const inputStyle = {
   border: "1px solid var(--grey-400)",
   borderRadius: "var(--radius-sm)",
   color: "var(--grey-900)",
   background: "var(--white)",
   fontSize: "15px",
+  maxWidth: fieldMaxWidth,
 };
 const inputErrorStyle = {
   ...inputStyle,
   border: "1px solid var(--red)",
   background: "#fff5f5",
+  maxWidth: fieldMaxWidth,
 };
 const labelStyle = { color: "var(--grey-700)", fontSize: "14px", fontWeight: 600 as const };
 const cardStyle = {
@@ -137,6 +140,69 @@ const sectionTitle = { color: "var(--grey-900)", fontSize: "17px", fontWeight: 7
 function FieldError({ error }: { error?: string }) {
   if (!error) return null;
   return <p className="mt-0.5 text-[13px] font-medium" style={{ color: "var(--red)" }}>{error}</p>;
+}
+
+/* Duplicate warning banner */
+function DuplicateWarning({ field, match, severity, onOverride, onGoToPatient }: {
+  field: string;
+  match: { id: string; firstName: string; lastName: string; patientIdNumber: string; phone?: string; lastVisit?: string | null };
+  severity: "hard" | "soft";
+  onOverride: () => void;
+  onGoToPatient: (id: string) => void;
+}) {
+  const icoColor = severity === "hard" ? "var(--red)" : "var(--orange, #f59e0b)";
+  const bgColor = severity === "hard" ? "#fef2f2" : "#fffbeb";
+  const borderColor = severity === "hard" ? "#fecaca" : "#fde68a";
+  const labelMap: Record<string, string> = { nricId: "NRIC/ID", phone: "phone number", email: "email" };
+  return (
+    <div className="mt-1.5 px-3 py-2 text-[13px] flex flex-col gap-1.5" style={{ background: bgColor, border: `1px solid ${borderColor}`, borderRadius: "var(--radius-sm)" }}>
+      <div className="flex items-start gap-2">
+        <svg className="w-4 h-4 flex-shrink-0 mt-0.5" fill="none" stroke={icoColor} viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+        </svg>
+        <div className="flex-1">
+          <p className="font-semibold" style={{ color: "var(--grey-900)" }}>
+            This {labelMap[field] || field} is already registered to{" "}
+            <span style={{ color: "var(--blue-500)" }}>{match.firstName} {match.lastName}</span>{" "}
+            <span style={{ color: "var(--grey-500)" }}>({match.patientIdNumber})</span>
+          </p>
+          {match.lastVisit && (
+            <p style={{ color: "var(--grey-600)" }}>Last visit: {match.lastVisit}</p>
+          )}
+        </div>
+      </div>
+      <div className="flex items-center gap-3 ml-6">
+        <button
+          type="button"
+          onClick={() => onGoToPatient(match.id)}
+          className="text-[13px] font-semibold px-2.5 py-1 rounded transition-colors"
+          style={{ background: "var(--blue-500)", color: "white", borderRadius: "var(--radius-sm)" }}
+        >
+          Open Existing Profile
+        </button>
+        {severity === "soft" && (
+          <button
+            type="button"
+            onClick={onOverride}
+            className="text-[13px] font-medium px-2.5 py-1 rounded transition-colors"
+            style={{ background: "var(--white)", border: "1px solid var(--grey-300)", color: "var(--grey-700)", borderRadius: "var(--radius-sm)" }}
+          >
+            Different person, continue
+          </button>
+        )}
+        {severity === "hard" && (
+          <button
+            type="button"
+            onClick={onOverride}
+            className="text-[13px] font-medium px-2.5 py-1 rounded transition-colors"
+            style={{ background: "var(--white)", border: "1px solid var(--grey-300)", color: "var(--grey-700)", borderRadius: "var(--radius-sm)" }}
+          >
+            ID may be wrong, continue anyway
+          </button>
+        )}
+      </div>
+    </div>
+  );
 }
 
 /* Toast notification */
@@ -197,6 +263,27 @@ export default function NewPatientPage() {
   const [customGroups, setCustomGroups] = useState<string[]>([]);
   const [showNewReferral, setShowNewReferral] = useState(false);
   const [showNewOccupation, setShowNewOccupation] = useState(false);
+
+  // Duplicate detection state
+  interface DuplicateMatch {
+    id: string;
+    firstName: string;
+    lastName: string;
+    patientIdNumber: string;
+    phone?: string;
+    lastVisit?: string | null;
+  }
+  const [duplicates, setDuplicates] = useState<Record<string, DuplicateMatch | null>>({
+    nricId: null,
+    phone: null,
+    email: null,
+  });
+  const [duplicateOverrides, setDuplicateOverrides] = useState<Record<string, boolean>>({
+    nricId: false,
+    phone: false,
+    email: false,
+  });
+  const duplicateCheckTimers = useRef<Record<string, NodeJS.Timeout>>({});
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [isDirty, setIsDirty] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -233,6 +320,34 @@ export default function NewPatientPage() {
   const markDirty = useCallback(() => {
     if (!isDirty) setIsDirty(true);
   }, [isDirty]);
+
+  // Duplicate check — debounced, called on blur or after typing stops
+  const checkDuplicate = useCallback((field: string, value: string) => {
+    // Clear previous timer for this field
+    if (duplicateCheckTimers.current[field]) {
+      clearTimeout(duplicateCheckTimers.current[field]);
+    }
+    const trimmed = value.trim();
+    if (!trimmed || (field === "phone" && trimmed.replace(/\D/g, "").length < 7)) {
+      setDuplicates(prev => ({ ...prev, [field]: null }));
+      setDuplicateOverrides(prev => ({ ...prev, [field]: false }));
+      return;
+    }
+    duplicateCheckTimers.current[field] = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/patients/check-duplicate?field=${field}&value=${encodeURIComponent(trimmed)}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.duplicate && data.patient) {
+            setDuplicates(prev => ({ ...prev, [field]: data.patient }));
+            setDuplicateOverrides(prev => ({ ...prev, [field]: false }));
+          } else {
+            setDuplicates(prev => ({ ...prev, [field]: null }));
+          }
+        }
+      } catch { /* ignore network errors */ }
+    }, 400);
+  }, []);
 
   function handleDobChange(e: React.ChangeEvent<HTMLInputElement>) {
     const dob = e.target.value;
@@ -392,6 +507,20 @@ export default function NewPatientPage() {
       return;
     }
 
+    // Check for unresolved duplicate warnings
+    if (duplicates.nricId && !duplicateOverrides.nricId) {
+      const el = document.querySelector('[name="nricId"]');
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+      setToast({ message: "Please resolve the NRIC duplicate warning before saving.", type: "error" });
+      return;
+    }
+    if (duplicates.phone && !duplicateOverrides.phone) {
+      const el = document.querySelector('[name="phone"]');
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+      setToast({ message: "Please resolve the phone number duplicate warning before saving.", type: "error" });
+      return;
+    }
+
     setSaving(true);
 
     if (dobMode === "age" && data.age) {
@@ -516,41 +645,46 @@ export default function NewPatientPage() {
             <div className="p-5" style={cardStyle}>
               <h2 className="mb-4 pb-3" style={{ ...sectionTitle, borderBottom: "1px solid var(--grey-200)" }}>Patient Details</h2>
 
-              <div className="space-y-3">
-                  {/* Row 1: Photo + First Name + Last Name */}
-                  <div className="grid gap-3" style={{ gridTemplateColumns: "auto 1fr 1fr" }}>
-                    <div className="row-span-2 flex-shrink-0">
-                      <div className="w-20 h-24 flex flex-col items-center justify-center" style={{ background: "var(--grey-100)", border: "2px dashed var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-500)" }}>
-                        <svg className="w-7 h-7 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-                        <span className="text-[11px] font-medium">Photo</span>
-                      </div>
-                    </div>
-                    <div>
-                      <label htmlFor="firstName" className="block mb-1" style={labelStyle}><span style={{ color: "var(--red)" }}>*</span> First Name</label>
-                      <input id="firstName" name="firstName" required defaultValue={prefill.firstName} className="w-full px-3 py-1.5" style={fieldErrors.firstName ? inputErrorStyle : inputStyle} aria-invalid={!!fieldErrors.firstName} aria-describedby={fieldErrors.firstName ? "err-firstName" : undefined} />
-                      {fieldErrors.firstName && <p id="err-firstName" className="mt-0.5 text-[13px] font-medium" style={{ color: "var(--red)" }}>{fieldErrors.firstName}</p>}
-                    </div>
-                    <div>
-                      <label htmlFor="lastName" className="block mb-1" style={labelStyle}><span style={{ color: "var(--red)" }}>*</span> Last Name</label>
-                      <input id="lastName" name="lastName" required defaultValue={prefill.lastName} className="w-full px-3 py-1.5" style={fieldErrors.lastName ? inputErrorStyle : inputStyle} aria-invalid={!!fieldErrors.lastName} aria-describedby={fieldErrors.lastName ? "err-lastName" : undefined} />
-                      {fieldErrors.lastName && <p id="err-lastName" className="mt-0.5 text-[13px] font-medium" style={{ color: "var(--red)" }}>{fieldErrors.lastName}</p>}
+              <div className="space-y-4">
+                  {/* Each field: label left, input right */}
+                  <div className="flex items-center gap-4">
+                    <label htmlFor="firstName" className="w-40 text-right flex-shrink-0" style={labelStyle}>First Name <span style={{ color: "var(--red)" }}>*</span> :</label>
+                    <div className="flex-1">
+                      <input id="firstName" name="firstName" required defaultValue={prefill.firstName} className="w-full px-3 py-2" style={fieldErrors.firstName ? inputErrorStyle : inputStyle} aria-invalid={!!fieldErrors.firstName} />
+                      {fieldErrors.firstName && <p className="mt-0.5 text-[13px] font-medium" style={{ color: "var(--red)" }}>{fieldErrors.firstName}</p>}
                     </div>
                   </div>
-                  {/* Row 2: Patient ID | NRIC | Gender */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    <div>
-                      <label className="block mb-1" style={labelStyle}>Patient ID</label>
-                      <input disabled placeholder="Auto-generated" className="w-full px-3 py-1.5" style={{ ...inputStyle, background: "var(--grey-100)", color: "var(--grey-500)" }} />
+                  <div className="flex items-center gap-4">
+                    <label htmlFor="lastName" className="w-40 text-right flex-shrink-0" style={labelStyle}>Last Name <span style={{ color: "var(--red)" }}>*</span> :</label>
+                    <div className="flex-1">
+                      <input id="lastName" name="lastName" required defaultValue={prefill.lastName} className="w-full px-3 py-2" style={fieldErrors.lastName ? inputErrorStyle : inputStyle} aria-invalid={!!fieldErrors.lastName} />
+                      {fieldErrors.lastName && <p className="mt-0.5 text-[13px] font-medium" style={{ color: "var(--red)" }}>{fieldErrors.lastName}</p>}
                     </div>
-                    <div>
-                      <label htmlFor="nricId" className="block mb-1" style={labelStyle}>NRIC ID</label>
-                      <input id="nricId" name="nricId" className="w-full px-3 py-1.5" style={inputStyle} />
+                  </div>
+                  <div className="flex items-start gap-4">
+                    <label htmlFor="nricId" className="w-40 text-right flex-shrink-0 pt-2" style={labelStyle}>NRIC ID :</label>
+                    <div className="flex-1">
+                      <input id="nricId" name="nricId" className="w-full px-3 py-2" style={inputStyle}
+                        onBlur={(e) => checkDuplicate("nricId", e.target.value)}
+                        onChange={(e) => { markDirty(); checkDuplicate("nricId", e.target.value); }}
+                      />
+                      {duplicates.nricId && !duplicateOverrides.nricId && (
+                        <DuplicateWarning
+                          field="nricId"
+                          match={duplicates.nricId}
+                          severity="hard"
+                          onOverride={() => setDuplicateOverrides(prev => ({ ...prev, nricId: true }))}
+                          onGoToPatient={(id) => router.push(`/patients/${id}`)}
+                        />
+                      )}
                     </div>
-                    <div className="sm:col-span-2">
-                      <label className="block mb-1" style={labelStyle}><span style={{ color: "var(--red)" }}>*</span> Gender</label>
-                      <div className="flex gap-4 py-1.5" role="radiogroup" aria-label="Gender">
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <label className="w-40 text-right flex-shrink-0" style={labelStyle}>Gender <span style={{ color: "var(--red)" }}>*</span> :</label>
+                    <div className="flex-1">
+                      <div className="flex gap-5 py-1" role="radiogroup" aria-label="Gender">
                         {["male", "female", "other"].map((g) => (
-                          <label key={g} className="flex items-center gap-1.5 text-[14px] cursor-pointer whitespace-nowrap" style={{ color: "var(--grey-800)" }}>
+                          <label key={g} className="flex items-center gap-1.5 text-[15px] cursor-pointer" style={{ color: "var(--grey-800)" }}>
                             <input type="radio" name="gender" value={g} required /> {g.charAt(0).toUpperCase() + g.slice(1)}
                           </label>
                         ))}
@@ -558,263 +692,209 @@ export default function NewPatientPage() {
                       <FieldError error={fieldErrors.gender} />
                     </div>
                   </div>
-                  {/* Row 3: DOB | Age | Referred By | Blood Group */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    <div>
-                      <label className="block mb-1" style={labelStyle}>Date of Birth</label>
+                  <div className="flex items-center gap-4">
+                    <label className="w-40 text-right flex-shrink-0" style={labelStyle}>Date of Birth :</label>
+                    <div className="flex-1">
                       {dobMode === "dob" ? (
-                        <input name="dateOfBirth" type="date" className="w-full px-3 py-1.5" style={inputStyle} onChange={handleDobChange} />
+                        <input name="dateOfBirth" type="date" className="w-full px-3 py-2" style={inputStyle} onChange={handleDobChange} />
                       ) : (
-                        <input name="age" type="number" min="0" max="150" placeholder="Age" className="w-full px-3 py-1.5" style={inputStyle} />
+                        <input name="age" type="number" min="0" max="150" placeholder="Age" className="w-full px-3 py-2" style={inputStyle} />
                       )}
-                      <button type="button" onClick={() => { setDobMode(dobMode === "dob" ? "age" : "dob"); setCalculatedAge(""); }} className="text-[12px] font-semibold mt-0.5" style={{ color: "var(--blue-500)" }}>
-                        Or enter {dobMode === "dob" ? "age" : "DOB"}
+                      <div className="flex items-center gap-3 mt-1">
+                        <button type="button" onClick={() => { setDobMode(dobMode === "dob" ? "age" : "dob"); setCalculatedAge(""); }} className="text-[12px] font-semibold" style={{ color: "var(--blue-500)" }}>
+                          Or enter {dobMode === "dob" ? "age" : "DOB"}
+                        </button>
+                        {calculatedAge && <span className="text-[13px] font-semibold" style={{ color: "var(--blue-500)" }}>Age: {calculatedAge}</span>}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <label htmlFor="bloodGroup" className="w-40 text-right flex-shrink-0" style={labelStyle}>Blood Group :</label>
+                    <select id="bloodGroup" name="bloodGroup" className="flex-1 px-3 py-2" style={inputStyle}>
+                      <option value="">Select</option>
+                      {BLOOD_GROUPS.map((bg) => <option key={bg} value={bg}>{bg}</option>)}
+                    </select>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <label className="w-40 text-right flex-shrink-0" style={labelStyle}>Referred by :</label>
+                    <div className="flex-1 flex items-center gap-1">
+                      {showNewReferral ? (
+                        <input name="referredBy" placeholder="Enter referral" className="flex-1 px-3 py-2" style={inputStyle} />
+                      ) : (
+                        <select name="referredBy" className="flex-1 px-3 py-2" style={inputStyle}>
+                          <option value="">Select</option>
+                          {REFERRAL_SOURCES.map((r) => <option key={r} value={r}>{r}</option>)}
+                        </select>
+                      )}
+                      <button type="button" onClick={() => setShowNewReferral(!showNewReferral)} className="text-[12px] font-semibold whitespace-nowrap" style={{ color: "var(--blue-500)" }}>
+                        {showNewReferral ? "List" : "+"}
                       </button>
                     </div>
-                    <div>
-                      <label className="block mb-1" style={labelStyle}>Age</label>
-                      <div className="py-1.5">
-                        {calculatedAge ? (
-                          <span className="text-[14px] font-semibold" style={{ color: "var(--blue-500)" }}>{calculatedAge}</span>
-                        ) : (
-                          <span className="text-[14px]" style={{ color: "var(--grey-400)" }}>--</span>
-                        )}
+                  </div>
+                  <div className="flex items-start gap-4">
+                    <label className="w-40 text-right flex-shrink-0 pt-2" style={labelStyle}>Family :</label>
+                    <div className="flex-1">
+                      {familyMembers.length > 0 && (
+                        <div className="space-y-1.5 mb-2">
+                          {familyMembers.map((fm, idx) => (
+                            <div key={idx} className="flex items-center gap-2 px-3 py-1.5 rounded" style={{ background: "var(--grey-50)", border: "1px solid var(--grey-200)" }}>
+                              <span className="text-[14px] font-semibold" style={{ color: "var(--grey-700)" }}>{genderRelationLabel(fm.relation, fm.memberGender)}</span>
+                              <span style={{ color: "var(--grey-400)" }}>:</span>
+                              <span className="text-[14px] font-semibold flex-1" style={{ color: "var(--blue-500)" }}>{fm.memberName}</span>
+                              {fm.memberPhone && <span className="text-[12px]" style={{ color: "var(--grey-500)" }}>{fm.memberPhone}</span>}
+                              <button type="button" onClick={() => removeFamilyMember(idx)} className="text-[16px] font-bold leading-none hover:opacity-70" style={{ color: "var(--grey-400)" }} aria-label={`Remove ${fm.memberName}`}>&times;</button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      <div className="flex gap-2" ref={familySearchRef}>
+                        <select value={familyRelation} onChange={(e) => { setFamilyRelation(e.target.value); setFamilySearch(""); setFamilySearchResults([]); }} className="w-1/3 px-2 py-2" style={inputStyle} aria-label="Family relation">
+                          <option value="">Relation</option>
+                          {FAMILY_RELATIONS.map((r) => <option key={r} value={r}>{RELATION_LABELS[r]}</option>)}
+                        </select>
+                        <div className="flex-1 relative">
+                          <input value={familySearch} onChange={(e) => { setFamilySearch(e.target.value); if (e.target.value.length >= 2) setShowFamilyDropdown(true); }} onFocus={() => { if (familySearchResults.length > 0) setShowFamilyDropdown(true); }} placeholder={familyRelation ? "Search patient by name, phone, or ID..." : "Select relation first"} disabled={!familyRelation} className="w-full px-3 py-2" style={inputStyle} aria-label="Search family member" onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addManualFamilyMember(); } }} />
+                          {showFamilyDropdown && familyRelation && familySearch.length >= 2 && (
+                            <div className="absolute z-20 left-0 right-0 mt-1 max-h-52 overflow-y-auto" style={{ background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", boxShadow: "0 4px 16px rgba(0,0,0,0.1)" }}>
+                              {familySearchLoading ? (
+                                <div className="px-3 py-2 text-[14px]" style={{ color: "var(--grey-500)" }}>Searching...</div>
+                              ) : familySearchResults.length > 0 ? (
+                                familySearchResults.map((p) => (
+                                  <button key={p.id} type="button" onClick={() => addFamilyMember(p)} className="w-full text-left px-3 py-2 hover:bg-blue-50 transition-colors flex items-center gap-2" style={{ borderBottom: "1px solid var(--grey-100)" }}>
+                                    <span className="text-[14px] font-semibold" style={{ color: "var(--grey-900)" }}>{p.firstName} {p.lastName}</span>
+                                    <span className="text-[12px]" style={{ color: "var(--grey-500)" }}>{p.patientIdNumber} · {p.phone}</span>
+                                  </button>
+                                ))
+                              ) : (
+                                <div className="px-3 py-2">
+                                  <p className="text-[14px]" style={{ color: "var(--grey-500)" }}>No patients found</p>
+                                  <button type="button" onClick={addManualFamilyMember} className="text-[13px] font-semibold mt-1" style={{ color: "var(--blue-500)" }}>+ Add &quot;{familySearch}&quot; as manual entry</button>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                    <div>
-                      <label className="block mb-1" style={labelStyle}>Referred by</label>
-                      <div className="flex items-center gap-1">
-                        {showNewReferral ? (
-                          <input name="referredBy" placeholder="Enter referral" className="flex-1 px-3 py-1.5" style={inputStyle} />
-                        ) : (
-                          <select name="referredBy" className="flex-1 px-3 py-1.5" style={inputStyle}>
-                            <option value="">Select</option>
-                            {REFERRAL_SOURCES.map((r) => <option key={r} value={r}>{r}</option>)}
-                          </select>
-                        )}
-                        <button type="button" onClick={() => setShowNewReferral(!showNewReferral)} className="text-[12px] font-semibold whitespace-nowrap" style={{ color: "var(--blue-500)" }}>
-                          {showNewReferral ? "List" : "+"}
-                        </button>
-                      </div>
-                    </div>
-                    <div>
-                      <label htmlFor="bloodGroup" className="block mb-1" style={labelStyle}>Blood Group</label>
-                      <select id="bloodGroup" name="bloodGroup" className="w-full px-3 py-1.5" style={inputStyle}>
-                        <option value="">Select</option>
-                        {BLOOD_GROUPS.map((bg) => <option key={bg} value={bg}>{bg}</option>)}
-                      </select>
+                      <p className="text-[12px] mt-1" style={{ color: "var(--grey-500)" }}>Select relation, then search for an existing patient or type a name and press Enter</p>
                     </div>
                   </div>
-                  {/* Row 4: Ethnicity | Nationality | Occupation */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div>
-                      <label htmlFor="ethnicity" className="block mb-1" style={labelStyle}>Ethnicity</label>
-                      <select id="ethnicity" name="ethnicity" className="w-full px-3 py-1.5" style={inputStyle}>
-                        <option value="">Select ethnicity</option>
-                        {ETHNICITIES.map((e) => <option key={e} value={e}>{e}</option>)}
-                      </select>
-                    </div>
-                    <div>
-                      <label htmlFor="nationality" className="block mb-1" style={labelStyle}>Nationality</label>
-                      <select id="nationality" name="nationality" className="w-full px-3 py-1.5" style={inputStyle}>
-                        <option value="">Select</option>
-                        {NATIONALITIES.map((n) => <option key={n} value={n}>{n}</option>)}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block mb-1" style={labelStyle}>Occupation</label>
-                      <div className="flex items-center gap-1">
-                        {showNewOccupation ? (
-                          <input name="occupation" placeholder="Enter occupation" className="flex-1 px-3 py-1.5" style={inputStyle} />
-                        ) : (
-                          <select name="occupation" className="flex-1 px-3 py-1.5" style={inputStyle}>
-                            <option value="">Select occupation</option>
-                            {OCCUPATIONS.map((o) => <option key={o} value={o}>{o}</option>)}
-                          </select>
-                        )}
-                        <button type="button" onClick={() => setShowNewOccupation(!showNewOccupation)} className="text-[12px] font-semibold whitespace-nowrap" style={{ color: "var(--blue-500)" }}>
-                          {showNewOccupation ? "List" : "+"}
-                        </button>
-                      </div>
+                  <div className="flex items-center gap-4">
+                    <label htmlFor="ethnicity" className="w-40 text-right flex-shrink-0" style={labelStyle}>Ethnicity :</label>
+                    <select id="ethnicity" name="ethnicity" className="flex-1 px-3 py-2" style={inputStyle}>
+                      <option value="">Select ethnicity</option>
+                      {ETHNICITIES.map((e) => <option key={e} value={e}>{e}</option>)}
+                    </select>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <label htmlFor="nationality" className="w-40 text-right flex-shrink-0" style={labelStyle}>Nationality :</label>
+                    <select id="nationality" name="nationality" className="flex-1 px-3 py-2" style={inputStyle}>
+                      <option value="">Select</option>
+                      {NATIONALITIES.map((n) => <option key={n} value={n}>{n}</option>)}
+                    </select>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <label className="w-40 text-right flex-shrink-0" style={labelStyle}>Occupation :</label>
+                    <div className="flex-1 flex items-center gap-1" style={{ maxWidth: fieldMaxWidth }}>
+                      {showNewOccupation ? (
+                        <input name="occupation" placeholder="Enter occupation" className="flex-1 px-3 py-2" style={inputStyle} />
+                      ) : (
+                        <select name="occupation" className="flex-1 px-3 py-2" style={inputStyle}>
+                          <option value="">Select occupation</option>
+                          {OCCUPATIONS.map((o) => <option key={o} value={o}>{o}</option>)}
+                        </select>
+                      )}
+                      <button type="button" onClick={() => setShowNewOccupation(!showNewOccupation)} className="text-[12px] font-semibold whitespace-nowrap" style={{ color: "var(--blue-500)" }}>
+                        {showNewOccupation ? "List" : "+"}
+                      </button>
                     </div>
                   </div>
               </div>
 
-              {/* Row 5: Family (full width) */}
-              <div>
-                <label className="block mb-1" style={labelStyle}>Family</label>
-
-                {/* Added members list */}
-                {familyMembers.length > 0 && (
-                  <div className="space-y-1.5 mb-2">
-                    {familyMembers.map((fm, idx) => (
-                      <div key={idx} className="flex items-center gap-2 px-3 py-1.5 rounded" style={{ background: "var(--grey-50)", border: "1px solid var(--grey-200)" }}>
-                        <span className="text-[15px] font-semibold" style={{ color: "var(--grey-700)" }}>
-                          {genderRelationLabel(fm.relation, fm.memberGender)}
-                        </span>
-                        <span className="text-[15px]" style={{ color: "var(--grey-500)" }}>:</span>
-                        <span className="text-[15px] font-semibold flex-1" style={{ color: "var(--blue-500)" }}>
-                          {fm.memberName}
-                        </span>
-                        {fm.memberPhone && (
-                          <span className="text-[13px]" style={{ color: "var(--grey-500)" }}>{fm.memberPhone}</span>
-                        )}
-                        <button
-                          type="button"
-                          onClick={() => removeFamilyMember(idx)}
-                          className="text-[16px] font-bold leading-none hover:opacity-70"
-                          style={{ color: "var(--grey-400)" }}
-                          aria-label={`Remove ${fm.memberName}`}
-                        >
-                          &times;
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Add new member row */}
-                <div className="flex gap-2" ref={familySearchRef}>
-                  <select
-                    value={familyRelation}
-                    onChange={(e) => { setFamilyRelation(e.target.value); setFamilySearch(""); setFamilySearchResults([]); }}
-                    className="w-1/3 px-2 py-2"
-                    style={inputStyle}
-                    aria-label="Family relation"
-                  >
-                    <option value="">Relation</option>
-                    {FAMILY_RELATIONS.map((r) => (
-                      <option key={r} value={r}>{RELATION_LABELS[r]}</option>
-                    ))}
-                  </select>
-
-                  <div className="flex-1 relative">
-                    <input
-                      value={familySearch}
-                      onChange={(e) => { setFamilySearch(e.target.value); if (e.target.value.length >= 2) setShowFamilyDropdown(true); }}
-                      onFocus={() => { if (familySearchResults.length > 0) setShowFamilyDropdown(true); }}
-                      placeholder={familyRelation ? "Search patient by name, phone, or ID..." : "Select relation first"}
-                      disabled={!familyRelation}
-                      className="w-full px-3 py-2"
-                      style={inputStyle}
-                      aria-label="Search family member"
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") { e.preventDefault(); addManualFamilyMember(); }
-                      }}
-                    />
-
-                    {/* Search results dropdown */}
-                    {showFamilyDropdown && familyRelation && familySearch.length >= 2 && (
-                      <div
-                        className="absolute z-20 left-0 right-0 mt-1 max-h-52 overflow-y-auto"
-                        style={{ background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", boxShadow: "0 4px 16px rgba(0,0,0,0.1)" }}
-                      >
-                        {familySearchLoading ? (
-                          <div className="px-3 py-2 text-[14px]" style={{ color: "var(--grey-500)" }}>Searching...</div>
-                        ) : familySearchResults.length > 0 ? (
-                          familySearchResults.map((p) => (
-                            <button
-                              key={p.id}
-                              type="button"
-                              onClick={() => addFamilyMember(p)}
-                              className="w-full text-left px-3 py-2 hover:bg-blue-50 transition-colors flex items-center gap-2"
-                              style={{ borderBottom: "1px solid var(--grey-100)" }}
-                            >
-                              <div className="flex-1 min-w-0">
-                                <span className="text-[15px] font-semibold" style={{ color: "var(--grey-900)" }}>
-                                  {p.firstName} {p.lastName}
-                                </span>
-                                <span className="text-[13px] ml-2" style={{ color: "var(--grey-500)" }}>
-                                  {p.patientIdNumber} · {p.phone}
-                                  {p.gender ? ` · ${p.gender.charAt(0).toUpperCase() + p.gender.slice(1)}` : ""}
-                                </span>
-                              </div>
-                            </button>
-                          ))
-                        ) : (
-                          <div className="px-3 py-2">
-                            <p className="text-[14px]" style={{ color: "var(--grey-500)" }}>No patients found</p>
-                            <button
-                              type="button"
-                              onClick={addManualFamilyMember}
-                              className="text-[14px] font-semibold mt-1"
-                              style={{ color: "var(--blue-500)" }}
-                            >
-                              + Add &quot;{familySearch}&quot; as manual entry
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <p className="text-[12px] mt-1" style={{ color: "var(--grey-500)" }}>
-                  Select relation, then search for an existing patient or type a name and press Enter
-                </p>
-              </div>
+              {/* Family section moved inline above */}
             </div>
 
             {/* Contact Details */}
             <div className="p-5" style={cardStyle}>
               <h2 className="mb-4 pb-3" style={{ ...sectionTitle, borderBottom: "1px solid var(--grey-200)" }}>Contact Details</h2>
-              <div className="space-y-3">
-                {/* Row 1: Primary Mobile | Secondary Mobile */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label htmlFor="phone" className="block mb-1" style={labelStyle}><span style={{ color: "var(--red)" }}>*</span> Primary Mobile No.</label>
-                    <input id="phone" name="phone" type="tel" required defaultValue={prefill.phone} placeholder="+65 9123 4567" className="w-full px-3 py-2" style={fieldErrors.phone ? inputErrorStyle : inputStyle} aria-invalid={!!fieldErrors.phone} aria-describedby={fieldErrors.phone ? "err-phone" : undefined} />
-                    {fieldErrors.phone && <p id="err-phone" className="mt-0.5 text-[13px] font-medium" style={{ color: "var(--red)" }}>{fieldErrors.phone}</p>}
+              <div className="space-y-4">
+                <div className="flex items-start gap-4">
+                  <label htmlFor="phone" className="w-40 text-right flex-shrink-0 pt-2" style={labelStyle}>Mobile <span style={{ color: "var(--red)" }}>*</span> :</label>
+                  <div className="flex-1">
+                    <input id="phone" name="phone" type="tel" required defaultValue={prefill.phone} placeholder="+65 9123 4567" className="w-full px-3 py-2" style={fieldErrors.phone ? inputErrorStyle : inputStyle}
+                      onBlur={(e) => checkDuplicate("phone", e.target.value)}
+                      onChange={(e) => { markDirty(); checkDuplicate("phone", e.target.value); }}
+                    />
+                    {fieldErrors.phone && <p className="mt-0.5 text-[13px] font-medium" style={{ color: "var(--red)" }}>{fieldErrors.phone}</p>}
+                    {duplicates.phone && !duplicateOverrides.phone && (
+                      <DuplicateWarning
+                        field="phone"
+                        match={duplicates.phone}
+                        severity="soft"
+                        onOverride={() => setDuplicateOverrides(prev => ({ ...prev, phone: true }))}
+                        onGoToPatient={(id) => router.push(`/patients/${id}`)}
+                      />
+                    )}
                   </div>
-                  <div>
-                    <label htmlFor="secondaryMobile" className="block mb-1" style={labelStyle}>Secondary Mobile No.</label>
+                </div>
+                <div className="flex items-center gap-4">
+                  <label htmlFor="secondaryMobile" className="w-40 text-right flex-shrink-0" style={labelStyle}>Secondary Mobile :</label>
+                  <div className="flex-1">
                     <input id="secondaryMobile" name="secondaryMobile" type="tel" className="w-full px-3 py-2" style={fieldErrors.secondaryMobile ? inputErrorStyle : inputStyle} />
                     <FieldError error={fieldErrors.secondaryMobile} />
                   </div>
                 </div>
-                {/* Row 2: Landline | WhatsApp */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label htmlFor="landline" className="block mb-1" style={labelStyle}>Land Line Nos.</label>
+                <div className="flex items-center gap-4">
+                  <label htmlFor="landline" className="w-40 text-right flex-shrink-0" style={labelStyle}>Landline :</label>
+                  <div className="flex-1">
                     <input id="landline" name="landline" type="tel" className="w-full px-3 py-2" style={fieldErrors.landline ? inputErrorStyle : inputStyle} />
                     <FieldError error={fieldErrors.landline} />
                   </div>
-                  <div>
-                    <label htmlFor="whatsapp" className="block mb-1" style={labelStyle}>WhatsApp Number</label>
-                    <input id="whatsapp" name="whatsapp" type="tel" placeholder="Same as primary if blank" className="w-full px-3 py-2" style={fieldErrors.whatsapp ? inputErrorStyle : inputStyle} />
-                    <FieldError error={fieldErrors.whatsapp} />
+                </div>
+                <div className="flex items-start gap-4">
+                  <label htmlFor="email" className="w-40 text-right flex-shrink-0 pt-2" style={labelStyle}>Email Address :</label>
+                  <div className="flex-1">
+                    <input id="email" name="email" type="email" placeholder="patient@example.com" className="w-full px-3 py-2" style={fieldErrors.email ? inputErrorStyle : inputStyle}
+                      onBlur={(e) => checkDuplicate("email", e.target.value)}
+                      onChange={(e) => { markDirty(); checkDuplicate("email", e.target.value); }}
+                    />
+                    {fieldErrors.email && <p className="mt-0.5 text-[13px] font-medium" style={{ color: "var(--red)" }}>{fieldErrors.email}</p>}
+                    {duplicates.email && !duplicateOverrides.email && (
+                      <DuplicateWarning
+                        field="email"
+                        match={duplicates.email}
+                        severity="soft"
+                        onOverride={() => setDuplicateOverrides(prev => ({ ...prev, email: true }))}
+                        onGoToPatient={(id) => router.push(`/patients/${id}`)}
+                      />
+                    )}
                   </div>
                 </div>
-                {/* Row 3: Email (full width) */}
-                <div>
-                  <label htmlFor="email" className="block mb-1" style={labelStyle}>Email Address</label>
-                  <input id="email" name="email" type="email" placeholder="patient@example.com" className="w-full px-3 py-2" style={fieldErrors.email ? inputErrorStyle : inputStyle} aria-invalid={!!fieldErrors.email} aria-describedby={fieldErrors.email ? "err-email" : undefined} />
-                  {fieldErrors.email && <p id="err-email" className="mt-0.5 text-[13px] font-medium" style={{ color: "var(--red)" }}>{fieldErrors.email}</p>}
+              </div>
+            </div>
+
+            {/* Address */}
+            <div className="p-5" style={cardStyle}>
+              <h2 className="mb-4 pb-3" style={{ ...sectionTitle, borderBottom: "1px solid var(--grey-200)" }}>Address</h2>
+              <div className="space-y-4">
+                <div className="flex items-center gap-4">
+                  <label htmlFor="blockNumber" className="w-40 text-right flex-shrink-0" style={labelStyle}>Blk / House No. :</label>
+                  <input id="blockNumber" name="blockNumber" placeholder="e.g., 84" className="flex-1 px-3 py-2" style={inputStyle} />
                 </div>
-                {/* Row 4: Block/House No. | Street Name */}
-                <div className="grid gap-3" style={{ gridTemplateColumns: "1fr 3fr" }}>
-                  <div>
-                    <label htmlFor="blockNumber" className="block mb-1" style={labelStyle}>Blk / House No.</label>
-                    <input id="blockNumber" name="blockNumber" placeholder="e.g., 84" className="w-full px-3 py-1.5" style={inputStyle} />
-                  </div>
-                  <div>
-                    <label htmlFor="streetName" className="block mb-1" style={labelStyle}>Street Name</label>
-                    <input id="streetName" name="streetName" placeholder="e.g., Bedok North Street 4" className="w-full px-3 py-1.5" style={inputStyle} />
-                  </div>
+                <div className="flex items-center gap-4">
+                  <label htmlFor="streetName" className="w-40 text-right flex-shrink-0" style={labelStyle}>Street Name :</label>
+                  <input id="streetName" name="streetName" placeholder="e.g., Bedok North Street 4" className="flex-1 px-3 py-2" style={inputStyle} />
                 </div>
-                {/* Row 5: Unit No. | Building Name | Postal Code */}
-                <div className="grid gap-3" style={{ gridTemplateColumns: "1fr 2fr 1fr" }}>
-                  <div>
-                    <label htmlFor="unitNumber" className="block mb-1" style={labelStyle}>Unit No.</label>
-                    <input id="unitNumber" name="unitNumber" placeholder="e.g., #01-17" className="w-full px-3 py-1.5" style={inputStyle} />
-                  </div>
-                  <div>
-                    <label htmlFor="buildingName" className="block mb-1" style={labelStyle}>Building Name</label>
-                    <input id="buildingName" name="buildingName" placeholder="Optional" className="w-full px-3 py-1.5" style={inputStyle} />
-                  </div>
-                  <div>
-                    <label htmlFor="postalCode" className="block mb-1" style={labelStyle}>Postal Code</label>
-                    <input id="postalCode" name="postalCode" placeholder="e.g., 460084" maxLength={6} pattern="[0-9]{6}" className="w-full px-3 py-1.5" style={inputStyle} />
-                  </div>
+                <div className="flex items-center gap-4">
+                  <label htmlFor="unitNumber" className="w-40 text-right flex-shrink-0" style={labelStyle}>Unit No. :</label>
+                  <input id="unitNumber" name="unitNumber" placeholder="e.g., #01-17" className="flex-1 px-3 py-2" style={inputStyle} />
+                </div>
+                <div className="flex items-center gap-4">
+                  <label htmlFor="buildingName" className="w-40 text-right flex-shrink-0" style={labelStyle}>Building Name :</label>
+                  <input id="buildingName" name="buildingName" placeholder="Optional" className="flex-1 px-3 py-2" style={inputStyle} />
+                </div>
+                <div className="flex items-center gap-4">
+                  <label htmlFor="postalCode" className="w-40 text-right flex-shrink-0" style={labelStyle}>Postal Code :</label>
+                  <input id="postalCode" name="postalCode" placeholder="e.g., 460084" maxLength={6} pattern="[0-9]{6}" className="flex-1 px-3 py-2" style={inputStyle} />
                 </div>
               </div>
             </div>
@@ -822,15 +902,17 @@ export default function NewPatientPage() {
             {/* Emergency Contact */}
             <div className="p-5" style={cardStyle}>
               <h2 className="mb-4 pb-3" style={{ ...sectionTitle, borderBottom: "1px solid var(--grey-200)" }}>Emergency Contact</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label htmlFor="emergencyName" className="block mb-1" style={labelStyle}>Contact Name</label>
-                  <input id="emergencyName" name="emergencyName" className="w-full px-3 py-1.5" style={inputStyle} />
+              <div className="space-y-4">
+                <div className="flex items-center gap-4">
+                  <label htmlFor="emergencyName" className="w-40 text-right flex-shrink-0" style={labelStyle}>Contact Name :</label>
+                  <input id="emergencyName" name="emergencyName" className="flex-1 px-3 py-2" style={inputStyle} />
                 </div>
-                <div>
-                  <label htmlFor="emergencyPhone" className="block mb-1" style={labelStyle}>Contact Phone</label>
-                  <input id="emergencyPhone" name="emergencyPhone" type="tel" className="w-full px-3 py-2" style={fieldErrors.emergencyPhone ? inputErrorStyle : inputStyle} />
-                  <FieldError error={fieldErrors.emergencyPhone} />
+                <div className="flex items-center gap-4">
+                  <label htmlFor="emergencyPhone" className="w-40 text-right flex-shrink-0" style={labelStyle}>Contact Phone :</label>
+                  <div className="flex-1">
+                    <input id="emergencyPhone" name="emergencyPhone" type="tel" className="w-full px-3 py-2" style={fieldErrors.emergencyPhone ? inputErrorStyle : inputStyle} />
+                    <FieldError error={fieldErrors.emergencyPhone} />
+                  </div>
                 </div>
               </div>
             </div>
