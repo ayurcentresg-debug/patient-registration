@@ -12,9 +12,39 @@ export async function GET(request: NextRequest) {
     if (patientId) where.patientId = patientId;
     if (status) where.status = status;
 
+    const search = searchParams.get("search");
+    const doctor = searchParams.get("doctor");
+    const dateFrom = searchParams.get("dateFrom");
+    const dateTo = searchParams.get("dateTo");
+
+    if (doctor) where.doctorName = { contains: doctor };
+    if (dateFrom || dateTo) {
+      where.date = {};
+      if (dateFrom) (where.date as Record<string, unknown>).gte = new Date(dateFrom);
+      if (dateTo) {
+        const to = new Date(dateTo);
+        to.setHours(23, 59, 59, 999);
+        (where.date as Record<string, unknown>).lte = to;
+      }
+    }
+
+    // If search, match patient name or prescription number
+    if (search) {
+      where.OR = [
+        { prescriptionNo: { contains: search } },
+        { doctorName: { contains: search } },
+        { diagnosis: { contains: search } },
+        { patient: { firstName: { contains: search } } },
+        { patient: { lastName: { contains: search } } },
+      ];
+    }
+
     const prescriptions = await prisma.prescription.findMany({
       where,
-      include: { items: { orderBy: { sequence: "asc" } } },
+      include: {
+        items: { orderBy: { sequence: "asc" } },
+        patient: { select: { id: true, firstName: true, lastName: true, patientIdNumber: true, phone: true, dateOfBirth: true, gender: true, allergies: true, photoUrl: true } },
+      },
       orderBy: { date: "desc" },
     });
 
