@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { validateName } from "@/lib/validation";
 
 /** Normalize phone: strip formatting, add country code for SG/IN local numbers */
 function normalizePhone(phone: string): string {
@@ -65,11 +66,13 @@ export async function PUT(
     const body = await request.json();
 
     // Validate required fields if they are being updated
-    if ("firstName" in body && (!body.firstName || !body.firstName.trim())) {
-      return NextResponse.json({ error: "First name is required" }, { status: 400 });
+    if ("firstName" in body) {
+      const fnCheck = validateName(body.firstName ?? "", "First name");
+      if (!fnCheck.valid) return NextResponse.json({ error: fnCheck.error }, { status: 400 });
     }
-    if ("lastName" in body && (!body.lastName || !body.lastName.trim())) {
-      return NextResponse.json({ error: "Last name is required" }, { status: 400 });
+    if ("lastName" in body) {
+      const lnCheck = validateName(body.lastName ?? "", "Last name");
+      if (!lnCheck.valid) return NextResponse.json({ error: lnCheck.error }, { status: 400 });
     }
     if ("phone" in body && (!body.phone || !body.phone.trim())) {
       return NextResponse.json({ error: "Phone number is required" }, { status: 400 });

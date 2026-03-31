@@ -4,6 +4,7 @@ import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import { validateName } from "@/lib/validation";
 
 const inputStyle = { border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)", fontSize: "15px" };
 const cardStyle = { background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-card)" };
@@ -679,7 +680,11 @@ export default function PatientDetailPage() {
   function ec(n: string, v: string) { setEditData((p) => ({ ...p, [n]: v })); }
 
   async function saveEdit() {
-    if (!editData.firstName?.trim() || !editData.lastName?.trim() || !editData.phone?.trim()) { showToast("Name and phone are required", "error"); return; }
+    const fnCheck = validateName(editData.firstName ?? "", "First name");
+    if (!fnCheck.valid) { showToast(fnCheck.error!, "error"); return; }
+    const lnCheck = validateName(editData.lastName ?? "", "Last name");
+    if (!lnCheck.valid) { showToast(lnCheck.error!, "error"); return; }
+    if (!editData.phone?.trim()) { showToast("Phone number is required", "error"); return; }
     setSaving(true);
     try {
       const payload: Record<string, unknown> = { ...editData };

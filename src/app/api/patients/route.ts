@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { sendEmail } from "@/lib/email";
 import { sendWhatsApp } from "@/lib/whatsapp";
+import { validateName } from "@/lib/validation";
 
 /**
  * Normalize phone number for consistent storage.
@@ -83,11 +84,13 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
 
     // Validate required fields
-    if (!body.firstName || !body.firstName.trim()) {
-      return NextResponse.json({ error: "First name is required" }, { status: 400 });
+    const firstNameCheck = validateName(body.firstName ?? "", "First name");
+    if (!firstNameCheck.valid) {
+      return NextResponse.json({ error: firstNameCheck.error }, { status: 400 });
     }
-    if (!body.lastName || !body.lastName.trim()) {
-      return NextResponse.json({ error: "Last name is required" }, { status: 400 });
+    const lastNameCheck = validateName(body.lastName ?? "", "Last name");
+    if (!lastNameCheck.valid) {
+      return NextResponse.json({ error: lastNameCheck.error }, { status: 400 });
     }
     if (!body.phone || !body.phone.trim()) {
       return NextResponse.json({ error: "Phone number is required" }, { status: 400 });

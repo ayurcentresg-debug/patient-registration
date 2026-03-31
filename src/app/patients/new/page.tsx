@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { validateName } from "@/lib/validation";
 
 const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 const ETHNICITIES = ["Chinese", "Indian", "Malay", "Others"];
@@ -526,12 +527,10 @@ export default function NewPatientPage() {
   function validateForm(data: Record<string, unknown>): Record<string, string> {
     const errors: Record<string, string> = {};
 
-    if (!data.firstName || !(data.firstName as string).trim()) {
-      errors.firstName = "First name is required";
-    }
-    if (!data.lastName || !(data.lastName as string).trim()) {
-      errors.lastName = "Last name is required";
-    }
+    const fnCheck = validateName((data.firstName as string) ?? "", "First name");
+    if (!fnCheck.valid) errors.firstName = fnCheck.error!;
+    const lnCheck = validateName((data.lastName as string) ?? "", "Last name");
+    if (!lnCheck.valid) errors.lastName = lnCheck.error!;
     if (!data.gender) {
       errors.gender = "Please select a gender";
     }
