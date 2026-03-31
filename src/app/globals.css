@@ -170,3 +170,39 @@ input[type="radio"] {
 .yoda-slide-in-right {
   animation: slideInRight 0.25s ease-out;
 }
+
+/* ========================================
+   MOBILE RESPONSIVE UTILITIES
+   ======================================== */
+
+/* Prevent horizontal overflow on mobile */
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+/* Mobile header offset — pages need top padding when mobile header is visible */
+@media (max-width: 767px) {
+  .mobile-page-content {
+    padding-top: 56px !important;
+  }
+}
+
+/* Slide-in animation for mobile menu */
+@keyframes slideInFromLeft {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes fadeInOverlay {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.mobile-menu-slide {
+  animation: slideInFromLeft 0.25s ease-out;
+}
+
+.mobile-overlay-fade {
+  animation: fadeInOverlay 0.2s ease-out;
+}

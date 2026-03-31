@@ -141,16 +141,16 @@ export default function LoginPage() {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center px-4"
+      className="min-h-screen flex items-center justify-center px-4 py-8"
       style={{ background: "linear-gradient(135deg, #fefbf6 0%, #d1f2e0 50%, #a7e3bd 100%)" }}
     >
       <div
         className="w-full rounded-2xl shadow-xl overflow-hidden"
-        style={{ maxWidth: 420, background: "#fff" }}
+        style={{ maxWidth: 400, background: "#fff" }}
       >
         {/* Header */}
         <div
-          className="px-8 pt-8 pb-6 text-center"
+          className="px-6 sm:px-8 pt-6 sm:pt-8 pb-5 sm:pb-6 text-center"
           style={{ background: "linear-gradient(135deg, #14532d, #2d6a4f)" }}
         >
           <div className="w-16 h-16 mx-auto mb-3 rounded-2xl flex items-center justify-center" style={{ background: "rgba(255,255,255,0.15)" }}>
@@ -168,7 +168,7 @@ export default function LoginPage() {
         </div>
 
         {/* Body */}
-        <div className="px-8 py-6">
+        <div className="px-5 sm:px-8 py-5 sm:py-6">
           {error && (
             <div className="mb-4 px-4 py-3 rounded-lg text-[15px] font-medium" style={{ background: "#fef2f2", color: "#dc2626", border: "1px solid #fecaca" }}>
               {error}

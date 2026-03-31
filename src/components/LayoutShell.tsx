@@ -27,9 +27,9 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
   // All other pages get auth protection + sidebar
   return (
     <AuthProvider>
-      <div className="flex min-h-screen">
+      <div className="flex min-h-screen overflow-x-hidden">
         <Sidebar />
-        <main className="flex-1 pb-20 md:pb-0">{children}</main>
+        <main className="flex-1 pt-14 pb-20 md:pt-0 md:pb-0 min-w-0">{children}</main>
       </div>
     </AuthProvider>
   );
