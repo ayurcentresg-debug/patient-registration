@@ -3,6 +3,42 @@ import { prisma } from "@/lib/db";
 import { sendEmail } from "@/lib/email";
 import { sendWhatsApp } from "@/lib/whatsapp";
 
+/**
+ * Normalize phone number for consistent storage.
+ * - Strip spaces, dashes, parens, dots
+ * - If 8 digits (Singapore local), prepend +65
+ * - If starts with 65 and is 10 digits, prepend +
+ * - Keep existing + prefix
+ */
+function normalizePhone(phone: string): string {
+  if (!phone) return "";
+  let cleaned = phone.replace(/[\s\-().]/g, "");
+  if (!cleaned) return "";
+
+  // 8-digit Singapore local number (starts with 6/8/9)
+  if (/^\d{8}$/.test(cleaned) && /^[689]/.test(cleaned)) {
+    cleaned = "+65" + cleaned;
+  }
+  // 10 digits starting with 65 (missing +)
+  else if (/^65\d{8}$/.test(cleaned)) {
+    cleaned = "+" + cleaned;
+  }
+  // 10-digit Indian number (starts with 6-9)
+  else if (/^\d{10}$/.test(cleaned) && /^[6-9]/.test(cleaned)) {
+    cleaned = "+91" + cleaned;
+  }
+  // 12 digits starting with 91 (Indian, missing +)
+  else if (/^91\d{10}$/.test(cleaned)) {
+    cleaned = "+" + cleaned;
+  }
+  // Already has + prefix — keep as-is
+  else if (cleaned.startsWith("+")) {
+    // no change
+  }
+
+  return cleaned;
+}
+
 // Auto-generate patient ID like P10001
 async function generatePatientId(): Promise<string> {
   const count = await prisma.patient.count();
@@ -63,6 +99,46 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid email format" }, { status: 400 });
     }
 
+    // Validate NRIC format if provided
+    if (body.nricId && body.nricId.trim()) {
+      const nric = body.nricId.trim().toUpperCase();
+      if (!/^[STFGM]\d{7}[A-Z]$/.test(nric)) {
+        return NextResponse.json({ error: "Invalid NRIC format. Expected: 1 letter prefix (S/T/F/G/M) + 7 digits + 1 check letter" }, { status: 400 });
+      }
+      // Checksum validation
+      const prefix = nric[0];
+      const digits = nric.slice(1, 8).split("").map(Number);
+      const weights = [2, 7, 6, 5, 4, 3, 2];
+      let sum = digits.reduce((acc, d, i) => acc + d * weights[i], 0);
+      if (prefix === "T" || prefix === "G") sum += 4;
+      if (prefix === "M") sum += 3;
+      const remainder = sum % 11;
+      const stChecks = ["J", "Z", "I", "H", "G", "F", "E", "D", "C", "B", "A"];
+      const fgmChecks = ["X", "W", "U", "T", "R", "Q", "P", "N", "M", "L", "K"];
+      const checkLetters = (prefix === "S" || prefix === "T") ? stChecks : fgmChecks;
+      if (nric[8] !== checkLetters[remainder]) {
+        return NextResponse.json({ error: "Invalid NRIC checksum — please verify the ID number" }, { status: 400 });
+      }
+      // Store uppercase
+      body.nricId = nric;
+    }
+
+    // Normalize all phone fields
+    const primaryPhone = normalizePhone(body.phone);
+    const secondaryMobile = body.secondaryMobile ? normalizePhone(body.secondaryMobile) : null;
+    const landline = body.landline ? body.landline.trim() : null; // Landline: just trim, don't normalize
+    const whatsapp = body.whatsapp ? normalizePhone(body.whatsapp) : primaryPhone;
+    const emergencyPhone = body.emergencyPhone ? normalizePhone(body.emergencyPhone) : null;
+
+    // Cross-field validation: secondary ≠ primary
+    if (secondaryMobile && secondaryMobile === primaryPhone) {
+      return NextResponse.json({ error: "Secondary mobile cannot be the same as the primary mobile" }, { status: 400 });
+    }
+    // Cross-field validation: emergency ≠ own phone
+    if (emergencyPhone && emergencyPhone === primaryPhone) {
+      return NextResponse.json({ error: "Emergency contact number should be different from the patient's own number" }, { status: 400 });
+    }
+
     const patientIdNumber = await generatePatientId();
 
     const patient = await prisma.patient.create({
@@ -71,11 +147,11 @@ export async function POST(request: NextRequest) {
         firstName: body.firstName.trim(),
         lastName: body.lastName.trim(),
         nricId: body.nricId || null,
-        email: body.email || null,
-        phone: body.phone.trim(),
-        secondaryMobile: body.secondaryMobile || null,
-        landline: body.landline || null,
-        whatsapp: body.whatsapp || body.phone.trim(),
+        email: body.email ? body.email.trim().toLowerCase() : null,
+        phone: primaryPhone,
+        secondaryMobile,
+        landline,
+        whatsapp,
         dateOfBirth: body.dateOfBirth ? new Date(body.dateOfBirth) : null,
         age: body.age ? parseInt(body.age, 10) : null,
         gender: body.gender,
@@ -92,7 +168,7 @@ export async function POST(request: NextRequest) {
         familyRelation: body.familyRelation || null,
         familyMemberName: body.familyMemberName || null,
         emergencyName: body.emergencyName || null,
-        emergencyPhone: body.emergencyPhone || null,
+        emergencyPhone: emergencyPhone,
         medicalHistory: body.medicalHistory || "[]",
         otherHistory: body.otherHistory || null,
         allergies: body.allergies || null,

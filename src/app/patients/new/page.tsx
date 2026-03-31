@@ -441,14 +441,85 @@ export default function NewPatientPage() {
     markDirty();
   }
 
-  /* Phone validation: allow digits, +, -, spaces, parens */
+  /* Phone validation: Singapore (8 digits starting with 6/8/9), India (10 digits starting with 6-9), or international (+XX...) */
   function isValidPhone(phone: string): boolean {
-    return /^[+]?[\d\s\-().]{7,20}$/.test(phone.trim());
+    const cleaned = phone.trim().replace(/[\s\-().]/g, "");
+    if (!cleaned) return false;
+    // International format: +countryCode + number (min 8 digits total after +)
+    if (/^\+\d{8,15}$/.test(cleaned)) return true;
+    // Singapore local: 8 digits starting with 6, 8, or 9
+    if (/^[689]\d{7}$/.test(cleaned)) return true;
+    // Singapore with country code (no +): 65XXXXXXXX
+    if (/^65[689]\d{7}$/.test(cleaned)) return true;
+    // India local: 10 digits starting with 6-9
+    if (/^[6-9]\d{9}$/.test(cleaned)) return true;
+    // India with country code (no +): 91XXXXXXXXXX
+    if (/^91[6-9]\d{9}$/.test(cleaned)) return true;
+    // Landline: allow broader pattern (6-digit+ with optional area code)
+    if (/^\d{6,12}$/.test(cleaned)) return true;
+    return false;
   }
 
   /* Email validation */
   function isValidEmail(email: string): boolean {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+  }
+
+  /**
+   * Singapore NRIC/FIN validation
+   * Format: 1 letter prefix + 7 digits + 1 letter checksum = 9 characters
+   * Prefixes: S/T (citizens/PRs born before/after 2000), F/G/M (foreigners)
+   * Checksum: Weighted sum algorithm determines the final check letter
+   */
+  function validateNRIC(nric: string): { valid: boolean; error?: string } {
+    const trimmed = nric.trim().toUpperCase();
+    if (!trimmed) return { valid: true }; // Empty is OK (optional field)
+
+    // Basic format: 1 letter + 7 digits + 1 letter
+    if (!/^[STFGM]\d{7}[A-Z]$/i.test(trimmed)) {
+      if (trimmed.length !== 9) {
+        return { valid: false, error: `NRIC must be exactly 9 characters (currently ${trimmed.length})` };
+      }
+      if (!/^[STFGM]/i.test(trimmed)) {
+        return { valid: false, error: "NRIC must start with S, T, F, G, or M" };
+      }
+      if (!/\d{7}/.test(trimmed.slice(1, 8))) {
+        return { valid: false, error: "NRIC must have 7 digits after the prefix letter" };
+      }
+      if (!/[A-Z]$/i.test(trimmed)) {
+        return { valid: false, error: "NRIC must end with a letter" };
+      }
+      return { valid: false, error: "Invalid NRIC format. Expected: S1234567A" };
+    }
+
+    // Checksum validation
+    const prefix = trimmed[0];
+    const digits = trimmed.slice(1, 8).split("").map(Number);
+    const weights = [2, 7, 6, 5, 4, 3, 2];
+    let sum = digits.reduce((acc, d, i) => acc + d * weights[i], 0);
+
+    // Offset for T/G prefixes (born 2000+)
+    if (prefix === "T" || prefix === "G") sum += 4;
+    if (prefix === "M") sum += 3;
+
+    const remainder = sum % 11;
+
+    let checkLetters: string[];
+    if (prefix === "S" || prefix === "T") {
+      checkLetters = ["J", "Z", "I", "H", "G", "F", "E", "D", "C", "B", "A"];
+    } else {
+      // F, G, M
+      checkLetters = ["X", "W", "U", "T", "R", "Q", "P", "N", "M", "L", "K"];
+    }
+
+    const expectedCheck = checkLetters[remainder];
+    const actualCheck = trimmed[8];
+
+    if (actualCheck !== expectedCheck) {
+      return { valid: false, error: "Invalid NRIC checksum — please verify the ID number" };
+    }
+
+    return { valid: true };
   }
 
   /* Client-side validation */
@@ -463,6 +534,12 @@ export default function NewPatientPage() {
     }
     if (!data.gender) {
       errors.gender = "Please select a gender";
+    }
+    if (data.nricId && (data.nricId as string).trim()) {
+      const nricResult = validateNRIC(data.nricId as string);
+      if (!nricResult.valid) {
+        errors.nricId = nricResult.error || "Invalid NRIC format";
+      }
     }
     if (!data.phone || !(data.phone as string).trim()) {
       errors.phone = "Phone number is required";
@@ -483,6 +560,22 @@ export default function NewPatientPage() {
     }
     if (data.emergencyPhone && (data.emergencyPhone as string).trim() && !isValidPhone(data.emergencyPhone as string)) {
       errors.emergencyPhone = "Enter a valid phone number";
+    }
+
+    // Cross-field phone validation
+    const stripPhone = (p: string) => p.replace(/[\s\-().]/g, "");
+    const primaryNorm = data.phone ? stripPhone((data.phone as string).trim()) : "";
+    if (data.secondaryMobile && (data.secondaryMobile as string).trim()) {
+      const secNorm = stripPhone((data.secondaryMobile as string).trim());
+      if (secNorm && primaryNorm && (secNorm === primaryNorm || secNorm.endsWith(primaryNorm) || primaryNorm.endsWith(secNorm))) {
+        errors.secondaryMobile = "Secondary mobile cannot be the same as primary mobile";
+      }
+    }
+    if (data.emergencyPhone && (data.emergencyPhone as string).trim() && !errors.emergencyPhone) {
+      const emNorm = stripPhone((data.emergencyPhone as string).trim());
+      if (emNorm && primaryNorm && (emNorm === primaryNorm || emNorm.endsWith(primaryNorm) || primaryNorm.endsWith(emNorm))) {
+        errors.emergencyPhone = "Emergency contact should be different from the patient's own number";
+      }
     }
 
     return errors;
@@ -664,11 +757,48 @@ export default function NewPatientPage() {
                   <div className="flex items-start gap-4">
                     <label htmlFor="nricId" className="w-40 text-right flex-shrink-0 pt-2" style={labelStyle}>NRIC ID :</label>
                     <div className="flex-1">
-                      <input id="nricId" name="nricId" className="w-full px-3 py-2" style={inputStyle}
-                        onBlur={(e) => checkDuplicate("nricId", e.target.value)}
-                        onChange={(e) => { markDirty(); checkDuplicate("nricId", e.target.value); }}
+                      <input id="nricId" name="nricId" className="w-full px-3 py-2" style={fieldErrors.nricId ? inputErrorStyle : inputStyle}
+                        placeholder="e.g. S1234567A" maxLength={9} aria-invalid={!!fieldErrors.nricId}
+                        onBlur={(e) => {
+                          // Validate on blur
+                          const val = e.target.value.trim();
+                          if (val) {
+                            const result = validateNRIC(val);
+                            if (!result.valid) {
+                              setFieldErrors(prev => ({ ...prev, nricId: result.error || "Invalid NRIC" }));
+                              setDuplicates(prev => ({ ...prev, nricId: null }));
+                            } else {
+                              setFieldErrors(prev => { const n = { ...prev }; delete n.nricId; return n; });
+                              checkDuplicate("nricId", val);
+                            }
+                          } else {
+                            setFieldErrors(prev => { const n = { ...prev }; delete n.nricId; return n; });
+                            setDuplicates(prev => ({ ...prev, nricId: null }));
+                          }
+                        }}
+                        onChange={(e) => {
+                          // Auto-uppercase
+                          e.target.value = e.target.value.toUpperCase();
+                          markDirty();
+                          // Clear error and duplicate while typing
+                          if (fieldErrors.nricId) {
+                            setFieldErrors(prev => { const n = { ...prev }; delete n.nricId; return n; });
+                          }
+                          setDuplicates(prev => ({ ...prev, nricId: null }));
+                          // Only check duplicate if format is valid (9 chars)
+                          const val = e.target.value.trim();
+                          if (val.length === 9) {
+                            const result = validateNRIC(val);
+                            if (result.valid) {
+                              checkDuplicate("nricId", val);
+                            } else {
+                              setFieldErrors(prev => ({ ...prev, nricId: result.error || "Invalid NRIC" }));
+                            }
+                          }
+                        }}
                       />
-                      {duplicates.nricId && !duplicateOverrides.nricId && (
+                      {fieldErrors.nricId && <p className="mt-0.5 text-[13px] font-medium" style={{ color: "var(--red)" }}>{fieldErrors.nricId}</p>}
+                      {!fieldErrors.nricId && duplicates.nricId && !duplicateOverrides.nricId && (
                         <DuplicateWarning
                           field="nricId"
                           match={duplicates.nricId}

@@ -1,6 +1,34 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 
+/** Normalize phone: strip formatting, add country code for SG/IN local numbers */
+function normalizePhone(phone: string): string {
+  if (!phone) return "";
+  let cleaned = phone.replace(/[\s\-().]/g, "");
+  if (!cleaned) return "";
+  if (/^\d{8}$/.test(cleaned) && /^[689]/.test(cleaned)) cleaned = "+65" + cleaned;
+  else if (/^65\d{8}$/.test(cleaned)) cleaned = "+" + cleaned;
+  else if (/^\d{10}$/.test(cleaned) && /^[6-9]/.test(cleaned)) cleaned = "+91" + cleaned;
+  else if (/^91\d{10}$/.test(cleaned)) cleaned = "+" + cleaned;
+  return cleaned;
+}
+
+/** Validate Singapore NRIC checksum */
+function validateNRIC(nric: string): boolean {
+  if (!/^[STFGM]\d{7}[A-Z]$/.test(nric)) return false;
+  const prefix = nric[0];
+  const digits = nric.slice(1, 8).split("").map(Number);
+  const weights = [2, 7, 6, 5, 4, 3, 2];
+  let sum = digits.reduce((acc, d, i) => acc + d * weights[i], 0);
+  if (prefix === "T" || prefix === "G") sum += 4;
+  if (prefix === "M") sum += 3;
+  const remainder = sum % 11;
+  const stChecks = ["J", "Z", "I", "H", "G", "F", "E", "D", "C", "B", "A"];
+  const fgmChecks = ["X", "W", "U", "T", "R", "Q", "P", "N", "M", "L", "K"];
+  const checkLetters = (prefix === "S" || prefix === "T") ? stChecks : fgmChecks;
+  return nric[8] === checkLetters[remainder];
+}
+
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -60,6 +88,32 @@ export async function PUT(
     const existing = await prisma.patient.findUnique({ where: { id } });
     if (!existing) {
       return NextResponse.json({ error: "Patient not found" }, { status: 404 });
+    }
+
+    // Validate NRIC if being updated
+    if ("nricId" in body && body.nricId && body.nricId.trim()) {
+      const nric = body.nricId.trim().toUpperCase();
+      if (!validateNRIC(nric)) {
+        return NextResponse.json({ error: "Invalid NRIC format or checksum" }, { status: 400 });
+      }
+      body.nricId = nric;
+    }
+
+    // Normalize phone fields if being updated
+    if ("phone" in body && body.phone) body.phone = normalizePhone(body.phone);
+    if ("secondaryMobile" in body && body.secondaryMobile) body.secondaryMobile = normalizePhone(body.secondaryMobile);
+    if ("whatsapp" in body && body.whatsapp) body.whatsapp = normalizePhone(body.whatsapp);
+    if ("emergencyPhone" in body && body.emergencyPhone) body.emergencyPhone = normalizePhone(body.emergencyPhone);
+    if ("email" in body && body.email) body.email = body.email.trim().toLowerCase();
+
+    // Cross-field validation
+    const phone = body.phone || existing.phone;
+    const phoneNorm = normalizePhone(phone || "");
+    if (body.secondaryMobile && normalizePhone(body.secondaryMobile) === phoneNorm) {
+      return NextResponse.json({ error: "Secondary mobile cannot be the same as primary mobile" }, { status: 400 });
+    }
+    if (body.emergencyPhone && normalizePhone(body.emergencyPhone) === phoneNorm) {
+      return NextResponse.json({ error: "Emergency contact should be different from patient's own number" }, { status: 400 });
     }
 
     // Don't allow updating patientIdNumber or id
