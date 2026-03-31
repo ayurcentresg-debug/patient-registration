@@ -4,6 +4,13 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import StatsCard from "@/components/StatsCard";
 import { PageGuide } from "@/components/HelpTip";
+import {
+  WeeklyRevenueChart,
+  AppointmentStatusChart,
+  MonthlyTrendChart,
+  RevenueByMethodChart,
+  TopTreatmentsChart,
+} from "@/components/DashboardCharts";
 
 interface TodayAppointment {
   id: string;
@@ -100,14 +107,6 @@ const statusColors: Record<string, { bg: string; color: string }> = {
   "no-show": { bg: "var(--purple-light)", color: "var(--purple)" },
 };
 
-const methodColors: Record<string, string> = {
-  cash: "var(--green)",
-  card: "var(--blue-500)",
-  upi: "var(--purple)",
-  insurance: "#ea580c",
-  bank_transfer: "#0d9488",
-};
-
 const methodLabels: Record<string, string> = {
   cash: "Cash",
   card: "Card",
@@ -118,27 +117,6 @@ const methodLabels: Record<string, string> = {
 
 function formatCurrency(amount: number): string {
   return `S$${(amount ?? 0).toLocaleString("en-SG", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
-}
-
-function formatCurrencyShort(amount: number): string {
-  if (amount >= 1000) {
-    return `S$${(amount / 1000).toFixed(1)}k`;
-  }
-  return `S$${amount}`;
-}
-
-function getDayAbbr(dateStr: string): string {
-  const d = new Date(dateStr);
-  return d.toLocaleDateString("en-SG", { weekday: "short" });
-}
-
-function getMonthAbbr(monthStr: string): string {
-  // monthStr could be "2026-01" or "January" etc
-  if (monthStr.includes("-")) {
-    const d = new Date(monthStr + "-01");
-    return d.toLocaleDateString("en-SG", { month: "short" });
-  }
-  return monthStr.substring(0, 3);
 }
 
 function timeAgo(dateStr: string): string {
@@ -167,8 +145,6 @@ const cardStyle = {
 export default function Dashboard() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [hoveredBar, setHoveredBar] = useState<number | null>(null);
-  const [hoveredTrendBar, setHoveredTrendBar] = useState<number | null>(null);
   const [inventoryStats, setInventoryStats] = useState<{
     totalItems: number;
     totalValue: number;
@@ -244,20 +220,16 @@ export default function Dashboard() {
     : 0;
 
   const weeklyRevenue = data?.weeklyRevenue ?? [];
-  const maxWeeklyRevenue = Math.max(...weeklyRevenue.map((d) => d.revenue), 1);
 
   const statusCounts = data?.appointmentStatusCounts ?? {};
   const statusBreakdown = Object.entries(statusCounts).map(([status, count]) => ({ status, count })).filter(s => s.count > 0);
   const totalStatusCount = statusBreakdown.reduce((sum, s) => sum + s.count, 0) || 1;
 
   const topTreatments = (data?.topTreatments ?? []).slice(0, 5);
-  const maxTreatmentCount = Math.max(...topTreatments.map((t) => t.count), 1);
 
   const revenueByMethod = (data?.revenueByPaymentMethod ?? []).map(m => ({ method: m.paymentMethod, total: m.revenue }));
-  const maxMethodTotal = Math.max(...revenueByMethod.map((m) => m.total), 1);
 
   const monthlyTrend = data?.monthlyAppointmentTrend ?? [];
-  const maxTrendCount = Math.max(...monthlyTrend.map((m) => m.count), 1);
 
   return (
     <div className="p-6 md:p-8 yoda-fade-in">
@@ -439,133 +411,8 @@ export default function Dashboard() {
 
       {/* ═══════ Row 2: Charts ═══════ */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-6">
-        {/* Weekly Revenue Chart */}
-        <div className="p-5" style={cardStyle}>
-          <div className="flex items-center justify-between mb-5">
-            <div>
-              <h2 className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>Revenue (Last 7 Days)</h2>
-              <p className="text-[14px] mt-0.5" style={{ color: "var(--grey-500)" }}>Daily revenue overview</p>
-            </div>
-            <div className="text-right">
-              <p className="text-[18px] font-bold" style={{ color: "var(--grey-900)" }}>
-                {formatCurrency(weeklyRevenue.reduce((s, d) => s + d.revenue, 0))}
-              </p>
-              <p className="text-[13px]" style={{ color: "var(--grey-500)" }}>7-day total</p>
-            </div>
-          </div>
-          {weeklyRevenue.length === 0 ? (
-            <div className="flex items-center justify-center h-48">
-              <p className="text-[15px]" style={{ color: "var(--grey-500)" }}>No revenue data available</p>
-            </div>
-          ) : (
-            <div className="relative" style={{ height: 200 }}>
-              {/* Y-axis labels */}
-              <div className="absolute left-0 top-0 bottom-24 flex flex-col justify-between" style={{ width: 50 }}>
-                <span className="text-[12px]" style={{ color: "var(--grey-500)" }}>{formatCurrencyShort(maxWeeklyRevenue)}</span>
-                <span className="text-[12px]" style={{ color: "var(--grey-500)" }}>{formatCurrencyShort(maxWeeklyRevenue / 2)}</span>
-                <span className="text-[12px]" style={{ color: "var(--grey-500)" }}>S$0</span>
-              </div>
-              {/* Bars */}
-              <div className="flex items-end gap-2 justify-between" style={{ marginLeft: 55, height: 160 }}>
-                {weeklyRevenue.map((day, i) => {
-                  const barHeight = maxWeeklyRevenue > 0 ? (day.revenue / maxWeeklyRevenue) * 140 : 0;
-                  return (
-                    <div
-                      key={i}
-                      className="flex flex-col items-center flex-1 relative"
-                      onMouseEnter={() => setHoveredBar(i)}
-                      onMouseLeave={() => setHoveredBar(null)}
-                    >
-                      {/* Tooltip */}
-                      {hoveredBar === i && (
-                        <div
-                          className="absolute -top-8 px-2 py-1 text-[12px] font-semibold text-white whitespace-nowrap z-10"
-                          style={{ background: "var(--grey-900)", borderRadius: "var(--radius-sm)" }}
-                        >
-                          {formatCurrency(day.revenue)}
-                        </div>
-                      )}
-                      {/* Bar */}
-                      <div
-                        className="w-full transition-all duration-300 ease-out"
-                        style={{
-                          height: Math.max(barHeight, 2),
-                          background: hoveredBar === i ? "#14532d" : "var(--blue-500)",
-                          borderRadius: "4px 4px 0 0",
-                          minWidth: 16,
-                          maxWidth: 48,
-                          opacity: hoveredBar !== null && hoveredBar !== i ? 0.5 : 1,
-                          cursor: "pointer",
-                        }}
-                      />
-                      {/* Label */}
-                      <span className="text-[12px] mt-2 font-medium" style={{ color: "var(--grey-600)" }}>
-                        {getDayAbbr(day.date)}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Appointment Status Breakdown */}
-        <div className="p-5" style={cardStyle}>
-          <div className="flex items-center justify-between mb-5">
-            <div>
-              <h2 className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>Appointment Status</h2>
-              <p className="text-[14px] mt-0.5" style={{ color: "var(--grey-500)" }}>Today&apos;s breakdown</p>
-            </div>
-            <span className="text-[24px] font-bold" style={{ color: "var(--grey-900)" }}>{totalStatusCount > 1 ? totalStatusCount : 0}</span>
-          </div>
-          {statusBreakdown.length === 0 ? (
-            <div className="flex items-center justify-center h-48">
-              <p className="text-[15px]" style={{ color: "var(--grey-500)" }}>No appointment data</p>
-            </div>
-          ) : (
-            <div>
-              {/* Stacked bar */}
-              <div className="flex overflow-hidden mb-5" style={{ height: 28, borderRadius: "var(--radius-sm)" }}>
-                {statusBreakdown.map((s) => {
-                  const sc = statusColors[s.status] || statusColors.scheduled;
-                  const pct = (s.count / totalStatusCount) * 100;
-                  return (
-                    <div
-                      key={s.status}
-                      className="transition-all duration-300 relative group"
-                      style={{
-                        width: `${pct}%`,
-                        background: sc.color,
-                        minWidth: pct > 0 ? 4 : 0,
-                      }}
-                      title={`${s.status}: ${s.count} (${pct.toFixed(0)}%)`}
-                    />
-                  );
-                })}
-              </div>
-              {/* Legend */}
-              <div className="space-y-2.5">
-                {statusBreakdown.map((s) => {
-                  const sc = statusColors[s.status] || statusColors.scheduled;
-                  const pct = (s.count / totalStatusCount) * 100;
-                  return (
-                    <div key={s.status} className="flex items-center justify-between">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: sc.color }} />
-                        <span className="text-[14px] font-medium capitalize" style={{ color: "var(--grey-700)" }}>{s.status.replace("-", " ")}</span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <span className="text-[14px] font-bold tabular-nums" style={{ color: "var(--grey-900)" }}>{s.count}</span>
-                        <span className="text-[13px] tabular-nums" style={{ color: "var(--grey-500)", minWidth: 36, textAlign: "right" }}>{pct.toFixed(0)}%</span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-        </div>
+        <WeeklyRevenueChart data={weeklyRevenue} />
+        <AppointmentStatusChart data={statusBreakdown} total={totalStatusCount} />
       </div>
 
       {/* ═══════ Row 3: Three Columns ═══════ */}
@@ -623,164 +470,16 @@ export default function Dashboard() {
         </div>
 
         {/* Top Treatments */}
-        <div className="p-5" style={cardStyle}>
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>Top Treatments</h2>
-              <p className="text-[13px] mt-0.5" style={{ color: "var(--grey-500)" }}>This month</p>
-            </div>
-            <div className="w-9 h-9 flex items-center justify-center" style={{ background: "#d1f2e0", borderRadius: "var(--radius-sm)", color: "#2d6a4f" }}>
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-              </svg>
-            </div>
-          </div>
-          {topTreatments.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-[15px]" style={{ color: "var(--grey-500)" }}>No treatment data yet</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {topTreatments.map((t, i) => {
-                const pct = (t.count / maxTreatmentCount) * 100;
-                return (
-                  <div key={i}>
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-[14px] font-semibold truncate" style={{ color: "var(--grey-800)", maxWidth: "70%" }}>{t.name}</span>
-                      <span className="text-[14px] font-bold tabular-nums" style={{ color: "var(--grey-900)" }}>{t.count}</span>
-                    </div>
-                    <div className="w-full overflow-hidden" style={{ height: 6, background: "var(--grey-200)", borderRadius: 3 }}>
-                      <div
-                        className="h-full transition-all duration-500 ease-out"
-                        style={{ width: `${pct}%`, background: "var(--blue-500)", borderRadius: 3 }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
+        <TopTreatmentsChart data={topTreatments} />
 
         {/* Revenue by Payment Method */}
-        <div className="p-5" style={cardStyle}>
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>Revenue by Method</h2>
-              <p className="text-[13px] mt-0.5" style={{ color: "var(--grey-500)" }}>Payment breakdown</p>
-            </div>
-            <div className="w-9 h-9 flex items-center justify-center" style={{ background: "var(--blue-50)", borderRadius: "var(--radius-sm)", color: "var(--blue-500)" }}>
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-              </svg>
-            </div>
-          </div>
-          {revenueByMethod.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-[15px]" style={{ color: "var(--grey-500)" }}>No payment data yet</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {revenueByMethod.map((m, i) => {
-                const pct = (m.total / maxMethodTotal) * 100;
-                const color = methodColors[m.method] || "var(--grey-500)";
-                return (
-                  <div key={i}>
-                    <div className="flex items-center justify-between mb-1">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: color }} />
-                        <span className="text-[14px] font-semibold" style={{ color: "var(--grey-800)" }}>
-                          {methodLabels[m.method] || m.method}
-                        </span>
-                      </div>
-                      <span className="text-[14px] font-bold tabular-nums" style={{ color: "var(--grey-900)" }}>{formatCurrency(m.total)}</span>
-                    </div>
-                    <div className="w-full overflow-hidden" style={{ height: 6, background: "var(--grey-200)", borderRadius: 3 }}>
-                      <div
-                        className="h-full transition-all duration-500 ease-out"
-                        style={{ width: `${pct}%`, background: color, borderRadius: 3 }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
+        <RevenueByMethodChart data={revenueByMethod} />
       </div>
 
       {/* ═══════ Row 4: Monthly Trend + Quick Actions ═══════ */}
       <div className="grid lg:grid-cols-3 gap-5 mb-6">
         {/* Monthly Appointment Trend (spans 2 cols) */}
-        <div className="lg:col-span-2 p-5" style={cardStyle}>
-          <div className="flex items-center justify-between mb-5">
-            <div>
-              <h2 className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>Monthly Appointment Trend</h2>
-              <p className="text-[14px] mt-0.5" style={{ color: "var(--grey-500)" }}>Last 6 months</p>
-            </div>
-            <div className="text-right">
-              <p className="text-[18px] font-bold" style={{ color: "var(--grey-900)" }}>
-                {monthlyTrend.reduce((s, m) => s + m.count, 0)}
-              </p>
-              <p className="text-[13px]" style={{ color: "var(--grey-500)" }}>Total appointments</p>
-            </div>
-          </div>
-          {monthlyTrend.length === 0 ? (
-            <div className="flex items-center justify-center h-40">
-              <p className="text-[15px]" style={{ color: "var(--grey-500)" }}>No trend data available</p>
-            </div>
-          ) : (
-            <div className="relative" style={{ height: 180 }}>
-              {/* Y-axis */}
-              <div className="absolute left-0 top-0 bottom-24 flex flex-col justify-between" style={{ width: 36 }}>
-                <span className="text-[12px]" style={{ color: "var(--grey-500)" }}>{maxTrendCount}</span>
-                <span className="text-[12px]" style={{ color: "var(--grey-500)" }}>{Math.round(maxTrendCount / 2)}</span>
-                <span className="text-[12px]" style={{ color: "var(--grey-500)" }}>0</span>
-              </div>
-              {/* Bars */}
-              <div className="flex items-end gap-3 justify-between" style={{ marginLeft: 42, height: 150 }}>
-                {monthlyTrend.map((m, i) => {
-                  const barHeight = maxTrendCount > 0 ? (m.count / maxTrendCount) * 130 : 0;
-                  return (
-                    <div
-                      key={i}
-                      className="flex flex-col items-center flex-1 relative"
-                      onMouseEnter={() => setHoveredTrendBar(i)}
-                      onMouseLeave={() => setHoveredTrendBar(null)}
-                    >
-                      {/* Tooltip */}
-                      {hoveredTrendBar === i && (
-                        <div
-                          className="absolute -top-8 px-2 py-1 text-[12px] font-semibold text-white whitespace-nowrap z-10"
-                          style={{ background: "var(--grey-900)", borderRadius: "var(--radius-sm)" }}
-                        >
-                          {m.count} appointments
-                        </div>
-                      )}
-                      {/* Bar */}
-                      <div
-                        className="w-full transition-all duration-300 ease-out"
-                        style={{
-                          height: Math.max(barHeight, 2),
-                          background: hoveredTrendBar === i ? "#14532d" : "var(--blue-500)",
-                          borderRadius: "4px 4px 0 0",
-                          minWidth: 24,
-                          maxWidth: 64,
-                          opacity: hoveredTrendBar !== null && hoveredTrendBar !== i ? 0.5 : 1,
-                          cursor: "pointer",
-                        }}
-                      />
-                      {/* Label */}
-                      <span className="text-[12px] mt-2 font-medium" style={{ color: "var(--grey-600)" }}>
-                        {getMonthAbbr(m.month)}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-        </div>
+        <MonthlyTrendChart data={monthlyTrend} />
 
         {/* Quick Actions */}
         <div className="p-5" style={cardStyle}>
