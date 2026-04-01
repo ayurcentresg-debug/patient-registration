@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 
 function substituteVariables(text: string, variables: Record<string, string>): string {
   let result = text;
@@ -11,6 +13,9 @@ function substituteVariables(text: string, variables: Record<string, string>): s
 
 export async function POST(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { body, patientId } = await request.json();
 
     if (!body) {
@@ -20,7 +25,7 @@ export async function POST(request: NextRequest) {
     let variables: Record<string, string>;
 
     if (patientId) {
-      const patient = await prisma.patient.findUnique({ where: { id: patientId } });
+      const patient = await db.patient.findUnique({ where: { id: patientId } });
       if (!patient) {
         return NextResponse.json({ error: "Patient not found" }, { status: 404 });
       }

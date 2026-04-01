@@ -1,4 +1,6 @@
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextRequest, NextResponse } from "next/server";
 
 // POST /api/transfers/[id]/cancel - Cancel a transfer
@@ -7,9 +9,12 @@ export async function POST(
   props: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await props.params;
 
-    const transfer = await prisma.stockTransfer.findUnique({
+    const transfer = await db.stockTransfer.findUnique({
       where: { id },
       include: {
         items: true,
@@ -41,7 +46,7 @@ export async function POST(
 
     if (transfer.status === "draft") {
       // Draft: simply set status to cancelled, no stock reversal needed
-      const updatedTransfer = await prisma.stockTransfer.update({
+      const updatedTransfer = await db.stockTransfer.update({
         where: { id },
         data: { status: "cancelled" },
         include: {
@@ -145,7 +150,7 @@ export async function POST(
     // Notify destination branch that an in_transit transfer was cancelled (outside transaction)
     if (wasInTransit) {
       try {
-        await prisma.notification.create({
+        await db.notification.create({
           data: {
             type: "transfer_cancelled",
             title: "Transfer Cancelled",

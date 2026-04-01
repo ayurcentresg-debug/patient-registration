@@ -36,7 +36,7 @@ async function main() {
     const name = row["Item Name"];
     if (!sku || !name) { skipped++; continue; }
 
-    const existing = await prisma.inventoryItem.findUnique({ where: { sku } });
+    const existing = await prisma.inventoryItem.findFirst({ where: { sku } });
     if (existing) { skipped++; continue; }
 
     const unitLower = (row["Unit"] || "").toString().toLowerCase();

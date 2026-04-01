@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 
 /**
  * GET /api/patients/check-duplicate?field=nricId&value=S7676767D
@@ -18,6 +20,9 @@ function normalizePhone(phone: string): string {
 
 export async function GET(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const searchParams = request.nextUrl.searchParams;
     const field = searchParams.get("field");
     const value = searchParams.get("value");
@@ -51,7 +56,7 @@ export async function GET(request: NextRequest) {
 
     if (field === "nricId") {
       // Find by exact NRIC (case-insensitive via app-level)
-      const patients = await prisma.patient.findMany({
+      const patients = await db.patient.findMany({
         where: {
           nricId: { not: "" },
           ...(excludeId ? { id: { not: excludeId } } : {}),
@@ -68,7 +73,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ duplicate: false });
       }
       // Fetch all patients and do normalized comparison
-      const patients = await prisma.patient.findMany({
+      const patients = await db.patient.findMany({
         where: {
           ...(excludeId ? { id: { not: excludeId } } : {}),
         },
@@ -86,7 +91,7 @@ export async function GET(request: NextRequest) {
       });
     } else if (field === "email") {
       const searchEmail = trimmedValue.toLowerCase();
-      const patients = await prisma.patient.findMany({
+      const patients = await db.patient.findMany({
         where: {
           email: { not: "" },
           ...(excludeId ? { id: { not: excludeId } } : {}),

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import bcrypt from "bcryptjs";
 
 // GET /api/staff/[id]
@@ -8,8 +10,11 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
-    const user = await prisma.user.findUnique({
+    const user = await db.user.findUnique({
       where: { id },
       include: { _count: { select: { appointments: true } } },
     });
@@ -32,10 +37,13 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
     const body = await request.json();
 
-    const existing = await prisma.user.findUnique({ where: { id } });
+    const existing = await db.user.findUnique({ where: { id } });
     if (!existing) {
       return NextResponse.json({ error: "Staff member not found" }, { status: 404 });
     }
@@ -45,7 +53,7 @@ export async function PUT(
     if (body.name !== undefined) updateData.name = body.name;
     if (body.email !== undefined) {
       // Check uniqueness
-      const dup = await prisma.user.findFirst({ where: { email: body.email, NOT: { id } } });
+      const dup = await db.user.findFirst({ where: { email: body.email, NOT: { id } } });
       if (dup) return NextResponse.json({ error: "Email already in use" }, { status: 409 });
       updateData.email = body.email;
     }
@@ -63,7 +71,7 @@ export async function PUT(
       updateData.password = await bcrypt.hash(body.password, 12);
     }
 
-    const user = await prisma.user.update({ where: { id }, data: updateData });
+    const user = await db.user.update({ where: { id }, data: updateData });
     const { password: _, totpSecret: __, ...safe } = user as Record<string, unknown>;
     return NextResponse.json(safe);
   } catch (error) {
@@ -78,9 +86,12 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
 
-    const existing = await prisma.user.findUnique({ where: { id } });
+    const existing = await db.user.findUnique({ where: { id } });
     if (!existing) {
       return NextResponse.json({ error: "Staff member not found" }, { status: 404 });
     }
@@ -89,7 +100,7 @@ export async function DELETE(
     if (existing.role === "doctor" || existing.role === "therapist") {
       const now = new Date();
       now.setHours(0, 0, 0, 0);
-      const futureAppointments = await prisma.appointment.count({
+      const futureAppointments = await db.appointment.count({
         where: { doctorId: id, date: { gte: now }, status: { notIn: ["cancelled", "completed"] } },
       });
       if (futureAppointments > 0) {
@@ -101,7 +112,7 @@ export async function DELETE(
     }
 
     // Soft delete — set inactive
-    await prisma.user.update({ where: { id }, data: { isActive: false, status: "inactive" } });
+    await db.user.update({ where: { id }, data: { isActive: false, status: "inactive" } });
     return NextResponse.json({ message: "Staff member deactivated successfully" });
   } catch (error) {
     console.error("Failed to delete staff member:", error);

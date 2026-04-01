@@ -1,14 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 
 export async function GET(
   _request: NextRequest,
   props: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await props.params;
 
-    const template = await prisma.messageTemplate.findUnique({ where: { id } });
+    const template = await db.messageTemplate.findUnique({ where: { id } });
     if (!template) {
       return NextResponse.json({ error: "Template not found" }, { status: 404 });
     }
@@ -25,10 +30,13 @@ export async function PUT(
   props: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await props.params;
     const body = await request.json();
 
-    const existing = await prisma.messageTemplate.findUnique({ where: { id } });
+    const existing = await db.messageTemplate.findUnique({ where: { id } });
     if (!existing) {
       return NextResponse.json({ error: "Template not found" }, { status: 404 });
     }
@@ -47,7 +55,7 @@ export async function PUT(
     const finalName = name || existing.name;
     const finalChannel = channel || existing.channel;
     if (name || channel) {
-      const duplicate = await prisma.messageTemplate.findFirst({
+      const duplicate = await db.messageTemplate.findFirst({
         where: { name: finalName, channel: finalChannel, id: { not: id } },
       });
       if (duplicate) {
@@ -58,7 +66,7 @@ export async function PUT(
       }
     }
 
-    const template = await prisma.messageTemplate.update({
+    const template = await db.messageTemplate.update({
       where: { id },
       data,
     });
@@ -75,14 +83,17 @@ export async function DELETE(
   props: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await props.params;
 
-    const existing = await prisma.messageTemplate.findUnique({ where: { id } });
+    const existing = await db.messageTemplate.findUnique({ where: { id } });
     if (!existing) {
       return NextResponse.json({ error: "Template not found" }, { status: 404 });
     }
 
-    await prisma.messageTemplate.delete({ where: { id } });
+    await db.messageTemplate.delete({ where: { id } });
 
     return NextResponse.json({ success: true });
   } catch (error) {

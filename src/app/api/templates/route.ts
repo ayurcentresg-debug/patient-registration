@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 
 export async function GET(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const searchParams = request.nextUrl.searchParams;
     const channel = searchParams.get("channel");
     const category = searchParams.get("category");
@@ -15,7 +20,7 @@ export async function GET(request: NextRequest) {
       where.isActive = active === "true";
     }
 
-    const templates = await prisma.messageTemplate.findMany({
+    const templates = await db.messageTemplate.findMany({
       where,
       orderBy: [{ category: "asc" }, { name: "asc" }],
     });
@@ -29,6 +34,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const body = await request.json();
     const { name, channel, subject, body: templateBody, category, isActive } = body;
 
@@ -49,7 +57,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check name uniqueness within same channel
-    const existing = await prisma.messageTemplate.findFirst({
+    const existing = await db.messageTemplate.findFirst({
       where: { name, channel },
     });
     if (existing) {
@@ -59,7 +67,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const template = await prisma.messageTemplate.create({
+    const template = await db.messageTemplate.create({
       data: {
         name,
         channel,

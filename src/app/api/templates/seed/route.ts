@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 
 /**
  * POST /api/templates/seed
@@ -363,12 +365,15 @@ Thank you for your time,
 
 export async function POST() {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     let created = 0;
     let skipped = 0;
 
     for (const tpl of DEFAULT_TEMPLATES) {
       // Check if template already exists (by name + channel)
-      const existing = await prisma.messageTemplate.findFirst({
+      const existing = await db.messageTemplate.findFirst({
         where: { name: tpl.name, channel: tpl.channel },
       });
 
@@ -377,7 +382,7 @@ export async function POST() {
         continue;
       }
 
-      await prisma.messageTemplate.create({
+      await db.messageTemplate.create({
         data: {
           name: tpl.name,
           channel: tpl.channel,

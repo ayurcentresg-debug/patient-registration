@@ -1,4 +1,6 @@
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextRequest, NextResponse } from "next/server";
 
 // Types that contribute to stock IN vs stock OUT
@@ -10,6 +12,9 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
     const url = new URL(request.url);
     const periodParam = url.searchParams.get("period");
@@ -18,7 +23,7 @@ export async function GET(
       : 30;
 
     // Fetch the item to get current stock and reorder level
-    const item = await prisma.inventoryItem.findUnique({
+    const item = await db.inventoryItem.findUnique({
       where: { id },
       select: { id: true, name: true, currentStock: true, reorderLevel: true },
     });
@@ -38,7 +43,7 @@ export async function GET(
     startDate.setHours(0, 0, 0, 0);
 
     // Fetch all transactions in the date range
-    const transactions = await prisma.stockTransaction.findMany({
+    const transactions = await db.stockTransaction.findMany({
       where: {
         itemId: id,
         date: {

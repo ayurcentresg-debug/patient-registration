@@ -1,10 +1,15 @@
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET — List all active templates with item details
 export async function GET() {
   try {
-    const templates = await prisma.transferTemplate.findMany({
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
+    const templates = await db.transferTemplate.findMany({
       where: { isActive: true },
       include: {
         items: {
@@ -29,11 +34,11 @@ export async function GET() {
     }
 
     const [branches, items] = await Promise.all([
-      prisma.branch.findMany({
+      db.branch.findMany({
         where: { id: { in: Array.from(branchIds) } },
         select: { id: true, name: true, code: true },
       }),
-      prisma.inventoryItem.findMany({
+      db.inventoryItem.findMany({
         where: { id: { in: Array.from(itemIds) } },
         select: { id: true, name: true, sku: true, packing: true },
       }),
@@ -63,6 +68,9 @@ export async function GET() {
 // POST — Create a new template
 export async function POST(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const body = await request.json();
     const { name, description, fromBranchId, toBranchId, items, createdBy } = body;
 
@@ -82,8 +90,8 @@ export async function POST(request: NextRequest) {
 
     // Validate branches exist
     const [fromBranch, toBranch] = await Promise.all([
-      prisma.branch.findUnique({ where: { id: fromBranchId } }),
-      prisma.branch.findUnique({ where: { id: toBranchId } }),
+      db.branch.findUnique({ where: { id: fromBranchId } }),
+      db.branch.findUnique({ where: { id: toBranchId } }),
     ]);
     if (!fromBranch) {
       return NextResponse.json({ error: "Source branch not found" }, { status: 400 });
@@ -94,7 +102,7 @@ export async function POST(request: NextRequest) {
 
     // Validate items exist
     const itemIds = items.map((i: { itemId: string }) => i.itemId);
-    const existingItems = await prisma.inventoryItem.findMany({
+    const existingItems = await db.inventoryItem.findMany({
       where: { id: { in: itemIds } },
       select: { id: true },
     });
@@ -105,7 +113,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const template = await prisma.transferTemplate.create({
+    const template = await db.transferTemplate.create({
       data: {
         name: name.trim(),
         description: description || null,

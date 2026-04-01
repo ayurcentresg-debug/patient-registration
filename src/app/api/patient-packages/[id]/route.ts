@@ -1,4 +1,6 @@
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET /api/patient-packages/[id] - Get single package with all details
@@ -7,9 +9,12 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
 
-    const pkg = await prisma.patientPackage.findUnique({
+    const pkg = await db.patientPackage.findUnique({
       where: { id },
       include: {
         patient: {
@@ -75,10 +80,13 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
     const body = await request.json();
 
-    const existing = await prisma.patientPackage.findUnique({
+    const existing = await db.patientPackage.findUnique({
       where: { id },
     });
 
@@ -102,7 +110,7 @@ export async function PUT(
       updateData.balanceAmount = Math.round((existing.totalPrice - paidAmount) * 100) / 100;
     }
 
-    const updated = await prisma.patientPackage.update({
+    const updated = await db.patientPackage.update({
       where: { id },
       data: updateData,
       include: {
@@ -138,9 +146,12 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
 
-    const existing = await prisma.patientPackage.findUnique({
+    const existing = await db.patientPackage.findUnique({
       where: { id },
       include: {
         sessions: true,
@@ -161,7 +172,7 @@ export async function DELETE(
       );
     }
 
-    const cancelled = await prisma.patientPackage.update({
+    const cancelled = await db.patientPackage.update({
       where: { id },
       data: { status: "cancelled" },
     });

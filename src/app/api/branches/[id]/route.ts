@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 
 // GET /api/branches/[id] - Get a single branch
 export async function GET(
@@ -7,9 +9,12 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
 
-    const branch = await prisma.branch.findUnique({
+    const branch = await db.branch.findUnique({
       where: { id },
     });
 
@@ -33,11 +38,14 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
     const body = await request.json();
 
     // Check branch exists
-    const existing = await prisma.branch.findUnique({ where: { id } });
+    const existing = await db.branch.findUnique({ where: { id } });
     if (!existing) {
       return NextResponse.json({ error: "Branch not found" }, { status: 404 });
     }
@@ -50,7 +58,7 @@ export async function PUT(
           { status: 400 }
         );
       }
-      const codeTaken = await prisma.branch.findFirst({
+      const codeTaken = await db.branch.findFirst({
         where: { code: body.code.trim().toUpperCase(), id: { not: id } },
       });
       if (codeTaken) {
@@ -63,7 +71,7 @@ export async function PUT(
 
     // If setting as main branch, unset all others
     if (body.isMainBranch === true) {
-      await prisma.branch.updateMany({
+      await db.branch.updateMany({
         where: { isMainBranch: true, id: { not: id } },
         data: { isMainBranch: false },
       });
@@ -103,7 +111,7 @@ export async function PUT(
       );
     }
 
-    const branch = await prisma.branch.update({
+    const branch = await db.branch.update({
       where: { id },
       data: updateData,
     });
@@ -124,14 +132,17 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
 
-    const existing = await prisma.branch.findUnique({ where: { id } });
+    const existing = await db.branch.findUnique({ where: { id } });
     if (!existing) {
       return NextResponse.json({ error: "Branch not found" }, { status: 404 });
     }
 
-    const branch = await prisma.branch.update({
+    const branch = await db.branch.update({
       where: { id },
       data: { isActive: false },
     });

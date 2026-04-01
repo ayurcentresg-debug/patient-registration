@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 
 /**
  * GET /api/medicines
@@ -13,6 +15,9 @@ import { prisma } from "@/lib/db";
  */
 export async function GET(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search");
     const subcategory = searchParams.get("subcategory");
@@ -30,7 +35,7 @@ export async function GET(request: NextRequest) {
       where.subcategory = subcategory;
     }
 
-    const medicines = await prisma.inventoryItem.findMany({
+    const medicines = await db.inventoryItem.findMany({
       where,
       select: {
         id: true,

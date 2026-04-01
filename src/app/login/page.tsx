@@ -331,6 +331,13 @@ export default function LoginPage() {
               >
                 {loading ? "Signing in..." : "Sign In"}
               </button>
+
+              <p className="text-center text-[13px] mt-4" style={{ color: "#6b7280" }}>
+                {"Don't have an account? "}
+                <a href="/register" className="font-semibold hover:underline" style={{ color: "#2d6a4f" }}>
+                  Start free trial
+                </a>
+              </p>
             </form>
           )}
 

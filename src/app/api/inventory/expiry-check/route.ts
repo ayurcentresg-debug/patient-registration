@@ -1,4 +1,6 @@
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextResponse } from "next/server";
 
 // POST /api/inventory/expiry-check
@@ -6,6 +8,9 @@ import { NextResponse } from "next/server";
 // Avoids duplicates by checking if a notification with the same title exists within the last 7 days.
 export async function POST() {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const now = new Date();
     const thirtyDaysFromNow = new Date();
     thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
@@ -13,7 +18,7 @@ export async function POST() {
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
     // Get all active items with expiry dates
-    const allItems = await prisma.inventoryItem.findMany({
+    const allItems = await db.inventoryItem.findMany({
       where: {
         status: { not: "discontinued" },
         expiryDate: { not: null },
@@ -28,7 +33,7 @@ export async function POST() {
     });
 
     // Get recent notification titles to avoid duplicates
-    const recentNotifications = await prisma.notification.findMany({
+    const recentNotifications = await db.notification.findMany({
       where: {
         createdAt: { gte: sevenDaysAgo },
         type: { in: ["expiry_warning", "expired"] },
@@ -54,7 +59,7 @@ export async function POST() {
       const expiryDate = new Date(item.expiryDate!);
       const formattedDate = `${String(expiryDate.getDate()).padStart(2, "0")}/${String(expiryDate.getMonth() + 1).padStart(2, "0")}/${expiryDate.getFullYear()}`;
 
-      await prisma.notification.create({
+      await db.notification.create({
         data: {
           type: "expiry_warning",
           title,
@@ -79,7 +84,7 @@ export async function POST() {
       const expiryDate = new Date(item.expiryDate!);
       const formattedDate = `${String(expiryDate.getDate()).padStart(2, "0")}/${String(expiryDate.getMonth() + 1).padStart(2, "0")}/${expiryDate.getFullYear()}`;
 
-      await prisma.notification.create({
+      await db.notification.create({
         data: {
           type: "expired",
           title,

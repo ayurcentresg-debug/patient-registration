@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 
 // GET /api/treatments/[id] - Get single treatment with packages
 export async function GET(
@@ -7,8 +9,11 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
-    const treatment = await prisma.treatment.findUnique({
+    const treatment = await db.treatment.findUnique({
       where: { id },
       include: {
         packages: { orderBy: { sessionCount: "asc" } },
@@ -32,15 +37,18 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
     const body = await request.json();
 
-    const existing = await prisma.treatment.findUnique({ where: { id } });
+    const existing = await db.treatment.findUnique({ where: { id } });
     if (!existing) {
       return NextResponse.json({ error: "Treatment not found" }, { status: 404 });
     }
 
-    const treatment = await prisma.treatment.update({
+    const treatment = await db.treatment.update({
       where: { id },
       data: {
         name: body.name?.trim() ?? existing.name,
@@ -56,11 +64,11 @@ export async function PUT(
 
     // If basePrice changed, recalculate all package prices
     if (body.basePrice != null && parseFloat(body.basePrice) !== existing.basePrice) {
-      const packages = await prisma.treatmentPackage.findMany({ where: { treatmentId: id } });
+      const packages = await db.treatmentPackage.findMany({ where: { treatmentId: id } });
       for (const pkg of packages) {
         const totalPrice = Math.round(treatment.basePrice * pkg.sessionCount * (1 - pkg.discountPercent / 100) * 100) / 100;
         const pricePerSession = Math.round((totalPrice / pkg.sessionCount) * 100) / 100;
-        await prisma.treatmentPackage.update({
+        await db.treatmentPackage.update({
           where: { id: pkg.id },
           data: { totalPrice, pricePerSession },
         });
@@ -68,7 +76,7 @@ export async function PUT(
     }
 
     // Re-fetch with updated packages
-    const updated = await prisma.treatment.findUnique({
+    const updated = await db.treatment.findUnique({
       where: { id },
       include: { packages: { orderBy: { sessionCount: "asc" } } },
     });
@@ -86,22 +94,25 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
 
-    const existing = await prisma.treatment.findUnique({ where: { id } });
+    const existing = await db.treatment.findUnique({ where: { id } });
     if (!existing) {
       return NextResponse.json({ error: "Treatment not found" }, { status: 404 });
     }
 
     // Check if any appointments reference this treatment
-    const appointmentCount = await prisma.appointment.count({ where: { treatmentId: id } });
+    const appointmentCount = await db.appointment.count({ where: { treatmentId: id } });
     if (appointmentCount > 0) {
       // Soft-deactivate instead of hard delete
-      await prisma.treatment.update({ where: { id }, data: { isActive: false } });
+      await db.treatment.update({ where: { id }, data: { isActive: false } });
       return NextResponse.json({ message: "Treatment deactivated (has linked appointments)", deactivated: true });
     }
 
-    await prisma.treatment.delete({ where: { id } });
+    await db.treatment.delete({ where: { id } });
     return NextResponse.json({ message: "Treatment deleted" });
   } catch (error) {
     console.error("DELETE /api/treatments/[id] error:", error);

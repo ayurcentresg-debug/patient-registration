@@ -8,6 +8,7 @@ interface User {
   name: string;
   email: string;
   role: string;
+  clinicId: string;
 }
 
 interface AuthContextType {
@@ -61,8 +62,8 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     router.push("/login");
   };
 
-  // Don't redirect on login page
-  if (pathname === "/login") {
+  // Don't redirect on public pages
+  if (pathname === "/login" || pathname === "/register" || pathname === "/pricing" || pathname?.startsWith("/invite")) {
     return <>{children}</>;
   }
 

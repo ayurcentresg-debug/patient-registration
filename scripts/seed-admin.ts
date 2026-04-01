@@ -16,10 +16,10 @@ async function main() {
   const doctorPassword = await bcrypt.hash("doctor123", 12);
 
   // ─── Admin ────────────────────────────────────────────────────────────
-  const admin = await prisma.user.upsert({
-    where: { email: "admin@clinic.com" },
-    update: { password: adminPassword, role: "admin", isActive: true },
-    create: {
+  const existingAdmin = await prisma.user.findFirst({ where: { email: "admin@clinic.com" } });
+  const admin = existingAdmin
+    ? await prisma.user.update({ where: { id: existingAdmin.id }, data: { password: adminPassword, role: "admin", isActive: true } })
+    : await prisma.user.create({ data: {
       name: "Admin",
       email: "admin@clinic.com",
       password: adminPassword,
@@ -82,25 +82,17 @@ async function main() {
   ];
 
   for (const doc of doctors) {
-    await prisma.user.upsert({
-      where: { email: doc.email },
-      update: { password: doctorPassword, isActive: true, status: "active" },
-      create: {
-        name: doc.name,
-        email: doc.email,
-        password: doctorPassword,
-        role: "doctor",
-        phone: doc.phone,
-        specialization: doc.specialization,
-        department: doc.department,
-        staffIdNumber: doc.staffIdNumber,
-        consultationFee: doc.consultationFee,
-        slotDuration: doc.slotDuration,
-        schedule: doc.schedule,
-        isActive: true,
-        status: "active",
-      },
-    });
+    const existingDoc = await prisma.user.findFirst({ where: { email: doc.email } });
+    if (existingDoc) {
+      await prisma.user.update({ where: { id: existingDoc.id }, data: { password: doctorPassword, isActive: true, status: "active" } });
+    } else {
+      await prisma.user.create({ data: {
+        name: doc.name, email: doc.email, password: doctorPassword, role: "doctor",
+        phone: doc.phone, specialization: doc.specialization, department: doc.department,
+        staffIdNumber: doc.staffIdNumber, consultationFee: doc.consultationFee,
+        slotDuration: doc.slotDuration, schedule: doc.schedule, isActive: true, status: "active",
+      }});
+    }
     console.log(`✅ Doctor: ${doc.name} (${doc.email}) — password: doctor123`);
   }
 
@@ -123,24 +115,16 @@ async function main() {
   ];
 
   for (const t of therapists) {
-    await prisma.user.upsert({
-      where: { email: t.email },
-      update: { password: doctorPassword, isActive: true, status: "active" },
-      create: {
-        name: t.name,
-        email: t.email,
-        password: doctorPassword,
-        role: "therapist",
-        specialization: t.specialization,
-        department: t.department,
-        staffIdNumber: t.staffIdNumber,
-        consultationFee: 0,
-        slotDuration: 30,
-        schedule: "{}",
-        isActive: true,
-        status: "active",
-      },
-    });
+    const existingT = await prisma.user.findFirst({ where: { email: t.email } });
+    if (existingT) {
+      await prisma.user.update({ where: { id: existingT.id }, data: { password: doctorPassword, isActive: true, status: "active" } });
+    } else {
+      await prisma.user.create({ data: {
+        name: t.name, email: t.email, password: doctorPassword, role: "therapist",
+        specialization: t.specialization, department: t.department, staffIdNumber: t.staffIdNumber,
+        consultationFee: 0, slotDuration: 30, schedule: "{}", isActive: true, status: "active",
+      }});
+    }
     console.log(`✅ Therapist: ${t.name} (${t.email}) — password: doctor123`);
   }
 
@@ -189,28 +173,28 @@ async function main() {
   }
 
   // ─── Clinic Settings ──────────────────────────────────────────────────
-  await prisma.clinicSettings.upsert({
-    where: { id: "default" },
-    update: {},
-    create: {
-      id: "default",
-      clinicName: "Ayur Centre Pte. Ltd.",
-      address: "84 Bedok North Street 4 #01-17",
-      city: "Singapore",
-      state: "Singapore",
-      zipCode: "460084",
-      phone: "6445 0072",
-      email: "ayurcentresg@gmail.com",
-      website: "www.ayurcentre.sg",
-      currency: "SGD",
-      dateFormat: "dd/MM/yyyy",
-      timeFormat: "12h",
-      appointmentDuration: 30,
-      workingHoursStart: "09:00",
-      workingHoursEnd: "18:00",
-      workingDays: "[1,2,3,4,5,6]",
-    },
-  });
+  const existingSettings = await prisma.clinicSettings.findFirst();
+  if (!existingSettings) {
+    await prisma.clinicSettings.create({
+      data: {
+        clinicName: "Ayur Centre Pte. Ltd.",
+        address: "84 Bedok North Street 4 #01-17",
+        city: "Singapore",
+        state: "Singapore",
+        zipCode: "460084",
+        phone: "6445 0072",
+        email: "ayurcentresg@gmail.com",
+        website: "www.ayurcentre.sg",
+        currency: "SGD",
+        dateFormat: "dd/MM/yyyy",
+        timeFormat: "12h",
+        appointmentDuration: 30,
+        workingHoursStart: "09:00",
+        workingHoursEnd: "18:00",
+        workingDays: "[1,2,3,4,5,6]",
+      },
+    });
+  }
 
   console.log("✅ Clinic settings seeded");
   console.log("\n🎉 All done! Login credentials:");

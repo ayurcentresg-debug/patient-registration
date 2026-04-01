@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 
 // GET /api/users - List users with filters and pagination
 export async function GET(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { searchParams } = new URL(request.url);
     const role = searchParams.get("role");
     const status = searchParams.get("status");
@@ -33,7 +38,7 @@ export async function GET(request: NextRequest) {
     }
 
     const [users, total] = await Promise.all([
-      prisma.user.findMany({
+      db.user.findMany({
         where,
         skip,
         take: limit,
@@ -51,7 +56,7 @@ export async function GET(request: NextRequest) {
           updatedAt: true,
         },
       }),
-      prisma.user.count({ where }),
+      db.user.count({ where }),
     ]);
 
     return NextResponse.json({
@@ -75,6 +80,9 @@ export async function GET(request: NextRequest) {
 // POST /api/users - Create a new user
 export async function POST(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const body = await request.json();
 
     // Validate required fields
@@ -108,7 +116,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check unique email
-    const existingUser = await prisma.user.findUnique({
+    const existingUser = await db.user.findFirst({
       where: { email: body.email.trim() },
     });
 
@@ -119,7 +127,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const user = await prisma.user.create({
+    const user = await db.user.create({
       data: {
         name: body.name.trim(),
         email: body.email.trim(),

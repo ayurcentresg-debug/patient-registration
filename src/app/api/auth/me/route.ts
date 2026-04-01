@@ -19,6 +19,7 @@ export async function GET(req: NextRequest) {
       name: payload.name,
       email: payload.email,
       role: payload.role,
+      clinicId: payload.clinicId || "",
     },
   });
 }

@@ -1,9 +1,14 @@
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET /api/transfers - List transfers with optional filters
 export async function GET(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
     const branchId = searchParams.get("branchId");
@@ -64,7 +69,7 @@ export async function GET(request: NextRequest) {
     }
 
     const [transfers, total] = await Promise.all([
-      prisma.stockTransfer.findMany({
+      db.stockTransfer.findMany({
         where,
         include: {
           fromBranch: { select: { id: true, name: true, code: true } },
@@ -75,7 +80,7 @@ export async function GET(request: NextRequest) {
         skip,
         take: limit,
       }),
-      prisma.stockTransfer.count({ where }),
+      db.stockTransfer.count({ where }),
     ]);
 
     const result = transfers.map((transfer) => ({
@@ -106,6 +111,9 @@ export async function GET(request: NextRequest) {
 // POST /api/transfers - Create a new transfer (draft)
 export async function POST(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const body = await request.json();
 
     // Validate required fields
@@ -132,8 +140,8 @@ export async function POST(request: NextRequest) {
 
     // Validate branches exist and are active
     const [fromBranch, toBranch] = await Promise.all([
-      prisma.branch.findUnique({ where: { id: body.fromBranchId } }),
-      prisma.branch.findUnique({ where: { id: body.toBranchId } }),
+      db.branch.findUnique({ where: { id: body.fromBranchId } }),
+      db.branch.findUnique({ where: { id: body.toBranchId } }),
     ]);
 
     if (!fromBranch) {
@@ -183,7 +191,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Validate item exists
-      const inventoryItem = await prisma.inventoryItem.findUnique({
+      const inventoryItem = await db.inventoryItem.findUnique({
         where: { id: item.itemId },
       });
 
@@ -195,7 +203,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Validate source branch has enough stock
-      const branchStock = await prisma.branchStock.findFirst({
+      const branchStock = await db.branchStock.findFirst({
         where: {
           branchId: body.fromBranchId,
           itemId: item.itemId,
@@ -226,7 +234,7 @@ export async function POST(request: NextRequest) {
     const yearMonth = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}`;
     const prefix = `TRF-${yearMonth}-`;
 
-    const lastTransfer = await prisma.stockTransfer.findFirst({
+    const lastTransfer = await db.stockTransfer.findFirst({
       where: { transferNumber: { startsWith: prefix } },
       orderBy: { transferNumber: "desc" },
     });
@@ -239,7 +247,7 @@ export async function POST(request: NextRequest) {
     const transferNumber = `${prefix}${String(nextSeq).padStart(4, "0")}`;
 
     // Create the transfer
-    const transfer = await prisma.stockTransfer.create({
+    const transfer = await db.stockTransfer.create({
       data: {
         transferNumber,
         fromBranchId: body.fromBranchId,

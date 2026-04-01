@@ -1,26 +1,31 @@
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET /api/inventory/stats - Inventory dashboard stats
 // Optional: ?branchId=xxx for branch-specific stats
 export async function GET(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { searchParams } = new URL(request.url);
     const branchId = searchParams.get("branchId");
 
     if (branchId) {
-      return handleBranchStats(branchId);
+      return handleBranchStats(branchId, db);
     }
 
     // ─── Global stats (existing behavior) ─────────────────────────────
 
     // Total active items
-    const totalItems = await prisma.inventoryItem.count({
+    const totalItems = await db.inventoryItem.count({
       where: { status: "active" },
     });
 
     // Total value of active inventory (currentStock * unitPrice)
-    const activeItems = await prisma.inventoryItem.findMany({
+    const activeItems = await db.inventoryItem.findMany({
       where: { status: "active" },
       select: {
         currentStock: true,
@@ -35,7 +40,7 @@ export async function GET(request: NextRequest) {
     );
 
     // Low stock count (active items where currentStock <= reorderLevel)
-    const allActiveItems = await prisma.inventoryItem.findMany({
+    const allActiveItems = await db.inventoryItem.findMany({
       where: { status: "active" },
       select: {
         currentStock: true,
@@ -51,7 +56,7 @@ export async function GET(request: NextRequest) {
     const thirtyDaysFromNow = new Date();
     thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
 
-    const expiringSoonCount = await prisma.inventoryItem.count({
+    const expiringSoonCount = await db.inventoryItem.count({
       where: {
         expiryDate: {
           not: null,
@@ -62,12 +67,12 @@ export async function GET(request: NextRequest) {
     });
 
     // Out of stock count
-    const outOfStockCount = await prisma.inventoryItem.count({
+    const outOfStockCount = await db.inventoryItem.count({
       where: { status: "out_of_stock" },
     });
 
     // Category breakdown
-    const allItemsForBreakdown = await prisma.inventoryItem.findMany({
+    const allItemsForBreakdown = await db.inventoryItem.findMany({
       where: { status: "active" },
       select: {
         category: true,
@@ -100,7 +105,7 @@ export async function GET(request: NextRequest) {
     );
 
     // Recent transactions (last 10 with item name)
-    const recentTransactions = await prisma.stockTransaction.findMany({
+    const recentTransactions = await db.stockTransaction.findMany({
       orderBy: { date: "desc" },
       take: 10,
       include: {
@@ -130,9 +135,9 @@ export async function GET(request: NextRequest) {
 
 // ─── Branch-specific stats ──────────────────────────────────────────────────
 
-async function handleBranchStats(branchId: string) {
+async function handleBranchStats(branchId: string, db: typeof prisma | ReturnType<typeof getTenantPrisma>) {
   // Get all BranchStock for this branch with item details
-  const branchStockRecords = await prisma.branchStock.findMany({
+  const branchStockRecords = await db.branchStock.findMany({
     where: { branchId },
     include: {
       item: {
@@ -171,7 +176,7 @@ async function handleBranchStats(branchId: string) {
   const thirtyDaysFromNow = new Date();
   thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
 
-  const expiringSoonCount = await prisma.inventoryItem.count({
+  const expiringSoonCount = await db.inventoryItem.count({
     where: {
       expiryDate: {
         not: null,
@@ -202,7 +207,7 @@ async function handleBranchStats(branchId: string) {
   );
 
   // Recent transactions (last 10 — global, since StockTransaction doesn't have branchId)
-  const recentTransactions = await prisma.stockTransaction.findMany({
+  const recentTransactions = await db.stockTransaction.findMany({
     orderBy: { date: "desc" },
     take: 10,
     include: {

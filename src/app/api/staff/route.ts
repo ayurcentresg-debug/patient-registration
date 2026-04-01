@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { sendEmail } from "@/lib/email";
 import crypto from "crypto";
 
@@ -16,6 +18,9 @@ const ROLE_PREFIXES: Record<string, string> = {
 // GET /api/staff — list staff with filters
 export async function GET(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { searchParams } = request.nextUrl;
     const role = searchParams.get("role");
     const status = searchParams.get("status");
@@ -44,7 +49,7 @@ export async function GET(request: NextRequest) {
       ];
     }
 
-    const staff = await prisma.user.findMany({
+    const staff = await db.user.findMany({
       where,
       orderBy: { createdAt: "desc" },
       select: {
@@ -89,6 +94,9 @@ export async function GET(request: NextRequest) {
 // POST /api/staff — create staff member
 export async function POST(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const body = await request.json();
     const { name, email, phone, role, gender, specialization, department, consultationFee, schedule, slotDuration, status, sendInvite } = body;
 
@@ -101,14 +109,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Check duplicate email
-    const existing = await prisma.user.findUnique({ where: { email } });
+    const existing = await db.user.findFirst({ where: { email } });
     if (existing) {
       return NextResponse.json({ error: "A staff member with this email already exists" }, { status: 409 });
     }
 
     // Auto-generate staffIdNumber
     const prefix = ROLE_PREFIXES[role || "staff"] || "S";
-    const lastStaff = await prisma.user.findFirst({
+    const lastStaff = await db.user.findFirst({
       where: { staffIdNumber: { startsWith: prefix } },
       orderBy: { staffIdNumber: "desc" },
     });
@@ -130,7 +138,7 @@ export async function POST(request: NextRequest) {
 
     const isClinical = role === "doctor" || role === "therapist";
 
-    const user = await prisma.user.create({
+    const user = await db.user.create({
       data: {
         name,
         email,

@@ -1,4 +1,6 @@
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET /api/prescriptions/:id
@@ -7,8 +9,11 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
-    const prescription = await prisma.prescription.findUnique({
+    const prescription = await db.prescription.findUnique({
       where: { id },
       include: {
         items: { orderBy: { sequence: "asc" } },
@@ -31,6 +36,9 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
     const body = await request.json();
     const { status, diagnosis, notes, items } = body;
@@ -42,8 +50,8 @@ export async function PUT(
 
     // If items provided, replace all items
     if (items && Array.isArray(items)) {
-      await prisma.prescriptionItem.deleteMany({ where: { prescriptionId: id } });
-      await prisma.prescriptionItem.createMany({
+      await db.prescriptionItem.deleteMany({ where: { prescriptionId: id } });
+      await db.prescriptionItem.createMany({
         data: items.map((item: {
           medicineName: string;
           inventoryItemId?: string;
@@ -68,7 +76,7 @@ export async function PUT(
       });
     }
 
-    const prescription = await prisma.prescription.update({
+    const prescription = await db.prescription.update({
       where: { id },
       data: updateData,
       include: { items: { orderBy: { sequence: "asc" } } },
@@ -87,8 +95,11 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
-    await prisma.prescription.delete({ where: { id } });
+    await db.prescription.delete({ where: { id } });
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("DELETE /api/prescriptions/[id] error:", error);

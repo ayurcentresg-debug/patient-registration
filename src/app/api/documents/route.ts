@@ -1,14 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 
 export async function GET(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const patientId = request.nextUrl.searchParams.get("patientId");
     if (!patientId) return NextResponse.json({ error: "patientId required" }, { status: 400 });
 
-    const docs = await prisma.document.findMany({
+    const docs = await db.document.findMany({
       where: { patientId },
       orderBy: { uploadedAt: "desc" },
     });
@@ -21,6 +26,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
     const patientId = formData.get("patientId") as string | null;
@@ -49,7 +57,7 @@ export async function POST(request: NextRequest) {
     const bytes = await file.arrayBuffer();
     await writeFile(filePath, Buffer.from(bytes));
 
-    const doc = await prisma.document.create({
+    const doc = await db.document.create({
       data: {
         patientId,
         fileName: file.name,

@@ -1,9 +1,14 @@
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET /api/reports/transfers?period=month&from=2026-03-01&to=2026-03-31
 export async function GET(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { searchParams } = new URL(request.url);
     const period = searchParams.get("period") || "month";
     const customFrom = searchParams.get("from");
@@ -39,7 +44,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Fetch all transfers in the period with related data
-    const transfers = await prisma.stockTransfer.findMany({
+    const transfers = await db.stockTransfer.findMany({
       where: {
         transferDate: { gte: fromDate, lte: toDate },
       },

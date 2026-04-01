@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import bcrypt from "bcryptjs";
 import { jwtVerify } from "jose";
 
@@ -11,6 +13,9 @@ const secret = new TextEncoder().encode(
 // Admin-only endpoint to set default passwords for doctors who don't have one
 export async function POST(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     // Verify admin auth
     const token = request.cookies.get("auth_token")?.value;
     if (!token) {
@@ -30,7 +35,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Find all doctors/therapists without passwords
-    const doctorsWithoutPassword = await prisma.user.findMany({
+    const doctorsWithoutPassword = await db.user.findMany({
       where: {
         role: { in: ["doctor", "therapist"] },
         password: "",
@@ -49,7 +54,7 @@ export async function POST(request: NextRequest) {
 
     // Update all at once
     const ids = doctorsWithoutPassword.map((d) => d.id);
-    await prisma.user.updateMany({
+    await db.user.updateMany({
       where: { id: { in: ids } },
       data: { password: hashed },
     });

@@ -1,4 +1,6 @@
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET /api/inventory/[id]/transactions - List transactions for an item
@@ -7,12 +9,15 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
     const { searchParams } = new URL(request.url);
     const type = searchParams.get("type");
 
     // Verify item exists
-    const item = await prisma.inventoryItem.findUnique({
+    const item = await db.inventoryItem.findUnique({
       where: { id },
     });
 
@@ -28,7 +33,7 @@ export async function GET(
       where.type = type;
     }
 
-    const transactions = await prisma.stockTransaction.findMany({
+    const transactions = await db.stockTransaction.findMany({
       where,
       orderBy: { date: "desc" },
     });
@@ -49,6 +54,9 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
     const body = await request.json();
 
@@ -76,7 +84,7 @@ export async function POST(
     }
 
     // Fetch the item
-    const item = await prisma.inventoryItem.findUnique({
+    const item = await db.inventoryItem.findUnique({
       where: { id },
     });
 
@@ -92,7 +100,7 @@ export async function POST(
 
     // If operating on a variant, use variant stock
     if (variantId) {
-      const variant = await prisma.inventoryVariant.findUnique({
+      const variant = await db.inventoryVariant.findUnique({
         where: { id: variantId },
       });
       if (!variant || variant.itemId !== id) {
@@ -129,7 +137,7 @@ export async function POST(
       }
 
       const [transaction] = await prisma.$transaction([
-        prisma.stockTransaction.create({
+        db.stockTransaction.create({
           data: {
             itemId: id,
             variantId,
@@ -146,7 +154,7 @@ export async function POST(
             date: body.date ? new Date(body.date) : new Date(),
           },
         }),
-        prisma.inventoryVariant.update({
+        db.inventoryVariant.update({
           where: { id: variantId },
           data: { currentStock: newStock },
         }),
@@ -203,7 +211,7 @@ export async function POST(
 
     // Create the transaction and update the item in a transaction
     const [transaction] = await prisma.$transaction([
-      prisma.stockTransaction.create({
+      db.stockTransaction.create({
         data: {
           itemId: id,
           type: body.type,
@@ -225,7 +233,7 @@ export async function POST(
           date: body.date ? new Date(body.date) : new Date(),
         },
       }),
-      prisma.inventoryItem.update({
+      db.inventoryItem.update({
         where: { id },
         data: {
           currentStock: newStock,

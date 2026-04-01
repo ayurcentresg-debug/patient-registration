@@ -1,10 +1,15 @@
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET /api/inventory/alerts - Returns all inventory alerts
 // Optional query params: branchId (filter by branch stock)
 export async function GET(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { searchParams } = new URL(request.url);
     const branchId = searchParams.get("branchId");
 
@@ -15,7 +20,7 @@ export async function GET(request: NextRequest) {
     ninetyDaysFromNow.setDate(ninetyDaysFromNow.getDate() + 90);
 
     // Get all active inventory items with branch stock if needed
-    const allItems = await prisma.inventoryItem.findMany({
+    const allItems = await db.inventoryItem.findMany({
       where: { status: { not: "discontinued" } },
       orderBy: { name: "asc" },
       include: branchId

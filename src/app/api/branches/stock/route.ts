@@ -1,10 +1,15 @@
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET /api/branches/stock?branchId=X
 // Returns all BranchStock records for a branch with item details
 export async function GET(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { searchParams } = new URL(request.url);
     const branchId = searchParams.get("branchId");
 
@@ -12,7 +17,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "branchId is required" }, { status: 400 });
     }
 
-    const branchStock = await prisma.branchStock.findMany({
+    const branchStock = await db.branchStock.findMany({
       where: { branchId },
       orderBy: { item: { name: "asc" } },
       include: {

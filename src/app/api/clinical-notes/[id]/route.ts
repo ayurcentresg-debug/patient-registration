@@ -1,18 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
     const body = await request.json();
 
-    const existing = await prisma.clinicalNote.findUnique({ where: { id } });
+    const existing = await db.clinicalNote.findUnique({ where: { id } });
     if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-    const note = await prisma.clinicalNote.update({
+    const note = await db.clinicalNote.update({
       where: { id },
       data: {
         ...(body.title && { title: body.title.trim() }),
@@ -33,11 +38,14 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
-    const existing = await prisma.clinicalNote.findUnique({ where: { id } });
+    const existing = await db.clinicalNote.findUnique({ where: { id } });
     if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-    await prisma.clinicalNote.delete({ where: { id } });
+    await db.clinicalNote.delete({ where: { id } });
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("DELETE /api/clinical-notes/[id] error:", error);

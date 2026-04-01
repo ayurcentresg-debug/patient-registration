@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 
 // Ayurveda treatments from AyurCentre Singapore reference
 const SEED_TREATMENTS = [
@@ -26,8 +28,11 @@ const SEED_TREATMENTS = [
 // POST /api/treatments/seed - Seed database with AyurCentre treatments
 export async function POST() {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     // Check if treatments already exist
-    const existingCount = await prisma.treatment.count();
+    const existingCount = await db.treatment.count();
     if (existingCount > 0) {
       return NextResponse.json(
         { message: `Database already has ${existingCount} treatments. Skipping seed.`, seeded: false },
@@ -38,7 +43,7 @@ export async function POST() {
     const created = [];
 
     for (const t of SEED_TREATMENTS) {
-      const treatment = await prisma.treatment.create({
+      const treatment = await db.treatment.create({
         data: {
           name: t.name,
           description: t.description,
@@ -56,7 +61,7 @@ export async function POST() {
       const totalPrice = Math.round(t.basePrice * sessionCount * (1 - discountPercent / 100) * 100) / 100;
       const pricePerSession = Math.round((totalPrice / sessionCount) * 100) / 100;
 
-      await prisma.treatmentPackage.create({
+      await db.treatmentPackage.create({
         data: {
           treatmentId: treatment.id,
           name: "10-Session Package",
@@ -72,7 +77,7 @@ export async function POST() {
       const totalPrice5 = Math.round(t.basePrice * 5 * 0.9 * 100) / 100;
       const pricePerSession5 = Math.round((totalPrice5 / 5) * 100) / 100;
 
-      await prisma.treatmentPackage.create({
+      await db.treatmentPackage.create({
         data: {
           treatmentId: treatment.id,
           name: "5-Session Package",

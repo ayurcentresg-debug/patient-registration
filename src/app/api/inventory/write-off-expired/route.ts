@@ -1,4 +1,6 @@
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextRequest, NextResponse } from "next/server";
 
 // POST /api/inventory/write-off-expired - Bulk write off expired stock
@@ -8,6 +10,9 @@ import { NextRequest, NextResponse } from "next/server";
 // - If neither: write off all expired globally (original behavior)
 export async function POST(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const now = new Date();
     let branchId: string | undefined;
     let itemIds: string[] | undefined;
@@ -32,7 +37,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Find expired items
-    const expiredItems = await prisma.inventoryItem.findMany({
+    const expiredItems = await db.inventoryItem.findMany({
       where,
       select: {
         id: true,
@@ -59,7 +64,7 @@ export async function POST(request: NextRequest) {
     // Get branch name if branchId provided
     let branchName: string | undefined;
     if (branchId) {
-      const branch = await prisma.branch.findUnique({
+      const branch = await db.branch.findUnique({
         where: { id: branchId },
         select: { name: true },
       });
@@ -85,7 +90,7 @@ export async function POST(request: NextRequest) {
 
         if (branchStock) {
           await prisma.$transaction([
-            prisma.stockTransaction.create({
+            db.stockTransaction.create({
               data: {
                 itemId: item.id,
                 type: "expired",
@@ -98,11 +103,11 @@ export async function POST(request: NextRequest) {
                 date: now,
               },
             }),
-            prisma.inventoryItem.update({
+            db.inventoryItem.update({
               where: { id: item.id },
               data: { currentStock: Math.max(0, item.currentStock - branchQty) },
             }),
-            prisma.branchStock.update({
+            db.branchStock.update({
               where: { id: branchStock.id },
               data: { quantity: 0 },
             }),
@@ -118,7 +123,7 @@ export async function POST(request: NextRequest) {
       } else {
         // Global write-off (original behavior)
         await prisma.$transaction([
-          prisma.stockTransaction.create({
+          db.stockTransaction.create({
             data: {
               itemId: item.id,
               type: "expired",
@@ -131,11 +136,11 @@ export async function POST(request: NextRequest) {
               date: now,
             },
           }),
-          prisma.inventoryItem.update({
+          db.inventoryItem.update({
             where: { id: item.id },
             data: { currentStock: 0 },
           }),
-          prisma.branchStock.updateMany({
+          db.branchStock.updateMany({
             where: { itemId: item.id },
             data: { quantity: 0 },
           }),

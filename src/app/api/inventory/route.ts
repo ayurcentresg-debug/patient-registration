@@ -1,9 +1,14 @@
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET /api/inventory - List items with filters
 export async function GET(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search");
     const category = searchParams.get("category");
@@ -57,7 +62,7 @@ export async function GET(request: NextRequest) {
 
     const includeVariants = searchParams.get("includeVariants") === "true";
 
-    let items = await prisma.inventoryItem.findMany({
+    let items = await db.inventoryItem.findMany({
       where,
       include: {
         _count: {
@@ -86,6 +91,9 @@ export async function GET(request: NextRequest) {
 // POST /api/inventory - Create a new item
 export async function POST(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const body = await request.json();
 
     // Validate required fields
@@ -116,14 +124,14 @@ export async function POST(request: NextRequest) {
     const prefix = categoryPrefix[body.category];
 
     // Count existing items in this category to generate sequence number
-    const count = await prisma.inventoryItem.count({
+    const count = await db.inventoryItem.count({
       where: { category: body.category },
     });
 
     const sequenceNumber = String(count + 1).padStart(4, "0");
     const sku = `AYU-${prefix}${sequenceNumber}`;
 
-    const item = await prisma.inventoryItem.create({
+    const item = await db.inventoryItem.create({
       data: {
         sku,
         name: body.name,

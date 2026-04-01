@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { sendEmail } from "@/lib/email";
 import { sendWhatsApp } from "@/lib/whatsapp";
 import { sendSMS } from "@/lib/sms";
 
 export async function GET(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const searchParams = request.nextUrl.searchParams;
     const patientId = searchParams.get("patientId");
     const type = searchParams.get("type");
@@ -35,7 +40,7 @@ export async function GET(request: NextRequest) {
     }
 
     const [communications, total] = await Promise.all([
-      prisma.communication.findMany({
+      db.communication.findMany({
         where,
         orderBy: { sentAt: "desc" },
         include: {
@@ -46,7 +51,7 @@ export async function GET(request: NextRequest) {
         skip: (page - 1) * limit,
         take: limit,
       }),
-      prisma.communication.count({ where }),
+      db.communication.count({ where }),
     ]);
 
     return NextResponse.json({
@@ -64,10 +69,13 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const body = await request.json();
     const { patientId, type, subject, message } = body;
 
-    const patient = await prisma.patient.findUnique({ where: { id: patientId } });
+    const patient = await db.patient.findUnique({ where: { id: patientId } });
     if (!patient) {
       return NextResponse.json({ error: "Patient not found" }, { status: 404 });
     }
@@ -107,7 +115,7 @@ export async function POST(request: NextRequest) {
       status = "failed";
     }
 
-    const communication = await prisma.communication.create({
+    const communication = await db.communication.create({
       data: { patientId, type, subject, message, status },
     });
 

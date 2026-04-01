@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 
 const includeRelations = {
   patient: { select: { firstName: true, lastName: true, email: true, whatsapp: true, phone: true } },
@@ -11,9 +13,12 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
 
-    const appointment = await prisma.appointment.findUnique({
+    const appointment = await db.appointment.findUnique({
       where: { id },
       include: includeRelations,
     });
@@ -34,10 +39,13 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
     const body = await request.json();
 
-    const existing = await prisma.appointment.findUnique({ where: { id } });
+    const existing = await db.appointment.findUnique({ where: { id } });
     if (!existing) {
       return NextResponse.json({ error: "Appointment not found" }, { status: 404 });
     }
@@ -57,7 +65,7 @@ export async function PUT(
       const dayEnd = new Date(newDate);
       dayEnd.setHours(23, 59, 59, 999);
 
-      const conflict = await prisma.appointment.findFirst({
+      const conflict = await db.appointment.findFirst({
         where: {
           id: { not: id },
           doctor: doctorName,
@@ -75,7 +83,7 @@ export async function PUT(
       }
     }
 
-    const appointment = await prisma.appointment.update({
+    const appointment = await db.appointment.update({
       where: { id },
       data: {
         ...(body.patientId !== undefined && { patientId: body.patientId }),
@@ -106,14 +114,17 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
 
-    const existing = await prisma.appointment.findUnique({ where: { id } });
+    const existing = await db.appointment.findUnique({ where: { id } });
     if (!existing) {
       return NextResponse.json({ error: "Appointment not found" }, { status: 404 });
     }
 
-    await prisma.appointment.delete({ where: { id } });
+    await db.appointment.delete({ where: { id } });
 
     return NextResponse.json({ success: true });
   } catch (error) {

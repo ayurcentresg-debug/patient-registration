@@ -1,4 +1,6 @@
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextRequest, NextResponse } from "next/server";
 
 const ALLOWED_TRANSITIONS: Record<string, string[]> = {
@@ -13,6 +15,9 @@ export async function PUT(
   props: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await props.params;
     const body = await request.json();
 
@@ -23,7 +28,7 @@ export async function PUT(
       );
     }
 
-    const purchaseOrder = await prisma.purchaseOrder.findUnique({
+    const purchaseOrder = await db.purchaseOrder.findUnique({
       where: { id },
     });
 
@@ -53,7 +58,7 @@ export async function PUT(
       updateData.receivedDate = new Date();
     }
 
-    const updatedPO = await prisma.purchaseOrder.update({
+    const updatedPO = await db.purchaseOrder.update({
       where: { id },
       data: updateData,
       include: { items: true },

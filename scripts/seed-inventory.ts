@@ -72,11 +72,11 @@ async function main() {
 
   for (const item of data.items) {
     try {
-      const existing = await prisma.inventoryItem.findUnique({ where: { sku: item.sku } });
+      const existing = await prisma.inventoryItem.findFirst({ where: { sku: item.sku } });
       if (existing) {
         // Update existing item with correct data
         await prisma.inventoryItem.update({
-          where: { sku: item.sku },
+          where: { id: existing.id },
           data: {
             name: item.name,
             category: item.category,

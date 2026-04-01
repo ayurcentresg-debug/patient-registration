@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { sendEmail } from "@/lib/email";
 import { sendWhatsApp } from "@/lib/whatsapp";
 
@@ -12,6 +14,9 @@ const includeRelations = {
 
 export async function GET(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const searchParams = request.nextUrl.searchParams;
     const patientId = searchParams.get("patientId");
     const doctorId = searchParams.get("doctorId");
@@ -54,7 +59,7 @@ export async function GET(request: NextRequest) {
       where.date = { gte: rangeStart, lte: rangeEnd };
     }
 
-    const appointments = await prisma.appointment.findMany({
+    const appointments = await db.appointment.findMany({
       where,
       orderBy: [{ date: "desc" }, { time: "asc" }],
       include: includeRelations,
@@ -70,6 +75,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const body = await request.json();
 
     // Walk-in: require walkinName + walkinPhone instead of patientId
@@ -103,7 +111,7 @@ export async function POST(request: NextRequest) {
     const dayEnd = new Date(appointmentDate);
     dayEnd.setHours(23, 59, 59, 999);
 
-    const conflict = await prisma.appointment.findFirst({
+    const conflict = await db.appointment.findFirst({
       where: {
         doctor: body.doctor,
         date: { gte: dayStart, lte: dayEnd },
@@ -122,7 +130,7 @@ export async function POST(request: NextRequest) {
     // Walk-in package restriction: first-time walk-ins cannot book packages
     if (isWalkin && body.packageId) {
       // Check if this walk-in phone has any completed appointments
-      const previousCompleted = await prisma.appointment.count({
+      const previousCompleted = await db.appointment.count({
         where: {
           walkinPhone: body.walkinPhone,
           status: "completed",
@@ -164,18 +172,18 @@ export async function POST(request: NextRequest) {
 
     if (isWalkin) {
       // Walk-in: create without include, then fetch separately to get doctorRef
-      const created = await prisma.appointment.create({
+      const created = await db.appointment.create({
         data: commonData,
       });
       // Re-fetch with doctorRef and treatment included
-      const full = await prisma.appointment.findUnique({
+      const full = await db.appointment.findUnique({
         where: { id: created.id },
         include: { doctorRef: true, treatment: true, treatmentPkg: true },
       });
       appointment = { ...full, patient: null };
     } else {
       // Registered patient: include patient relation
-      appointment = await prisma.appointment.create({
+      appointment = await db.appointment.create({
         data: { ...commonData, patientId: body.patientId },
         include: includeRelations,
       });

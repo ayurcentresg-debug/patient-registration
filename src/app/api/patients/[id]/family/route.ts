@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 
 // GET /api/patients/:id/family — list family members
 export async function GET(
@@ -8,7 +10,10 @@ export async function GET(
 ) {
   const { id } = await params;
   try {
-    const members = await prisma.familyMember.findMany({
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
+    const members = await db.familyMember.findMany({
       where: { patientId: id },
       orderBy: { createdAt: "asc" },
     });
@@ -25,6 +30,9 @@ export async function POST(
 ) {
   const { id } = await params;
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const body = await request.json();
 
     if (!body.relation || !body.memberName) {
@@ -37,7 +45,7 @@ export async function POST(
     let memberPhone = body.memberPhone || null;
 
     if (body.linkedPatientId) {
-      const linked = await prisma.patient.findUnique({
+      const linked = await db.patient.findUnique({
         where: { id: body.linkedPatientId },
         select: { firstName: true, lastName: true, phone: true, gender: true },
       });
@@ -48,7 +56,7 @@ export async function POST(
       }
     }
 
-    const member = await prisma.familyMember.create({
+    const member = await db.familyMember.create({
       data: {
         patientId: id,
         relation: body.relation,
@@ -72,6 +80,9 @@ export async function PUT(
 ) {
   const { id } = await params;
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const body = await request.json();
     const { memberId, relation, memberName, memberPhone, memberGender, linkedPatientId } = body;
 
@@ -80,7 +91,7 @@ export async function PUT(
     }
 
     // Verify it belongs to this patient
-    const existing = await prisma.familyMember.findFirst({
+    const existing = await db.familyMember.findFirst({
       where: { id: memberId, patientId: id },
     });
     if (!existing) {
@@ -96,7 +107,7 @@ export async function PUT(
 
     // If changing linkedPatientId, refresh details from linked patient
     if (linkedPatientId) {
-      const linked = await prisma.patient.findUnique({
+      const linked = await db.patient.findUnique({
         where: { id: linkedPatientId },
         select: { firstName: true, lastName: true, phone: true, gender: true },
       });
@@ -107,7 +118,8 @@ export async function PUT(
       }
     }
 
-    const updated = await prisma.familyMember.update({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const updated = await (db.familyMember.update as any)({
       where: { id: memberId },
       data: updateData,
     });
@@ -131,15 +143,18 @@ export async function DELETE(
   }
 
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     // Verify it belongs to this patient
-    const member = await prisma.familyMember.findFirst({
+    const member = await db.familyMember.findFirst({
       where: { id: memberId, patientId: id },
     });
     if (!member) {
       return NextResponse.json({ error: "Family member not found" }, { status: 404 });
     }
 
-    await prisma.familyMember.delete({ where: { id: memberId } });
+    await db.familyMember.delete({ where: { id: memberId } });
     return NextResponse.json({ success: true });
   } catch {
     return NextResponse.json({ error: "Failed to remove family member" }, { status: 500 });

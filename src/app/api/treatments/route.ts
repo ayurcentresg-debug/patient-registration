@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 
 // GET /api/treatments - List all treatments with optional filters
 export async function GET(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const searchParams = request.nextUrl.searchParams;
     const category = searchParams.get("category");
     const active = searchParams.get("active");
@@ -20,7 +25,7 @@ export async function GET(request: NextRequest) {
       ];
     }
 
-    const treatments = await prisma.treatment.findMany({
+    const treatments = await db.treatment.findMany({
       where,
       include: {
         packages: {
@@ -41,6 +46,9 @@ export async function GET(request: NextRequest) {
 // POST /api/treatments - Create a new treatment
 export async function POST(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const body = await request.json();
 
     if (!body.name || !body.name.trim()) {
@@ -50,7 +58,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Valid base price is required" }, { status: 400 });
     }
 
-    const treatment = await prisma.treatment.create({
+    const treatment = await db.treatment.create({
       data: {
         name: body.name.trim(),
         description: body.description?.trim() || null,

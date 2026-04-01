@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 
 // GET /api/users/[id] - Get a single user
 export async function GET(
@@ -7,9 +9,12 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
 
-    const user = await prisma.user.findUnique({
+    const user = await db.user.findUnique({
       where: { id },
       select: {
         id: true,
@@ -45,11 +50,14 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
     const body = await request.json();
 
     // Check user exists
-    const existing = await prisma.user.findUnique({ where: { id } });
+    const existing = await db.user.findUnique({ where: { id } });
     if (!existing) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
@@ -69,7 +77,7 @@ export async function PUT(
         );
       }
       // Check unique email (exclude current user)
-      const emailTaken = await prisma.user.findFirst({
+      const emailTaken = await db.user.findFirst({
         where: { email: body.email.trim(), id: { not: id } },
       });
       if (emailTaken) {
@@ -118,7 +126,7 @@ export async function PUT(
       );
     }
 
-    const user = await prisma.user.update({
+    const user = await db.user.update({
       where: { id },
       data: updateData,
     });
@@ -140,14 +148,17 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
 
-    const existing = await prisma.user.findUnique({ where: { id } });
+    const existing = await db.user.findUnique({ where: { id } });
     if (!existing) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const user = await prisma.user.update({
+    const user = await db.user.update({
       where: { id },
       data: { isActive: false },
     });

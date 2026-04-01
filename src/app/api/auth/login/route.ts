@@ -15,7 +15,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const user = await prisma.user.findUnique({ where: { email } });
+    // Find user — with multi-tenancy, email is unique per clinic
+    // Try exact match first (for existing single-tenant data with null clinicId)
+    const user = await prisma.user.findFirst({ where: { email } });
 
     if (!user || !user.isActive) {
       return NextResponse.json(
@@ -71,12 +73,13 @@ export async function POST(req: NextRequest) {
       data: { lastLogin: new Date() },
     });
 
-    // Create JWT
+    // Create JWT with clinicId for multi-tenancy
     const token = await createToken({
       userId: user.id,
       email: user.email,
       role: user.role,
       name: user.name,
+      clinicId: user.clinicId || "",
     });
 
     // Set HTTP-only cookie

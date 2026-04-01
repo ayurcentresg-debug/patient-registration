@@ -1,4 +1,6 @@
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET /api/invoices/[id]/payments - List all payments for an invoice
@@ -7,9 +9,12 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
 
-    const invoice = await prisma.invoice.findUnique({
+    const invoice = await db.invoice.findUnique({
       where: { id },
     });
 
@@ -20,7 +25,7 @@ export async function GET(
       );
     }
 
-    const payments = await prisma.payment.findMany({
+    const payments = await db.payment.findMany({
       where: { invoiceId: id },
       orderBy: { date: "desc" },
     });
@@ -41,6 +46,9 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
     const body = await request.json();
 
@@ -60,7 +68,7 @@ export async function POST(
       );
     }
 
-    const invoice = await prisma.invoice.findUnique({
+    const invoice = await db.invoice.findUnique({
       where: { id },
     });
 
@@ -97,7 +105,7 @@ export async function POST(
     const yearMonth = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}`;
     const recPrefix = `REC-${yearMonth}-`;
 
-    const lastReceipt = await prisma.payment.findFirst({
+    const lastReceipt = await db.payment.findFirst({
       where: {
         receiptNumber: { startsWith: recPrefix },
       },
@@ -113,7 +121,7 @@ export async function POST(
 
     // Create payment and update invoice in a transaction
     const [payment] = await prisma.$transaction([
-      prisma.payment.create({
+      db.payment.create({
         data: {
           invoiceId: id,
           receiptNumber,
@@ -124,7 +132,7 @@ export async function POST(
           date: body.date ? new Date(body.date) : new Date(),
         },
       }),
-      prisma.invoice.update({
+      db.invoice.update({
         where: { id },
         data: {
           paidAmount: newPaidAmount,

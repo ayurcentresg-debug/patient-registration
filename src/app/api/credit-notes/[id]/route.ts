@@ -1,4 +1,6 @@
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET /api/credit-notes/[id] - Get single credit note with invoice details
@@ -7,9 +9,12 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
 
-    const creditNote = await prisma.creditNote.findUnique({
+    const creditNote = await db.creditNote.findUnique({
       where: { id },
       include: {
         invoice: {
@@ -44,10 +49,13 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
     const body = await request.json();
 
-    const existing = await prisma.creditNote.findUnique({
+    const existing = await db.creditNote.findUnique({
       where: { id },
       include: {
         invoice: true,
@@ -86,7 +94,7 @@ export async function PUT(
         updateData.refundDate = body.refundDate ? new Date(body.refundDate) : new Date();
 
         // Check if total credits >= invoice total to mark as refunded
-        const allCreditNotes = await prisma.creditNote.findMany({
+        const allCreditNotes = await db.creditNote.findMany({
           where: {
             invoiceId: existing.invoiceId,
             status: "applied",
@@ -102,7 +110,7 @@ export async function PUT(
         if (totalCreditsAfterThis >= existing.invoice.totalAmount) {
           // Update invoice status to refunded in a transaction
           const [creditNote] = await prisma.$transaction([
-            prisma.creditNote.update({
+            db.creditNote.update({
               where: { id },
               data: updateData,
               include: {
@@ -117,7 +125,7 @@ export async function PUT(
                 },
               },
             }),
-            prisma.invoice.update({
+            db.invoice.update({
               where: { id: existing.invoiceId },
               data: { status: "refunded" },
             }),
@@ -142,7 +150,7 @@ export async function PUT(
       }
     }
 
-    const creditNote = await prisma.creditNote.update({
+    const creditNote = await db.creditNote.update({
       where: { id },
       data: updateData,
       include: {
@@ -174,9 +182,12 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
 
-    const existing = await prisma.creditNote.findUnique({
+    const existing = await db.creditNote.findUnique({
       where: { id },
     });
 
@@ -194,7 +205,7 @@ export async function DELETE(
       );
     }
 
-    await prisma.creditNote.delete({ where: { id } });
+    await db.creditNote.delete({ where: { id } });
 
     return NextResponse.json({ message: "Credit note deleted successfully" });
   } catch (error) {

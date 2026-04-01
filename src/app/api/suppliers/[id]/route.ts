@@ -1,4 +1,6 @@
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET /api/suppliers/[id] - Get single supplier with purchase history
@@ -7,9 +9,12 @@ export async function GET(
   props: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await props.params;
 
-    const supplier = await prisma.supplier.findUnique({
+    const supplier = await db.supplier.findUnique({
       where: { id },
     });
 
@@ -21,7 +26,7 @@ export async function GET(
     }
 
     // Get recent purchase orders for this supplier
-    const recentPOs = await prisma.purchaseOrder.findMany({
+    const recentPOs = await db.purchaseOrder.findMany({
       where: { supplierId: id },
       include: { items: true },
       orderBy: { createdAt: "desc" },
@@ -29,7 +34,7 @@ export async function GET(
     });
 
     // Purchase stats
-    const allPOs = await prisma.purchaseOrder.findMany({
+    const allPOs = await db.purchaseOrder.findMany({
       where: { supplierId: id },
       select: { totalAmount: true },
     });
@@ -59,10 +64,13 @@ export async function PUT(
   props: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await props.params;
     const body = await request.json();
 
-    const existingSupplier = await prisma.supplier.findUnique({
+    const existingSupplier = await db.supplier.findUnique({
       where: { id },
     });
 
@@ -92,7 +100,7 @@ export async function PUT(
 
     // If updating name, validate uniqueness
     if (body.name && body.name !== existingSupplier.name) {
-      const duplicateName = await prisma.supplier.findFirst({
+      const duplicateName = await db.supplier.findFirst({
         where: { name: body.name, id: { not: id } },
       });
       if (duplicateName) {
@@ -103,7 +111,7 @@ export async function PUT(
       }
     }
 
-    const supplier = await prisma.supplier.update({
+    const supplier = await db.supplier.update({
       where: { id },
       data: updateData,
     });
@@ -124,9 +132,12 @@ export async function DELETE(
   props: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await props.params;
 
-    const supplier = await prisma.supplier.findUnique({
+    const supplier = await db.supplier.findUnique({
       where: { id },
     });
 
@@ -138,7 +149,7 @@ export async function DELETE(
     }
 
     // Check for active POs (not cancelled or received)
-    const activePOs = await prisma.purchaseOrder.count({
+    const activePOs = await db.purchaseOrder.count({
       where: {
         supplierId: id,
         status: { in: ["draft", "submitted", "partial"] },
@@ -155,7 +166,7 @@ export async function DELETE(
     }
 
     // Soft-delete: set status to inactive
-    const updatedSupplier = await prisma.supplier.update({
+    const updatedSupplier = await db.supplier.update({
       where: { id },
       data: { status: "inactive" },
     });

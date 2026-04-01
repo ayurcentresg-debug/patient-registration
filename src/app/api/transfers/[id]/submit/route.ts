@@ -1,4 +1,6 @@
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextRequest, NextResponse } from "next/server";
 
 // POST /api/transfers/[id]/submit - Move draft → in_transit
@@ -7,9 +9,12 @@ export async function POST(
   props: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await props.params;
 
-    const transfer = await prisma.stockTransfer.findUnique({
+    const transfer = await db.stockTransfer.findUnique({
       where: { id },
       include: { items: true },
     });
@@ -37,7 +42,7 @@ export async function POST(
 
     // Validate stock availability at source branch for all items before transaction
     for (const item of transfer.items) {
-      const branchStock = await prisma.branchStock.findFirst({
+      const branchStock = await db.branchStock.findFirst({
         where: {
           branchId: transfer.fromBranchId,
           itemId: item.itemId,
@@ -47,7 +52,7 @@ export async function POST(
 
       const availableQty = branchStock?.quantity || 0;
       if (availableQty < item.quantitySent) {
-        const inventoryItem = await prisma.inventoryItem.findUnique({
+        const inventoryItem = await db.inventoryItem.findUnique({
           where: { id: item.itemId },
           select: { name: true },
         });
@@ -137,7 +142,7 @@ export async function POST(
     // Create notification for the destination branch (outside transaction — non-blocking)
     try {
       const totalItems = transfer.items.reduce((sum, item) => sum + item.quantitySent, 0);
-      await prisma.notification.create({
+      await db.notification.create({
         data: {
           type: "transfer_incoming",
           title: "Incoming Transfer",

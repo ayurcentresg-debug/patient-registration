@@ -1,15 +1,20 @@
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET /api/inventory/branch-comparison?category=all&search=xxx
 export async function GET(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { searchParams } = new URL(request.url);
     const category = searchParams.get("category") || "all";
     const search = searchParams.get("search") || "";
 
     // 1. Fetch all active branches
-    const branches = await prisma.branch.findMany({
+    const branches = await db.branch.findMany({
       where: { isActive: true },
       orderBy: { name: "asc" },
       select: { id: true, name: true, code: true },
@@ -28,7 +33,7 @@ export async function GET(request: NextRequest) {
     }
 
     // 3. Fetch all active inventory items
-    const items = await prisma.inventoryItem.findMany({
+    const items = await db.inventoryItem.findMany({
       where: itemWhere,
       orderBy: { name: "asc" },
       select: {
@@ -44,7 +49,7 @@ export async function GET(request: NextRequest) {
 
     // 4. Fetch all BranchStock records for active branches
     const branchIds = branches.map((b) => b.id);
-    const allBranchStock = await prisma.branchStock.findMany({
+    const allBranchStock = await db.branchStock.findMany({
       where: {
         branchId: { in: branchIds },
         variantId: null, // only main item stock, not variants

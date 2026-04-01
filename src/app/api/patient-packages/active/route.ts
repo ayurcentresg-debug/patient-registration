@@ -1,9 +1,14 @@
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET /api/patient-packages/active - Get active packages for a patient (booking UI dropdown)
 export async function GET(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { searchParams } = new URL(request.url);
     const patientId = searchParams.get("patientId");
 
@@ -17,7 +22,7 @@ export async function GET(request: NextRequest) {
     const now = new Date();
 
     // Find packages where patient is the owner OR a shared user
-    const ownedPackages = await prisma.patientPackage.findMany({
+    const ownedPackages = await db.patientPackage.findMany({
       where: {
         patientId,
         status: "active",
@@ -41,7 +46,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Also find packages shared with this patient
-    const sharedPackageLinks = await prisma.packageShare.findMany({
+    const sharedPackageLinks = await db.packageShare.findMany({
       where: {
         sharedWithPatientId: patientId,
         isActive: true,
@@ -54,7 +59,7 @@ export async function GET(request: NextRequest) {
     let sharedPackages: typeof ownedPackages = [];
     if (sharedPackageLinks.length > 0) {
       const sharedIds = sharedPackageLinks.map((s) => s.patientPackageId);
-      sharedPackages = await prisma.patientPackage.findMany({
+      sharedPackages = await db.patientPackage.findMany({
         where: {
           id: { in: sharedIds },
           status: "active",

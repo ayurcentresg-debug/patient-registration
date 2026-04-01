@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 
 /**
  * GET /api/patients/duplicates
@@ -45,7 +47,10 @@ interface DuplicateGroup {
 
 export async function GET() {
   try {
-    const patients = await prisma.patient.findMany({
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
+    const patients = await db.patient.findMany({
       select: {
         id: true,
         patientIdNumber: true,

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 
 /**
  * POST /api/patients/merge
@@ -15,6 +17,9 @@ import { prisma } from "@/lib/db";
 
 export async function POST(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const body = await request.json();
     const { keepId, removeId, mergedFields } = body;
 
@@ -27,8 +32,8 @@ export async function POST(request: NextRequest) {
 
     // Verify both patients exist
     const [keepPatient, removePatient] = await Promise.all([
-      prisma.patient.findUnique({ where: { id: keepId } }),
-      prisma.patient.findUnique({ where: { id: removeId } }),
+      db.patient.findUnique({ where: { id: keepId } }),
+      db.patient.findUnique({ where: { id: removeId } }),
     ]);
 
     if (!keepPatient) {
@@ -58,18 +63,18 @@ export async function POST(request: NextRequest) {
       invCount,
       claimCount,
     ] = await Promise.all([
-      prisma.communication.count({ where: { patientId: removeId } }),
-      prisma.appointment.count({ where: { patientId: removeId } }),
-      prisma.clinicalNote.count({ where: { patientId: removeId } }),
-      prisma.document.count({ where: { patientId: removeId } }),
-      prisma.familyMember.count({ where: { patientId: removeId } }),
-      prisma.vital.count({ where: { patientId: removeId } }),
-      prisma.reminder.count({ where: { patientId: removeId } }),
-      prisma.treatmentPlan.count({ where: { patientId: removeId } }),
-      prisma.prescription.count({ where: { patientId: removeId } }),
-      prisma.patientPackage.count({ where: { patientId: removeId } }),
-      prisma.invoice.count({ where: { patientId: removeId } }),
-      prisma.insuranceClaim.count({ where: { patientId: removeId } }),
+      db.communication.count({ where: { patientId: removeId } }),
+      db.appointment.count({ where: { patientId: removeId } }),
+      db.clinicalNote.count({ where: { patientId: removeId } }),
+      db.document.count({ where: { patientId: removeId } }),
+      db.familyMember.count({ where: { patientId: removeId } }),
+      db.vital.count({ where: { patientId: removeId } }),
+      db.reminder.count({ where: { patientId: removeId } }),
+      db.treatmentPlan.count({ where: { patientId: removeId } }),
+      db.prescription.count({ where: { patientId: removeId } }),
+      db.patientPackage.count({ where: { patientId: removeId } }),
+      db.invoice.count({ where: { patientId: removeId } }),
+      db.insuranceClaim.count({ where: { patientId: removeId } }),
     ]);
 
     const totalTransferred = commCount + apptCount + noteCount + docCount + famCount +
@@ -100,56 +105,56 @@ export async function POST(request: NextRequest) {
     // Execute the merge in a transaction
     await prisma.$transaction([
       // 1. Re-link all child records
-      prisma.communication.updateMany({ where: { patientId: removeId }, data: { patientId: keepId } }),
-      prisma.appointment.updateMany({ where: { patientId: removeId }, data: { patientId: keepId } }),
-      prisma.clinicalNote.updateMany({ where: { patientId: removeId }, data: { patientId: keepId } }),
-      prisma.document.updateMany({ where: { patientId: removeId }, data: { patientId: keepId } }),
-      prisma.familyMember.updateMany({ where: { patientId: removeId }, data: { patientId: keepId } }),
-      prisma.vital.updateMany({ where: { patientId: removeId }, data: { patientId: keepId } }),
-      prisma.reminder.updateMany({ where: { patientId: removeId }, data: { patientId: keepId } }),
-      prisma.treatmentPlan.updateMany({ where: { patientId: removeId }, data: { patientId: keepId } }),
-      prisma.prescription.updateMany({ where: { patientId: removeId }, data: { patientId: keepId } }),
-      prisma.patientPackage.updateMany({ where: { patientId: removeId }, data: { patientId: keepId } }),
+      db.communication.updateMany({ where: { patientId: removeId }, data: { patientId: keepId } }),
+      db.appointment.updateMany({ where: { patientId: removeId }, data: { patientId: keepId } }),
+      db.clinicalNote.updateMany({ where: { patientId: removeId }, data: { patientId: keepId } }),
+      db.document.updateMany({ where: { patientId: removeId }, data: { patientId: keepId } }),
+      db.familyMember.updateMany({ where: { patientId: removeId }, data: { patientId: keepId } }),
+      db.vital.updateMany({ where: { patientId: removeId }, data: { patientId: keepId } }),
+      db.reminder.updateMany({ where: { patientId: removeId }, data: { patientId: keepId } }),
+      db.treatmentPlan.updateMany({ where: { patientId: removeId }, data: { patientId: keepId } }),
+      db.prescription.updateMany({ where: { patientId: removeId }, data: { patientId: keepId } }),
+      db.patientPackage.updateMany({ where: { patientId: removeId }, data: { patientId: keepId } }),
 
       // 2. Re-link Invoice & InsuranceClaim (no FK relation, plain string field)
-      prisma.invoice.updateMany({
+      db.invoice.updateMany({
         where: { patientId: removeId },
         data: { patientId: keepId, patientName: mergedName },
       }),
-      prisma.insuranceClaim.updateMany({
+      db.insuranceClaim.updateMany({
         where: { patientId: removeId },
         data: { patientId: keepId, patientName: mergedName },
       }),
 
       // 3. Fix cross-references: FamilyMember.linkedPatientId from OTHER patients
-      prisma.familyMember.updateMany({
+      db.familyMember.updateMany({
         where: { linkedPatientId: removeId },
         data: { linkedPatientId: keepId },
       }),
 
       // 4. Fix PackageShare cross-references
-      prisma.packageShare.updateMany({
+      db.packageShare.updateMany({
         where: { sharedWithPatientId: removeId },
         data: { sharedWithPatientId: keepId },
       }),
-      prisma.packageShare.updateMany({
+      db.packageShare.updateMany({
         where: { sharedByPatientId: removeId },
         data: { sharedByPatientId: keepId },
       }),
 
       // 5. Update the kept patient with merged fields
-      prisma.patient.update({
+      db.patient.update({
         where: { id: keepId },
         data: updateData,
       }),
 
       // 6. Delete the removed patient (any remaining cascade children auto-removed)
-      prisma.patient.delete({ where: { id: removeId } }),
+      db.patient.delete({ where: { id: removeId } }),
     ]);
 
     // 7. Log the merge action
     try {
-      await prisma.auditLog.create({
+      await db.auditLog.create({
         data: {
           userName: "System",
           action: "merge",

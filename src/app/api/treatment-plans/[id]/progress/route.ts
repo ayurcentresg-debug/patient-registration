@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 
 // POST /api/treatment-plans/[id]/progress - Record session progress
 export async function POST(
@@ -7,6 +9,9 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
     const body = await request.json();
 
@@ -14,12 +19,12 @@ export async function POST(
       return NextResponse.json({ error: "itemId is required" }, { status: 400 });
     }
 
-    const plan = await prisma.treatmentPlan.findUnique({ where: { id } });
+    const plan = await db.treatmentPlan.findUnique({ where: { id } });
     if (!plan) {
       return NextResponse.json({ error: "Treatment plan not found" }, { status: 404 });
     }
 
-    const item = await prisma.treatmentPlanItem.findUnique({ where: { id: body.itemId } });
+    const item = await db.treatmentPlanItem.findUnique({ where: { id: body.itemId } });
     if (!item || item.planId !== id) {
       return NextResponse.json({ error: "Item not found in this plan" }, { status: 404 });
     }
@@ -39,7 +44,7 @@ export async function POST(
       newStatus = "completed";
     }
 
-    await prisma.treatmentPlanItem.update({
+    await db.treatmentPlanItem.update({
       where: { id: body.itemId },
       data: {
         completedSessions: newCompleted,
@@ -49,7 +54,7 @@ export async function POST(
     });
 
     // Recalculate plan completedSessions
-    const allItems = await prisma.treatmentPlanItem.findMany({ where: { planId: id } });
+    const allItems = await db.treatmentPlanItem.findMany({ where: { planId: id } });
     const planCompletedSessions = allItems.reduce((sum, i) => {
       // Use updated value for the current item
       if (i.id === body.itemId) return sum + newCompleted;
@@ -69,13 +74,13 @@ export async function POST(
       if (!plan.endDate) planUpdate.endDate = new Date();
     }
 
-    await prisma.treatmentPlan.update({
+    await db.treatmentPlan.update({
       where: { id },
       data: planUpdate,
     });
 
     // Return updated plan with items
-    const updatedPlan = await prisma.treatmentPlan.findUnique({
+    const updatedPlan = await db.treatmentPlan.findUnique({
       where: { id },
       include: {
         items: { orderBy: { sequence: "asc" } },

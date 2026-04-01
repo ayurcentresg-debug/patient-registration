@@ -1,9 +1,14 @@
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET /api/purchase-orders/suggestions - Smart purchase order suggestions
 export async function GET(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { searchParams } = new URL(request.url);
     const branchId = searchParams.get("branchId");
 
@@ -11,7 +16,7 @@ export async function GET(request: NextRequest) {
     ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
 
     // 1. Get all active inventory items
-    const allItems = await prisma.inventoryItem.findMany({
+    const allItems = await db.inventoryItem.findMany({
       where: { status: "active" },
       select: {
         id: true,
@@ -30,7 +35,7 @@ export async function GET(request: NextRequest) {
     // If branchId provided, fetch BranchStock quantities to use instead of global currentStock
     let branchStockMap: Map<string, number> | null = null;
     if (branchId) {
-      const branchStocks = await prisma.branchStock.findMany({
+      const branchStocks = await db.branchStock.findMany({
         where: { branchId },
         select: { itemId: true, quantity: true },
       });
@@ -42,7 +47,7 @@ export async function GET(request: NextRequest) {
     }
 
     // 2. Get stock transactions from last 90 days (sales / negative qty = consumption)
-    const stockTransactions = await prisma.stockTransaction.findMany({
+    const stockTransactions = await db.stockTransaction.findMany({
       where: {
         date: { gte: ninetyDaysAgo },
         OR: [
@@ -57,7 +62,7 @@ export async function GET(request: NextRequest) {
     });
 
     // 3. Get invoice items from last 90 days (medicine dispensing)
-    const invoiceItems = await prisma.invoiceItem.findMany({
+    const invoiceItems = await db.invoiceItem.findMany({
       where: {
         inventoryItemId: { not: null },
         invoice: {
@@ -89,7 +94,7 @@ export async function GET(request: NextRequest) {
     }
 
     // 5. Get last supplier for each item from most recent PO
-    const recentPOItems = await prisma.purchaseOrderItem.findMany({
+    const recentPOItems = await db.purchaseOrderItem.findMany({
       where: {
         inventoryItemId: { not: null },
       },

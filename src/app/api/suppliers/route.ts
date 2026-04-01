@@ -1,9 +1,14 @@
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET /api/suppliers - List all suppliers with optional search and purchase stats
 export async function GET(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search");
     const status = searchParams.get("status");
@@ -23,7 +28,7 @@ export async function GET(request: NextRequest) {
       where.status = status;
     }
 
-    const suppliers = await prisma.supplier.findMany({
+    const suppliers = await db.supplier.findMany({
       where,
       orderBy: { createdAt: "desc" },
     });
@@ -31,7 +36,7 @@ export async function GET(request: NextRequest) {
     // Enrich with purchase stats
     const suppliersWithStats = await Promise.all(
       suppliers.map(async (supplier) => {
-        const purchaseOrders = await prisma.purchaseOrder.findMany({
+        const purchaseOrders = await db.purchaseOrder.findMany({
           where: { supplierId: supplier.id },
           select: { totalAmount: true },
         });
@@ -61,6 +66,9 @@ export async function GET(request: NextRequest) {
 // POST /api/suppliers - Create a new supplier
 export async function POST(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const body = await request.json();
 
     if (!body.name) {
@@ -71,7 +79,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate unique name
-    const existingSupplier = await prisma.supplier.findFirst({
+    const existingSupplier = await db.supplier.findFirst({
       where: { name: body.name },
     });
 
@@ -82,7 +90,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const supplier = await prisma.supplier.create({
+    const supplier = await db.supplier.create({
       data: {
         name: body.name,
         contactPerson: body.contactPerson || null,

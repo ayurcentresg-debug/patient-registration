@@ -1,4 +1,6 @@
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 
@@ -8,6 +10,9 @@ const secret = new TextEncoder().encode(
 
 export async function GET(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const token = request.cookies.get("auth_token")?.value;
     if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -22,7 +27,7 @@ export async function GET(request: NextRequest) {
     const todayStr = today.toISOString().split("T")[0];
 
     // Get doctor's appointments for today
-    const todayAppointments = await prisma.appointment.findMany({
+    const todayAppointments = await db.appointment.findMany({
       where: {
         doctorId: userId,
         date: { gte: today, lt: tomorrow },
@@ -36,7 +41,7 @@ export async function GET(request: NextRequest) {
     // Get upcoming appointments (next 7 days)
     const nextWeek = new Date(today);
     nextWeek.setDate(nextWeek.getDate() + 7);
-    const upcomingAppointments = await prisma.appointment.findMany({
+    const upcomingAppointments = await db.appointment.findMany({
       where: {
         doctorId: userId,
         date: { gt: tomorrow, lt: nextWeek },
@@ -50,7 +55,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Get recent prescriptions by this doctor
-    const recentPrescriptions = await prisma.prescription.findMany({
+    const recentPrescriptions = await db.prescription.findMany({
       where: { doctorId: userId },
       include: {
         patient: { select: { firstName: true, lastName: true, patientIdNumber: true } },
@@ -66,16 +71,16 @@ export async function GET(request: NextRequest) {
     const pendingToday = todayAppointments.filter(a => a.status === "scheduled").length;
 
     const thisMonthStart = new Date(today.getFullYear(), today.getMonth(), 1);
-    const totalAppointmentsMonth = await prisma.appointment.count({
+    const totalAppointmentsMonth = await db.appointment.count({
       where: { doctorId: userId, date: { gte: thisMonthStart } },
     });
 
-    const totalPrescriptionsMonth = await prisma.prescription.count({
+    const totalPrescriptionsMonth = await db.prescription.count({
       where: { doctorId: userId, date: { gte: thisMonthStart } },
     });
 
     // Unique patients this month
-    const monthAppts = await prisma.appointment.findMany({
+    const monthAppts = await db.appointment.findMany({
       where: { doctorId: userId, date: { gte: thisMonthStart } },
       select: { patientId: true },
       distinct: ["patientId"],

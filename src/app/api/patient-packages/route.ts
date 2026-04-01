@@ -1,9 +1,14 @@
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET /api/patient-packages - List patient packages with filters
 export async function GET(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { searchParams } = new URL(request.url);
     const patientId = searchParams.get("patientId");
     const status = searchParams.get("status");
@@ -31,7 +36,7 @@ export async function GET(request: NextRequest) {
       ];
     }
 
-    const packages = await prisma.patientPackage.findMany({
+    const packages = await db.patientPackage.findMany({
       where,
       include: {
         patient: {
@@ -84,6 +89,9 @@ export async function GET(request: NextRequest) {
 // POST /api/patient-packages - Create/sell a new patient package
 export async function POST(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const body = await request.json();
 
     // Validate required fields
@@ -95,7 +103,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify patient exists
-    const patient = await prisma.patient.findUnique({
+    const patient = await db.patient.findUnique({
       where: { id: body.patientId },
     });
     if (!patient) {
@@ -114,7 +122,7 @@ export async function POST(request: NextRequest) {
 
     // If treatmentPackageId is provided, pull details from the package definition
     if (body.treatmentPackageId) {
-      const treatmentPkg = await prisma.treatmentPackage.findUnique({
+      const treatmentPkg = await db.treatmentPackage.findUnique({
         where: { id: body.treatmentPackageId },
         include: { treatment: true },
       });
@@ -132,7 +140,7 @@ export async function POST(request: NextRequest) {
       treatmentPackageId = treatmentPkg.id;
     } else if (body.treatmentId) {
       // Custom package from a treatment
-      const treatment = await prisma.treatment.findUnique({
+      const treatment = await db.treatment.findUnique({
         where: { id: body.treatmentId },
       });
       if (!treatment) {
@@ -156,7 +164,7 @@ export async function POST(request: NextRequest) {
     const yearMonth = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}`;
     const prefix = `PKG-${yearMonth}-`;
 
-    const lastPackage = await prisma.patientPackage.findFirst({
+    const lastPackage = await db.patientPackage.findFirst({
       where: {
         packageNumber: { startsWith: prefix },
       },
@@ -190,7 +198,7 @@ export async function POST(request: NextRequest) {
     // ─── Auto-generate invoice for package sale ────────────────────────────
     const invYearMonth = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}`;
     const invPrefix = `INV-${invYearMonth}-`;
-    const lastInvoice = await prisma.invoice.findFirst({
+    const lastInvoice = await db.invoice.findFirst({
       where: { invoiceNumber: { startsWith: invPrefix } },
       orderBy: { invoiceNumber: "desc" },
     });

@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 
 // GET /api/doctors — backward-compat wrapper, queries User model
 export async function GET(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { searchParams } = request.nextUrl;
     const status = searchParams.get("status");
     const search = searchParams.get("search");
@@ -16,7 +21,7 @@ export async function GET(request: NextRequest) {
     if (status) where.status = status;
     if (search) where.name = { contains: search };
 
-    const staff = await prisma.user.findMany({
+    const staff = await db.user.findMany({
       where,
       orderBy: { createdAt: "desc" },
     });
@@ -50,6 +55,9 @@ export async function GET(request: NextRequest) {
 // POST /api/doctors — backward-compat, creates via User model
 export async function POST(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const body = await request.json();
     const { name, role, gender, specialization, department, phone, email, consultationFee, schedule, slotDuration, status } = body;
 
@@ -59,7 +67,7 @@ export async function POST(request: NextRequest) {
 
     // Auto-generate staffIdNumber
     const prefix = role === "therapist" ? "T" : "D";
-    const lastStaff = await prisma.user.findFirst({
+    const lastStaff = await db.user.findFirst({
       where: { staffIdNumber: { startsWith: prefix } },
       orderBy: { staffIdNumber: "desc" },
     });
@@ -74,7 +82,7 @@ export async function POST(request: NextRequest) {
     // Need a unique email
     const staffEmail = email || `${name.toLowerCase().replace(/[^a-z0-9]/g, "")}.${staffIdNumber.toLowerCase()}@staff.local`;
 
-    const user = await prisma.user.create({
+    const user = await db.user.create({
       data: {
         name,
         email: staffEmail,

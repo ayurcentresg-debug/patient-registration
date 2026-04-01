@@ -1,14 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 
 // Helper: recalculate plan totals from items
-async function recalcPlanTotals(planId: string) {
-  const items = await prisma.treatmentPlanItem.findMany({ where: { planId } });
-  const totalSessions = items.reduce((sum, i) => sum + i.totalSessions, 0);
-  const completedSessions = items.reduce((sum, i) => sum + i.completedSessions, 0);
-  const totalCost = Math.round(items.reduce((sum, i) => sum + i.totalCost, 0) * 100) / 100;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function recalcPlanTotals(planId: string, db: any) {
+  const items = await db.treatmentPlanItem.findMany({ where: { planId } });
+  const totalSessions = items.reduce((sum: number, i: { totalSessions: number }) => sum + i.totalSessions, 0);
+  const completedSessions = items.reduce((sum: number, i: { completedSessions: number }) => sum + i.completedSessions, 0);
+  const totalCost = Math.round(items.reduce((sum: number, i: { totalCost: number }) => sum + i.totalCost, 0) * 100) / 100;
 
-  await prisma.treatmentPlan.update({
+  await db.treatmentPlan.update({
     where: { id: planId },
     data: { totalSessions, completedSessions, totalCost },
   });
@@ -20,10 +23,13 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
     const body = await request.json();
 
-    const plan = await prisma.treatmentPlan.findUnique({ where: { id } });
+    const plan = await db.treatmentPlan.findUnique({ where: { id } });
     if (!plan) {
       return NextResponse.json({ error: "Treatment plan not found" }, { status: 404 });
     }
@@ -38,7 +44,7 @@ export async function POST(
     const sessionPrice = Math.round((body.sessionPrice || 0) * 100) / 100;
     const totalCost = Math.round(body.totalSessions * sessionPrice * 100) / 100;
 
-    const item = await prisma.treatmentPlanItem.create({
+    const item = await db.treatmentPlanItem.create({
       data: {
         planId: id,
         treatmentId: body.treatmentId || null,
@@ -55,9 +61,9 @@ export async function POST(
       },
     });
 
-    await recalcPlanTotals(id);
+    await recalcPlanTotals(id, db);
 
-    const updatedPlan = await prisma.treatmentPlan.findUnique({
+    const updatedPlan = await db.treatmentPlan.findUnique({
       where: { id },
       include: {
         items: { orderBy: { sequence: "asc" } },
@@ -78,6 +84,9 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
     const body = await request.json();
 
@@ -85,7 +94,7 @@ export async function PUT(
       return NextResponse.json({ error: "itemId is required" }, { status: 400 });
     }
 
-    const existing = await prisma.treatmentPlanItem.findUnique({ where: { id: body.itemId } });
+    const existing = await db.treatmentPlanItem.findUnique({ where: { id: body.itemId } });
     if (!existing || existing.planId !== id) {
       return NextResponse.json({ error: "Item not found in this plan" }, { status: 404 });
     }
@@ -107,27 +116,27 @@ export async function PUT(
       }
     }
 
-    const item = await prisma.treatmentPlanItem.update({
+    const item = await db.treatmentPlanItem.update({
       where: { id: body.itemId },
       data,
     });
 
     // Recalculate plan totals if sessions changed
     if (body.completedSessions !== undefined) {
-      await recalcPlanTotals(id);
+      await recalcPlanTotals(id, db);
 
       // Check if all items completed → update plan status
-      const allItems = await prisma.treatmentPlanItem.findMany({ where: { planId: id } });
+      const allItems = await db.treatmentPlanItem.findMany({ where: { planId: id } });
       const allCompleted = allItems.every((i) => i.status === "completed" || i.status === "skipped");
       if (allCompleted && allItems.length > 0) {
-        await prisma.treatmentPlan.update({
+        await db.treatmentPlan.update({
           where: { id },
           data: { status: "completed", endDate: new Date() },
         });
       }
     }
 
-    const updatedPlan = await prisma.treatmentPlan.findUnique({
+    const updatedPlan = await db.treatmentPlan.findUnique({
       where: { id },
       include: {
         items: { orderBy: { sequence: "asc" } },
@@ -148,6 +157,9 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
     const { searchParams } = new URL(request.url);
     const itemId = searchParams.get("itemId");
@@ -156,7 +168,7 @@ export async function DELETE(
       return NextResponse.json({ error: "itemId query parameter is required" }, { status: 400 });
     }
 
-    const existing = await prisma.treatmentPlanItem.findUnique({ where: { id: itemId } });
+    const existing = await db.treatmentPlanItem.findUnique({ where: { id: itemId } });
     if (!existing || existing.planId !== id) {
       return NextResponse.json({ error: "Item not found in this plan" }, { status: 404 });
     }
@@ -168,10 +180,10 @@ export async function DELETE(
       );
     }
 
-    await prisma.treatmentPlanItem.delete({ where: { id: itemId } });
-    await recalcPlanTotals(id);
+    await db.treatmentPlanItem.delete({ where: { id: itemId } });
+    await recalcPlanTotals(id, db);
 
-    const updatedPlan = await prisma.treatmentPlan.findUnique({
+    const updatedPlan = await db.treatmentPlan.findUnique({
       where: { id },
       include: {
         items: { orderBy: { sequence: "asc" } },

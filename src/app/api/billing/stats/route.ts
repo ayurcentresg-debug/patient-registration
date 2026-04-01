@@ -1,9 +1,14 @@
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET /api/billing/stats - Billing dashboard stats
 export async function GET(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const now = new Date();
 
     // Today boundaries
@@ -15,7 +20,7 @@ export async function GET(request: NextRequest) {
     const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
 
     // Today's revenue
-    const todayInvoices = await prisma.invoice.findMany({
+    const todayInvoices = await db.invoice.findMany({
       where: {
         date: { gte: todayStart, lte: todayEnd },
         status: { not: "cancelled" },
@@ -25,7 +30,7 @@ export async function GET(request: NextRequest) {
     const todayRevenue = todayInvoices.reduce((sum, inv) => sum + inv.paidAmount, 0);
 
     // Month revenue
-    const monthInvoices = await prisma.invoice.findMany({
+    const monthInvoices = await db.invoice.findMany({
       where: {
         date: { gte: monthStart, lte: monthEnd },
         status: { not: "cancelled" },
@@ -35,7 +40,7 @@ export async function GET(request: NextRequest) {
     const monthRevenue = monthInvoices.reduce((sum, inv) => sum + inv.paidAmount, 0);
 
     // Pending amount
-    const pendingInvoices = await prisma.invoice.findMany({
+    const pendingInvoices = await db.invoice.findMany({
       where: {
         status: { in: ["pending", "partially_paid"] },
       },
@@ -44,15 +49,15 @@ export async function GET(request: NextRequest) {
     const pendingAmount = pendingInvoices.reduce((sum, inv) => sum + inv.balanceAmount, 0);
 
     // Counts
-    const totalInvoices = await prisma.invoice.count();
-    const paidCount = await prisma.invoice.count({ where: { status: "paid" } });
-    const pendingCount = await prisma.invoice.count({
+    const totalInvoices = await db.invoice.count();
+    const paidCount = await db.invoice.count({ where: { status: "paid" } });
+    const pendingCount = await db.invoice.count({
       where: { status: { in: ["pending", "partially_paid"] } },
     });
-    const cancelledCount = await prisma.invoice.count({ where: { status: "cancelled" } });
+    const cancelledCount = await db.invoice.count({ where: { status: "cancelled" } });
 
     // Recent invoices
-    const recentInvoices = await prisma.invoice.findMany({
+    const recentInvoices = await db.invoice.findMany({
       select: {
         id: true,
         invoiceNumber: true,
@@ -69,7 +74,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Payment method breakdown for current month
-    const monthPayments = await prisma.payment.findMany({
+    const monthPayments = await db.payment.findMany({
       where: {
         date: { gte: monthStart, lte: monthEnd },
       },

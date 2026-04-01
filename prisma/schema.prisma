@@ -7,9 +7,55 @@ datasource db {
   provider = "sqlite"
 }
 
+// ─── Multi-Tenant: Clinic & Subscription ─────────────────────────────────
+
+model Clinic {
+  id              String   @id @default(cuid())
+  name            String
+  slug            String   @unique // subdomain or URL-friendly identifier
+  email           String
+  phone           String?
+  address         String?
+  city            String?
+  state           String?
+  country         String   @default("Singapore")
+  zipCode         String?
+  website         String?
+  logoUrl         String?
+  currency        String   @default("SGD")
+  timezone        String   @default("Asia/Singapore")
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  subscription    ClinicSubscription?
+}
+
+model ClinicSubscription {
+  id              String    @id @default(cuid())
+  clinicId        String    @unique
+  plan            String    @default("trial") // trial | starter | professional | enterprise
+  status          String    @default("active") // active | expired | cancelled | suspended
+  trialEndsAt     DateTime? // 7-day trial end date
+  currentPeriodStart DateTime?
+  currentPeriodEnd   DateTime?
+  maxUsers        Int       @default(5) // trial = 5, starter = 10, etc.
+  maxPatients     Int       @default(100) // trial = 100
+  paymentMethod   String?
+  paymentReference String?
+  notes           String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  clinic          Clinic    @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+}
+
+// ─── Patients ────────────────────────────────────────────────────────────
+
 model Patient {
   id              String   @id @default(cuid())
-  patientIdNumber String   @unique @default("")
+  clinicId        String?
+  patientIdNumber String   @default("")
   firstName       String
   lastName        String
   nricId          String?
@@ -60,10 +106,13 @@ model Patient {
   treatmentPlans TreatmentPlan[]
   prescriptions  Prescription[]
   patientPackages PatientPackage[]
+
+  @@unique([clinicId, patientIdNumber])
 }
 
 model FamilyMember {
   id              String   @id @default(cuid())
+  clinicId        String?
   patientId       String
   relation        String   // spouse | parent | child | sibling | grandparent | grandchild | uncle_aunt | nephew_niece | cousin | other
   linkedPatientId String?  // optional FK to another Patient record
@@ -79,6 +128,7 @@ model FamilyMember {
 
 model Appointment {
   id              String   @id @default(cuid())
+  clinicId        String?
   patientId       String?
   doctorId        String?
   date            DateTime
@@ -116,6 +166,7 @@ model Appointment {
 
 model Communication {
   id        String   @id @default(cuid())
+  clinicId  String?
   patientId String
   type      String   // "email" | "whatsapp"
   subject   String?
@@ -128,6 +179,7 @@ model Communication {
 
 model ClinicalNote {
   id              String   @id @default(cuid())
+  clinicId        String?
   patientId       String
   type            String   // "present_illness" | "past_history" | "personal_history" | "examination" | "diagnosis" | "treatment" | "general"
   title           String
@@ -141,6 +193,7 @@ model ClinicalNote {
 
 model Document {
   id          String   @id @default(cuid())
+  clinicId    String?
   patientId   String
   fileName    String
   fileType    String   // MIME type
@@ -157,6 +210,7 @@ model Document {
 
 model Vital {
   id              String   @id @default(cuid())
+  clinicId        String?
   patientId       String
   appointmentId   String?
   date            DateTime @default(now())
@@ -183,6 +237,7 @@ model Vital {
 
 model Treatment {
   id              String   @id @default(cuid())
+  clinicId        String?
   name            String
   description     String?
   category        String   @default("therapy") // therapy | consultation | panchakarma | massage | detox | specialty
@@ -200,6 +255,7 @@ model Treatment {
 
 model TreatmentPackage {
   id              String   @id @default(cuid())
+  clinicId        String?
   treatmentId     String
   name            String   // e.g. "10-Session Package"
   sessionCount    Int      // number of sessions
@@ -219,7 +275,8 @@ model TreatmentPackage {
 
 model InventoryItem {
   id              String   @id @default(cuid())
-  sku             String   @unique
+  clinicId        String?
+  sku             String
   name            String
   category        String   @default("medicine") // medicine | herb | oil | consumable | equipment
   subcategory     String?  // e.g. "Kashayam", "Arishtam", "Choornam", "Thailam", "Ghritam", "Leham"
@@ -246,10 +303,13 @@ model InventoryItem {
   variants        InventoryVariant[]
   branchStock     BranchStock[]
   transferItems   StockTransferItem[]
+
+  @@unique([clinicId, sku])
 }
 
 model InventoryVariant {
   id              String   @id @default(cuid())
+  clinicId        String?
   itemId          String
   manufacturerCode String? // Kottakkal code for this specific variant
   packing         String   // e.g. "200ML", "50GM"
@@ -266,6 +326,7 @@ model InventoryVariant {
 
 model StockTransaction {
   id              String   @id @default(cuid())
+  clinicId        String?
   itemId          String
   variantId       String?  // linked to specific variant if applicable
   type            String   // purchase | sale | adjustment | return | expired | damaged
@@ -285,6 +346,7 @@ model StockTransaction {
 
 model Supplier {
   id              String   @id @default(cuid())
+  clinicId        String?
   name            String
   contactPerson   String?
   phone           String?
@@ -296,10 +358,11 @@ model Supplier {
   updatedAt       DateTime @updatedAt
 }
 
-// ─── Clinic Settings (singleton) ─────────────────────────────────────────
+// ─── Clinic Settings (per-clinic) ───────────────────────────────────────
 
 model ClinicSettings {
-  id                String   @id @default("default")
+  id                String   @id @default(cuid())
+  clinicId          String?  @unique
   clinicName        String   @default("Ayur Centre Pte. Ltd.")
   address           String   @default("84 Bedok North Street 4 #01-17")
   city              String   @default("Singapore")
@@ -325,7 +388,8 @@ model ClinicSettings {
 
 model Invoice {
   id              String   @id @default(cuid())
-  invoiceNumber   String   @unique
+  clinicId        String?
+  invoiceNumber   String
   patientId       String?
   appointmentId   String?
   branchId        String?
@@ -359,10 +423,13 @@ model Invoice {
   payments        Payment[]
   insuranceClaims InsuranceClaim[]
   creditNotes     CreditNote[]
+
+  @@unique([clinicId, invoiceNumber])
 }
 
 model InvoiceItem {
   id              String   @id @default(cuid())
+  clinicId        String?
   invoiceId       String
   type            String   // consultation | therapy | medicine | procedure | lab | other
   description     String
@@ -381,8 +448,9 @@ model InvoiceItem {
 
 model Payment {
   id              String   @id @default(cuid())
+  clinicId        String?
   invoiceId       String
-  receiptNumber   String?  @unique // REC-YYYYMM-XXXX
+  receiptNumber   String?
   amount          Float
   method          String   // cash | card | upi | insurance | bank_transfer
   reference       String?  // transaction ID, cheque number, etc.
@@ -391,14 +459,17 @@ model Payment {
   createdAt       DateTime @default(now())
 
   invoice         Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@unique([clinicId, receiptNumber])
 }
 
 // ─── Insurance ───────────────────────────────────────────────────────────
 
 model InsuranceProvider {
   id              String   @id @default(cuid())
+  clinicId        String?
   name            String
-  code            String   @unique // short code e.g. "AIA", "NTUC"
+  code            String
   contactPerson   String?
   phone           String?
   email           String?
@@ -409,11 +480,14 @@ model InsuranceProvider {
   updatedAt       DateTime @updatedAt
 
   claims          InsuranceClaim[]
+
+  @@unique([clinicId, code])
 }
 
 model InsuranceClaim {
   id              String   @id @default(cuid())
-  claimNumber     String   @unique // CLM-YYYYMM-XXXX
+  clinicId        String?
+  claimNumber     String
   invoiceId       String
   providerId      String
   patientId       String?
@@ -443,13 +517,16 @@ model InsuranceClaim {
 
   invoice         Invoice           @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
   provider        InsuranceProvider  @relation(fields: [providerId], references: [id])
+
+  @@unique([clinicId, claimNumber])
 }
 
 // ─── Credit Notes ────────────────────────────────────────────────────────
 
 model CreditNote {
   id                String   @id @default(cuid())
-  creditNoteNumber  String   @unique // CN-YYYYMM-XXXX
+  clinicId          String?
+  creditNoteNumber  String
   invoiceId         String
   reason            String
   items             String   @default("[]") // JSON: [{description, amount, gstAmount}]
@@ -464,13 +541,16 @@ model CreditNote {
   updatedAt         DateTime @updatedAt
 
   invoice           Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@unique([clinicId, creditNoteNumber])
 }
 
 // ─── Purchase Orders ─────────────────────────────────────────────────────
 
 model PurchaseOrder {
   id              String   @id @default(cuid())
-  poNumber        String   @unique
+  clinicId        String?
+  poNumber        String
   supplierId      String
   supplierName    String
   status          String   @default("draft") // draft, submitted, partial, received, cancelled
@@ -487,10 +567,13 @@ model PurchaseOrder {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   items           PurchaseOrderItem[]
+
+  @@unique([clinicId, poNumber])
 }
 
 model PurchaseOrderItem {
   id              String   @id @default(cuid())
+  clinicId        String?
   purchaseOrderId String
   inventoryItemId String?
   variantId       String?  // linked to specific variant if applicable
@@ -509,6 +592,7 @@ model PurchaseOrderItem {
 
 model MessageTemplate {
   id          String   @id @default(cuid())
+  clinicId    String?
   name        String
   channel     String   // whatsapp, email, sms
   subject     String?  // for email
@@ -521,6 +605,7 @@ model MessageTemplate {
 
 model Reminder {
   id              String   @id @default(cuid())
+  clinicId        String?
   patientId       String
   appointmentId   String?
   type            String   // appointment, follow_up, payment, medication, custom
@@ -539,7 +624,8 @@ model Reminder {
 
 model Prescription {
   id              String   @id @default(cuid())
-  prescriptionNo  String   @unique
+  clinicId        String?
+  prescriptionNo  String
   patientId       String
   doctorId        String?
   doctorName      String
@@ -551,10 +637,13 @@ model Prescription {
   updatedAt       DateTime @updatedAt
   patient         Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
   items           PrescriptionItem[]
+
+  @@unique([clinicId, prescriptionNo])
 }
 
 model PrescriptionItem {
   id              String   @id @default(cuid())
+  clinicId        String?
   prescriptionId  String
   medicineName    String
   inventoryItemId String?  // link to InventoryItem if from stock
@@ -572,7 +661,8 @@ model PrescriptionItem {
 
 model TreatmentPlan {
   id              String   @id @default(cuid())
-  planNumber      String   @unique
+  clinicId        String?
+  planNumber      String
   patientId       String
   doctorId        String?
   doctorName      String
@@ -592,10 +682,13 @@ model TreatmentPlan {
   patient         Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
   items           TreatmentPlanItem[]
   milestones      TreatmentMilestone[]
+
+  @@unique([clinicId, planNumber])
 }
 
 model TreatmentPlanItem {
   id              String   @id @default(cuid())
+  clinicId        String?
   planId          String
   treatmentId     String?
   treatmentName   String
@@ -615,6 +708,7 @@ model TreatmentPlanItem {
 
 model TreatmentMilestone {
   id              String   @id @default(cuid())
+  clinicId        String?
   planId          String
   title           String
   description     String?
@@ -630,8 +724,9 @@ model TreatmentMilestone {
 
 model User {
   id              String    @id @default(cuid())
+  clinicId        String?
   name            String
-  email           String    @unique
+  email           String
   phone           String?
   role            String    @default("staff") // admin | doctor | therapist | pharmacist | receptionist | staff
   password        String    @default("") // hashed placeholder
@@ -642,7 +737,7 @@ model User {
   lastLogin       DateTime?
 
   // Staff identification
-  staffIdNumber   String?   @unique // D10001, T10001, P10001, R10001, A10001, S10001
+  staffIdNumber   String?   // D10001, T10001, P10001, R10001, A10001, S10001
 
   // Clinical fields (doctor/therapist only)
   gender          String?   // "male" | "female"
@@ -654,21 +749,25 @@ model User {
   status          String    @default("active") // active | inactive
 
   // Email invite
-  inviteToken     String?   @unique
+  inviteToken     String?   @unique // keep globally unique for invite links
   inviteExpiresAt DateTime?
 
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
   appointments    Appointment[]
+
+  @@unique([clinicId, email])
+  @@unique([clinicId, staffIdNumber])
 }
 
 // ─── Multi-Branch ────────────────────────────────────────────────────────
 
 model Branch {
   id             String   @id @default(cuid())
+  clinicId       String?
   name           String
-  code           String   @unique
+  code           String
   address        String?
   city           String?
   state          String?
@@ -684,12 +783,15 @@ model Branch {
   branchStock    BranchStock[]
   transfersFrom  StockTransfer[] @relation("TransfersFrom")
   transfersTo    StockTransfer[] @relation("TransfersTo")
+
+  @@unique([clinicId, code])
 }
 
 // ─── Branch-Level Stock ─────────────────────────────────────────────────
 
 model BranchStock {
   id        String  @id @default(cuid())
+  clinicId  String?
   branchId  String
   itemId    String
   variantId String?
@@ -705,7 +807,8 @@ model BranchStock {
 
 model StockTransfer {
   id              String    @id @default(cuid())
-  transferNumber  String    @unique
+  clinicId        String?
+  transferNumber  String
   fromBranchId    String
   toBranchId      String
   status          String    @default("draft") // draft | in_transit | received | cancelled
@@ -720,10 +823,13 @@ model StockTransfer {
   fromBranch      Branch              @relation("TransfersFrom", fields: [fromBranchId], references: [id])
   toBranch        Branch              @relation("TransfersTo", fields: [toBranchId], references: [id])
   items           StockTransferItem[]
+
+  @@unique([clinicId, transferNumber])
 }
 
 model StockTransferItem {
   id               String  @id @default(cuid())
+  clinicId         String?
   transferId       String
   itemId           String
   variantId        String?
@@ -739,6 +845,7 @@ model StockTransferItem {
 
 model TransferTemplate {
   id            String   @id @default(cuid())
+  clinicId      String?
   name          String
   description   String?
   fromBranchId  String
@@ -752,6 +859,7 @@ model TransferTemplate {
 
 model TransferTemplateItem {
   id          String @id @default(cuid())
+  clinicId    String?
   templateId  String
   itemId      String
   variantId   String?
@@ -764,7 +872,8 @@ model TransferTemplateItem {
 
 model PatientPackage {
   id                String   @id @default(cuid())
-  packageNumber     String   @unique // PKG-YYYYMM-XXXX
+  clinicId          String?
+  packageNumber     String // PKG-YYYYMM-XXXX
   patientId         String
   treatmentId       String?
   treatmentPackageId String?
@@ -815,10 +924,13 @@ model PatientPackage {
   sessions          PackageSession[]
   shares            PackageShare[]
   refunds           PackageRefund[]
+
+  @@unique([clinicId, packageNumber])
 }
 
 model PackageSession {
   id                String   @id @default(cuid())
+  clinicId          String?
   patientPackageId  String
   appointmentId     String?  // linked to actual appointment
   sessionNumber     Int      // 1, 2, 3...
@@ -841,6 +953,7 @@ model PackageSession {
 
 model PackageShare {
   id                String   @id @default(cuid())
+  clinicId          String?
   patientPackageId  String
   sharedWithPatientId String
   sharedByPatientId String   // original package owner
@@ -857,8 +970,9 @@ model PackageShare {
 
 model PackageRefund {
   id                String   @id @default(cuid())
+  clinicId          String?
   patientPackageId  String
-  refundNumber      String   @unique // REF-YYYYMM-XXXX
+  refundNumber      String // REF-YYYYMM-XXXX
 
   // CaseTrust policy tracking
   refundType        String   // cooling_off | after_cooling_off_within_5days | beyond_5days
@@ -884,12 +998,15 @@ model PackageRefund {
   updatedAt         DateTime @updatedAt
 
   patientPackage    PatientPackage @relation(fields: [patientPackageId], references: [id], onDelete: Cascade)
+
+  @@unique([clinicId, refundNumber])
 }
 
 // ─── Notifications ──────────────────────────────────────────────────────
 
 model Notification {
   id          String   @id @default(cuid())
+  clinicId    String?
   type        String   // transfer_incoming | transfer_received | transfer_cancelled | low_stock | po_received | general
   title       String
   message     String
@@ -904,6 +1021,7 @@ model Notification {
 
 model AuditLog {
   id        String   @id @default(cuid())
+  clinicId  String?
   userId    String?
   userName  String
   action    String   // create | update | delete

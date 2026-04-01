@@ -1,9 +1,14 @@
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET /api/purchase-orders - List purchase orders with optional filters
 export async function GET(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
     const supplierId = searchParams.get("supplierId");
@@ -37,7 +42,7 @@ export async function GET(request: NextRequest) {
     }
 
     const [purchaseOrders, total] = await Promise.all([
-      prisma.purchaseOrder.findMany({
+      db.purchaseOrder.findMany({
         where,
         include: {
           items: true,
@@ -46,7 +51,7 @@ export async function GET(request: NextRequest) {
         skip,
         take: limit,
       }),
-      prisma.purchaseOrder.count({ where }),
+      db.purchaseOrder.count({ where }),
     ]);
 
     const result = purchaseOrders.map((po) => ({
@@ -75,6 +80,9 @@ export async function GET(request: NextRequest) {
 // POST /api/purchase-orders - Create a new purchase order
 export async function POST(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const body = await request.json();
 
     if (!body.supplierId || !body.supplierName) {
@@ -96,7 +104,7 @@ export async function POST(request: NextRequest) {
     const yearMonth = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}`;
     const prefix = `PO-${yearMonth}-`;
 
-    const lastPO = await prisma.purchaseOrder.findFirst({
+    const lastPO = await db.purchaseOrder.findFirst({
       where: { poNumber: { startsWith: prefix } },
       orderBy: { poNumber: "desc" },
     });
@@ -155,7 +163,7 @@ export async function POST(request: NextRequest) {
 
     const totalAmount = Math.round((subtotal + gstAmount) * 100) / 100;
 
-    const purchaseOrder = await prisma.purchaseOrder.create({
+    const purchaseOrder = await db.purchaseOrder.create({
       data: {
         poNumber,
         supplierId: body.supplierId,

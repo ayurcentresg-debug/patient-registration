@@ -1,9 +1,14 @@
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextRequest, NextResponse } from "next/server";
 
 // PUT /api/inventory/bulk - Bulk update inventory items
 export async function PUT(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const body = await request.json();
     const { ids, action, status } = body as {
       ids: string[];
@@ -27,7 +32,7 @@ export async function PUT(request: NextRequest) {
         );
       }
 
-      const result = await prisma.inventoryItem.updateMany({
+      const result = await db.inventoryItem.updateMany({
         where: { id: { in: ids } },
         data: { status },
       });

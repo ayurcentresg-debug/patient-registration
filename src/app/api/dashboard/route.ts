@@ -1,8 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 
 export async function GET() {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const tomorrow = new Date(today);
@@ -62,31 +67,31 @@ export async function GET() {
       upcomingTodayAppointments,
     ] = await Promise.all([
       // ── Existing queries ──────────────────────────────────────────────
-      prisma.patient.count(),
-      prisma.patient.count({ where: { status: "active" } }),
-      prisma.appointment.count(),
-      prisma.communication.count(),
-      prisma.user.count({ where: { status: "active", role: "doctor" } }),
-      prisma.user.count({ where: { status: "active", role: "therapist" } }),
-      prisma.appointment.count({
+      db.patient.count(),
+      db.patient.count({ where: { status: "active" } }),
+      db.appointment.count(),
+      db.communication.count(),
+      db.user.count({ where: { status: "active", role: "doctor" } }),
+      db.user.count({ where: { status: "active", role: "therapist" } }),
+      db.appointment.count({
         where: {
           date: { gte: today, lt: tomorrow },
           status: { notIn: ["cancelled"] },
         },
       }),
-      prisma.appointment.count({
+      db.appointment.count({
         where: {
           date: { gte: today },
           status: { in: ["scheduled", "confirmed"] },
         },
       }),
-      prisma.patient.findMany({ take: 5, orderBy: { createdAt: "desc" } }),
-      prisma.communication.findMany({
+      db.patient.findMany({ take: 5, orderBy: { createdAt: "desc" } }),
+      db.communication.findMany({
         take: 5,
         orderBy: { sentAt: "desc" },
         include: { patient: { select: { firstName: true, lastName: true } } },
       }),
-      prisma.appointment.findMany({
+      db.appointment.findMany({
         where: {
           date: { gte: today, lt: tomorrow },
           status: { notIn: ["cancelled"] },
@@ -101,7 +106,7 @@ export async function GET() {
 
       // ── Revenue stats ─────────────────────────────────────────────────
       // Today's revenue
-      prisma.invoice.aggregate({
+      db.invoice.aggregate({
         _sum: { totalAmount: true },
         where: {
           date: { gte: today, lt: tomorrow },
@@ -109,7 +114,7 @@ export async function GET() {
         },
       }),
       // This month's revenue
-      prisma.invoice.aggregate({
+      db.invoice.aggregate({
         _sum: { totalAmount: true },
         where: {
           date: { gte: monthStart, lt: tomorrow },
@@ -117,7 +122,7 @@ export async function GET() {
         },
       }),
       // Last month's revenue
-      prisma.invoice.aggregate({
+      db.invoice.aggregate({
         _sum: { totalAmount: true },
         where: {
           date: { gte: lastMonthStart, lt: lastMonthEnd },
@@ -184,7 +189,7 @@ export async function GET() {
       ),
 
       // ── Recent appointments (for activity feed) ─────────────────────
-      prisma.appointment.findMany({
+      db.appointment.findMany({
         take: 5,
         orderBy: { createdAt: "desc" },
         include: {
@@ -194,7 +199,7 @@ export async function GET() {
       }),
 
       // ── Recent invoices (for activity feed) ─────────────────────────
-      prisma.invoice.findMany({
+      db.invoice.findMany({
         take: 5,
         orderBy: { date: "desc" },
         where: { status: { notIn: ["draft"] } },
@@ -211,7 +216,7 @@ export async function GET() {
       }),
 
       // ── Upcoming appointments today (remaining, not completed/cancelled) ──
-      prisma.appointment.findMany({
+      db.appointment.findMany({
         where: {
           date: { gte: today, lt: tomorrow },
           status: { in: ["scheduled", "confirmed", "in-progress"] },

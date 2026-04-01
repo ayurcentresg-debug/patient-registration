@@ -1,15 +1,20 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { sendEmail } from "@/lib/email";
 import { sendWhatsApp } from "@/lib/whatsapp";
 import { sendSMS } from "@/lib/sms";
 
 export async function POST() {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const now = new Date();
 
     // Find all pending reminders that are due
-    const dueReminders = await prisma.reminder.findMany({
+    const dueReminders = await db.reminder.findMany({
       where: {
         status: "pending",
         scheduledAt: { lte: now },
@@ -68,7 +73,7 @@ export async function POST() {
       }
 
       // Update reminder status
-      await prisma.reminder.update({
+      await db.reminder.update({
         where: { id: reminder.id },
         data: {
           status: success ? "sent" : "failed",
@@ -78,7 +83,7 @@ export async function POST() {
 
       // Create Communication record for sent reminders
       if (success) {
-        await prisma.communication.create({
+        await db.communication.create({
           data: {
             patientId: reminder.patient.id,
             type: reminder.channel,

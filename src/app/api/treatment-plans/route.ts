@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 
 // GET /api/treatment-plans - List treatment plans with filters
 export async function GET(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { searchParams } = new URL(request.url);
     const patientId = searchParams.get("patientId");
     const doctorId = searchParams.get("doctorId");
@@ -28,7 +33,7 @@ export async function GET(request: NextRequest) {
     }
 
     const [plans, total] = await Promise.all([
-      prisma.treatmentPlan.findMany({
+      db.treatmentPlan.findMany({
         where,
         skip,
         take: limit,
@@ -40,7 +45,7 @@ export async function GET(request: NextRequest) {
           _count: { select: { items: true } },
         },
       }),
-      prisma.treatmentPlan.count({ where }),
+      db.treatmentPlan.count({ where }),
     ]);
 
     return NextResponse.json({
@@ -61,6 +66,9 @@ export async function GET(request: NextRequest) {
 // POST /api/treatment-plans - Create new treatment plan
 export async function POST(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const body = await request.json();
 
     if (!body.patientId || !body.doctorName || !body.name) {
@@ -71,7 +79,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify patient exists
-    const patient = await prisma.patient.findUnique({ where: { id: body.patientId } });
+    const patient = await db.patient.findUnique({ where: { id: body.patientId } });
     if (!patient) {
       return NextResponse.json({ error: "Patient not found" }, { status: 404 });
     }
@@ -80,7 +88,7 @@ export async function POST(request: NextRequest) {
     const now = new Date();
     const yearMonth = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}`;
     const prefix = `TP-${yearMonth}-`;
-    const lastPlan = await prisma.treatmentPlan.findFirst({
+    const lastPlan = await db.treatmentPlan.findFirst({
       where: { planNumber: { startsWith: prefix } },
       orderBy: { planNumber: "desc" },
     });

@@ -1,4 +1,6 @@
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET /api/purchase-orders/[id] - Get single PO with all items
@@ -7,9 +9,12 @@ export async function GET(
   props: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await props.params;
 
-    const purchaseOrder = await prisma.purchaseOrder.findUnique({
+    const purchaseOrder = await db.purchaseOrder.findUnique({
       where: { id },
       include: {
         items: true,
@@ -39,10 +44,13 @@ export async function PUT(
   props: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await props.params;
     const body = await request.json();
 
-    const existingPO = await prisma.purchaseOrder.findUnique({
+    const existingPO = await db.purchaseOrder.findUnique({
       where: { id },
       include: { items: true },
     });
@@ -139,7 +147,7 @@ export async function PUT(
       updateData.totalAmount = totalAmount;
 
       // Delete existing items and create new ones
-      await prisma.purchaseOrderItem.deleteMany({
+      await db.purchaseOrderItem.deleteMany({
         where: { purchaseOrderId: id },
       });
 
@@ -148,7 +156,7 @@ export async function PUT(
       };
     }
 
-    const purchaseOrder = await prisma.purchaseOrder.update({
+    const purchaseOrder = await db.purchaseOrder.update({
       where: { id },
       data: updateData,
       include: {
@@ -172,9 +180,12 @@ export async function DELETE(
   props: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await props.params;
 
-    const existingPO = await prisma.purchaseOrder.findUnique({
+    const existingPO = await db.purchaseOrder.findUnique({
       where: { id },
     });
 
@@ -192,7 +203,7 @@ export async function DELETE(
       );
     }
 
-    await prisma.purchaseOrder.delete({
+    await db.purchaseOrder.delete({
       where: { id },
     });
 

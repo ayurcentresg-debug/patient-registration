@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { unlink } from "fs/promises";
 import path from "path";
 
@@ -8,8 +10,11 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
-    const doc = await prisma.document.findUnique({ where: { id } });
+    const doc = await db.document.findUnique({ where: { id } });
     if (!doc) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
     // Delete file from disk
@@ -20,7 +25,7 @@ export async function DELETE(
       console.warn("File already removed:", e);
     }
 
-    await prisma.document.delete({ where: { id } });
+    await db.document.delete({ where: { id } });
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("DELETE /api/documents/[id] error:", error);

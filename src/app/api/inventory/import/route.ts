@@ -1,4 +1,6 @@
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextRequest, NextResponse } from "next/server";
 
 interface ImportItem {
@@ -33,6 +35,9 @@ const CATEGORY_PREFIX: Record<string, string> = {
 
 export async function POST(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const body = await request.json();
     const items: ImportItem[] = body.items;
 
@@ -46,7 +51,7 @@ export async function POST(request: NextRequest) {
     // Get current counts per category for SKU generation
     const categoryCounts: Record<string, number> = {};
     for (const cat of VALID_CATEGORIES) {
-      categoryCounts[cat] = await prisma.inventoryItem.count({
+      categoryCounts[cat] = await db.inventoryItem.count({
         where: { category: cat },
       });
     }
@@ -85,7 +90,7 @@ export async function POST(request: NextRequest) {
         const sequenceNumber = String(categoryCounts[category]).padStart(4, "0");
         const sku = `AYU-${prefix}${sequenceNumber}`;
 
-        await prisma.inventoryItem.create({
+        await db.inventoryItem.create({
           data: {
             sku,
             name: item.name.trim(),

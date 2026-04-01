@@ -1,9 +1,14 @@
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextRequest, NextResponse } from "next/server";
 
 // POST /api/invoices/generate - Generate invoice from an appointment
 export async function POST(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const body = await request.json();
 
     if (!body.appointmentId) {
@@ -14,7 +19,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Fetch appointment with patient and doctor
-    const appointment = await prisma.appointment.findUnique({
+    const appointment = await db.appointment.findUnique({
       where: { id: body.appointmentId },
       include: {
         patient: true,
@@ -30,7 +35,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if invoice already exists for this appointment
-    const existingInvoice = await prisma.invoice.findFirst({
+    const existingInvoice = await db.invoice.findFirst({
       where: { appointmentId: body.appointmentId },
     });
 
@@ -76,7 +81,7 @@ export async function POST(request: NextRequest) {
     const yearMonth = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}`;
     const prefix = `INV-${yearMonth}-`;
 
-    const lastInvoice = await prisma.invoice.findFirst({
+    const lastInvoice = await db.invoice.findFirst({
       where: {
         invoiceNumber: { startsWith: prefix },
       },
@@ -91,7 +96,7 @@ export async function POST(request: NextRequest) {
     const invoiceNumber = `${prefix}${String(sequence).padStart(4, "0")}`;
 
     // Create the invoice
-    const invoice = await prisma.invoice.create({
+    const invoice = await db.invoice.create({
       data: {
         invoiceNumber,
         patientId: appointment.patientId || null,

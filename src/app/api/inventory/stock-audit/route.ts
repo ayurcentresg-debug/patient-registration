@@ -1,4 +1,6 @@
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextRequest, NextResponse } from "next/server";
 
 // POST /api/inventory/stock-audit - Bulk stock audit
@@ -6,6 +8,9 @@ import { NextRequest, NextResponse } from "next/server";
 // When branchId is provided, adjusts BranchStock.quantity instead of InventoryItem.currentStock
 export async function POST(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const body = await request.json();
 
     if (!Array.isArray(body.items) || body.items.length === 0) {
@@ -30,7 +35,7 @@ export async function POST(request: NextRequest) {
       }
 
       try {
-        const item = await prisma.inventoryItem.findUnique({
+        const item = await db.inventoryItem.findUnique({
           where: { id: itemId },
         });
 
@@ -41,7 +46,7 @@ export async function POST(request: NextRequest) {
 
         if (branchId) {
           // ─── Branch-level audit ──────────────────────────────────
-          const branchStock = await prisma.branchStock.findFirst({
+          const branchStock = await db.branchStock.findFirst({
             where: { branchId, itemId, variantId: null },
           });
 
@@ -54,7 +59,7 @@ export async function POST(request: NextRequest) {
           }
 
           // Fetch branch name for notes
-          const branch = await prisma.branch.findUnique({
+          const branch = await db.branch.findUnique({
             where: { id: branchId },
             select: { name: true, code: true },
           });
@@ -65,7 +70,7 @@ export async function POST(request: NextRequest) {
 
           // Create stock transaction with branch info in notes
           txns.push(
-            prisma.stockTransaction.create({
+            db.stockTransaction.create({
               data: {
                 itemId,
                 type: "adjustment",
@@ -85,14 +90,14 @@ export async function POST(request: NextRequest) {
           // Upsert BranchStock
           if (branchStock) {
             txns.push(
-              prisma.branchStock.update({
+              db.branchStock.update({
                 where: { id: branchStock.id },
                 data: { quantity: newStock },
               })
             );
           } else {
             txns.push(
-              prisma.branchStock.create({
+              db.branchStock.create({
                 data: {
                   branchId,
                   itemId,
@@ -105,7 +110,7 @@ export async function POST(request: NextRequest) {
           // Also update the global InventoryItem.currentStock by the same delta
           const delta = newStock - previousStock;
           txns.push(
-            prisma.inventoryItem.update({
+            db.inventoryItem.update({
               where: { id: itemId },
               data: {
                 currentStock: { increment: delta },
@@ -135,7 +140,7 @@ export async function POST(request: NextRequest) {
 
           // Create adjustment transaction and update item in a single transaction
           await prisma.$transaction([
-            prisma.stockTransaction.create({
+            db.stockTransaction.create({
               data: {
                 itemId,
                 type: "adjustment",
@@ -150,7 +155,7 @@ export async function POST(request: NextRequest) {
                 date: new Date(),
               },
             }),
-            prisma.inventoryItem.update({
+            db.inventoryItem.update({
               where: { id: itemId },
               data: {
                 currentStock: newStock,

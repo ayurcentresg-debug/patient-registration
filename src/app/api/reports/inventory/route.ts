@@ -1,9 +1,14 @@
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET /api/reports/inventory?period=month&from=2026-03-01&to=2026-03-31
 export async function GET(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { searchParams } = new URL(request.url);
     const period = searchParams.get("period") || "month";
     const customFrom = searchParams.get("from");
@@ -51,7 +56,7 @@ export async function GET(request: NextRequest) {
       purchaseTransactions,
     ] = await Promise.all([
       // All active inventory items
-      prisma.inventoryItem.findMany({
+      db.inventoryItem.findMany({
         where: { status: { not: "discontinued" } },
         select: { id: true, name: true, sku: true, category: true, currentStock: true, reorderLevel: true, unit: true, unitPrice: true, batchNumber: true, expiryDate: true },
       }),
@@ -60,7 +65,7 @@ export async function GET(request: NextRequest) {
         `SELECT id, name, sku, currentStock, reorderLevel, unit, category FROM InventoryItem WHERE currentStock <= reorderLevel AND status != 'discontinued'`
       ),
       // Expiring within 30 days
-      prisma.inventoryItem.findMany({
+      db.inventoryItem.findMany({
         where: {
           expiryDate: { gt: now, lte: thirtyDaysFromNow },
           status: { not: "discontinued" },
@@ -68,7 +73,7 @@ export async function GET(request: NextRequest) {
         select: { id: true, name: true, sku: true, batchNumber: true, expiryDate: true, currentStock: true, unit: true },
       }),
       // Already expired
-      prisma.inventoryItem.findMany({
+      db.inventoryItem.findMany({
         where: {
           expiryDate: { lte: now },
           status: { not: "discontinued" },
@@ -76,19 +81,19 @@ export async function GET(request: NextRequest) {
         select: { id: true },
       }),
       // Sale transactions in period
-      prisma.stockTransaction.findMany({
+      db.stockTransaction.findMany({
         where: { type: "sale", date: { gte: fromDate, lte: toDate } },
         select: { itemId: true, quantity: true, totalAmount: true },
         orderBy: { date: "desc" },
       }),
       // Recent 20 transactions
-      prisma.stockTransaction.findMany({
+      db.stockTransaction.findMany({
         take: 20,
         orderBy: { date: "desc" },
         select: { id: true, itemId: true, type: true, quantity: true, date: true, notes: true, item: { select: { name: true } } },
       }),
       // Purchase transactions in period
-      prisma.stockTransaction.findMany({
+      db.stockTransaction.findMany({
         where: { type: "purchase", date: { gte: fromDate, lte: toDate } },
         select: { itemId: true, quantity: true, totalAmount: true, item: { select: { supplier: true } } },
       }),
@@ -98,7 +103,7 @@ export async function GET(request: NextRequest) {
     // When branchId is provided, use BranchStock quantities instead of global currentStock
     let branchStockMap: Map<string, number> | null = null;
     if (branchId) {
-      const branchStocks = await prisma.branchStock.findMany({
+      const branchStocks = await db.branchStock.findMany({
         where: { branchId },
         select: { itemId: true, quantity: true },
       });

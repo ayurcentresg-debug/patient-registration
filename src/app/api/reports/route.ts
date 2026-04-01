@@ -1,9 +1,14 @@
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET /api/reports?period=month&from=2026-03-01&to=2026-03-31
 export async function GET(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { searchParams } = new URL(request.url);
     const period = searchParams.get("period") || "month"; // week | month | quarter | year | custom
     const customFrom = searchParams.get("from");
@@ -69,64 +74,64 @@ export async function GET(request: NextRequest) {
       invoiceItems,
     ] = await Promise.all([
       // Current period invoices
-      prisma.invoice.findMany({
+      db.invoice.findMany({
         where: { date: { gte: fromDate, lte: toDate }, status: { not: "cancelled" } },
         select: { id: true, totalAmount: true, paidAmount: true, balanceAmount: true, discountAmount: true, gstAmount: true, status: true, date: true, paymentMethod: true, patientName: true },
       }),
       // Previous period invoices
-      prisma.invoice.findMany({
+      db.invoice.findMany({
         where: { date: { gte: prevFrom, lte: prevTo }, status: { not: "cancelled" } },
         select: { totalAmount: true, paidAmount: true },
       }),
       // Current period payments
-      prisma.payment.findMany({
+      db.payment.findMany({
         where: { date: { gte: fromDate, lte: toDate } },
         select: { amount: true, method: true, date: true },
       }),
       // Previous period payments
-      prisma.payment.findMany({
+      db.payment.findMany({
         where: { date: { gte: prevFrom, lte: prevTo } },
         select: { amount: true },
       }),
       // Current appointments
-      prisma.appointment.findMany({
+      db.appointment.findMany({
         where: { date: { gte: fromDate, lte: toDate } },
         select: { id: true, status: true, type: true, date: true, doctorId: true, doctor: true, patientId: true, treatmentId: true, treatmentName: true, sessionPrice: true, isWalkin: true },
       }),
       // Previous appointments
-      prisma.appointment.findMany({
+      db.appointment.findMany({
         where: { date: { gte: prevFrom, lte: prevTo } },
         select: { id: true, status: true },
       }),
       // New patients this period
-      prisma.patient.count({ where: { createdAt: { gte: fromDate, lte: toDate } } }),
+      db.patient.count({ where: { createdAt: { gte: fromDate, lte: toDate } } }),
       // New patients previous period
-      prisma.patient.count({ where: { createdAt: { gte: prevFrom, lte: prevTo } } }),
+      db.patient.count({ where: { createdAt: { gte: prevFrom, lte: prevTo } } }),
       // Total patients
-      prisma.patient.count(),
+      db.patient.count(),
       // Outstanding invoices
-      prisma.invoice.findMany({
+      db.invoice.findMany({
         where: { status: { in: ["pending", "partially_paid"] } },
         select: { id: true, invoiceNumber: true, patientName: true, totalAmount: true, paidAmount: true, balanceAmount: true, date: true, dueDate: true, status: true },
         orderBy: { date: "asc" },
       }),
       // All doctors
-      prisma.user.findMany({
+      db.user.findMany({
         where: { status: "active", role: { in: ["doctor", "therapist"] } },
         select: { id: true, name: true, role: true, specialization: true, consultationFee: true },
       }),
       // All treatments
-      prisma.treatment.findMany({
+      db.treatment.findMany({
         where: { isActive: true },
         select: { id: true, name: true, category: true, basePrice: true },
       }),
       // Detailed appointments for doctor performance
-      prisma.appointment.findMany({
+      db.appointment.findMany({
         where: { date: { gte: fromDate, lte: toDate } },
         select: { doctorId: true, doctor: true, status: true, sessionPrice: true, type: true, treatmentName: true, patientId: true, isWalkin: true },
       }),
       // Invoice items for treatment revenue
-      prisma.invoiceItem.findMany({
+      db.invoiceItem.findMany({
         where: { invoice: { date: { gte: fromDate, lte: toDate }, status: { not: "cancelled" } } },
         select: { type: true, description: true, amount: true, quantity: true },
       }),

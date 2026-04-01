@@ -1,9 +1,14 @@
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET /api/invoices - List invoices with filters
 export async function GET(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { searchParams } = new URL(request.url);
     const patientId = searchParams.get("patientId");
     const status = searchParams.get("status");
@@ -48,7 +53,7 @@ export async function GET(request: NextRequest) {
       ];
     }
 
-    const invoices = await prisma.invoice.findMany({
+    const invoices = await db.invoice.findMany({
       where,
       include: {
         _count: {
@@ -69,7 +74,7 @@ export async function GET(request: NextRequest) {
 
     // Check which invoices are linked to packages
     const invoiceIds = invoices.map((inv) => inv.id);
-    const packageLinks = await prisma.patientPackage.findMany({
+    const packageLinks = await db.patientPackage.findMany({
       where: { invoiceId: { in: invoiceIds } },
       select: { invoiceId: true, packageNumber: true, packageName: true, id: true },
     });
@@ -97,6 +102,9 @@ export async function GET(request: NextRequest) {
 // POST /api/invoices - Create a new invoice
 export async function POST(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const body = await request.json();
 
     // Validate required fields
@@ -111,7 +119,7 @@ export async function POST(request: NextRequest) {
     let branchId: string | null = body.branchId || null;
     if (!branchId) {
       // Default to the main branch
-      const mainBranch = await prisma.branch.findFirst({
+      const mainBranch = await db.branch.findFirst({
         where: { isMainBranch: true, isActive: true },
       });
       if (mainBranch) {
@@ -124,7 +132,7 @@ export async function POST(request: NextRequest) {
     const yearMonth = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}`;
     const prefix = `INV-${yearMonth}-`;
 
-    const lastInvoice = await prisma.invoice.findFirst({
+    const lastInvoice = await db.invoice.findFirst({
       where: {
         invoiceNumber: { startsWith: prefix },
       },
@@ -194,7 +202,7 @@ export async function POST(request: NextRequest) {
         if (item.type === "medicine" && item.inventoryItemId) {
           // Check if this is a variant sale
           if (item.variantId) {
-            const variant = await prisma.inventoryVariant.findUnique({
+            const variant = await db.inventoryVariant.findUnique({
               where: { id: item.variantId },
             });
             if (!variant) {
@@ -219,7 +227,7 @@ export async function POST(request: NextRequest) {
             });
           } else {
             // Base item stock deduction
-            const inventoryItem = await prisma.inventoryItem.findUnique({
+            const inventoryItem = await db.inventoryItem.findUnique({
               where: { id: item.inventoryItemId },
             });
 
@@ -277,7 +285,7 @@ export async function POST(request: NextRequest) {
     const transactionOps: any[] = [];
 
     // Create the invoice
-    const invoiceCreate = prisma.invoice.create({
+    const invoiceCreate = db.invoice.create({
       data: {
         invoiceNumber,
         patientId: body.patientId || null,
@@ -330,7 +338,7 @@ export async function POST(request: NextRequest) {
       if (update.variantId) {
         // Deduct from variant stock
         transactionOps.push(
-          prisma.inventoryVariant.update({
+          db.inventoryVariant.update({
             where: { id: update.variantId },
             data: { currentStock: update.newStock },
           })
@@ -338,7 +346,7 @@ export async function POST(request: NextRequest) {
       } else {
         // Deduct from base item stock
         transactionOps.push(
-          prisma.inventoryItem.update({
+          db.inventoryItem.update({
             where: { id: update.itemId },
             data: {
               currentStock: update.newStock,
@@ -351,7 +359,7 @@ export async function POST(request: NextRequest) {
       // ─── BranchStock deduction ──────────────────────────────────────────────
       if (branchId) {
         // BranchStock has @@unique([branchId, itemId, variantId]) — variantId may be null
-        const branchStock = await prisma.branchStock.findFirst({
+        const branchStock = await db.branchStock.findFirst({
           where: {
             branchId: branchId,
             itemId: update.itemId,
@@ -368,7 +376,7 @@ export async function POST(request: NextRequest) {
           }
           const newBranchQty = Math.max(branchStock.quantity - update.quantity, 0);
           transactionOps.push(
-            prisma.branchStock.update({
+            db.branchStock.update({
               where: { id: branchStock.id },
               data: { quantity: newBranchQty },
             })
@@ -382,7 +390,7 @@ export async function POST(request: NextRequest) {
       }
 
       transactionOps.push(
-        prisma.stockTransaction.create({
+        db.stockTransaction.create({
           data: {
             itemId: update.itemId,
             variantId: update.variantId || null,

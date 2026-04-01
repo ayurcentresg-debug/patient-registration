@@ -1,13 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
-    const vital = await prisma.vital.findUnique({ where: { id } });
+    const vital = await db.vital.findUnique({ where: { id } });
     if (!vital) return NextResponse.json({ error: "Not found" }, { status: 404 });
     return NextResponse.json(vital);
   } catch (error) {
@@ -21,10 +26,13 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
     const body = await request.json();
 
-    const existing = await prisma.vital.findUnique({ where: { id } });
+    const existing = await db.vital.findUnique({ where: { id } });
     if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
     // Determine final weight and height for BMI recalculation
@@ -42,7 +50,7 @@ export async function PUT(
       }
     }
 
-    const vital = await prisma.vital.update({
+    const vital = await db.vital.update({
       where: { id },
       data: {
         ...(body.appointmentId !== undefined && { appointmentId: body.appointmentId || null }),
@@ -72,11 +80,14 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
-    const existing = await prisma.vital.findUnique({ where: { id } });
+    const existing = await db.vital.findUnique({ where: { id } });
     if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-    await prisma.vital.delete({ where: { id } });
+    await db.vital.delete({ where: { id } });
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("DELETE /api/vitals/[id] error:", error);

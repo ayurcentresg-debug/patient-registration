@@ -1,14 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 
 export async function GET(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const patientId = request.nextUrl.searchParams.get("patientId");
     if (!patientId) return NextResponse.json({ error: "patientId required" }, { status: 400 });
 
     const limit = parseInt(request.nextUrl.searchParams.get("limit") || "20", 10);
 
-    const vitals = await prisma.vital.findMany({
+    const vitals = await db.vital.findMany({
       where: { patientId },
       orderBy: { date: "desc" },
       take: limit,
@@ -22,6 +27,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const body = await request.json();
     if (!body.patientId) return NextResponse.json({ error: "patientId required" }, { status: 400 });
 
@@ -32,7 +40,7 @@ export async function POST(request: NextRequest) {
       bmi = Math.round((body.weight / (heightInMeters * heightInMeters)) * 10) / 10;
     }
 
-    const vital = await prisma.vital.create({
+    const vital = await db.vital.create({
       data: {
         patientId: body.patientId,
         appointmentId: body.appointmentId || null,

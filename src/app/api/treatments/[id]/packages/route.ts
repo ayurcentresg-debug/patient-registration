@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 
 // GET /api/treatments/[id]/packages - List packages for a treatment
 export async function GET(
@@ -7,8 +9,11 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
-    const packages = await prisma.treatmentPackage.findMany({
+    const packages = await db.treatmentPackage.findMany({
       where: { treatmentId: id },
       orderBy: { sessionCount: "asc" },
     });
@@ -25,10 +30,13 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
     const body = await request.json();
 
-    const treatment = await prisma.treatment.findUnique({ where: { id } });
+    const treatment = await db.treatment.findUnique({ where: { id } });
     if (!treatment) {
       return NextResponse.json({ error: "Treatment not found" }, { status: 404 });
     }
@@ -45,7 +53,7 @@ export async function POST(
     const totalPrice = Math.round(treatment.basePrice * sessionCount * (1 - discountPercent / 100) * 100) / 100;
     const pricePerSession = Math.round((totalPrice / sessionCount) * 100) / 100;
 
-    const pkg = await prisma.treatmentPackage.create({
+    const pkg = await db.treatmentPackage.create({
       data: {
         treatmentId: id,
         name: body.name?.trim() || `${sessionCount}-Session Package`,
@@ -70,6 +78,9 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
     const body = await request.json();
 
@@ -77,12 +88,12 @@ export async function PUT(
       return NextResponse.json({ error: "packageId is required" }, { status: 400 });
     }
 
-    const treatment = await prisma.treatment.findUnique({ where: { id } });
+    const treatment = await db.treatment.findUnique({ where: { id } });
     if (!treatment) {
       return NextResponse.json({ error: "Treatment not found" }, { status: 404 });
     }
 
-    const existing = await prisma.treatmentPackage.findUnique({ where: { id: body.packageId } });
+    const existing = await db.treatmentPackage.findUnique({ where: { id: body.packageId } });
     if (!existing || existing.treatmentId !== id) {
       return NextResponse.json({ error: "Package not found" }, { status: 404 });
     }
@@ -92,7 +103,7 @@ export async function PUT(
     const totalPrice = Math.round(treatment.basePrice * sessionCount * (1 - discountPercent / 100) * 100) / 100;
     const pricePerSession = Math.round((totalPrice / sessionCount) * 100) / 100;
 
-    const pkg = await prisma.treatmentPackage.update({
+    const pkg = await db.treatmentPackage.update({
       where: { id: body.packageId },
       data: {
         name: body.name?.trim() ?? existing.name,
@@ -117,6 +128,9 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
     const packageId = request.nextUrl.searchParams.get("packageId");
 
@@ -124,19 +138,19 @@ export async function DELETE(
       return NextResponse.json({ error: "packageId query param is required" }, { status: 400 });
     }
 
-    const existing = await prisma.treatmentPackage.findUnique({ where: { id: packageId } });
+    const existing = await db.treatmentPackage.findUnique({ where: { id: packageId } });
     if (!existing || existing.treatmentId !== id) {
       return NextResponse.json({ error: "Package not found" }, { status: 404 });
     }
 
     // Check if any appointments reference this package
-    const aptCount = await prisma.appointment.count({ where: { packageId } });
+    const aptCount = await db.appointment.count({ where: { packageId } });
     if (aptCount > 0) {
-      await prisma.treatmentPackage.update({ where: { id: packageId }, data: { isActive: false } });
+      await db.treatmentPackage.update({ where: { id: packageId }, data: { isActive: false } });
       return NextResponse.json({ message: "Package deactivated (has linked appointments)", deactivated: true });
     }
 
-    await prisma.treatmentPackage.delete({ where: { id: packageId } });
+    await db.treatmentPackage.delete({ where: { id: packageId } });
     return NextResponse.json({ message: "Package deleted" });
   } catch (error) {
     console.error("DELETE /api/treatments/[id]/packages error:", error);

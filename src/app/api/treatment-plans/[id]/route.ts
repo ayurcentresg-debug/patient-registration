@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 
 // GET /api/treatment-plans/[id] - Get single plan with all details
 export async function GET(
@@ -7,8 +9,11 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
-    const plan = await prisma.treatmentPlan.findUnique({
+    const plan = await db.treatmentPlan.findUnique({
       where: { id },
       include: {
         items: { orderBy: { sequence: "asc" } },
@@ -36,10 +41,13 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
     const body = await request.json();
 
-    const existing = await prisma.treatmentPlan.findUnique({ where: { id } });
+    const existing = await db.treatmentPlan.findUnique({ where: { id } });
     if (!existing) {
       return NextResponse.json({ error: "Treatment plan not found" }, { status: 404 });
     }
@@ -62,7 +70,7 @@ export async function PUT(
       }
     }
 
-    const plan = await prisma.treatmentPlan.update({
+    const plan = await db.treatmentPlan.update({
       where: { id },
       data,
       include: {
@@ -87,9 +95,12 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
 
-    const existing = await prisma.treatmentPlan.findUnique({ where: { id } });
+    const existing = await db.treatmentPlan.findUnique({ where: { id } });
     if (!existing) {
       return NextResponse.json({ error: "Treatment plan not found" }, { status: 404 });
     }
@@ -101,7 +112,7 @@ export async function DELETE(
       );
     }
 
-    await prisma.treatmentPlan.delete({ where: { id } });
+    await db.treatmentPlan.delete({ where: { id } });
     return NextResponse.json({ message: "Treatment plan deleted" });
   } catch (error) {
     console.error("DELETE /api/treatment-plans/[id] error:", error);

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 
 // POST /api/treatment-plans/[id]/milestones - Add milestone
 export async function POST(
@@ -7,10 +9,13 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
     const body = await request.json();
 
-    const plan = await prisma.treatmentPlan.findUnique({ where: { id } });
+    const plan = await db.treatmentPlan.findUnique({ where: { id } });
     if (!plan) {
       return NextResponse.json({ error: "Treatment plan not found" }, { status: 404 });
     }
@@ -19,7 +24,7 @@ export async function POST(
       return NextResponse.json({ error: "title is required" }, { status: 400 });
     }
 
-    const milestone = await prisma.treatmentMilestone.create({
+    const milestone = await db.treatmentMilestone.create({
       data: {
         planId: id,
         title: body.title.trim(),
@@ -42,6 +47,9 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
     const body = await request.json();
 
@@ -49,7 +57,7 @@ export async function PUT(
       return NextResponse.json({ error: "milestoneId is required" }, { status: 400 });
     }
 
-    const existing = await prisma.treatmentMilestone.findUnique({ where: { id: body.milestoneId } });
+    const existing = await db.treatmentMilestone.findUnique({ where: { id: body.milestoneId } });
     if (!existing || existing.planId !== id) {
       return NextResponse.json({ error: "Milestone not found in this plan" }, { status: 404 });
     }
@@ -68,7 +76,7 @@ export async function PUT(
     }
     if (body.notes !== undefined) data.notes = body.notes?.trim() || null;
 
-    const milestone = await prisma.treatmentMilestone.update({
+    const milestone = await db.treatmentMilestone.update({
       where: { id: body.milestoneId },
       data,
     });
@@ -86,6 +94,9 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
     const { searchParams } = new URL(request.url);
     const milestoneId = searchParams.get("milestoneId");
@@ -94,12 +105,12 @@ export async function DELETE(
       return NextResponse.json({ error: "milestoneId query parameter is required" }, { status: 400 });
     }
 
-    const existing = await prisma.treatmentMilestone.findUnique({ where: { id: milestoneId } });
+    const existing = await db.treatmentMilestone.findUnique({ where: { id: milestoneId } });
     if (!existing || existing.planId !== id) {
       return NextResponse.json({ error: "Milestone not found in this plan" }, { status: 404 });
     }
 
-    await prisma.treatmentMilestone.delete({ where: { id: milestoneId } });
+    await db.treatmentMilestone.delete({ where: { id: milestoneId } });
     return NextResponse.json({ message: "Milestone deleted" });
   } catch (error) {
     console.error("DELETE /api/treatment-plans/[id]/milestones error:", error);

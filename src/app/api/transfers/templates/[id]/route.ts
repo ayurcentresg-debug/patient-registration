@@ -1,4 +1,6 @@
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET — Get single template with full details
@@ -7,9 +9,12 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
 
-    const template = await prisma.transferTemplate.findUnique({
+    const template = await db.transferTemplate.findUnique({
       where: { id },
       include: { items: true },
     });
@@ -23,11 +28,11 @@ export async function GET(
     const itemIds = template.items.map((ti) => ti.itemId);
 
     const [branches, items] = await Promise.all([
-      prisma.branch.findMany({
+      db.branch.findMany({
         where: { id: { in: branchIds } },
         select: { id: true, name: true, code: true },
       }),
-      prisma.inventoryItem.findMany({
+      db.inventoryItem.findMany({
         where: { id: { in: itemIds } },
         select: { id: true, name: true, sku: true, packing: true, unit: true, category: true },
       }),
@@ -59,11 +64,14 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
     const body = await request.json();
     const { name, description, fromBranchId, toBranchId, items } = body;
 
-    const existing = await prisma.transferTemplate.findUnique({ where: { id } });
+    const existing = await db.transferTemplate.findUnique({ where: { id } });
     if (!existing || !existing.isActive) {
       return NextResponse.json({ error: "Template not found" }, { status: 404 });
     }
@@ -77,11 +85,11 @@ export async function PUT(
 
     // Validate branches if changed
     if (fromBranchId) {
-      const branch = await prisma.branch.findUnique({ where: { id: fromBranchId } });
+      const branch = await db.branch.findUnique({ where: { id: fromBranchId } });
       if (!branch) return NextResponse.json({ error: "Source branch not found" }, { status: 400 });
     }
     if (toBranchId) {
-      const branch = await prisma.branch.findUnique({ where: { id: toBranchId } });
+      const branch = await db.branch.findUnique({ where: { id: toBranchId } });
       if (!branch) return NextResponse.json({ error: "Destination branch not found" }, { status: 400 });
     }
 
@@ -89,7 +97,7 @@ export async function PUT(
     if (items && Array.isArray(items)) {
       // Validate items exist
       const itemIds = items.map((i: { itemId: string }) => i.itemId);
-      const existingItems = await prisma.inventoryItem.findMany({
+      const existingItems = await db.inventoryItem.findMany({
         where: { id: { in: itemIds } },
         select: { id: true },
       });
@@ -102,8 +110,8 @@ export async function PUT(
 
       // Delete existing items and create new ones in a transaction
       await prisma.$transaction([
-        prisma.transferTemplateItem.deleteMany({ where: { templateId: id } }),
-        prisma.transferTemplate.update({
+        db.transferTemplateItem.deleteMany({ where: { templateId: id } }),
+        db.transferTemplate.update({
           where: { id },
           data: {
             ...updateData,
@@ -118,14 +126,14 @@ export async function PUT(
         }),
       ]);
     } else if (Object.keys(updateData).length > 0) {
-      await prisma.transferTemplate.update({
+      await db.transferTemplate.update({
         where: { id },
         data: updateData,
       });
     }
 
     // Fetch updated template
-    const updated = await prisma.transferTemplate.findUnique({
+    const updated = await db.transferTemplate.findUnique({
       where: { id },
       include: { items: true },
     });
@@ -143,14 +151,17 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
 
-    const existing = await prisma.transferTemplate.findUnique({ where: { id } });
+    const existing = await db.transferTemplate.findUnique({ where: { id } });
     if (!existing) {
       return NextResponse.json({ error: "Template not found" }, { status: 404 });
     }
 
-    await prisma.transferTemplate.update({
+    await db.transferTemplate.update({
       where: { id },
       data: { isActive: false },
     });

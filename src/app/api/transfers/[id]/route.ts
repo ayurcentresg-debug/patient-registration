@@ -1,4 +1,6 @@
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET /api/transfers/[id] - Get transfer detail
@@ -7,9 +9,12 @@ export async function GET(
   props: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await props.params;
 
-    const transfer = await prisma.stockTransfer.findUnique({
+    const transfer = await db.stockTransfer.findUnique({
       where: { id },
       include: {
         fromBranch: true,
@@ -44,14 +49,14 @@ export async function GET(
     let receivedByUser = null;
 
     if (transfer.initiatedBy) {
-      initiatedByUser = await prisma.user.findUnique({
+      initiatedByUser = await db.user.findUnique({
         where: { id: transfer.initiatedBy },
         select: { id: true, name: true },
       });
     }
 
     if (transfer.receivedBy) {
-      receivedByUser = await prisma.user.findUnique({
+      receivedByUser = await db.user.findUnique({
         where: { id: transfer.receivedBy },
         select: { id: true, name: true },
       });
@@ -77,10 +82,13 @@ export async function PUT(
   props: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await props.params;
     const body = await request.json();
 
-    const existingTransfer = await prisma.stockTransfer.findUnique({
+    const existingTransfer = await db.stockTransfer.findUnique({
       where: { id },
       include: { items: true },
     });
@@ -109,7 +117,7 @@ export async function PUT(
           { status: 400 }
         );
       }
-      const fromBranch = await prisma.branch.findUnique({
+      const fromBranch = await db.branch.findUnique({
         where: { id: body.fromBranchId },
       });
       if (!fromBranch || !fromBranch.isActive) {
@@ -128,7 +136,7 @@ export async function PUT(
           { status: 400 }
         );
       }
-      const toBranch = await prisma.branch.findUnique({
+      const toBranch = await db.branch.findUnique({
         where: { id: body.toBranchId },
       });
       if (!toBranch || !toBranch.isActive) {
@@ -168,7 +176,7 @@ export async function PUT(
           );
         }
 
-        const inventoryItem = await prisma.inventoryItem.findUnique({
+        const inventoryItem = await db.inventoryItem.findUnique({
           where: { id: item.itemId },
         });
 
@@ -180,7 +188,7 @@ export async function PUT(
         }
 
         // Validate stock at source branch
-        const branchStock = await prisma.branchStock.findFirst({
+        const branchStock = await db.branchStock.findFirst({
           where: {
             branchId: sourceBranchId,
             itemId: item.itemId,
@@ -207,7 +215,7 @@ export async function PUT(
       }
 
       // Delete existing items and create new ones
-      await prisma.stockTransferItem.deleteMany({
+      await db.stockTransferItem.deleteMany({
         where: { transferId: id },
       });
 
@@ -216,7 +224,7 @@ export async function PUT(
       };
     }
 
-    const transfer = await prisma.stockTransfer.update({
+    const transfer = await db.stockTransfer.update({
       where: { id },
       data: updateData,
       include: {

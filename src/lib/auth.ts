@@ -10,6 +10,7 @@ export interface JWTPayload {
   email: string;
   role: string;
   name: string;
+  clinicId: string;
 }
 
 /** Create a signed JWT token (expires in 24h) */

@@ -1,11 +1,16 @@
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextResponse } from "next/server";
 
 // GET /api/inventory/indent - Generate Kottakkal-format indent for low-stock items
 export async function GET() {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     // Fetch all active items where currentStock < reorderLevel
-    const lowStockItems = await prisma.inventoryItem.findMany({
+    const lowStockItems = await db.inventoryItem.findMany({
       where: {
         status: "active",
       },

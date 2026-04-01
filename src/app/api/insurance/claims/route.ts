@@ -1,9 +1,14 @@
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET /api/insurance/claims - List claims with filters
 export async function GET(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
     const providerId = searchParams.get("providerId");
@@ -48,7 +53,7 @@ export async function GET(request: NextRequest) {
       ];
     }
 
-    const claims = await prisma.insuranceClaim.findMany({
+    const claims = await db.insuranceClaim.findMany({
       where,
       include: {
         invoice: {
@@ -84,6 +89,9 @@ export async function GET(request: NextRequest) {
 // POST /api/insurance/claims - Create a new claim
 export async function POST(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const body = await request.json();
 
     // Validate required fields
@@ -95,7 +103,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate invoice exists
-    const invoice = await prisma.invoice.findUnique({
+    const invoice = await db.invoice.findUnique({
       where: { id: body.invoiceId },
     });
 
@@ -107,7 +115,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate provider exists
-    const provider = await prisma.insuranceProvider.findUnique({
+    const provider = await db.insuranceProvider.findUnique({
       where: { id: body.providerId },
     });
 
@@ -123,7 +131,7 @@ export async function POST(request: NextRequest) {
     const yearMonth = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}`;
     const prefix = `CLM-${yearMonth}-`;
 
-    const lastClaim = await prisma.insuranceClaim.findFirst({
+    const lastClaim = await db.insuranceClaim.findFirst({
       where: {
         claimNumber: { startsWith: prefix },
       },
@@ -137,7 +145,7 @@ export async function POST(request: NextRequest) {
     }
     const claimNumber = `${prefix}${String(sequence).padStart(4, "0")}`;
 
-    const claim = await prisma.insuranceClaim.create({
+    const claim = await db.insuranceClaim.create({
       data: {
         claimNumber,
         invoiceId: body.invoiceId,

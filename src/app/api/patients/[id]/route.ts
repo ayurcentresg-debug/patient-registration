@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { validateName } from "@/lib/validation";
 
 /** Normalize phone: strip formatting, add country code for SG/IN local numbers */
@@ -35,8 +37,11 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
-    const patient = await prisma.patient.findUnique({
+    const patient = await db.patient.findUnique({
       where: { id },
       include: {
         appointments: { orderBy: { date: "desc" } },
@@ -63,6 +68,9 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
     const body = await request.json();
 
@@ -89,7 +97,7 @@ export async function PUT(
     }
 
     // Check patient exists
-    const existing = await prisma.patient.findUnique({ where: { id } });
+    const existing = await db.patient.findUnique({ where: { id } });
     if (!existing) {
       return NextResponse.json({ error: "Patient not found" }, { status: 404 });
     }
@@ -123,7 +131,7 @@ export async function PUT(
     // Don't allow updating patientIdNumber or id
     const { patientIdNumber, id: _bodyId, ...updateData } = body;
 
-    const patient = await prisma.patient.update({
+    const patient = await db.patient.update({
       where: { id },
       data: {
         ...updateData,
@@ -143,19 +151,22 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
 
-    const existing = await prisma.patient.findUnique({ where: { id } });
+    const existing = await db.patient.findUnique({ where: { id } });
     if (!existing) {
       return NextResponse.json({ error: "Patient not found" }, { status: 404 });
     }
 
     // Delete related records first, then patient
-    await prisma.communication.deleteMany({ where: { patientId: id } });
-    await prisma.appointment.deleteMany({ where: { patientId: id } });
-    await prisma.clinicalNote.deleteMany({ where: { patientId: id } });
-    await prisma.document.deleteMany({ where: { patientId: id } });
-    await prisma.patient.delete({ where: { id } });
+    await db.communication.deleteMany({ where: { patientId: id } });
+    await db.appointment.deleteMany({ where: { patientId: id } });
+    await db.clinicalNote.deleteMany({ where: { patientId: id } });
+    await db.document.deleteMany({ where: { patientId: id } });
+    await db.patient.delete({ where: { id } });
 
     return NextResponse.json({ success: true });
   } catch (error) {

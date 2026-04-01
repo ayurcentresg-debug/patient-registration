@@ -1,9 +1,14 @@
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET /api/reports/insurance?period=month&from=2026-03-01&to=2026-03-31
 export async function GET(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { searchParams } = new URL(request.url);
     const period = searchParams.get("period") || "month";
     const customFrom = searchParams.get("from");
@@ -44,7 +49,7 @@ export async function GET(request: NextRequest) {
       recentClaims,
     ] = await Promise.all([
       // Claims in the selected period
-      prisma.insuranceClaim.findMany({
+      db.insuranceClaim.findMany({
         where: { submittedDate: { gte: fromDate, lte: toDate } },
         select: {
           id: true,
@@ -64,12 +69,12 @@ export async function GET(request: NextRequest) {
         },
       }),
       // All providers
-      prisma.insuranceProvider.findMany({
+      db.insuranceProvider.findMany({
         where: { isActive: true },
         select: { id: true, name: true, panelType: true },
       }),
       // Recent claims (last 20)
-      prisma.insuranceClaim.findMany({
+      db.insuranceClaim.findMany({
         take: 20,
         orderBy: { submittedDate: "desc" },
         select: {

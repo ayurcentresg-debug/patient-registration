@@ -32,8 +32,12 @@ export async function POST(req: NextRequest) {
 
     // Hash new password and update
     const hashed = await hashPassword(newPassword);
+    const userToUpdate = await prisma.user.findFirst({ where: { email } });
+    if (!userToUpdate) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
     await prisma.user.update({
-      where: { email },
+      where: { id: userToUpdate.id },
       data: { password: hashed },
     });
 

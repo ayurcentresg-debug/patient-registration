@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 
 interface TimelineEvent {
   id: string;
@@ -16,33 +18,36 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
     const limit = parseInt(request.nextUrl.searchParams.get("limit") || "50", 10);
 
     // Verify patient exists
-    const patient = await prisma.patient.findUnique({ where: { id } });
+    const patient = await db.patient.findUnique({ where: { id } });
     if (!patient) return NextResponse.json({ error: "Patient not found" }, { status: 404 });
 
     // Fetch all event sources in parallel
     const [appointments, clinicalNotes, documents, communications, vitals, invoices] =
       await Promise.all([
-        prisma.appointment.findMany({
+        db.appointment.findMany({
           where: { patientId: id },
           include: { doctorRef: true },
         }),
-        prisma.clinicalNote.findMany({
+        db.clinicalNote.findMany({
           where: { patientId: id },
         }),
-        prisma.document.findMany({
+        db.document.findMany({
           where: { patientId: id },
         }),
-        prisma.communication.findMany({
+        db.communication.findMany({
           where: { patientId: id },
         }),
-        prisma.vital.findMany({
+        db.vital.findMany({
           where: { patientId: id },
         }),
-        prisma.invoice.findMany({
+        db.invoice.findMany({
           where: { patientId: id },
         }),
       ]);

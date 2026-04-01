@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 
 // GET /api/treatment-plans/stats - Treatment plan statistics
 export async function GET(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { searchParams } = new URL(request.url);
     const patientId = searchParams.get("patientId");
 
@@ -12,11 +17,11 @@ export async function GET(request: NextRequest) {
     if (patientId) where.patientId = patientId;
 
     const [totalPlans, activePlans, completedPlans, pausedPlans, allPlans] = await Promise.all([
-      prisma.treatmentPlan.count({ where }),
-      prisma.treatmentPlan.count({ where: { ...where, status: "active" } }),
-      prisma.treatmentPlan.count({ where: { ...where, status: "completed" } }),
-      prisma.treatmentPlan.count({ where: { ...where, status: "paused" } }),
-      prisma.treatmentPlan.findMany({
+      db.treatmentPlan.count({ where }),
+      db.treatmentPlan.count({ where: { ...where, status: "active" } }),
+      db.treatmentPlan.count({ where: { ...where, status: "completed" } }),
+      db.treatmentPlan.count({ where: { ...where, status: "paused" } }),
+      db.treatmentPlan.findMany({
         where,
         select: { totalSessions: true, completedSessions: true },
       }),
@@ -34,7 +39,7 @@ export async function GET(request: NextRequest) {
     if (patientId) {
       milestoneWhere.plan = { patientId };
     }
-    const upcomingMilestones = await prisma.treatmentMilestone.findMany({
+    const upcomingMilestones = await db.treatmentMilestone.findMany({
       where: milestoneWhere,
       orderBy: { targetDate: "asc" },
       take: 5,
@@ -51,7 +56,7 @@ export async function GET(request: NextRequest) {
     if (patientId) {
       itemWhere.plan = { patientId };
     }
-    const recentProgress = await prisma.treatmentPlanItem.findMany({
+    const recentProgress = await db.treatmentPlanItem.findMany({
       where: itemWhere,
       orderBy: { plan: { updatedAt: "desc" } },
       take: 10,

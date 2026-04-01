@@ -1,9 +1,14 @@
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET /api/prescriptions?patientId=xxx
 export async function GET(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { searchParams } = new URL(request.url);
     const patientId = searchParams.get("patientId");
     const status = searchParams.get("status");
@@ -39,7 +44,7 @@ export async function GET(request: NextRequest) {
       ];
     }
 
-    const prescriptions = await prisma.prescription.findMany({
+    const prescriptions = await db.prescription.findMany({
       where,
       include: {
         items: { orderBy: { sequence: "asc" } },
@@ -58,6 +63,9 @@ export async function GET(request: NextRequest) {
 // POST /api/prescriptions
 export async function POST(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const body = await request.json();
     const { patientId, doctorId, doctorName, diagnosis, notes, items } = body;
 
@@ -68,12 +76,12 @@ export async function POST(request: NextRequest) {
     // Generate prescription number: RX-YYYYMM-XXXX
     const now = new Date();
     const prefix = `RX-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}`;
-    const count = await prisma.prescription.count({
+    const count = await db.prescription.count({
       where: { prescriptionNo: { startsWith: prefix } },
     });
     const prescriptionNo = `${prefix}-${String(count + 1).padStart(4, "0")}`;
 
-    const prescription = await prisma.prescription.create({
+    const prescription = await db.prescription.create({
       data: {
         prescriptionNo,
         patientId,

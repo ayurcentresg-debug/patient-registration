@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { writeFile, mkdir, unlink } from "fs/promises";
 import path from "path";
 
@@ -8,9 +10,12 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
 
-    const patient = await prisma.patient.findUnique({ where: { id } });
+    const patient = await db.patient.findUnique({ where: { id } });
     if (!patient) {
       return NextResponse.json({ error: "Patient not found" }, { status: 404 });
     }
@@ -58,7 +63,7 @@ export async function POST(
     }
 
     // Update patient record
-    const updated = await prisma.patient.update({
+    const updated = await db.patient.update({
       where: { id },
       data: { photoUrl },
     });
@@ -75,9 +80,12 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
 
-    const patient = await prisma.patient.findUnique({ where: { id } });
+    const patient = await db.patient.findUnique({ where: { id } });
     if (!patient) {
       return NextResponse.json({ error: "Patient not found" }, { status: 404 });
     }
@@ -92,7 +100,7 @@ export async function DELETE(
       }
     }
 
-    await prisma.patient.update({
+    await db.patient.update({
       where: { id },
       data: { photoUrl: null },
     });

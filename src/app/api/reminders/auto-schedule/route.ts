@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 
 function substituteVariables(text: string, variables: Record<string, string>): string {
   let result = text;
@@ -11,11 +13,14 @@ function substituteVariables(text: string, variables: Record<string, string>): s
 
 export async function POST() {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const now = new Date();
     const in48Hours = new Date(now.getTime() + 48 * 60 * 60 * 1000);
 
     // Find all appointments in the next 48 hours
-    const appointments = await prisma.appointment.findMany({
+    const appointments = await db.appointment.findMany({
       where: {
         date: {
           gte: now,
@@ -40,7 +45,7 @@ export async function POST() {
 
     // Find existing reminders for these appointments
     const appointmentIds = appointments.map((a) => a.id);
-    const existingReminders = await prisma.reminder.findMany({
+    const existingReminders = await db.reminder.findMany({
       where: {
         appointmentId: { in: appointmentIds },
         status: { in: ["pending", "sent"] },
@@ -52,7 +57,7 @@ export async function POST() {
     );
 
     // Fetch default template
-    const defaultTemplate = await prisma.messageTemplate.findFirst({
+    const defaultTemplate = await db.messageTemplate.findFirst({
       where: {
         category: "appointment_reminder",
         isActive: true,
@@ -118,7 +123,7 @@ export async function POST() {
         message = `Dear ${patient.firstName}, this is a reminder for your appointment on ${appointmentDateStr} at ${appointment.time || "the scheduled time"} with ${appointment.doctor || "your doctor"}. Please arrive 10 minutes early. - Ayurveda Clinic`;
       }
 
-      await prisma.reminder.create({
+      await db.reminder.create({
         data: {
           patientId: appointment.patientId,
           appointmentId: appointment.id,

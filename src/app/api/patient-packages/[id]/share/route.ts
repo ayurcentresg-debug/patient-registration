@@ -1,4 +1,6 @@
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET /api/patient-packages/[id]/share - List shares for a package
@@ -7,9 +9,12 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
 
-    const pkg = await prisma.patientPackage.findUnique({
+    const pkg = await db.patientPackage.findUnique({
       where: { id },
     });
 
@@ -20,7 +25,7 @@ export async function GET(
       );
     }
 
-    const shares = await prisma.packageShare.findMany({
+    const shares = await db.packageShare.findMany({
       where: { patientPackageId: id },
       orderBy: { createdAt: "desc" },
     });
@@ -41,6 +46,9 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
     const body = await request.json();
 
@@ -51,7 +59,7 @@ export async function POST(
       );
     }
 
-    const pkg = await prisma.patientPackage.findUnique({
+    const pkg = await db.patientPackage.findUnique({
       where: { id },
       include: {
         shares: { where: { isActive: true } },
@@ -93,7 +101,7 @@ export async function POST(
     }
 
     // Verify the shared-with patient exists
-    const sharedWithPatient = await prisma.patient.findUnique({
+    const sharedWithPatient = await db.patient.findUnique({
       where: { id: body.sharedWithPatientId },
     });
     if (!sharedWithPatient) {
@@ -107,7 +115,7 @@ export async function POST(
       body.sharedWithName ||
       `${sharedWithPatient.firstName} ${sharedWithPatient.lastName}`;
 
-    const share = await prisma.packageShare.create({
+    const share = await db.packageShare.create({
       data: {
         patientPackageId: id,
         sharedWithPatientId: body.sharedWithPatientId,
@@ -134,6 +142,9 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
     const body = await request.json();
 
@@ -144,7 +155,7 @@ export async function DELETE(
       );
     }
 
-    const share = await prisma.packageShare.findUnique({
+    const share = await db.packageShare.findUnique({
       where: { id: body.shareId },
     });
 
@@ -156,7 +167,7 @@ export async function DELETE(
     }
 
     // Soft-deactivate the share
-    const updated = await prisma.packageShare.update({
+    const updated = await db.packageShare.update({
       where: { id: body.shareId },
       data: { isActive: false },
     });

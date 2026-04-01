@@ -5,7 +5,19 @@ const secret = new TextEncoder().encode(
   process.env.JWT_SECRET || "fallback-dev-secret-change-in-production"
 );
 
-const PUBLIC_PATHS = ["/login", "/api/auth/login", "/api/auth/forgot-password", "/api/auth/reset-password", "/invite", "/api/invite"];
+const PUBLIC_PATHS = [
+  "/login",
+  "/api/auth/login",
+  "/api/auth/forgot-password",
+  "/api/auth/reset-password",
+  "/invite",
+  "/api/invite",
+  "/register",
+  "/api/clinic/register",
+  "/pricing",
+  "/api/public",
+  "/trial-expired",
+];
 
 // Routes only accessible by admin/receptionist/staff (not doctors)
 const ADMIN_ONLY_PATHS = ["/admin", "/reports", "/inventory", "/communications", "/billing"];

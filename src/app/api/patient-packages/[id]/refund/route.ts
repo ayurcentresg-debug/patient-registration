@@ -1,4 +1,6 @@
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextRequest, NextResponse } from "next/server";
 
 const ADMIN_FEE = 100; // S$100 CaseTrust admin fee
@@ -27,10 +29,13 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
     const body = await request.json();
 
-    const pkg = await prisma.patientPackage.findUnique({
+    const pkg = await db.patientPackage.findUnique({
       where: { id },
       include: {
         sessions: { where: { status: "completed" } },
@@ -102,7 +107,7 @@ export async function POST(
     const yearMonth = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}`;
     const refPrefix = `REF-${yearMonth}-`;
 
-    const lastRefund = await prisma.packageRefund.findFirst({
+    const lastRefund = await db.packageRefund.findFirst({
       where: {
         refundNumber: { startsWith: refPrefix },
       },
@@ -121,7 +126,7 @@ export async function POST(
 
     // Create refund and update package status in a transaction
     const [refund] = await prisma.$transaction([
-      prisma.packageRefund.create({
+      db.packageRefund.create({
         data: {
           patientPackageId: id,
           refundNumber,
@@ -138,7 +143,7 @@ export async function POST(
           notes: body.notes || null,
         },
       }),
-      prisma.patientPackage.update({
+      db.patientPackage.update({
         where: { id },
         data: { status: "refunded" },
       }),

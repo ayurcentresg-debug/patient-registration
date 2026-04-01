@@ -1,9 +1,14 @@
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET /api/notifications - Return unread notifications (most recent 20)
 export async function GET(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { searchParams } = new URL(request.url);
     const branchId = searchParams.get("branchId");
 
@@ -26,7 +31,7 @@ export async function GET(request: NextRequest) {
         }
       : { isRead: false };
 
-    const notifications = await prisma.notification.findMany({
+    const notifications = await db.notification.findMany({
       where: filterWhere,
       orderBy: { createdAt: "desc" },
       take: 20,
@@ -45,6 +50,9 @@ export async function GET(request: NextRequest) {
 // PUT /api/notifications - Mark notifications as read
 export async function PUT(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const body = await request.json();
 
     if (body.markAllRead) {
@@ -54,7 +62,7 @@ export async function PUT(request: NextRequest) {
         filter.OR = [{ branchId: body.branchId }, { branchId: null }];
       }
 
-      await prisma.notification.updateMany({
+      await db.notification.updateMany({
         where: filter,
         data: { isRead: true },
       });
@@ -63,7 +71,7 @@ export async function PUT(request: NextRequest) {
     }
 
     if (body.ids && Array.isArray(body.ids) && body.ids.length > 0) {
-      await prisma.notification.updateMany({
+      await db.notification.updateMany({
         where: {
           id: { in: body.ids },
         },

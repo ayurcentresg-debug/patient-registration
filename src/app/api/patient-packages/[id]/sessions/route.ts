@@ -1,4 +1,6 @@
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET /api/patient-packages/[id]/sessions - List sessions for a package
@@ -7,9 +9,12 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
 
-    const pkg = await prisma.patientPackage.findUnique({
+    const pkg = await db.patientPackage.findUnique({
       where: { id },
     });
 
@@ -20,7 +25,7 @@ export async function GET(
       );
     }
 
-    const sessions = await prisma.packageSession.findMany({
+    const sessions = await db.packageSession.findMany({
       where: { patientPackageId: id },
       orderBy: { sessionNumber: "asc" },
     });
@@ -41,10 +46,13 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
     const body = await request.json();
 
-    const pkg = await prisma.patientPackage.findUnique({
+    const pkg = await db.patientPackage.findUnique({
       where: { id },
       include: {
         shares: { where: { isActive: true } },
@@ -114,7 +122,7 @@ export async function POST(
 
     // Use a transaction to create session and update package atomically
     const [session, updatedPackage] = await prisma.$transaction([
-      prisma.packageSession.create({
+      db.packageSession.create({
         data: {
           patientPackageId: id,
           sessionNumber,
@@ -128,7 +136,7 @@ export async function POST(
           notes: body.notes || null,
         },
       }),
-      prisma.patientPackage.update({
+      db.patientPackage.update({
         where: { id },
         data: packageUpdateData,
         include: {

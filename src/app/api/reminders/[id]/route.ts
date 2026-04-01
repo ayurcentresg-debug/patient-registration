@@ -1,14 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 
 export async function GET(
   _request: NextRequest,
   props: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await props.params;
 
-    const reminder = await prisma.reminder.findUnique({
+    const reminder = await db.reminder.findUnique({
       where: { id },
       include: {
         patient: {
@@ -39,10 +44,13 @@ export async function PUT(
   props: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await props.params;
     const body = await request.json();
 
-    const existing = await prisma.reminder.findUnique({ where: { id } });
+    const existing = await db.reminder.findUnique({ where: { id } });
     if (!existing) {
       return NextResponse.json({ error: "Reminder not found" }, { status: 404 });
     }
@@ -60,7 +68,7 @@ export async function PUT(
     if (message !== undefined) data.message = message;
     if (channel !== undefined) data.channel = channel;
 
-    const reminder = await prisma.reminder.update({
+    const reminder = await db.reminder.update({
       where: { id },
       data,
       include: {
@@ -82,14 +90,17 @@ export async function DELETE(
   props: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await props.params;
 
-    const existing = await prisma.reminder.findUnique({ where: { id } });
+    const existing = await db.reminder.findUnique({ where: { id } });
     if (!existing) {
       return NextResponse.json({ error: "Reminder not found" }, { status: 404 });
     }
 
-    const reminder = await prisma.reminder.update({
+    const reminder = await db.reminder.update({
       where: { id },
       data: { status: "cancelled" },
     });

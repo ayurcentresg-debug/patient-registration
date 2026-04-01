@@ -1,4 +1,6 @@
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET /api/insurance/claims/[id] - Get single claim with details
@@ -7,9 +9,12 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
 
-    const claim = await prisma.insuranceClaim.findUnique({
+    const claim = await db.insuranceClaim.findUnique({
       where: { id },
       include: {
         invoice: {
@@ -45,10 +50,13 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
     const body = await request.json();
 
-    const existing = await prisma.insuranceClaim.findUnique({
+    const existing = await db.insuranceClaim.findUnique({
       where: { id },
       include: {
         invoice: true,
@@ -144,7 +152,7 @@ export async function PUT(
         const yearMonth = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}`;
         const recPrefix = `REC-${yearMonth}-`;
 
-        const lastReceipt = await prisma.payment.findFirst({
+        const lastReceipt = await db.payment.findFirst({
           where: {
             receiptNumber: { startsWith: recPrefix },
           },
@@ -171,7 +179,7 @@ export async function PUT(
         }
 
         const [claim] = await prisma.$transaction([
-          prisma.insuranceClaim.update({
+          db.insuranceClaim.update({
             where: { id },
             data: updateData,
             include: {
@@ -179,7 +187,7 @@ export async function PUT(
               provider: true,
             },
           }),
-          prisma.payment.create({
+          db.payment.create({
             data: {
               invoiceId: existing.invoiceId,
               receiptNumber,
@@ -190,7 +198,7 @@ export async function PUT(
               date: new Date(),
             },
           }),
-          prisma.invoice.update({
+          db.invoice.update({
             where: { id: existing.invoiceId },
             data: {
               paidAmount: newPaidAmount,
@@ -211,7 +219,7 @@ export async function PUT(
       }
     }
 
-    const claim = await prisma.insuranceClaim.update({
+    const claim = await db.insuranceClaim.update({
       where: { id },
       data: updateData,
       include: {
@@ -243,9 +251,12 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
 
-    const existing = await prisma.insuranceClaim.findUnique({
+    const existing = await db.insuranceClaim.findUnique({
       where: { id },
     });
 
@@ -263,7 +274,7 @@ export async function DELETE(
       );
     }
 
-    await prisma.insuranceClaim.delete({ where: { id } });
+    await db.insuranceClaim.delete({ where: { id } });
 
     return NextResponse.json({ message: "Insurance claim deleted successfully" });
   } catch (error) {

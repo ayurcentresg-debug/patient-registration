@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { sendEmail } from "@/lib/email";
 import { sendWhatsApp } from "@/lib/whatsapp";
 import { validateName } from "@/lib/validation";
@@ -41,14 +43,18 @@ function normalizePhone(phone: string): string {
 }
 
 // Auto-generate patient ID like P10001
-async function generatePatientId(): Promise<string> {
-  const count = await prisma.patient.count();
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function generatePatientId(db: any): Promise<string> {
+  const count = await db.patient.count();
   const nextNum = 10001 + count;
   return `P${nextNum}`;
 }
 
 export async function GET(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const searchParams = request.nextUrl.searchParams;
     const search = searchParams.get("search") || "";
     const status = searchParams.get("status") || "";
@@ -66,7 +72,7 @@ export async function GET(request: NextRequest) {
       ];
     }
 
-    const patients = await prisma.patient.findMany({
+    const patients = await db.patient.findMany({
       where,
       orderBy: { createdAt: "desc" },
       include: { _count: { select: { appointments: true, communications: true } } },
@@ -81,6 +87,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const body = await request.json();
 
     // Validate required fields
@@ -142,9 +151,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Emergency contact number should be different from the patient's own number" }, { status: 400 });
     }
 
-    const patientIdNumber = await generatePatientId();
+    const patientIdNumber = await generatePatientId(db);
 
-    const patient = await prisma.patient.create({
+    const patient = await db.patient.create({
       data: {
         patientIdNumber,
         firstName: body.firstName.trim(),
@@ -203,7 +212,7 @@ export async function POST(request: NextRequest) {
           `,
         });
 
-        await prisma.communication.create({
+        await db.communication.create({
           data: { patientId: patient.id, type: "email", subject: "Welcome - Registration Confirmed", message: welcomeMessage, status: "sent" },
         });
       }
@@ -214,7 +223,7 @@ export async function POST(request: NextRequest) {
     try {
       if (patient.whatsapp) {
         await sendWhatsApp({ to: patient.whatsapp, message: welcomeMessage });
-        await prisma.communication.create({
+        await db.communication.create({
           data: { patientId: patient.id, type: "whatsapp", message: welcomeMessage, status: "sent" },
         });
       }

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 
 function substituteVariables(text: string, variables: Record<string, string>): string {
   let result = text;
@@ -11,6 +13,9 @@ function substituteVariables(text: string, variables: Record<string, string>): s
 
 export async function GET(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const searchParams = request.nextUrl.searchParams;
     const status = searchParams.get("status");
     const type = searchParams.get("type");
@@ -32,7 +37,7 @@ export async function GET(request: NextRequest) {
     }
 
     const [reminders, total] = await Promise.all([
-      prisma.reminder.findMany({
+      db.reminder.findMany({
         where,
         orderBy: {
           scheduledAt: status === "sent" ? "desc" : "asc",
@@ -45,7 +50,7 @@ export async function GET(request: NextRequest) {
         skip: (page - 1) * limit,
         take: limit,
       }),
-      prisma.reminder.count({ where }),
+      db.reminder.count({ where }),
     ]);
 
     return NextResponse.json({
@@ -63,6 +68,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const body = await request.json();
     const { patientId, appointmentId, type, channel, scheduledAt, message, templateId, notes } = body;
 
@@ -74,7 +82,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate patient exists
-    const patient = await prisma.patient.findUnique({ where: { id: patientId } });
+    const patient = await db.patient.findUnique({ where: { id: patientId } });
     if (!patient) {
       return NextResponse.json({ error: "Patient not found" }, { status: 404 });
     }
@@ -83,7 +91,7 @@ export async function POST(request: NextRequest) {
 
     // If templateId provided, fetch template and substitute variables
     if (templateId) {
-      const template = await prisma.messageTemplate.findUnique({ where: { id: templateId } });
+      const template = await db.messageTemplate.findUnique({ where: { id: templateId } });
       if (template) {
         const variables: Record<string, string> = {
           patientName: `${patient.firstName} ${patient.lastName}`,
@@ -105,7 +113,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "message or templateId is required" }, { status: 400 });
     }
 
-    const reminder = await prisma.reminder.create({
+    const reminder = await db.reminder.create({
       data: {
         patientId,
         appointmentId: appointmentId || null,

@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 
 // GET /api/branches - List branches with optional active filter
 export async function GET(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { searchParams } = new URL(request.url);
     const active = searchParams.get("active");
 
@@ -15,7 +20,7 @@ export async function GET(request: NextRequest) {
       where.isActive = false;
     }
 
-    const branches = await prisma.branch.findMany({
+    const branches = await db.branch.findMany({
       where,
       orderBy: [{ isMainBranch: "desc" }, { createdAt: "asc" }],
     });
@@ -33,6 +38,9 @@ export async function GET(request: NextRequest) {
 // POST /api/branches - Create a new branch
 export async function POST(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const body = await request.json();
 
     // Validate required fields
@@ -51,7 +59,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check unique code
-    const existingBranch = await prisma.branch.findUnique({
+    const existingBranch = await db.branch.findFirst({
       where: { code: body.code.trim().toUpperCase() },
     });
 
@@ -64,13 +72,13 @@ export async function POST(request: NextRequest) {
 
     // If setting as main branch, unset all others
     if (body.isMainBranch) {
-      await prisma.branch.updateMany({
+      await db.branch.updateMany({
         where: { isMainBranch: true },
         data: { isMainBranch: false },
       });
     }
 
-    const branch = await prisma.branch.create({
+    const branch = await db.branch.create({
       data: {
         name: body.name.trim(),
         code: body.code.trim().toUpperCase(),

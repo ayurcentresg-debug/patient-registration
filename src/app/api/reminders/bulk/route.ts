@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 
 function substituteVariables(text: string, variables: Record<string, string>): string {
   let result = text;
@@ -11,6 +13,9 @@ function substituteVariables(text: string, variables: Record<string, string>): s
 
 export async function POST(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const body = await request.json();
     const { patientIds, type, channel, scheduledAt, templateId, message } = body;
 
@@ -28,11 +33,11 @@ export async function POST(request: NextRequest) {
     // Fetch template if provided
     let template = null;
     if (templateId) {
-      template = await prisma.messageTemplate.findUnique({ where: { id: templateId } });
+      template = await db.messageTemplate.findUnique({ where: { id: templateId } });
     }
 
     // Fetch all patients
-    const patients = await prisma.patient.findMany({
+    const patients = await db.patient.findMany({
       where: { id: { in: patientIds } },
     });
 
@@ -64,7 +69,7 @@ export async function POST(request: NextRequest) {
 
       if (!finalMessage) continue;
 
-      await prisma.reminder.create({
+      await db.reminder.create({
         data: {
           patientId: patient.id,
           type,

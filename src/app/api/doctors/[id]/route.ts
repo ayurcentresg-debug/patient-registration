@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 
 // GET /api/doctors/[id] — backward-compat wrapper
 export async function GET(
@@ -7,8 +9,11 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
-    const user = await prisma.user.findUnique({
+    const user = await db.user.findUnique({
       where: { id },
       include: { _count: { select: { appointments: true } } },
     });
@@ -47,10 +52,13 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
     const body = await request.json();
 
-    const existing = await prisma.user.findUnique({ where: { id } });
+    const existing = await db.user.findUnique({ where: { id } });
     if (!existing) {
       return NextResponse.json({ error: "Doctor not found" }, { status: 404 });
     }
@@ -67,7 +75,7 @@ export async function PUT(
     if (body.slotDuration !== undefined) updateData.slotDuration = Number(body.slotDuration);
     if (body.status !== undefined) updateData.status = body.status;
 
-    const user = await prisma.user.update({ where: { id }, data: updateData });
+    const user = await db.user.update({ where: { id }, data: updateData });
 
     return NextResponse.json({
       id: user.id,
@@ -96,16 +104,19 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
 
-    const existing = await prisma.user.findUnique({ where: { id } });
+    const existing = await db.user.findUnique({ where: { id } });
     if (!existing) {
       return NextResponse.json({ error: "Doctor not found" }, { status: 404 });
     }
 
     const now = new Date();
     now.setHours(0, 0, 0, 0);
-    const futureAppointments = await prisma.appointment.count({
+    const futureAppointments = await db.appointment.count({
       where: { doctorId: id, date: { gte: now }, status: { notIn: ["cancelled", "completed"] } },
     });
 
@@ -113,7 +124,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Cannot delete doctor with future appointments", futureAppointments }, { status: 409 });
     }
 
-    await prisma.user.update({ where: { id }, data: { isActive: false, status: "inactive" } });
+    await db.user.update({ where: { id }, data: { isActive: false, status: "inactive" } });
     return NextResponse.json({ message: "Doctor deleted successfully" });
   } catch (error) {
     console.error("Failed to delete doctor:", error);

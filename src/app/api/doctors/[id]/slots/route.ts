@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 
 interface TimeBlock {
   start: string; // "HH:MM"
@@ -46,6 +48,9 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
     const { searchParams } = request.nextUrl;
     const dateStr = searchParams.get("date");
@@ -65,7 +70,7 @@ export async function GET(
       );
     }
 
-    const doctor = await prisma.user.findUnique({ where: { id } });
+    const doctor = await db.user.findUnique({ where: { id } });
 
     if (!doctor) {
       return NextResponse.json(
@@ -105,7 +110,7 @@ export async function GET(
     const startOfDay = new Date(dateStr + "T00:00:00");
     const endOfDay = new Date(dateStr + "T23:59:59");
 
-    const existingAppointments = await prisma.appointment.findMany({
+    const existingAppointments = await db.appointment.findMany({
       where: {
         doctorId: id,
         date: {

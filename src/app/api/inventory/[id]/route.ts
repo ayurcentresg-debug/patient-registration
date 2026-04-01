@@ -1,4 +1,6 @@
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET /api/inventory/[id] - Get single item with transactions
@@ -7,9 +9,12 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
 
-    const item = await prisma.inventoryItem.findUnique({
+    const item = await db.inventoryItem.findUnique({
       where: { id },
       include: {
         transactions: {
@@ -45,13 +50,13 @@ export async function GET(
     // Batch lookups
     const [invoices, purchaseOrders] = await Promise.all([
       invoiceRefs.length > 0
-        ? prisma.invoice.findMany({
+        ? db.invoice.findMany({
             where: { invoiceNumber: { in: invoiceRefs } },
             select: { id: true, invoiceNumber: true, patientId: true, patientName: true },
           })
         : Promise.resolve([]),
       poRefs.length > 0
-        ? prisma.purchaseOrder.findMany({
+        ? db.purchaseOrder.findMany({
             where: { poNumber: { in: poRefs } },
             select: { id: true, poNumber: true },
           })
@@ -98,11 +103,14 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
     const body = await request.json();
 
     // Check if item exists
-    const existingItem = await prisma.inventoryItem.findUnique({
+    const existingItem = await db.inventoryItem.findUnique({
       where: { id },
     });
 
@@ -152,14 +160,14 @@ export async function PUT(
       }
     }
 
-    const updatedItem = await prisma.inventoryItem.update({
+    const updatedItem = await db.inventoryItem.update({
       where: { id },
       data: updateData,
     });
 
     // If stock changed, auto-create an adjustment transaction
     if (stockChanged) {
-      await prisma.stockTransaction.create({
+      await db.stockTransaction.create({
         data: {
           itemId: id,
           type: "adjustment",
@@ -187,9 +195,12 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
 
-    const item = await prisma.inventoryItem.findUnique({
+    const item = await db.inventoryItem.findUnique({
       where: { id },
       include: {
         _count: {
@@ -215,7 +226,7 @@ export async function DELETE(
       );
     }
 
-    await prisma.inventoryItem.delete({
+    await db.inventoryItem.delete({
       where: { id },
     });
 

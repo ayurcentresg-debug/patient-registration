@@ -1,9 +1,14 @@
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET /api/insurance/providers - List all insurance providers
 export async function GET(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { searchParams } = new URL(request.url);
     const isActive = searchParams.get("isActive");
 
@@ -13,7 +18,7 @@ export async function GET(request: NextRequest) {
       where.isActive = isActive === "true";
     }
 
-    const providers = await prisma.insuranceProvider.findMany({
+    const providers = await db.insuranceProvider.findMany({
       where,
       orderBy: { name: "asc" },
     });
@@ -31,6 +36,9 @@ export async function GET(request: NextRequest) {
 // POST /api/insurance/providers - Create a new insurance provider
 export async function POST(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const body = await request.json();
 
     if (!body.name || !body.code) {
@@ -41,7 +49,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check for duplicate code
-    const existing = await prisma.insuranceProvider.findUnique({
+    const existing = await db.insuranceProvider.findFirst({
       where: { code: body.code },
     });
 
@@ -52,7 +60,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const provider = await prisma.insuranceProvider.create({
+    const provider = await db.insuranceProvider.create({
       data: {
         name: body.name,
         code: body.code,

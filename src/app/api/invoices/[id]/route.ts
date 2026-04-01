@@ -1,4 +1,6 @@
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET /api/invoices/[id] - Get single invoice with items and payments
@@ -7,9 +9,12 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
 
-    const invoice = await prisma.invoice.findUnique({
+    const invoice = await db.invoice.findUnique({
       where: { id },
       include: {
         items: true,
@@ -42,10 +47,13 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
     const body = await request.json();
 
-    const existing = await prisma.invoice.findUnique({
+    const existing = await db.invoice.findUnique({
       where: { id },
       include: { items: true },
     });
@@ -113,7 +121,7 @@ export async function PUT(
       updateData.status = body.status || status;
     }
 
-    const invoice = await prisma.invoice.update({
+    const invoice = await db.invoice.update({
       where: { id },
       data: updateData,
       include: {
@@ -138,9 +146,12 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
 
-    const invoice = await prisma.invoice.findUnique({
+    const invoice = await db.invoice.findUnique({
       where: { id },
       include: { items: true },
     });
@@ -169,7 +180,7 @@ export async function DELETE(
       const transactionOps: any[] = [];
 
       for (const item of medicineItems) {
-        const inventoryItem = await prisma.inventoryItem.findUnique({
+        const inventoryItem = await db.inventoryItem.findUnique({
           where: { id: item.inventoryItemId! },
         });
 
@@ -177,7 +188,7 @@ export async function DELETE(
           const newStock = inventoryItem.currentStock + item.quantity;
 
           transactionOps.push(
-            prisma.inventoryItem.update({
+            db.inventoryItem.update({
               where: { id: item.inventoryItemId! },
               data: {
                 currentStock: newStock,
@@ -187,7 +198,7 @@ export async function DELETE(
           );
 
           transactionOps.push(
-            prisma.stockTransaction.create({
+            db.stockTransaction.create({
               data: {
                 itemId: item.inventoryItemId!,
                 type: "return",
@@ -206,12 +217,12 @@ export async function DELETE(
 
       // Delete invoice and restore stock in a transaction
       transactionOps.push(
-        prisma.invoice.delete({ where: { id } })
+        db.invoice.delete({ where: { id } })
       );
 
       await prisma.$transaction(transactionOps);
     } else {
-      await prisma.invoice.delete({ where: { id } });
+      await db.invoice.delete({ where: { id } });
     }
 
     return NextResponse.json({ message: "Invoice deleted successfully" });

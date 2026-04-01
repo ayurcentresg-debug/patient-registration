@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 
 /**
  * POST /api/prescriptions/[id]/convert-invoice
@@ -17,12 +19,15 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
     const body = await request.json().catch(() => ({}));
     const { branchId } = body;
 
     // Fetch prescription with items and patient
-    const prescription = await prisma.prescription.findUnique({
+    const prescription = await db.prescription.findUnique({
       where: { id },
       include: {
         items: { orderBy: { sequence: "asc" } },
@@ -39,7 +44,7 @@ export async function POST(
     }
 
     // Check if already converted
-    const existingInvoice = await prisma.invoice.findFirst({
+    const existingInvoice = await db.invoice.findFirst({
       where: {
         notes: { contains: `Prescription: ${prescription.prescriptionNo}` },
         patientId: prescription.patientId,
@@ -55,7 +60,7 @@ export async function POST(
     // Generate invoice number
     const now = new Date();
     const prefix = `INV-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}`;
-    const count = await prisma.invoice.count({
+    const count = await db.invoice.count({
       where: { invoiceNumber: { startsWith: prefix } },
     });
     const invoiceNumber = `${prefix}-${String(count + 1).padStart(4, "0")}`;
@@ -72,7 +77,7 @@ export async function POST(
       let hsnCode: string | null = null;
 
       if (item.inventoryItemId) {
-        const invItem = await prisma.inventoryItem.findUnique({
+        const invItem = await db.inventoryItem.findUnique({
           where: { id: item.inventoryItemId },
           select: { unitPrice: true, gstPercent: true, hsnCode: true },
         });
@@ -107,7 +112,7 @@ export async function POST(
     const patientName = `${prescription.patient.firstName} ${prescription.patient.lastName}`;
 
     // Create draft invoice
-    const invoice = await prisma.invoice.create({
+    const invoice = await db.invoice.create({
       data: {
         invoiceNumber,
         patientId: prescription.patientId,
@@ -130,7 +135,7 @@ export async function POST(
     });
 
     // Update prescription status
-    await prisma.prescription.update({
+    await db.prescription.update({
       where: { id },
       data: { status: "completed" },
     });

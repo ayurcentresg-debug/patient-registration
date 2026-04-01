@@ -1,9 +1,14 @@
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET /api/credit-notes - List credit notes with filters
 export async function GET(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { searchParams } = new URL(request.url);
     const invoiceId = searchParams.get("invoiceId");
     const status = searchParams.get("status");
@@ -22,7 +27,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const creditNotes = await prisma.creditNote.findMany({
+    const creditNotes = await db.creditNote.findMany({
       where,
       include: {
         invoice: {
@@ -51,6 +56,9 @@ export async function GET(request: NextRequest) {
 // POST /api/credit-notes - Create a new credit note
 export async function POST(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const body = await request.json();
 
     // Validate required fields
@@ -69,7 +77,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate invoice exists
-    const invoice = await prisma.invoice.findUnique({
+    const invoice = await db.invoice.findUnique({
       where: { id: body.invoiceId },
     });
 
@@ -85,7 +93,7 @@ export async function POST(request: NextRequest) {
     const yearMonth = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}`;
     const prefix = `CN-${yearMonth}-`;
 
-    const lastCreditNote = await prisma.creditNote.findFirst({
+    const lastCreditNote = await db.creditNote.findFirst({
       where: {
         creditNoteNumber: { startsWith: prefix },
       },
@@ -121,7 +129,7 @@ export async function POST(request: NextRequest) {
     totalGst = Math.round(totalGst * 100) / 100;
     const totalAmount = Math.round((subtotal + totalGst) * 100) / 100;
 
-    const creditNote = await prisma.creditNote.create({
+    const creditNote = await db.creditNote.create({
       data: {
         creditNoteNumber,
         invoiceId: body.invoiceId,

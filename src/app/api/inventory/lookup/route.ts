@@ -1,10 +1,15 @@
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET /api/inventory/lookup?code=XXX
 // Looks up an inventory item by SKU, manufacturerCode, or name (for barcode scanner)
 export async function GET(request: NextRequest) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { searchParams } = new URL(request.url);
     const code = searchParams.get("code")?.trim();
 
@@ -13,7 +18,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Try exact match on SKU first
-    let item = await prisma.inventoryItem.findFirst({
+    let item = await db.inventoryItem.findFirst({
       where: { sku: code },
       select: {
         id: true,
@@ -33,7 +38,7 @@ export async function GET(request: NextRequest) {
 
     // Try exact match on manufacturerCode
     if (!item) {
-      item = await prisma.inventoryItem.findFirst({
+      item = await db.inventoryItem.findFirst({
         where: { manufacturerCode: code },
         select: {
           id: true,
@@ -54,7 +59,7 @@ export async function GET(request: NextRequest) {
 
     // Try partial match on name or SKU (for typed input)
     if (!item) {
-      item = await prisma.inventoryItem.findFirst({
+      item = await db.inventoryItem.findFirst({
         where: {
           OR: [
             { sku: { contains: code } },
@@ -84,7 +89,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Also get branch stock if needed
-    const branchStock = await prisma.branchStock.findMany({
+    const branchStock = await db.branchStock.findMany({
       where: { itemId: item.id },
       include: { branch: { select: { id: true, name: true, code: true } } },
     });

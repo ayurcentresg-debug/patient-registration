@@ -1,4 +1,6 @@
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextRequest, NextResponse } from "next/server";
 
 // POST /api/purchase-orders/[id]/receive - Receive items against a PO
@@ -7,10 +9,13 @@ export async function POST(
   props: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await props.params;
     const body = await request.json();
 
-    const purchaseOrder = await prisma.purchaseOrder.findUnique({
+    const purchaseOrder = await db.purchaseOrder.findUnique({
       where: { id },
       include: { items: true },
     });
@@ -83,7 +88,7 @@ export async function POST(
     let targetBranchId = purchaseOrder.branchId;
     if (!targetBranchId) {
       // Fallback to main branch
-      const mainBranch = await prisma.branch.findFirst({
+      const mainBranch = await db.branch.findFirst({
         where: { isMainBranch: true, isActive: true },
       });
       targetBranchId = mainBranch?.id || null;

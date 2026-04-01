@@ -1,4 +1,6 @@
 import { prisma } from "@/lib/db";
+import { getClinicId } from "@/lib/get-clinic-id";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET /api/insurance/providers/[id] - Get single provider with claim count
@@ -7,9 +9,12 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
 
-    const provider = await prisma.insuranceProvider.findUnique({
+    const provider = await db.insuranceProvider.findUnique({
       where: { id },
       include: {
         _count: {
@@ -41,10 +46,13 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
     const body = await request.json();
 
-    const existing = await prisma.insuranceProvider.findUnique({
+    const existing = await db.insuranceProvider.findUnique({
       where: { id },
     });
 
@@ -75,7 +83,7 @@ export async function PUT(
 
     // If code is being changed, check for duplicates
     if (updateData.code && updateData.code !== existing.code) {
-      const duplicate = await prisma.insuranceProvider.findUnique({
+      const duplicate = await db.insuranceProvider.findFirst({
         where: { code: updateData.code as string },
       });
       if (duplicate) {
@@ -86,7 +94,7 @@ export async function PUT(
       }
     }
 
-    const provider = await prisma.insuranceProvider.update({
+    const provider = await db.insuranceProvider.update({
       where: { id },
       data: updateData,
     });
@@ -107,9 +115,12 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const clinicId = await getClinicId();
+    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
     const { id } = await params;
 
-    const existing = await prisma.insuranceProvider.findUnique({
+    const existing = await db.insuranceProvider.findUnique({
       where: { id },
     });
 
@@ -120,7 +131,7 @@ export async function DELETE(
       );
     }
 
-    const provider = await prisma.insuranceProvider.update({
+    const provider = await db.insuranceProvider.update({
       where: { id },
       data: { isActive: false },
     });
