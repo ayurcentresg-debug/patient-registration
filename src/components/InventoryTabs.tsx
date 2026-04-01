@@ -25,7 +25,7 @@ export default function InventoryTabs() {
 
   return (
     <div
-      className="flex gap-0 mb-6 overflow-x-auto"
+      className="flex gap-0 mb-6 overflow-x-auto hide-scrollbar"
       style={{
         borderBottom: "2px solid var(--grey-200)",
       }}

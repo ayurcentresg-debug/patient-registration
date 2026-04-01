@@ -349,7 +349,7 @@ export default function Dashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-[14px] font-semibold uppercase tracking-wide" style={{ color: "var(--grey-600)" }}>Stock Value</p>
-                  <p className="text-[28px] font-bold mt-1 tracking-tight" style={{ color: "var(--grey-900)" }}>{formatCurrency(inventoryStats?.totalValue ?? 0)}</p>
+                  <p className="text-[18px] md:text-[28px] font-bold mt-1 tracking-tight truncate" style={{ color: "var(--grey-900)" }}>{formatCurrency(inventoryStats?.totalValue ?? 0)}</p>
                 </div>
                 <div className="w-11 h-11 flex items-center justify-center" style={{ background: "#d1f2e0", borderRadius: "var(--radius-sm)", color: "#2d6a4f" }}>
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>

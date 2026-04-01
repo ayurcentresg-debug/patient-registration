@@ -185,6 +185,15 @@ input[type="radio"] {
   background: var(--grey-600);
 }
 
+/* Hide scrollbar for tab bars on mobile */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 /* Dark mode specific overrides */
 [data-theme="dark"] input:focus,
 [data-theme="dark"] select:focus,

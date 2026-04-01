@@ -739,22 +739,22 @@ export default function NewPatientPage() {
 
               <div className="space-y-4">
                   {/* Each field: label left, input right */}
-                  <div className="flex items-center gap-4">
-                    <label htmlFor="firstName" className="w-40 text-right flex-shrink-0" style={labelStyle}>First Name <span style={{ color: "var(--red)" }}>*</span> :</label>
+                  <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
+                    <label htmlFor="firstName" className="w-full md:w-40 md:text-right flex-shrink-0" style={labelStyle}>First Name <span style={{ color: "var(--red)" }}>*</span> :</label>
                     <div className="flex-1">
                       <input id="firstName" name="firstName" required defaultValue={prefill.firstName} className="w-full px-3 py-2" style={fieldErrors.firstName ? inputErrorStyle : inputStyle} aria-invalid={!!fieldErrors.firstName} />
                       {fieldErrors.firstName && <p className="mt-0.5 text-[13px] font-medium" style={{ color: "var(--red)" }}>{fieldErrors.firstName}</p>}
                     </div>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <label htmlFor="lastName" className="w-40 text-right flex-shrink-0" style={labelStyle}>Last Name <span style={{ color: "var(--red)" }}>*</span> :</label>
+                  <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
+                    <label htmlFor="lastName" className="w-full md:w-40 md:text-right flex-shrink-0" style={labelStyle}>Last Name <span style={{ color: "var(--red)" }}>*</span> :</label>
                     <div className="flex-1">
                       <input id="lastName" name="lastName" required defaultValue={prefill.lastName} className="w-full px-3 py-2" style={fieldErrors.lastName ? inputErrorStyle : inputStyle} aria-invalid={!!fieldErrors.lastName} />
                       {fieldErrors.lastName && <p className="mt-0.5 text-[13px] font-medium" style={{ color: "var(--red)" }}>{fieldErrors.lastName}</p>}
                     </div>
                   </div>
-                  <div className="flex items-start gap-4">
-                    <label htmlFor="nricId" className="w-40 text-right flex-shrink-0 pt-2" style={labelStyle}>NRIC ID :</label>
+                  <div className="flex flex-col md:flex-row md:items-start gap-2 md:gap-4">
+                    <label htmlFor="nricId" className="w-full md:w-40 md:text-right flex-shrink-0 md:pt-2" style={labelStyle}>NRIC ID :</label>
                     <div className="flex-1">
                       <input id="nricId" name="nricId" className="w-full px-3 py-2" style={fieldErrors.nricId ? inputErrorStyle : inputStyle}
                         placeholder="e.g. S1234567A" maxLength={9} aria-invalid={!!fieldErrors.nricId}
@@ -808,8 +808,8 @@ export default function NewPatientPage() {
                       )}
                     </div>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <label className="w-40 text-right flex-shrink-0" style={labelStyle}>Gender <span style={{ color: "var(--red)" }}>*</span> :</label>
+                  <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
+                    <label className="w-full md:w-40 md:text-right flex-shrink-0" style={labelStyle}>Gender <span style={{ color: "var(--red)" }}>*</span> :</label>
                     <div className="flex-1">
                       <div className="flex gap-5 py-1" role="radiogroup" aria-label="Gender">
                         {["male", "female", "other"].map((g) => (
@@ -821,8 +821,8 @@ export default function NewPatientPage() {
                       <FieldError error={fieldErrors.gender} />
                     </div>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <label className="w-40 text-right flex-shrink-0" style={labelStyle}>Date of Birth :</label>
+                  <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
+                    <label className="w-full md:w-40 md:text-right flex-shrink-0" style={labelStyle}>Date of Birth :</label>
                     <div className="flex-1">
                       {dobMode === "dob" ? (
                         <input name="dateOfBirth" type="date" className="w-full px-3 py-2" style={inputStyle} onChange={handleDobChange} />
@@ -837,15 +837,15 @@ export default function NewPatientPage() {
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <label htmlFor="bloodGroup" className="w-40 text-right flex-shrink-0" style={labelStyle}>Blood Group :</label>
+                  <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
+                    <label htmlFor="bloodGroup" className="w-full md:w-40 md:text-right flex-shrink-0" style={labelStyle}>Blood Group :</label>
                     <select id="bloodGroup" name="bloodGroup" className="flex-1 px-3 py-2" style={inputStyle}>
                       <option value="">Select</option>
                       {BLOOD_GROUPS.map((bg) => <option key={bg} value={bg}>{bg}</option>)}
                     </select>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <label className="w-40 text-right flex-shrink-0" style={labelStyle}>Referred by :</label>
+                  <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
+                    <label className="w-full md:w-40 md:text-right flex-shrink-0" style={labelStyle}>Referred by :</label>
                     <div className="flex-1 flex items-center gap-1">
                       {showNewReferral ? (
                         <input name="referredBy" placeholder="Enter referral" className="flex-1 px-3 py-2" style={inputStyle} />
@@ -860,8 +860,8 @@ export default function NewPatientPage() {
                       </button>
                     </div>
                   </div>
-                  <div className="flex items-start gap-4">
-                    <label className="w-40 text-right flex-shrink-0 pt-2" style={labelStyle}>Family :</label>
+                  <div className="flex flex-col md:flex-row md:items-start gap-2 md:gap-4">
+                    <label className="w-full md:w-40 md:text-right flex-shrink-0 md:pt-2" style={labelStyle}>Family :</label>
                     <div className="flex-1">
                       {familyMembers.length > 0 && (
                         <div className="space-y-1.5 mb-2">
@@ -907,22 +907,22 @@ export default function NewPatientPage() {
                       <p className="text-[12px] mt-1" style={{ color: "var(--grey-500)" }}>Select relation, then search for an existing patient or type a name and press Enter</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <label htmlFor="ethnicity" className="w-40 text-right flex-shrink-0" style={labelStyle}>Ethnicity :</label>
+                  <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
+                    <label htmlFor="ethnicity" className="w-full md:w-40 md:text-right flex-shrink-0" style={labelStyle}>Ethnicity :</label>
                     <select id="ethnicity" name="ethnicity" className="flex-1 px-3 py-2" style={inputStyle}>
                       <option value="">Select ethnicity</option>
                       {ETHNICITIES.map((e) => <option key={e} value={e}>{e}</option>)}
                     </select>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <label htmlFor="nationality" className="w-40 text-right flex-shrink-0" style={labelStyle}>Nationality :</label>
+                  <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
+                    <label htmlFor="nationality" className="w-full md:w-40 md:text-right flex-shrink-0" style={labelStyle}>Nationality :</label>
                     <select id="nationality" name="nationality" className="flex-1 px-3 py-2" style={inputStyle}>
                       <option value="">Select</option>
                       {NATIONALITIES.map((n) => <option key={n} value={n}>{n}</option>)}
                     </select>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <label className="w-40 text-right flex-shrink-0" style={labelStyle}>Occupation :</label>
+                  <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
+                    <label className="w-full md:w-40 md:text-right flex-shrink-0" style={labelStyle}>Occupation :</label>
                     <div className="flex-1 flex items-center gap-1" style={{ maxWidth: fieldMaxWidth }}>
                       {showNewOccupation ? (
                         <input name="occupation" placeholder="Enter occupation" className="flex-1 px-3 py-2" style={inputStyle} />
@@ -946,8 +946,8 @@ export default function NewPatientPage() {
             <div className="p-5" style={cardStyle}>
               <h2 className="mb-4 pb-3" style={{ ...sectionTitle, borderBottom: "1px solid var(--grey-200)" }}>Contact Details</h2>
               <div className="space-y-4">
-                <div className="flex items-start gap-4">
-                  <label htmlFor="phone" className="w-40 text-right flex-shrink-0 pt-2" style={labelStyle}>Mobile <span style={{ color: "var(--red)" }}>*</span> :</label>
+                <div className="flex flex-col md:flex-row md:items-start gap-2 md:gap-4">
+                  <label htmlFor="phone" className="w-full md:w-40 md:text-right flex-shrink-0 md:pt-2" style={labelStyle}>Mobile <span style={{ color: "var(--red)" }}>*</span> :</label>
                   <div className="flex-1">
                     <input id="phone" name="phone" type="tel" required defaultValue={prefill.phone} placeholder="+65 9123 4567" className="w-full px-3 py-2" style={fieldErrors.phone ? inputErrorStyle : inputStyle}
                       onBlur={(e) => checkDuplicate("phone", e.target.value)}
@@ -965,22 +965,22 @@ export default function NewPatientPage() {
                     )}
                   </div>
                 </div>
-                <div className="flex items-center gap-4">
-                  <label htmlFor="secondaryMobile" className="w-40 text-right flex-shrink-0" style={labelStyle}>Secondary Mobile :</label>
+                <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
+                  <label htmlFor="secondaryMobile" className="w-full md:w-40 md:text-right flex-shrink-0" style={labelStyle}>Secondary Mobile :</label>
                   <div className="flex-1">
                     <input id="secondaryMobile" name="secondaryMobile" type="tel" className="w-full px-3 py-2" style={fieldErrors.secondaryMobile ? inputErrorStyle : inputStyle} />
                     <FieldError error={fieldErrors.secondaryMobile} />
                   </div>
                 </div>
-                <div className="flex items-center gap-4">
-                  <label htmlFor="landline" className="w-40 text-right flex-shrink-0" style={labelStyle}>Landline :</label>
+                <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
+                  <label htmlFor="landline" className="w-full md:w-40 md:text-right flex-shrink-0" style={labelStyle}>Landline :</label>
                   <div className="flex-1">
                     <input id="landline" name="landline" type="tel" className="w-full px-3 py-2" style={fieldErrors.landline ? inputErrorStyle : inputStyle} />
                     <FieldError error={fieldErrors.landline} />
                   </div>
                 </div>
-                <div className="flex items-start gap-4">
-                  <label htmlFor="email" className="w-40 text-right flex-shrink-0 pt-2" style={labelStyle}>Email Address :</label>
+                <div className="flex flex-col md:flex-row md:items-start gap-2 md:gap-4">
+                  <label htmlFor="email" className="w-full md:w-40 md:text-right flex-shrink-0 md:pt-2" style={labelStyle}>Email Address :</label>
                   <div className="flex-1">
                     <input id="email" name="email" type="email" placeholder="patient@example.com" className="w-full px-3 py-2" style={fieldErrors.email ? inputErrorStyle : inputStyle}
                       onBlur={(e) => checkDuplicate("email", e.target.value)}
@@ -1005,24 +1005,24 @@ export default function NewPatientPage() {
             <div className="p-5" style={cardStyle}>
               <h2 className="mb-4 pb-3" style={{ ...sectionTitle, borderBottom: "1px solid var(--grey-200)" }}>Address</h2>
               <div className="space-y-4">
-                <div className="flex items-center gap-4">
-                  <label htmlFor="blockNumber" className="w-40 text-right flex-shrink-0" style={labelStyle}>Blk / House No. :</label>
+                <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
+                  <label htmlFor="blockNumber" className="w-full md:w-40 md:text-right flex-shrink-0" style={labelStyle}>Blk / House No. :</label>
                   <input id="blockNumber" name="blockNumber" placeholder="e.g., 84" className="flex-1 px-3 py-2" style={inputStyle} />
                 </div>
-                <div className="flex items-center gap-4">
-                  <label htmlFor="streetName" className="w-40 text-right flex-shrink-0" style={labelStyle}>Street Name :</label>
+                <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
+                  <label htmlFor="streetName" className="w-full md:w-40 md:text-right flex-shrink-0" style={labelStyle}>Street Name :</label>
                   <input id="streetName" name="streetName" placeholder="e.g., Bedok North Street 4" className="flex-1 px-3 py-2" style={inputStyle} />
                 </div>
-                <div className="flex items-center gap-4">
-                  <label htmlFor="unitNumber" className="w-40 text-right flex-shrink-0" style={labelStyle}>Unit No. :</label>
+                <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
+                  <label htmlFor="unitNumber" className="w-full md:w-40 md:text-right flex-shrink-0" style={labelStyle}>Unit No. :</label>
                   <input id="unitNumber" name="unitNumber" placeholder="e.g., #01-17" className="flex-1 px-3 py-2" style={inputStyle} />
                 </div>
-                <div className="flex items-center gap-4">
-                  <label htmlFor="buildingName" className="w-40 text-right flex-shrink-0" style={labelStyle}>Building Name :</label>
+                <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
+                  <label htmlFor="buildingName" className="w-full md:w-40 md:text-right flex-shrink-0" style={labelStyle}>Building Name :</label>
                   <input id="buildingName" name="buildingName" placeholder="Optional" className="flex-1 px-3 py-2" style={inputStyle} />
                 </div>
-                <div className="flex items-center gap-4">
-                  <label htmlFor="postalCode" className="w-40 text-right flex-shrink-0" style={labelStyle}>Postal Code :</label>
+                <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
+                  <label htmlFor="postalCode" className="w-full md:w-40 md:text-right flex-shrink-0" style={labelStyle}>Postal Code :</label>
                   <input id="postalCode" name="postalCode" placeholder="e.g., 460084" maxLength={6} pattern="[0-9]{6}" className="flex-1 px-3 py-2" style={inputStyle} />
                 </div>
               </div>
@@ -1032,12 +1032,12 @@ export default function NewPatientPage() {
             <div className="p-5" style={cardStyle}>
               <h2 className="mb-4 pb-3" style={{ ...sectionTitle, borderBottom: "1px solid var(--grey-200)" }}>Emergency Contact</h2>
               <div className="space-y-4">
-                <div className="flex items-center gap-4">
-                  <label htmlFor="emergencyName" className="w-40 text-right flex-shrink-0" style={labelStyle}>Contact Name :</label>
+                <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
+                  <label htmlFor="emergencyName" className="w-full md:w-40 md:text-right flex-shrink-0" style={labelStyle}>Contact Name :</label>
                   <input id="emergencyName" name="emergencyName" className="flex-1 px-3 py-2" style={inputStyle} />
                 </div>
-                <div className="flex items-center gap-4">
-                  <label htmlFor="emergencyPhone" className="w-40 text-right flex-shrink-0" style={labelStyle}>Contact Phone :</label>
+                <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
+                  <label htmlFor="emergencyPhone" className="w-full md:w-40 md:text-right flex-shrink-0" style={labelStyle}>Contact Phone :</label>
                   <div className="flex-1">
                     <input id="emergencyPhone" name="emergencyPhone" type="tel" className="w-full px-3 py-2" style={fieldErrors.emergencyPhone ? inputErrorStyle : inputStyle} />
                     <FieldError error={fieldErrors.emergencyPhone} />

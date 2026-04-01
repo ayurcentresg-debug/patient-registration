@@ -416,8 +416,8 @@ export default function StaffPage() {
           <p className="text-[14px] mt-1" style={{ color: "var(--grey-500)" }}>Add your first staff member to get started</p>
         </div>
       ) : (
-        <div className="overflow-hidden" style={cardStyle}>
-          <table className="w-full">
+        <div className="overflow-x-auto hide-scrollbar" style={cardStyle}>
+          <table className="w-full" style={{ minWidth: 640 }}>
             <thead>
               <tr style={{ background: "var(--grey-100)", borderBottom: "1px solid var(--grey-300)" }}>
                 <th className="text-left px-4 py-3 text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-600)" }}>Staff Member</th>
