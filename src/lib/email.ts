@@ -21,7 +21,7 @@ export async function sendEmail({
   html: string;
 }) {
   const info = await transporter.sendMail({
-    from: process.env.EMAIL_FROM || "Ayur Centre <noreply@clinic.com>",
+    from: process.env.EMAIL_FROM || "AYUR GATE <noreply@ayurgate.com>",
     to,
     subject,
     html,
