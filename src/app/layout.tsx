@@ -5,6 +5,13 @@ import LayoutShell from "@/components/LayoutShell";
 export const metadata: Metadata = {
   title: "AYUR GATE — Ayurveda Clinic Management Software",
   description: "AYUR GATE — Modern clinic management software for Ayurveda, wellness & healthcare practices. Appointments, billing, inventory, multi-branch & more.",
+  manifest: "/manifest.json",
+  themeColor: "#14532d",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "AYUR GATE",
+  },
 };
 
 export default function RootLayout({

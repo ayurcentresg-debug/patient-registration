@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { PageGuide } from "@/components/HelpTip";
+import { downloadCSV } from "@/lib/csv-export";
 
 /* ─── Types ─── */
 interface Appointment {
@@ -1229,6 +1230,40 @@ export default function AppointmentsPage() {
 
         {/* Spacer */}
         <div className="flex-1" />
+
+        {/* Export CSV */}
+        <button
+          onClick={() => {
+            const rows = filteredAppointments.map(a => ({
+              date: a.date,
+              time: a.time,
+              patient: a.patient ? `${a.patient.firstName} ${a.patient.lastName}` : a.walkinName || "Walk-in",
+              doctor: a.doctorRef?.name || a.doctor,
+              department: a.doctorRef?.department || a.department || "",
+              type: a.type,
+              status: a.status,
+              reason: a.reason || "",
+              treatment: a.treatmentName || "",
+            }));
+            downloadCSV(rows, [
+              { key: "date", label: "Date" },
+              { key: "time", label: "Time" },
+              { key: "patient", label: "Patient" },
+              { key: "doctor", label: "Doctor" },
+              { key: "department", label: "Department" },
+              { key: "type", label: "Type" },
+              { key: "status", label: "Status" },
+              { key: "reason", label: "Reason" },
+              { key: "treatment", label: "Treatment" },
+            ], `appointments-${selectedDate.toISOString().slice(0, 10)}`);
+          }}
+          className="h-full px-4 flex items-center gap-1.5 text-[14px] font-semibold transition-colors hover:bg-gray-200"
+          style={{ color: "var(--grey-600)", borderLeft: "1px solid var(--grey-300)" }}
+          aria-label="Export appointments to CSV"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" /></svg>
+          Export
+        </button>
 
         {/* Schedule title on right */}
         <div className="h-full flex items-center px-5" style={{ borderLeft: "1px solid var(--grey-300)" }}>

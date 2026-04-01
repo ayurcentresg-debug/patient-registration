@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Sidebar from "@/components/Sidebar";
 import AuthProvider from "@/components/AuthProvider";
@@ -8,6 +9,12 @@ import TrialBanner from "@/components/TrialBanner";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 export default function LayoutShell({ children }: { children: React.ReactNode }) {
+  // Register service worker for PWA support
+  useEffect(() => {
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js").catch(() => {});
+    }
+  }, []);
   const pathname = usePathname();
   const isLandingPage = pathname === "/";
   const isLoginPage = pathname === "/login";
