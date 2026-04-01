@@ -12,8 +12,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const patientId = searchParams.get("patientId");
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: any = {};
+    const where: Record<string, unknown> = {};
     if (patientId) where.patientId = patientId;
 
     const [totalPlans, activePlans, completedPlans, pausedPlans, allPlans] = await Promise.all([
@@ -34,8 +33,7 @@ export async function GET(request: NextRequest) {
       : 0;
 
     // Upcoming milestones (next 5 pending)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const milestoneWhere: any = { status: "pending" };
+    const milestoneWhere: Record<string, unknown> = { status: "pending" };
     if (patientId) {
       milestoneWhere.plan = { patientId };
     }
@@ -51,8 +49,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Recent progress: last 10 items with completedSessions > 0, ordered by plan updatedAt
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const itemWhere: any = { completedSessions: { gt: 0 } };
+    const itemWhere: Record<string, unknown> = { completedSessions: { gt: 0 } };
     if (patientId) {
       itemWhere.plan = { patientId };
     }

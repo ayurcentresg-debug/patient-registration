@@ -52,8 +52,7 @@ export async function PUT(
       return NextResponse.json({ error: "Treatment plan not found" }, { status: 404 });
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const data: any = {};
+    const data: Record<string, unknown> = {};
 
     if (body.name !== undefined) data.name = body.name.trim();
     if (body.description !== undefined) data.description = body.description?.trim() || null;

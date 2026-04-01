@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { generateOTP } from "@/lib/auth";
 import { sendEmail } from "@/lib/email";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 // In-memory OTP store (in production, use Redis or DB)
 const otpStore = new Map<string, { otp: string; expires: number }>();
@@ -10,6 +11,18 @@ export { otpStore };
 
 export async function POST(req: NextRequest) {
   try {
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    const { allowed, retryAfterMs } = checkRateLimit(ip, "/api/auth/forgot-password", {
+      maxRequests: 5,
+      windowMs: 15 * 60 * 1000,
+    });
+    if (!allowed) {
+      return NextResponse.json(
+        { error: "Too many requests. Please try again later." },
+        { status: 429, headers: { "Retry-After": String(Math.ceil(retryAfterMs / 1000)) } }
+      );
+    }
+
     const { email } = await req.json();
 
     if (!email) {

@@ -26,8 +26,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Build the where clause
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: any = {
+    const where: Record<string, unknown> = {
       expiryDate: { lt: now },
       currentStock: { gt: 0 },
     };

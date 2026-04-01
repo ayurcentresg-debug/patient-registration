@@ -43,8 +43,7 @@ function normalizePhone(phone: string): string {
 }
 
 // Auto-generate patient ID like P10001
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function generatePatientId(db: any): Promise<string> {
+async function generatePatientId(db: typeof prisma): Promise<string> {
   const count = await db.patient.count();
   const nextNum = 10001 + count;
   return `P${nextNum}`;

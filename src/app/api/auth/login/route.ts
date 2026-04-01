@@ -3,9 +3,22 @@ import { prisma } from "@/lib/db";
 import { comparePassword, createToken } from "@/lib/auth";
 import { serialize } from "cookie";
 import * as OTPAuth from "otpauth";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
   try {
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    const { allowed, retryAfterMs } = checkRateLimit(ip, "/api/auth/login", {
+      maxRequests: 10,
+      windowMs: 15 * 60 * 1000,
+    });
+    if (!allowed) {
+      return NextResponse.json(
+        { error: "Too many login attempts. Please try again later." },
+        { status: 429, headers: { "Retry-After": String(Math.ceil(retryAfterMs / 1000)) } }
+      );
+    }
+
     const { email, password, totpCode } = await req.json();
 
     if (!email || !password) {

@@ -4,8 +4,7 @@ import { getClinicId } from "@/lib/get-clinic-id";
 import { getTenantPrisma } from "@/lib/tenant-db";
 
 // Helper: recalculate plan totals from items
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function recalcPlanTotals(planId: string, db: any) {
+async function recalcPlanTotals(planId: string, db: typeof prisma) {
   const items = await db.treatmentPlanItem.findMany({ where: { planId } });
   const totalSessions = items.reduce((sum: number, i: { totalSessions: number }) => sum + i.totalSessions, 0);
   const completedSessions = items.reduce((sum: number, i: { completedSessions: number }) => sum + i.completedSessions, 0);
@@ -99,8 +98,7 @@ export async function PUT(
       return NextResponse.json({ error: "Item not found in this plan" }, { status: 404 });
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const data: any = {};
+    const data: Record<string, unknown> = {};
 
     if (body.completedSessions !== undefined) data.completedSessions = body.completedSessions;
     if (body.status !== undefined) data.status = body.status;

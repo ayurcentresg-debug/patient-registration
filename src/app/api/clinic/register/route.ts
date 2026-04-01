@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { hashPassword, createToken } from "@/lib/auth";
 import { serialize } from "cookie";
 import { sendEmail } from "@/lib/email";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 /**
  * POST /api/clinic/register
@@ -22,6 +23,18 @@ import { sendEmail } from "@/lib/email";
  */
 export async function POST(request: NextRequest) {
   try {
+    const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    const { allowed, retryAfterMs } = checkRateLimit(ip, "/api/clinic/register", {
+      maxRequests: 5,
+      windowMs: 60 * 60 * 1000, // 1 hour
+    });
+    if (!allowed) {
+      return NextResponse.json(
+        { error: "Too many registration attempts. Please try again later." },
+        { status: 429, headers: { "Retry-After": String(Math.ceil(retryAfterMs / 1000)) } }
+      );
+    }
+
     const body = await request.json();
     const { clinicName, email, phone, ownerName, password, country, city } = body;
 

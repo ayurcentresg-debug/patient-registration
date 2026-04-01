@@ -62,8 +62,7 @@ export async function PUT(
       return NextResponse.json({ error: "Milestone not found in this plan" }, { status: 404 });
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const data: any = {};
+    const data: Record<string, unknown> = {};
 
     if (body.title !== undefined) data.title = body.title.trim();
     if (body.description !== undefined) data.description = body.description?.trim() || null;

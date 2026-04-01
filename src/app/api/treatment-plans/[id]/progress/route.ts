@@ -67,8 +67,7 @@ export async function POST(
       return i.status === "completed" || i.status === "skipped";
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const planUpdate: any = { completedSessions: planCompletedSessions };
+    const planUpdate: Record<string, unknown> = { completedSessions: planCompletedSessions };
     if (allCompleted && allItems.length > 0) {
       planUpdate.status = "completed";
       if (!plan.endDate) planUpdate.endDate = new Date();
