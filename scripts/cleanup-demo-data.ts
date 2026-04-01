@@ -63,8 +63,13 @@ async function main() {
     "FamilyMember",
     "Patient",
 
-    // Treatments (standalone treatment catalog - keep or remove?)
-    // Keeping Treatment and TreatmentPackage as they are catalog items like inventory
+    // Branches & stock transfers
+    "TransferTemplateItem",
+    "TransferTemplate",
+    "StockTransferItem",
+    "StockTransfer",
+    "BranchStock",
+    "Branch",
   ];
 
   for (const table of tablesToClean) {
@@ -82,7 +87,7 @@ async function main() {
     }
   }
 
-  console.log("\n✨ Cleanup complete! Kept: Inventory, Users, Branches, Clinic, Settings");
+  console.log("\n✨ Cleanup complete! Kept: Inventory, Users, Clinic, Settings");
 
   await prisma.$disconnect();
 }
