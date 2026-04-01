@@ -549,6 +549,7 @@ function QuickBookModal({
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     placeholder="Type name or phone to search..."
+                    aria-label="Search patients by name or phone"
                     className="w-full px-3 py-2 text-[15px]"
                     style={inputStyle}
                     autoFocus

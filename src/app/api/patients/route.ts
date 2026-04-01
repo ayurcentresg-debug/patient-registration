@@ -57,6 +57,9 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const search = searchParams.get("search") || "";
     const status = searchParams.get("status") || "";
+    const page = Math.max(1, parseInt(searchParams.get("page") || "1"));
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") || "50")));
+    const all = searchParams.get("all") === "true";
 
     const where: Record<string, unknown> = {};
     if (status) where.status = status;
@@ -71,13 +74,32 @@ export async function GET(request: NextRequest) {
       ];
     }
 
-    const patients = await db.patient.findMany({
-      where,
-      orderBy: { createdAt: "desc" },
-      include: { _count: { select: { appointments: true, communications: true } } },
-    });
+    // Search queries and ?all=true return flat arrays (backward-compatible for dropdowns)
+    if (all || search) {
+      const patients = await db.patient.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        include: { _count: { select: { appointments: true, communications: true } } },
+        ...(search ? { take: 50 } : {}), // Cap search results
+      });
+      return NextResponse.json(patients);
+    }
 
-    return NextResponse.json(patients);
+    const [patients, total] = await Promise.all([
+      db.patient.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        include: { _count: { select: { appointments: true, communications: true } } },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      db.patient.count({ where }),
+    ]);
+
+    return NextResponse.json({
+      patients,
+      pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+    });
   } catch (error) {
     console.error("GET /api/patients error:", error);
     return NextResponse.json([], { status: 500 });

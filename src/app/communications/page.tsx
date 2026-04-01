@@ -103,7 +103,7 @@ export default function MessagesPage() {
   useEffect(() => {
     Promise.all([
       fetch("/api/communications").then((r) => r.json()),
-      fetch("/api/patients").then((r) => r.json()),
+      fetch("/api/patients?all=true").then((r) => r.json()),
     ])
       .then(([commsRes, pats]) => {
         setCommunications(Array.isArray(commsRes) ? commsRes : commsRes.data || []);

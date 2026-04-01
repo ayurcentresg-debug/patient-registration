@@ -1578,7 +1578,7 @@ export default function PatientDetailPage() {
             style={{ background: patient.photoUrl ? "transparent" : "linear-gradient(135deg, #f0faf4, #d1f2e0)", borderRadius: "var(--radius-pill)", border: patient.photoUrl ? "2px solid var(--grey-200)" : "2px solid #a7e3bd" }}
             onClick={() => { setPhotoFile(null); setPhotoPreview(null); setShowPhotoModal(true); }}>
             {patient.photoUrl ? (
-              <img src={patient.photoUrl} alt="" className="w-full h-full object-cover" style={{ borderRadius: "var(--radius-pill)" }} />
+              <img src={patient.photoUrl} alt={`${patient.firstName} ${patient.lastName}`} className="w-full h-full object-cover" style={{ borderRadius: "var(--radius-pill)" }} />
             ) : (
               <span className="text-[22px] sm:text-[26px] font-bold" style={{ color: "#2d6a4f" }}>{patient.firstName[0]}{patient.lastName[0]}</span>
             )}

@@ -91,6 +91,9 @@ export default function PatientsPage() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalPatients, setTotalPatients] = useState(0);
 
   // Filters
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -109,16 +112,34 @@ export default function PatientsPage() {
     if (search) params.set("search", search);
     // Send status filter to API if not "all" (server-side filtering for performance)
     if (statusFilter !== "all") params.set("status", statusFilter);
+    if (!search) {
+      params.set("page", String(page));
+      params.set("limit", "50");
+    }
 
     fetch(`/api/patients?${params}`)
       .then((r) => {
         if (!r.ok) throw new Error(`Server error (${r.status})`);
         return r.json();
       })
-      .then(setPatients)
+      .then((data) => {
+        if (Array.isArray(data)) {
+          // Search results come as flat array
+          setPatients(data);
+          setTotalPages(1);
+          setTotalPatients(data.length);
+        } else {
+          setPatients(data.patients);
+          setTotalPages(data.pagination.totalPages);
+          setTotalPatients(data.pagination.total);
+        }
+      })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
-  }, [search, statusFilter]);
+  }, [search, statusFilter, page]);
+
+  // Reset to page 1 when search or filter changes
+  useEffect(() => { setPage(1); }, [search, statusFilter]);
 
   useEffect(() => {
     const timeout = setTimeout(fetchPatients, 300);
@@ -176,9 +197,11 @@ export default function PatientsPage() {
         <div>
           <h1 className="text-[24px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>Patients</h1>
           <p className="text-[15px] mt-0.5" style={{ color: "var(--grey-600)" }}>
-            {displayedCount === totalFetched
-              ? `${totalFetched} total patients`
-              : `${displayedCount} of ${totalFetched} patients`
+            {totalPatients > totalFetched
+              ? `${displayedCount} of ${totalPatients} patients`
+              : displayedCount === totalFetched
+                ? `${totalFetched} total patients`
+                : `${displayedCount} of ${totalFetched} patients`
             }
             {activeCount > 0 && ` · ${activeCount} active`}
           </p>
@@ -399,6 +422,43 @@ export default function PatientsPage() {
               </Link>
             ))}
           </div>
+
+          {/* ── Pagination ────────────────────────────────────────── */}
+          {totalPages > 1 && !search && (
+            <div className="flex items-center justify-between mt-4 px-1">
+              <p className="text-[13px]" style={{ color: "var(--grey-500)" }}>
+                Page {page} of {totalPages} · {totalPatients} patients
+              </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page <= 1}
+                  className="px-3 py-1.5 text-[13px] font-semibold transition-colors disabled:opacity-40"
+                  style={{
+                    border: "1px solid var(--grey-300)",
+                    borderRadius: "var(--radius-sm)",
+                    background: "var(--white)",
+                    color: "var(--grey-700)",
+                  }}
+                >
+                  Previous
+                </button>
+                <button
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page >= totalPages}
+                  className="px-3 py-1.5 text-[13px] font-semibold transition-colors disabled:opacity-40"
+                  style={{
+                    border: "1px solid var(--grey-300)",
+                    borderRadius: "var(--radius-sm)",
+                    background: "var(--white)",
+                    color: "var(--grey-700)",
+                  }}
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
         </>
       )}
     </div>

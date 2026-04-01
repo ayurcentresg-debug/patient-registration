@@ -60,10 +60,11 @@ export async function GET(request: NextRequest) {
         where: { status: { not: "discontinued" } },
         select: { id: true, name: true, sku: true, category: true, currentStock: true, reorderLevel: true, unit: true, unitPrice: true, batchNumber: true, expiryDate: true },
       }),
-      // Low stock items
-      prisma.$queryRawUnsafe<Array<{ id: string; name: string; sku: string; currentStock: number; reorderLevel: number; unit: string; category: string }>>(
-        `SELECT id, name, sku, currentStock, reorderLevel, unit, category FROM InventoryItem WHERE currentStock <= reorderLevel AND status != 'discontinued'`
-      ),
+      // Low stock items (compare two columns — fetch and filter since Prisma can't compare columns)
+      db.inventoryItem.findMany({
+        where: { status: { not: "discontinued" } },
+        select: { id: true, name: true, sku: true, currentStock: true, reorderLevel: true, unit: true, category: true },
+      }).then((items) => items.filter((i) => i.currentStock <= i.reorderLevel)),
       // Expiring within 30 days
       db.inventoryItem.findMany({
         where: {

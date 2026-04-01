@@ -47,7 +47,7 @@ export default function BulkSendPage() {
   }, []);
 
   useEffect(() => {
-    fetch("/api/patients")
+    fetch("/api/patients?all=true")
       .then((r) => r.json())
       .then(setPatients)
       .finally(() => setLoading(false));

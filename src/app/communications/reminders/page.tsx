@@ -147,7 +147,7 @@ export default function RemindersPage() {
   useEffect(() => { fetchReminders(); }, [fetchReminders]);
 
   useEffect(() => {
-    fetch("/api/patients").then((r) => r.json()).then(setPatients).catch(() => {});
+    fetch("/api/patients?all=true").then((r) => r.json()).then(setPatients).catch(() => {});
   }, []);
 
   // Load templates when schedule form opens or type/channel changes

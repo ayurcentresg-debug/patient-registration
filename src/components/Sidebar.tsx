@@ -259,6 +259,7 @@ export default function Sidebar() {
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
             style={{ background: "none", border: "none", cursor: "pointer", padding: 6, borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center" }}
           >
             <svg style={{ width: 22, height: 22 }} fill="none" stroke="#fff" viewBox="0 0 24 24">
@@ -295,6 +296,7 @@ export default function Sidebar() {
         <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
           <button
             onClick={() => { setMobileSearchOpen(!mobileSearchOpen); setMobileMenuOpen(false); }}
+            aria-label="Search patients"
             style={{ background: "none", border: "none", cursor: "pointer", padding: 8, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center" }}
           >
             <svg style={{ width: 20, height: 20 }} fill="none" stroke="rgba(255,255,255,0.8)" viewBox="0 0 24 24">
@@ -303,6 +305,7 @@ export default function Sidebar() {
           </button>
           <button
             onClick={() => { setNotifOpen(!notifOpen); setMobileMenuOpen(false); setMobileSearchOpen(false); }}
+            aria-label="View notifications"
             style={{ background: "none", border: "none", cursor: "pointer", padding: 8, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}
           >
             <svg style={{ width: 20, height: 20 }} fill="none" stroke="rgba(255,255,255,0.8)" viewBox="0 0 24 24">
@@ -331,13 +334,14 @@ export default function Sidebar() {
               ref={mobileSearchRef}
               type="text"
               placeholder="Search patients..."
+              aria-label="Search patients"
               value={mobileSearchTerm}
               onChange={(e) => setMobileSearchTerm(e.target.value)}
               onFocus={() => { if (searchResults.length > 0) setSearchOpen(true); }}
               style={{ flex: 1, border: "none", outline: "none", background: "transparent", padding: "0 10px", fontSize: 14, color: "var(--grey-900)" }}
             />
             {mobileSearchTerm && (
-              <button onClick={() => { setMobileSearchTerm(""); setSearchTerm(""); setSearchOpen(false); }} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>
+              <button onClick={() => { setMobileSearchTerm(""); setSearchTerm(""); setSearchOpen(false); }} aria-label="Clear search" style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>
                 <svg style={{ width: 16, height: 16 }} fill="none" stroke="var(--grey-500)" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -1020,6 +1024,7 @@ export default function Sidebar() {
             <input
               type="text"
               placeholder="Search patients..."
+              aria-label="Search patients"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               onFocus={() => {
