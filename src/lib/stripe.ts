@@ -16,9 +16,13 @@ export function getStripe(): Stripe {
   return _stripe;
 }
 
+/** Currency for Stripe India accounts */
+export const CURRENCY = "inr";
+
 /**
  * Plan config: maps our plan names to Stripe price IDs and limits.
- * Set STRIPE_PRICE_STARTER_MONTHLY etc. in env after creating products in Stripe dashboard.
+ * Amounts in smallest currency unit (paise for INR).
+ * ₹3,999/mo Starter, ₹7,999/mo Professional
  */
 export const PLAN_CONFIG: Record<
   string,
@@ -28,8 +32,8 @@ export const PLAN_CONFIG: Record<
     maxUsers: number;
     maxPatients: number;
     name: string;
-    monthlyAmount: number; // in cents
-    annualAmount: number;  // in cents (per year)
+    monthlyAmount: number; // in paise (₹3,999 = 399900 paise)
+    annualAmount: number;  // in paise per year (20% discount)
   }
 > = {
   starter: {
@@ -38,8 +42,8 @@ export const PLAN_CONFIG: Record<
     maxUsers: 10,
     maxPatients: 500,
     name: "Starter",
-    monthlyAmount: 4900,
-    annualAmount: 47040, // $49 * 12 * 0.8 = $470.40/yr
+    monthlyAmount: 399900,            // ₹3,999
+    annualAmount: 399900 * 12 * 0.8,  // ₹3,999 * 12 * 0.8 = ₹38,390.40/yr
   },
   professional: {
     stripePriceMonthly: process.env.STRIPE_PRICE_PROFESSIONAL_MONTHLY || "",
@@ -47,7 +51,7 @@ export const PLAN_CONFIG: Record<
     maxUsers: 25,
     maxPatients: 999999, // unlimited
     name: "Professional",
-    monthlyAmount: 9900,
-    annualAmount: 95040, // $99 * 12 * 0.8 = $950.40/yr
+    monthlyAmount: 799900,            // ₹7,999
+    annualAmount: 799900 * 12 * 0.8,  // ₹7,999 * 12 * 0.8 = ₹76,790.40/yr
   },
 };

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getStripe, PLAN_CONFIG } from "@/lib/stripe";
+import { getStripe, PLAN_CONFIG, CURRENCY } from "@/lib/stripe";
 import { prisma } from "@/lib/db";
 import { getClinicId } from "@/lib/get-clinic-id";
 
@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
           // If no price ID set (dev mode), use price_data for ad-hoc pricing
           ...(!priceId && {
             price_data: {
-              currency: "usd",
+              currency: CURRENCY,
               product_data: {
                 name: `AYUR GATE ${planConfig.name}`,
                 description: `${planConfig.name} plan — ${planConfig.maxUsers} staff, ${planConfig.maxPatients === 999999 ? "unlimited" : planConfig.maxPatients} patients`,

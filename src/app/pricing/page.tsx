@@ -26,7 +26,8 @@ const plans = [
   {
     name: "Starter",
     key: "starter",
-    price: "$49",
+    price: "₹3,999",
+    monthlyNum: 3999,
     period: "/month",
     description: "Perfect for small clinics",
     features: [
@@ -46,7 +47,8 @@ const plans = [
   {
     name: "Professional",
     key: "professional",
-    price: "$99",
+    price: "₹7,999",
+    monthlyNum: 7999,
     period: "/month",
     description: "For growing multi-doctor clinics",
     features: [
@@ -182,8 +184,8 @@ export default function PricingPage() {
       <section className="max-w-7xl mx-auto px-6 pb-20">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {plans.map((plan) => {
-            const displayPrice = plan.price.startsWith("$") && annual
-              ? `$${Math.round(parseInt(plan.price.slice(1)) * 0.8)}`
+            const displayPrice = plan.monthlyNum && annual
+              ? `₹${Math.round(plan.monthlyNum * 0.8).toLocaleString("en-IN")}`
               : plan.price;
 
             return (

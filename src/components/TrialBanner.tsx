@@ -78,7 +78,7 @@ export default function TrialBanner() {
               className="w-full py-3 rounded-lg font-semibold text-[14px] transition-all hover:shadow-md disabled:opacity-50"
               style={{ background: "#ecfdf5", color: "#14532d", border: "1.5px solid #2d6a4f" }}
             >
-              {upgrading === "starter" ? "Redirecting to Stripe..." : "Starter — $49/mo (10 staff, 500 patients)"}
+              {upgrading === "starter" ? "Redirecting to Stripe..." : "Starter — ₹3,999/mo (10 staff, 500 patients)"}
             </button>
             <button
               onClick={() => handleUpgrade("professional")}
@@ -86,7 +86,7 @@ export default function TrialBanner() {
               className="w-full py-3 rounded-lg text-white font-semibold text-[15px] transition-all hover:shadow-md disabled:opacity-50"
               style={{ background: "linear-gradient(135deg, #14532d, #2d6a4f)" }}
             >
-              {upgrading === "professional" ? "Redirecting to Stripe..." : "Professional — $99/mo (25 staff, unlimited)"}
+              {upgrading === "professional" ? "Redirecting to Stripe..." : "Professional — ₹7,999/mo (25 staff, unlimited)"}
             </button>
           </div>
 
