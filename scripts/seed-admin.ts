@@ -2,9 +2,15 @@ import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
 import { PrismaClient } from "../src/generated/prisma/client";
 import bcrypt from "bcryptjs";
 import path from "path";
+import crypto from "crypto";
 
 // Use same DB path as runtime — DB_PATH env var or dev.db in project root
 const dbPath = process.env.DB_PATH || path.join(process.cwd(), "dev.db");
+
+/** Generate a secure random password if none provided via env */
+function generateSecurePassword(): string {
+  return crypto.randomBytes(12).toString("base64url").slice(0, 16);
+}
 
 async function main() {
   console.log(`📂 Database path: ${dbPath}`);
@@ -12,8 +18,12 @@ async function main() {
   const adapter = new PrismaBetterSqlite3({ url: dbPath });
   const prisma = new PrismaClient({ adapter });
 
-  const adminPassword = await bcrypt.hash("admin123", 12);
-  const doctorPassword = await bcrypt.hash("doctor123", 12);
+  // Use env vars for passwords, or generate secure random ones
+  const rawAdminPass = process.env.SEED_ADMIN_PASSWORD || generateSecurePassword();
+  const rawDoctorPass = process.env.SEED_DOCTOR_PASSWORD || generateSecurePassword();
+
+  const adminPassword = await bcrypt.hash(rawAdminPass, 12);
+  const doctorPassword = await bcrypt.hash(rawDoctorPass, 12);
 
   // ─── Admin ────────────────────────────────────────────────────────────
   const existingAdmin = await prisma.user.findFirst({ where: { email: "admin@clinic.com" } });
@@ -93,7 +103,7 @@ async function main() {
         slotDuration: doc.slotDuration, schedule: doc.schedule, isActive: true, status: "active",
       }});
     }
-    console.log(`✅ Doctor: ${doc.name} (${doc.email}) — password: doctor123`);
+    console.log(`✅ Doctor: ${doc.name} (${doc.email})`);
   }
 
   // ─── Therapists ───────────────────────────────────────────────────────
@@ -125,7 +135,7 @@ async function main() {
         consultationFee: 0, slotDuration: 30, schedule: "{}", isActive: true, status: "active",
       }});
     }
-    console.log(`✅ Therapist: ${t.name} (${t.email}) — password: doctor123`);
+    console.log(`✅ Therapist: ${t.name} (${t.email})`);
   }
 
   // ─── Patients ─────────────────────────────────────────────────────────
@@ -198,12 +208,14 @@ async function main() {
 
   console.log("✅ Clinic settings seeded");
   console.log("\n🎉 All done! Login credentials:");
-  console.log("   Admin:      admin@clinic.com / admin123");
-  console.log("   Doctors:    rajesh@clinic.com / doctor123");
-  console.log("               3phala@gmail.com / doctor123");
-  console.log("               ayurvista@gmail.com / doctor123");
-  console.log("   Therapists: siju@staff.local / doctor123");
-  console.log("               linu@staff.local / doctor123");
+  console.log(`   Admin:      admin@clinic.com / ${rawAdminPass}`);
+  console.log(`   Doctors:    rajesh@clinic.com / ${rawDoctorPass}`);
+  console.log(`               3phala@gmail.com / ${rawDoctorPass}`);
+  console.log(`               ayurvista@gmail.com / ${rawDoctorPass}`);
+  console.log(`   Therapists: siju@staff.local / ${rawDoctorPass}`);
+  console.log(`               linu@staff.local / ${rawDoctorPass}`);
+  console.log("\n💡 To set custom passwords, use env vars:");
+  console.log("   SEED_ADMIN_PASSWORD=YourAdminPass SEED_DOCTOR_PASSWORD=YourDoctorPass");
 
   await prisma.$disconnect();
 }

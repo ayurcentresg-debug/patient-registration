@@ -28,7 +28,11 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const defaultPassword = body.password || "doctor123";
+    const defaultPassword = body.password;
+
+    if (!defaultPassword) {
+      return NextResponse.json({ error: "Password is required" }, { status: 400 });
+    }
 
     if (defaultPassword.length < 6) {
       return NextResponse.json({ error: "Password must be at least 6 characters" }, { status: 400 });

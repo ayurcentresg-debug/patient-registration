@@ -7,8 +7,11 @@ const secret = new TextEncoder().encode(
 
 const SUPER_ADMIN_EMAIL =
   process.env.SUPER_ADMIN_EMAIL || "superadmin@ayurgate.com";
-const SUPER_ADMIN_PASSWORD =
-  process.env.SUPER_ADMIN_PASSWORD || "AyurGate@2026!";
+const SUPER_ADMIN_PASSWORD = process.env.SUPER_ADMIN_PASSWORD;
+
+if (!SUPER_ADMIN_PASSWORD && process.env.NODE_ENV === "production") {
+  console.warn("⚠️  SUPER_ADMIN_PASSWORD env var is not set — super admin login disabled in production");
+}
 
 export interface SuperAdminPayload {
   email: string;
@@ -20,6 +23,7 @@ export function validateSuperAdminCredentials(
   email: string,
   password: string
 ): boolean {
+  if (!SUPER_ADMIN_PASSWORD) return false;
   return email === SUPER_ADMIN_EMAIL && password === SUPER_ADMIN_PASSWORD;
 }
 
