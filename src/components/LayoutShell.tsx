@@ -5,6 +5,7 @@ import Sidebar from "@/components/Sidebar";
 import AuthProvider from "@/components/AuthProvider";
 import ThemeProvider from "@/components/ThemeProvider";
 import TrialBanner from "@/components/TrialBanner";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 export default function LayoutShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -31,8 +32,10 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
     return (
       <ThemeProvider>
         <AuthProvider>
-          <TrialBanner />
-          <main className="min-h-screen">{children}</main>
+          <ErrorBoundary>
+            <TrialBanner />
+            <main className="min-h-screen">{children}</main>
+          </ErrorBoundary>
         </AuthProvider>
       </ThemeProvider>
     );
@@ -42,11 +45,13 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
   return (
     <ThemeProvider>
       <AuthProvider>
-        <TrialBanner />
-        <div className="flex min-h-screen overflow-x-hidden">
-          <Sidebar />
-          <main className="flex-1 pt-14 pb-20 md:pt-0 md:pb-0 min-w-0 w-0 overflow-x-hidden max-w-full">{children}</main>
-        </div>
+        <ErrorBoundary>
+          <TrialBanner />
+          <div className="flex min-h-screen overflow-x-hidden">
+            <Sidebar />
+            <main className="flex-1 pt-14 pb-20 md:pt-0 md:pb-0 min-w-0 w-0 overflow-x-hidden max-w-full">{children}</main>
+          </div>
+        </ErrorBoundary>
       </AuthProvider>
     </ThemeProvider>
   );

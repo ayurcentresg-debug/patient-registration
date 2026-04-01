@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { PageGuide } from "@/components/HelpTip";
 import { PatientListSkeleton } from "@/components/Skeleton";
+import { downloadCSV } from "@/lib/csv-export";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface Patient {
@@ -206,16 +207,54 @@ export default function PatientsPage() {
             {activeCount > 0 && ` · ${activeCount} active`}
           </p>
         </div>
-        <Link
-          href="/patients/new"
-          className="inline-flex items-center justify-center gap-2 text-white px-5 py-2 text-[15px] font-semibold transition-colors duration-150"
-          style={btnPrimary}
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          Register Patient
-        </Link>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => {
+              const exportData = filteredAndSorted.map((p) => ({
+                patientId: p.patientIdNumber,
+                firstName: p.firstName,
+                lastName: p.lastName,
+                phone: p.phone,
+                email: p.email || "",
+                gender: p.gender,
+                bloodGroup: p.bloodGroup || "",
+                status: p.status,
+                appointments: p._count.appointments,
+                registeredOn: formatDate(p.createdAt),
+              }));
+              downloadCSV(exportData, [
+                { key: "patientId", label: "Patient ID" },
+                { key: "firstName", label: "First Name" },
+                { key: "lastName", label: "Last Name" },
+                { key: "phone", label: "Phone" },
+                { key: "email", label: "Email" },
+                { key: "gender", label: "Gender" },
+                { key: "bloodGroup", label: "Blood Group" },
+                { key: "status", label: "Status" },
+                { key: "appointments", label: "Appointments" },
+                { key: "registeredOn", label: "Registered On" },
+              ], `patients-${new Date().toISOString().slice(0, 10)}.csv`);
+            }}
+            className="inline-flex items-center gap-1.5 px-3 py-2 text-[14px] font-semibold transition-colors"
+            style={{ border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", background: "var(--white)", color: "var(--grey-700)" }}
+            title="Export to CSV"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <span className="hidden sm:inline">Export</span>
+          </button>
+          <Link
+            href="/patients/new"
+            className="inline-flex items-center justify-center gap-2 text-white px-5 py-2 text-[15px] font-semibold transition-colors duration-150"
+            style={btnPrimary}
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            Register Patient
+          </Link>
+        </div>
       </div>
 
       <PageGuide

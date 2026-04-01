@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import BillingTabs from "@/components/BillingTabs";
+import { downloadCSV } from "@/lib/csv-export";
 import { PageGuide } from "@/components/HelpTip";
 import { TablePageSkeleton } from "@/components/Skeleton";
 
@@ -255,7 +256,39 @@ export default function BillingPage() {
             {sorted.length} invoice{sorted.length !== 1 ? "s" : ""} found
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
+          <button
+            onClick={() => {
+              const exportData = sorted.map((inv) => ({
+                invoiceNumber: inv.invoiceNumber,
+                date: formatDate(inv.date),
+                patientName: inv.patientName,
+                items: inv.itemsCount,
+                total: inv.total.toFixed(2),
+                paid: inv.paid.toFixed(2),
+                balance: inv.balance.toFixed(2),
+                status: inv.status,
+              }));
+              downloadCSV(exportData, [
+                { key: "invoiceNumber", label: "Invoice #" },
+                { key: "date", label: "Date" },
+                { key: "patientName", label: "Patient" },
+                { key: "items", label: "Items" },
+                { key: "total", label: "Total" },
+                { key: "paid", label: "Paid" },
+                { key: "balance", label: "Balance" },
+                { key: "status", label: "Status" },
+              ], `invoices-${new Date().toISOString().slice(0, 10)}.csv`);
+            }}
+            className="inline-flex items-center gap-1.5 px-3 py-2 text-[14px] font-semibold transition-colors"
+            style={{ border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", background: "var(--white)", color: "var(--grey-700)" }}
+            title="Export to CSV"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <span className="hidden sm:inline">Export</span>
+          </button>
           <Link
             href="/billing/new"
             className="inline-flex items-center justify-center gap-2 text-white px-5 py-2 text-[15px] font-semibold transition-colors duration-150"
