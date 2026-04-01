@@ -210,7 +210,7 @@ export default function LoginPage() {
   }[view];
 
   const viewSubtitle = {
-    login: "Sign in to manage your clinic",
+    login: "Sign in to your AYUR GATE account",
     totp: "Enter your authenticator code",
     forgot: "We'll send a reset code to your email",
     reset: "Enter the code sent to your email",
@@ -227,13 +227,13 @@ export default function LoginPage() {
               className="w-11 h-11 flex items-center justify-center rounded-xl"
               style={{ background: "#2d6a4f", color: "#fff" }}
             >
-              <span className="text-[16px] font-extrabold tracking-tight">AC</span>
+              <span className="text-[16px] font-extrabold tracking-tight">AG</span>
             </div>
             <div>
-              <h2 className="text-[17px] font-bold tracking-tight" style={{ color: "#111827" }}>
-                Ayur Centre
+              <h2 className="text-[17px] font-bold" style={{ color: "#111827", letterSpacing: "0.15em" }}>
+                AYUR GATE
               </h2>
-              <p className="text-[12px]" style={{ color: "#9ca3af" }}>Clinic Management</p>
+              <p className="text-[12px]" style={{ color: "#9ca3af" }}>Ayurveda SaaS Platform</p>
             </div>
           </div>
 
@@ -479,7 +479,7 @@ export default function LoginPage() {
           {/* Footer */}
           <div className="mt-10 pt-6" style={{ borderTop: "1px solid #f3f4f6" }}>
             <p className="text-[13px] text-center" style={{ color: "#b0b0b0" }}>
-              YODA Design v1.0 &middot; Clinic Management System
+              AYUR GATE v1.0 &middot; Ayurveda SaaS Platform
             </p>
           </div>
         </div>
@@ -506,9 +506,9 @@ export default function LoginPage() {
 
         {/* Brand text overlay at bottom */}
         <div className="absolute bottom-10 left-0 right-0 text-center" style={{ zIndex: 2 }}>
-          <h2 className="text-[22px] font-bold text-white mb-1 drop-shadow-lg">Ayur Centre</h2>
+          <h2 className="text-[22px] font-bold text-white mb-1 drop-shadow-lg" style={{ letterSpacing: "0.15em" }}>AYUR GATE</h2>
           <p className="text-[14px] font-medium text-white drop-shadow-md" style={{ opacity: 0.85 }}>
-            Ayurveda &middot; Wellness &middot; Care
+            Ayurveda &middot; Wellness &middot; SaaS
           </p>
         </div>
       </div>
