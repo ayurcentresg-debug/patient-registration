@@ -8,6 +8,7 @@ import TrialBanner from "@/components/TrialBanner";
 
 export default function LayoutShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const isLandingPage = pathname === "/";
   const isLoginPage = pathname === "/login";
   const isInvitePage = pathname?.startsWith("/invite");
   const isRegisterPage = pathname === "/register";
@@ -15,7 +16,7 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
   const isDoctorPortal = pathname?.startsWith("/doctor");
 
   // Public pages render without sidebar or auth check
-  if (isLoginPage || isInvitePage || isRegisterPage || isPricingPage) {
+  if (isLandingPage || isLoginPage || isInvitePage || isRegisterPage || isPricingPage) {
     return <ThemeProvider>{children}</ThemeProvider>;
   }
 

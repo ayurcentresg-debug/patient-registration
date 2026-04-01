@@ -1,807 +1,623 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
-import StatsCard from "@/components/StatsCard";
-import { PageGuide } from "@/components/HelpTip";
-import {
-  WeeklyRevenueChart,
-  AppointmentStatusChart,
-  MonthlyTrendChart,
-  RevenueByMethodChart,
-  TopTreatmentsChart,
-} from "@/components/DashboardCharts";
-import { DashboardSkeleton } from "@/components/Skeleton";
+import { useState } from "react";
 
-interface TodayAppointment {
-  id: string;
-  time: string;
-  type: string;
-  status: string;
-  doctor: string;
-  reason: string | null;
-  patient: { firstName: string; lastName: string; patientIdNumber: string } | null;
-  doctorRef: { name: string; specialization: string } | null;
-  isWalkin?: boolean;
-  walkinName?: string | null;
-}
+const features = [
+  {
+    icon: (
+      <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+      </svg>
+    ),
+    title: "Smart Appointments",
+    desc: "Online booking, doctor schedules, slot management, walk-ins, and automated reminders via WhatsApp & SMS.",
+  },
+  {
+    icon: (
+      <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+      </svg>
+    ),
+    title: "Patient Records",
+    desc: "Complete patient profiles, family linking, medical history, vitals tracking, clinical notes, and document uploads.",
+  },
+  {
+    icon: (
+      <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z" />
+      </svg>
+    ),
+    title: "Billing & Invoicing",
+    desc: "GST-ready invoices, insurance claims, credit notes, treatment packages, and multiple payment methods.",
+  },
+  {
+    icon: (
+      <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+      </svg>
+    ),
+    title: "Inventory & Pharmacy",
+    desc: "Track medicines, herbs, oils with variants, batch numbers, expiry alerts, low-stock warnings, and supplier management.",
+  },
+  {
+    icon: (
+      <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z" />
+      </svg>
+    ),
+    title: "Multi-Branch",
+    desc: "Manage multiple clinic locations, inter-branch stock transfers, branch-wise reports, and centralized control.",
+  },
+  {
+    icon: (
+      <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
+      </svg>
+    ),
+    title: "Reports & Analytics",
+    desc: "Revenue dashboards, appointment analytics, treatment trends, staff performance, and exportable reports.",
+  },
+  {
+    icon: (
+      <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15a2.25 2.25 0 012.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z" />
+      </svg>
+    ),
+    title: "Treatment Plans",
+    desc: "Custom treatment plans with milestones, session tracking, package management, and progress monitoring.",
+  },
+  {
+    icon: (
+      <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
+      </svg>
+    ),
+    title: "Communications",
+    desc: "WhatsApp messaging, SMS reminders, email notifications, pre-built templates, and broadcast messages.",
+  },
+];
 
-interface DashboardData {
-  totalPatients: number;
-  activePatients: number;
-  totalAppointments: number;
-  totalCommunications: number;
-  totalDoctors: number;
-  todaysAppointments: number;
-  upcomingAppointments: number;
-  recentPatients: Array<{
-    id: string;
-    patientIdNumber: string;
-    firstName: string;
-    lastName: string;
-    phone: string;
-    createdAt: string;
-  }>;
-  recentCommunications: Array<{
-    id: string;
-    type: string;
-    message: string;
-    status: string;
-    sentAt: string;
-    patient: { firstName: string; lastName: string };
-  }>;
-  todaysAppointmentsList: TodayAppointment[];
-  // Enhanced analytics fields
-  todayRevenue: number;
-  monthRevenue: number;
-  lastMonthRevenue: number;
-  weeklyRevenue: Array<{ date: string; revenue: number }>;
-  appointmentStatusCounts: Record<string, number>;
-  monthlyAppointmentTrend: Array<{ month: string; count: number }>;
-  topTreatments: Array<{ name: string; count: number }>;
-  revenueByPaymentMethod: Array<{ paymentMethod: string; revenue: number }>;
-  // Activity feed
-  recentActivityAppointments: Array<{
-    id: string;
-    date: string;
-    time: string;
-    type: string;
-    status: string;
-    doctor: string;
-    treatmentName: string | null;
-    isWalkin: boolean;
-    walkinName: string | null;
-    createdAt: string;
-    patient: { firstName: string; lastName: string } | null;
-    doctorRef: { name: string; specialization: string } | null;
-  }>;
-  recentActivityInvoices: Array<{
-    id: string;
-    invoiceNumber: string;
-    patientName: string;
-    totalAmount: number;
-    status: string;
-    date: string;
-    paymentMethod: string | null;
-    patientId: string | null;
-  }>;
-  upcomingTodayAppointments: Array<{
-    id: string;
-    date: string;
-    time: string;
-    type: string;
-    status: string;
-    doctor: string;
-    isWalkin: boolean;
-    walkinName: string | null;
-    patient: { firstName: string; lastName: string } | null;
-    doctorRef: { name: string; specialization: string } | null;
-  }>;
-}
+const stats = [
+  { value: "10,000+", label: "Patients Managed" },
+  { value: "50+", label: "Clinics Trust Us" },
+  { value: "99.9%", label: "Uptime" },
+  { value: "24/7", label: "Support" },
+];
 
-const statusColors: Record<string, { bg: string; color: string }> = {
-  scheduled: { bg: "#fff7ed", color: "#ea580c" },
-  confirmed: { bg: "var(--blue-50)", color: "var(--blue-500)" },
-  "in-progress": { bg: "#f0faf4", color: "#37845e" },
-  completed: { bg: "var(--green-light)", color: "var(--green)" },
-  cancelled: { bg: "var(--red-light)", color: "var(--red)" },
-  "no-show": { bg: "var(--purple-light)", color: "var(--purple)" },
-};
-
-const methodLabels: Record<string, string> = {
-  cash: "Cash",
-  card: "Card",
-  upi: "UPI",
-  insurance: "Insurance",
-  bank_transfer: "Bank Transfer",
-};
-
-function formatCurrency(amount: number): string {
-  return `S$${(amount ?? 0).toLocaleString("en-SG", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
-}
-
-function timeAgo(dateStr: string): string {
-  const now = new Date();
-  const then = new Date(dateStr);
-  const diffMs = now.getTime() - then.getTime();
-  const diffMins = Math.floor(diffMs / 60000);
-  if (diffMins < 1) return "Just now";
-  if (diffMins < 60) return `${diffMins}m ago`;
-  const diffHrs = Math.floor(diffMins / 60);
-  if (diffHrs < 24) return `${diffHrs}h ago`;
-  const diffDays = Math.floor(diffHrs / 24);
-  if (diffDays === 1) return "Yesterday";
-  if (diffDays < 7) return `${diffDays}d ago`;
-  return then.toLocaleDateString("en-SG", { day: "numeric", month: "short" });
-}
-
-/* ─── Card wrapper ─── */
-const cardStyle = {
-  background: "var(--white)",
-  border: "1px solid var(--grey-300)",
-  borderRadius: "var(--radius)",
-  boxShadow: "var(--shadow-card)",
-};
-
-export default function Dashboard() {
-  const [data, setData] = useState<DashboardData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [inventoryStats, setInventoryStats] = useState<{
-    totalItems: number;
-    totalValue: number;
-    lowStockCount: number;
-    expiringSoonCount: number;
-  } | null>(null);
-  const [branches, setBranches] = useState<{ id: string; name: string; code: string; isMainBranch: boolean }[]>([]);
-  const [selectedBranchId, setSelectedBranchId] = useState<string>("");
-
-  // Fetch branches once
-  useEffect(() => {
-    fetch("/api/branches?active=true")
-      .then((r) => r.ok ? r.json() : [])
-      .then((list: { id: string; name: string; code: string; isMainBranch: boolean }[]) => {
-        setBranches(list);
-        const main = list.find((b) => b.isMainBranch);
-        if (main) setSelectedBranchId(main.id);
-      })
-      .catch(() => {});
-  }, []);
-
-  // Fetch inventory stats when branch changes
-  useEffect(() => {
-    const url = selectedBranchId
-      ? `/api/inventory/stats?branchId=${selectedBranchId}`
-      : "/api/inventory/stats";
-    fetch(url)
-      .then((r) => {
-        if (!r.ok) throw new Error(`API error: ${r.status}`);
-        return r.json();
-      })
-      .then(setInventoryStats)
-      .catch((err) => console.error("Inventory stats fetch failed:", err));
-  }, [selectedBranchId]);
-
-  useEffect(() => {
-    fetch("/api/dashboard")
-      .then((r) => {
-        if (!r.ok) throw new Error(`API error: ${r.status}`);
-        return r.json();
-      })
-      .then(setData)
-      .catch((err) => console.error("Dashboard fetch failed:", err))
-      .finally(() => setLoading(false));
-  }, []);
-
-  if (loading) {
-    return <DashboardSkeleton />;
-  }
-
-  // Revenue calculations
-  const todayRevenue = data?.todayRevenue ?? 0;
-  const monthRevenue = data?.monthRevenue ?? 0;
-  const lastMonthRevenue = data?.lastMonthRevenue ?? 0;
-  const revenueChange = lastMonthRevenue > 0
-    ? ((monthRevenue - lastMonthRevenue) / lastMonthRevenue * 100)
-    : 0;
-
-  const weeklyRevenue = data?.weeklyRevenue ?? [];
-
-  const statusCounts = data?.appointmentStatusCounts ?? {};
-  const statusBreakdown = Object.entries(statusCounts).map(([status, count]) => ({ status, count })).filter(s => s.count > 0);
-  const totalStatusCount = statusBreakdown.reduce((sum, s) => sum + s.count, 0) || 1;
-
-  const topTreatments = (data?.topTreatments ?? []).slice(0, 5);
-
-  const revenueByMethod = (data?.revenueByPaymentMethod ?? []).map(m => ({ method: m.paymentMethod, total: m.revenue }));
-
-  const monthlyTrend = data?.monthlyAppointmentTrend ?? [];
+export default function LandingPage() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <div className="p-6 md:p-8 yoda-fade-in">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-[24px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>Dashboard</h1>
-        <p className="text-[15px] mt-1" style={{ color: "var(--grey-600)" }}>Overview of your clinic management system</p>
-      </div>
-
-      <PageGuide
-        storageKey="dashboard"
-        title="Welcome to Your Clinic Dashboard"
-        subtitle="Here's a quick overview of how to get started with the system."
-        steps={[
-          { icon: "👤", title: "Register Patients", description: "Go to Patients > Add Patient to register new patients with their details, medical history, and insurance info." },
-          { icon: "📅", title: "Book Appointments", description: "Schedule appointments from the Appointments page. Select a doctor, time slot, and treatment type." },
-          { icon: "💊", title: "Manage Inventory", description: "Track medicines, herbs, and supplies in the Inventory section. Set reorder levels for automatic alerts." },
-          { icon: "💰", title: "Create Invoices", description: "Go to Billing > New Invoice to bill patients for consultations, treatments, and medicines." },
-          { icon: "👨‍⚕️", title: "Add Staff", description: "Set up doctors, therapists, and staff in the Admin section. Each gets a unique Staff ID." },
-          { icon: "📊", title: "Track Revenue", description: "This dashboard shows today's revenue, appointment stats, and trends. Data updates in real-time." },
-        ]}
-      />
-
-      {/* ═══════ Row 1: Key Metrics ═══════ */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        {/* Today's Revenue */}
-        <div className="p-4 transition-shadow duration-150 hover:shadow-md" style={{ ...cardStyle, boxShadow: "var(--shadow-sm)" }}>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[14px] font-semibold uppercase tracking-wide" style={{ color: "var(--grey-600)" }}>Today&apos;s Revenue</p>
-              <p className="text-[28px] font-bold mt-1 tracking-tight" style={{ color: "var(--grey-900)" }}>{formatCurrency(todayRevenue)}</p>
+    <div style={{ background: "#faf9f6", color: "#1a1a1a" }}>
+      {/* ─── Navbar ─────────────────────────────────────────────────── */}
+      <nav
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 50,
+          background: "rgba(250, 249, 246, 0.92)",
+          backdropFilter: "blur(12px)",
+          borderBottom: "1px solid #e8e5df",
+        }}
+      >
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 64 }}>
+          <Link href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
+            <div
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: 10,
+                background: "linear-gradient(135deg, #14532d, #2d6a4f)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "white",
+                fontWeight: 800,
+                fontSize: 16,
+                letterSpacing: 1,
+              }}
+            >
+              AG
             </div>
-            <div className="w-11 h-11 flex items-center justify-center" style={{ background: "#d1f2e0", borderRadius: "var(--radius-sm)", color: "#2d6a4f" }}>
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
+            <span style={{ fontSize: 18, fontWeight: 700, color: "#14532d", letterSpacing: "0.08em" }}>
+              AYUR GATE
+            </span>
+          </Link>
+
+          {/* Desktop nav */}
+          <div style={{ display: "flex", alignItems: "center", gap: 32 }} className="hidden-mobile">
+            <a href="#features" style={{ fontSize: 14, fontWeight: 500, color: "#555", textDecoration: "none" }}>Features</a>
+            <a href="#how-it-works" style={{ fontSize: 14, fontWeight: 500, color: "#555", textDecoration: "none" }}>How It Works</a>
+            <Link href="/pricing" style={{ fontSize: 14, fontWeight: 500, color: "#555", textDecoration: "none" }}>Pricing</Link>
+            <Link
+              href="/login"
+              style={{
+                fontSize: 14,
+                fontWeight: 600,
+                color: "#2d6a4f",
+                textDecoration: "none",
+                padding: "8px 20px",
+                border: "1.5px solid #2d6a4f",
+                borderRadius: 8,
+              }}
+            >
+              Sign In
+            </Link>
+            <Link
+              href="/register"
+              style={{
+                fontSize: 14,
+                fontWeight: 600,
+                color: "white",
+                textDecoration: "none",
+                padding: "8px 20px",
+                background: "linear-gradient(135deg, #14532d, #2d6a4f)",
+                borderRadius: 8,
+              }}
+            >
+              Start Free Trial
+            </Link>
           </div>
-          {todayRevenue > 0 && (
-            <div className="flex items-center gap-1 mt-2">
-              <svg className="w-3.5 h-3.5" style={{ color: "var(--green)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18" />
-              </svg>
-              <span className="text-[13px] font-semibold" style={{ color: "var(--green)" }}>Active today</span>
-            </div>
-          )}
+
+          {/* Mobile hamburger */}
+          <button
+            className="show-mobile"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            style={{ background: "none", border: "none", padding: 8, cursor: "pointer" }}
+          >
+            <svg width="24" height="24" fill="none" stroke="#333" strokeWidth={2} viewBox="0 0 24 24">
+              {mobileMenuOpen ? (
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              ) : (
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+              )}
+            </svg>
+          </button>
         </div>
 
-        {/* Monthly Revenue */}
-        <div className="p-4 transition-shadow duration-150 hover:shadow-md" style={{ ...cardStyle, boxShadow: "var(--shadow-sm)" }}>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[14px] font-semibold uppercase tracking-wide" style={{ color: "var(--grey-600)" }}>Monthly Revenue</p>
-              <p className="text-[28px] font-bold mt-1 tracking-tight" style={{ color: "var(--grey-900)" }}>{formatCurrency(monthRevenue)}</p>
-            </div>
-            <div className="w-11 h-11 flex items-center justify-center" style={{ background: "#dbeafe", borderRadius: "var(--radius-sm)", color: "var(--blue-500)" }}>
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-            </div>
+        {/* Mobile menu */}
+        {mobileMenuOpen && (
+          <div
+            style={{
+              background: "white",
+              borderTop: "1px solid #e8e5df",
+              padding: "16px 24px",
+              display: "flex",
+              flexDirection: "column",
+              gap: 16,
+            }}
+            className="show-mobile"
+          >
+            <a href="#features" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: 15, color: "#333", textDecoration: "none" }}>Features</a>
+            <a href="#how-it-works" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: 15, color: "#333", textDecoration: "none" }}>How It Works</a>
+            <Link href="/pricing" style={{ fontSize: 15, color: "#333", textDecoration: "none" }}>Pricing</Link>
+            <Link href="/login" style={{ fontSize: 15, color: "#2d6a4f", fontWeight: 600, textDecoration: "none" }}>Sign In</Link>
+            <Link
+              href="/register"
+              style={{
+                fontSize: 15,
+                fontWeight: 600,
+                color: "white",
+                textDecoration: "none",
+                padding: "12px 20px",
+                background: "linear-gradient(135deg, #14532d, #2d6a4f)",
+                borderRadius: 8,
+                textAlign: "center",
+              }}
+            >
+              Start Free Trial
+            </Link>
           </div>
-          {lastMonthRevenue > 0 && (
-            <div className="flex items-center gap-1 mt-2">
-              <svg
-                className="w-3.5 h-3.5"
-                style={{ color: revenueChange >= 0 ? "var(--green)" : "var(--red)", transform: revenueChange < 0 ? "rotate(180deg)" : undefined }}
-                fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}
+        )}
+      </nav>
+
+      {/* ─── Hero Section ───────────────────────────────────────────── */}
+      <section
+        style={{
+          paddingTop: 140,
+          paddingBottom: 80,
+          textAlign: "center",
+          maxWidth: 900,
+          margin: "0 auto",
+          padding: "140px 24px 80px",
+        }}
+      >
+        <div
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 8,
+            background: "#ecfdf5",
+            border: "1px solid #a7f3d0",
+            borderRadius: 100,
+            padding: "6px 16px",
+            marginBottom: 24,
+          }}
+        >
+          <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#10b981" }} />
+          <span style={{ fontSize: 13, fontWeight: 600, color: "#065f46" }}>Now in Open Beta</span>
+        </div>
+
+        <h1
+          style={{
+            fontSize: "clamp(36px, 5vw, 56px)",
+            fontWeight: 800,
+            lineHeight: 1.1,
+            color: "#111",
+            marginBottom: 20,
+            letterSpacing: "-0.02em",
+          }}
+        >
+          The Modern Clinic
+          <br />
+          <span style={{ background: "linear-gradient(135deg, #14532d, #2d6a4f, #059669)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+            Management Platform
+          </span>
+        </h1>
+
+        <p style={{ fontSize: "clamp(16px, 2vw, 19px)", color: "#6b7280", maxWidth: 600, margin: "0 auto 40px", lineHeight: 1.6 }}>
+          Purpose-built for Ayurveda, wellness, and healthcare practices.
+          Manage patients, appointments, billing, inventory, and staff — all in one place.
+        </p>
+
+        <div style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap" }}>
+          <Link
+            href="/register"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              padding: "14px 32px",
+              background: "linear-gradient(135deg, #14532d, #2d6a4f)",
+              color: "white",
+              fontSize: 16,
+              fontWeight: 600,
+              borderRadius: 10,
+              textDecoration: "none",
+              boxShadow: "0 4px 14px rgba(45, 106, 79, 0.35)",
+              transition: "transform 0.2s, box-shadow 0.2s",
+            }}
+          >
+            Start Free Trial
+            <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+            </svg>
+          </Link>
+          <Link
+            href="#features"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              padding: "14px 32px",
+              background: "white",
+              color: "#374151",
+              fontSize: 16,
+              fontWeight: 600,
+              borderRadius: 10,
+              textDecoration: "none",
+              border: "1.5px solid #d1d5db",
+            }}
+          >
+            See Features
+          </Link>
+        </div>
+
+        <p style={{ marginTop: 20, fontSize: 13, color: "#9ca3af" }}>
+          7-day free trial &middot; No credit card required &middot; Cancel anytime
+        </p>
+      </section>
+
+      {/* ─── Stats Bar ──────────────────────────────────────────────── */}
+      <section style={{ background: "linear-gradient(135deg, #14532d, #1e4d3a)", padding: "40px 24px" }}>
+        <div
+          style={{
+            maxWidth: 1000,
+            margin: "0 auto",
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+            gap: 32,
+            textAlign: "center",
+          }}
+        >
+          {stats.map((s) => (
+            <div key={s.label}>
+              <div style={{ fontSize: 32, fontWeight: 800, color: "#a7f3d0" }}>{s.value}</div>
+              <div style={{ fontSize: 14, color: "#86efac", marginTop: 4 }}>{s.label}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ─── Features Grid ──────────────────────────────────────────── */}
+      <section id="features" style={{ maxWidth: 1200, margin: "0 auto", padding: "80px 24px" }}>
+        <div style={{ textAlign: "center", marginBottom: 56 }}>
+          <span style={{ fontSize: 13, fontWeight: 700, color: "#2d6a4f", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+            Everything You Need
+          </span>
+          <h2 style={{ fontSize: "clamp(28px, 4vw, 40px)", fontWeight: 800, color: "#111", marginTop: 8 }}>
+            Built for Ayurveda & Wellness Clinics
+          </h2>
+          <p style={{ fontSize: 16, color: "#6b7280", maxWidth: 560, margin: "12px auto 0" }}>
+            From patient registration to treatment plans, every feature is designed for the way your clinic works.
+          </p>
+        </div>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+            gap: 24,
+          }}
+        >
+          {features.map((f) => (
+            <div
+              key={f.title}
+              style={{
+                background: "white",
+                borderRadius: 14,
+                padding: "28px 24px",
+                border: "1px solid #e8e5df",
+                transition: "box-shadow 0.2s, transform 0.2s",
+              }}
+              className="feature-card"
+            >
+              <div
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 10,
+                  background: "#ecfdf5",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "#2d6a4f",
+                  marginBottom: 16,
+                }}
               >
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18" />
-              </svg>
-              <span className="text-[13px] font-semibold" style={{ color: revenueChange >= 0 ? "var(--green)" : "var(--red)" }}>
-                {revenueChange >= 0 ? "+" : ""}{revenueChange.toFixed(1)}% vs last month
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Today's Appointments */}
-        <StatsCard
-          title="Today's Appts"
-          value={data?.todaysAppointments || 0}
-          icon="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-          color="orange"
-        />
-
-        {/* Total Patients */}
-        <StatsCard
-          title="Total Patients"
-          value={data?.totalPatients || 0}
-          icon="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
-          color="blue"
-        />
-      </div>
-
-      {/* ═══════ Inventory Overview ═══════ */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>Inventory Overview</h2>
-          {branches.length > 0 && (
-            <select
-              value={selectedBranchId}
-              onChange={(e) => setSelectedBranchId(e.target.value)}
-              className="px-2.5 py-1.5 text-[13px] font-medium rounded-md"
-              style={{ border: "1px solid var(--grey-300)", color: "var(--grey-700)", background: "var(--white)" }}
-            >
-              <option value="">All Branches</option>
-              {branches.map((b) => (
-                <option key={b.id} value={b.id}>{b.name}</option>
-              ))}
-            </select>
-          )}
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Link href="/inventory" className="block">
-            <div className="p-4 transition-shadow duration-150 hover:shadow-md" style={{ ...cardStyle, boxShadow: "var(--shadow-sm)" }}>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-[14px] font-semibold uppercase tracking-wide" style={{ color: "var(--grey-600)" }}>Total Items</p>
-                  <p className="text-[28px] font-bold mt-1 tracking-tight" style={{ color: "var(--grey-900)" }}>{inventoryStats?.totalItems ?? 0}</p>
-                </div>
-                <div className="w-11 h-11 flex items-center justify-center" style={{ background: "var(--blue-50)", borderRadius: "var(--radius-sm)", color: "var(--blue-500)" }}>
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                  </svg>
-                </div>
+                {f.icon}
               </div>
+              <h3 style={{ fontSize: 17, fontWeight: 700, color: "#111", marginBottom: 8 }}>{f.title}</h3>
+              <p style={{ fontSize: 14, color: "#6b7280", lineHeight: 1.6 }}>{f.desc}</p>
             </div>
-          </Link>
-
-          <Link href="/inventory" className="block">
-            <div className="p-4 transition-shadow duration-150 hover:shadow-md" style={{ ...cardStyle, boxShadow: "var(--shadow-sm)" }}>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-[14px] font-semibold uppercase tracking-wide" style={{ color: "var(--grey-600)" }}>Stock Value</p>
-                  <p className="text-[28px] font-bold mt-1 tracking-tight" style={{ color: "var(--grey-900)" }}>{formatCurrency(inventoryStats?.totalValue ?? 0)}</p>
-                </div>
-                <div className="w-11 h-11 flex items-center justify-center" style={{ background: "#d1f2e0", borderRadius: "var(--radius-sm)", color: "#2d6a4f" }}>
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-              </div>
-            </div>
-          </Link>
-
-          <Link href="/inventory/alerts" className="block">
-            <div className="p-4 transition-shadow duration-150 hover:shadow-md" style={{ ...cardStyle, boxShadow: "var(--shadow-sm)", borderColor: (inventoryStats?.lowStockCount ?? 0) > 0 ? "var(--red)" : undefined }}>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-[14px] font-semibold uppercase tracking-wide" style={{ color: (inventoryStats?.lowStockCount ?? 0) > 0 ? "var(--red)" : "var(--grey-600)" }}>Low Stock</p>
-                  <p className="text-[28px] font-bold mt-1 tracking-tight" style={{ color: (inventoryStats?.lowStockCount ?? 0) > 0 ? "var(--red)" : "var(--grey-900)" }}>{inventoryStats?.lowStockCount ?? 0}</p>
-                </div>
-                <div className="w-11 h-11 flex items-center justify-center" style={{ background: (inventoryStats?.lowStockCount ?? 0) > 0 ? "var(--red-light)" : "var(--orange-light)", borderRadius: "var(--radius-sm)", color: (inventoryStats?.lowStockCount ?? 0) > 0 ? "var(--red)" : "var(--orange)" }}>
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                  </svg>
-                </div>
-              </div>
-            </div>
-          </Link>
-
-          <Link href="/inventory/alerts" className="block">
-            <div className="p-4 transition-shadow duration-150 hover:shadow-md" style={{ ...cardStyle, boxShadow: "var(--shadow-sm)", borderColor: (inventoryStats?.expiringSoonCount ?? 0) > 0 ? "#ea580c" : undefined }}>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-[14px] font-semibold uppercase tracking-wide" style={{ color: (inventoryStats?.expiringSoonCount ?? 0) > 0 ? "#ea580c" : "var(--grey-600)" }}>Expiring Soon</p>
-                  <p className="text-[28px] font-bold mt-1 tracking-tight" style={{ color: (inventoryStats?.expiringSoonCount ?? 0) > 0 ? "#ea580c" : "var(--grey-900)" }}>{inventoryStats?.expiringSoonCount ?? 0}</p>
-                </div>
-                <div className="w-11 h-11 flex items-center justify-center" style={{ background: (inventoryStats?.expiringSoonCount ?? 0) > 0 ? "#fff7ed" : "var(--grey-100)", borderRadius: "var(--radius-sm)", color: (inventoryStats?.expiringSoonCount ?? 0) > 0 ? "#ea580c" : "var(--grey-500)" }}>
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-              </div>
-            </div>
-          </Link>
+          ))}
         </div>
-      </div>
+      </section>
 
-      {/* ═══════ Row 2: Charts ═══════ */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-6">
-        <WeeklyRevenueChart data={weeklyRevenue} />
-        <AppointmentStatusChart data={statusBreakdown} total={totalStatusCount} />
-      </div>
-
-      {/* ═══════ Row 3: Three Columns ═══════ */}
-      <div className="grid lg:grid-cols-3 gap-5 mb-6">
-        {/* Today's Appointments (existing) */}
-        <div className="p-5" style={cardStyle}>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>Today&apos;s Appointments</h2>
-            <Link href="/appointments" className="text-[14px] font-semibold hover:underline" style={{ color: "var(--blue-500)" }}>View all</Link>
+      {/* ─── How It Works ───────────────────────────────────────────── */}
+      <section id="how-it-works" style={{ background: "#f0fdf4", padding: "80px 24px" }}>
+        <div style={{ maxWidth: 900, margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: 56 }}>
+            <span style={{ fontSize: 13, fontWeight: 700, color: "#2d6a4f", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+              Get Started in Minutes
+            </span>
+            <h2 style={{ fontSize: "clamp(28px, 4vw, 40px)", fontWeight: 800, color: "#111", marginTop: 8 }}>
+              Three Steps to a Better Clinic
+            </h2>
           </div>
-          {!data?.todaysAppointmentsList?.length ? (
-            <div className="text-center py-8">
-              <svg className="w-10 h-10 mx-auto mb-2" style={{ color: "var(--grey-400)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              <p className="text-[15px]" style={{ color: "var(--grey-500)" }}>No appointments today</p>
-              <Link href="/appointments/new" className="inline-block mt-2 text-[14px] font-semibold" style={{ color: "var(--blue-500)" }}>Book one now</Link>
-            </div>
-          ) : (
-            <div className="space-y-1">
-              {data.todaysAppointmentsList.map((apt) => {
-                const sc = statusColors[apt.status] || statusColors.scheduled;
-                return (
-                  <Link
-                    key={apt.id}
-                    href={`/appointments`}
-                    className="flex items-center justify-between py-2.5 px-3 -mx-3 transition-colors duration-100"
-                    style={{ borderRadius: "var(--radius-sm)" }}
-                    onMouseEnter={(e) => { e.currentTarget.style.background = "var(--grey-50)"; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="text-[15px] font-bold tabular-nums" style={{ color: "var(--blue-500)", minWidth: 48 }}>{apt.time}</span>
-                      <div>
-                        <p className="text-[15px] font-semibold" style={{ color: "var(--grey-900)" }}>
-                          {apt.patient ? `${apt.patient.firstName} ${apt.patient.lastName}` : (apt.walkinName || "Walk-in")}
-                          {apt.isWalkin && <span className="ml-1 text-[9px] font-bold px-1 py-0.5 rounded" style={{ background: "#d1f2e0", color: "#14532d" }}>WALK-IN</span>}
-                        </p>
-                        <p className="text-[13px]" style={{ color: "var(--grey-500)" }}>
-                          {apt.doctorRef?.name || apt.doctor} &middot; {apt.type}
-                        </p>
-                      </div>
-                    </div>
-                    <span
-                      className="text-[12px] font-bold uppercase px-2 py-0.5"
-                      style={{ background: sc.bg, color: sc.color, borderRadius: "var(--radius-sm)" }}
-                    >
-                      {apt.status}
-                    </span>
-                  </Link>
-                );
-              })}
-            </div>
-          )}
-        </div>
 
-        {/* Top Treatments */}
-        <TopTreatmentsChart data={topTreatments} />
-
-        {/* Revenue by Payment Method */}
-        <RevenueByMethodChart data={revenueByMethod} />
-      </div>
-
-      {/* ═══════ Row 4: Monthly Trend + Quick Actions ═══════ */}
-      <div className="grid lg:grid-cols-3 gap-5 mb-6">
-        {/* Monthly Appointment Trend (spans 2 cols) */}
-        <MonthlyTrendChart data={monthlyTrend} />
-
-        {/* Quick Actions */}
-        <div className="p-5" style={cardStyle}>
-          <h2 className="text-[16px] font-bold mb-4" style={{ color: "var(--grey-900)" }}>Quick Actions</h2>
-          <div className="space-y-2.5">
-            <Link
-              href="/patients/new"
-              className="flex items-center gap-3 px-4 py-3 text-[15px] font-semibold text-white transition-all duration-150"
-              style={{ background: "var(--blue-500)", borderRadius: "var(--radius)" }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = "var(--blue-600)"; e.currentTarget.style.transform = "translateY(-1px)"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = "var(--blue-500)"; e.currentTarget.style.transform = "translateY(0)"; }}
-            >
-              <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              Register Patient
-            </Link>
-            <Link
-              href="/appointments/new"
-              className="flex items-center gap-3 px-4 py-3 text-[15px] font-semibold transition-all duration-150"
-              style={{ background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius)", color: "var(--grey-700)" }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = "var(--grey-50)"; e.currentTarget.style.transform = "translateY(-1px)"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = "var(--white)"; e.currentTarget.style.transform = "translateY(0)"; }}
-            >
-              <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              Book Appointment
-            </Link>
-            <Link
-              href="/doctors/new"
-              className="flex items-center gap-3 px-4 py-3 text-[15px] font-semibold transition-all duration-150"
-              style={{ background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius)", color: "var(--grey-700)" }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = "var(--grey-50)"; e.currentTarget.style.transform = "translateY(-1px)"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = "var(--white)"; e.currentTarget.style.transform = "translateY(0)"; }}
-            >
-              <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              Add Doctor
-            </Link>
-            <Link
-              href="/communications"
-              className="flex items-center gap-3 px-4 py-3 text-[15px] font-semibold transition-all duration-150"
-              style={{ background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius)", color: "var(--grey-700)" }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = "var(--grey-50)"; e.currentTarget.style.transform = "translateY(-1px)"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = "var(--white)"; e.currentTarget.style.transform = "translateY(0)"; }}
-            >
-              <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-              </svg>
-              Send Message
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      {/* ═══════ Row 5: Recent Patients + Communications ═══════ */}
-      <div className="grid lg:grid-cols-2 gap-5">
-        {/* Recent Patients */}
-        <div className="p-5" style={cardStyle}>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>Recent Patients</h2>
-            <Link href="/patients" className="text-[14px] font-semibold hover:underline" style={{ color: "var(--blue-500)" }}>View all</Link>
-          </div>
-          {data?.recentPatients.length === 0 ? (
-            <p className="text-[15px] text-center py-8" style={{ color: "var(--grey-500)" }}>No patients registered yet</p>
-          ) : (
-            <div className="space-y-1">
-              {data?.recentPatients.map((p) => (
-                <Link
-                  key={p.id}
-                  href={`/patients/${p.id}`}
-                  className="flex items-center justify-between py-2.5 px-3 -mx-3 transition-colors duration-100"
-                  style={{ borderRadius: "var(--radius-sm)" }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = "var(--grey-50)"; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
-                >
-                  <div className="flex items-center gap-3">
-                    <div
-                      className="w-8 h-8 flex items-center justify-center text-[13px] font-bold"
-                      style={{
-                        background: "var(--blue-50)",
-                        color: "var(--blue-500)",
-                        borderRadius: "var(--radius-pill)",
-                      }}
-                    >
-                      {p.firstName[0]}{p.lastName[0]}
-                    </div>
-                    <div>
-                      <p className="text-[15px] font-semibold" style={{ color: "var(--grey-900)" }}>{p.firstName} {p.lastName}</p>
-                      <p className="text-[13px]" style={{ color: "var(--grey-500)" }}>{p.phone}</p>
-                    </div>
-                  </div>
-                  <span className="text-[13px] font-medium" style={{ color: "var(--grey-500)" }}>{new Date(p.createdAt).toLocaleDateString()}</span>
-                </Link>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Recent Communications */}
-        <div className="p-5" style={cardStyle}>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>Recent Communications</h2>
-            <Link href="/communications" className="text-[14px] font-semibold hover:underline" style={{ color: "var(--blue-500)" }}>View all</Link>
-          </div>
-          {data?.recentCommunications.length === 0 ? (
-            <p className="text-[15px] text-center py-8" style={{ color: "var(--grey-500)" }}>No messages sent yet</p>
-          ) : (
-            <div className="space-y-1">
-              {data?.recentCommunications.map((c) => (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 40 }}>
+            {[
+              {
+                step: "1",
+                title: "Register Your Clinic",
+                desc: "Sign up with your clinic name and email. Your workspace is ready instantly with a 7-day free trial.",
+              },
+              {
+                step: "2",
+                title: "Add Your Team",
+                desc: "Invite doctors, therapists, and staff. Set up schedules, consultation fees, and role-based access.",
+              },
+              {
+                step: "3",
+                title: "Start Managing",
+                desc: "Register patients, book appointments, manage inventory, generate invoices, and track everything.",
+              },
+            ].map((s) => (
+              <div key={s.step} style={{ textAlign: "center" }}>
                 <div
-                  key={c.id}
-                  className="flex items-center justify-between py-2.5 px-3 -mx-3"
-                  style={{ borderRadius: "var(--radius-sm)" }}
+                  style={{
+                    width: 56,
+                    height: 56,
+                    borderRadius: "50%",
+                    background: "linear-gradient(135deg, #14532d, #2d6a4f)",
+                    color: "white",
+                    fontSize: 22,
+                    fontWeight: 800,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    margin: "0 auto 16px",
+                  }}
                 >
-                  <div className="flex items-center gap-3">
-                    <span
-                      className="inline-flex items-center px-2 py-0.5 text-[12px] font-bold uppercase tracking-wide"
-                      style={{
-                        borderRadius: "var(--radius-sm)",
-                        background: c.type === "whatsapp" ? "var(--green-light)" : "var(--blue-50)",
-                        color: c.type === "whatsapp" ? "var(--green)" : "var(--blue-500)",
-                      }}
-                    >
-                      {c.type === "whatsapp" ? "WA" : "EM"}
-                    </span>
-                    <div>
-                      <p className="text-[15px] font-semibold" style={{ color: "var(--grey-900)" }}>{c.patient.firstName} {c.patient.lastName}</p>
-                      <p className="text-[13px] truncate max-w-[200px]" style={{ color: "var(--grey-500)" }}>{c.message}</p>
-                    </div>
-                  </div>
-                  <span
-                    className="text-[12px] font-bold uppercase"
-                    style={{ color: c.status === "sent" ? "var(--green)" : "var(--red)" }}
-                  >
-                    {c.status}
-                  </span>
+                  {s.step}
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* ═══════ Row 6: Recent Activity Feed + Upcoming Appointments Today ═══════ */}
-      <div className="grid lg:grid-cols-3 gap-5 mt-6">
-        {/* Recent Activity Feed (spans 2 cols) */}
-        <div className="lg:col-span-2 p-5" style={cardStyle}>
-          <div className="flex items-center justify-between mb-5">
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 flex items-center justify-center" style={{ background: "#d1f2e0", borderRadius: "var(--radius-sm)", color: "#2d6a4f" }}>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
+                <h3 style={{ fontSize: 18, fontWeight: 700, color: "#111", marginBottom: 8 }}>{s.title}</h3>
+                <p style={{ fontSize: 14, color: "#6b7280", lineHeight: 1.6 }}>{s.desc}</p>
               </div>
-              <div>
-                <h2 className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>Recent Activity</h2>
-                <p className="text-[14px] mt-0.5" style={{ color: "var(--grey-500)" }}>Latest actions across the clinic</p>
-              </div>
-            </div>
+            ))}
           </div>
-          {(() => {
-            // Merge appointments and invoices into a single timeline
-            const activities: Array<{
-              id: string;
-              type: "appointment" | "payment";
-              description: string;
-              detail: string;
-              timestamp: string;
-              href: string;
-              iconBg: string;
-              iconColor: string;
-            }> = [];
-
-            for (const apt of data?.recentActivityAppointments ?? []) {
-              const patientName = apt.patient
-                ? `${apt.patient.firstName} ${apt.patient.lastName}`
-                : (apt.walkinName || "Walk-in");
-              const doctorName = apt.doctorRef?.name || apt.doctor;
-              activities.push({
-                id: `apt-${apt.id}`,
-                type: "appointment",
-                description: `${patientName} - ${apt.type} appointment`,
-                detail: `With ${doctorName}${apt.treatmentName ? ` \u00b7 ${apt.treatmentName}` : ""}`,
-                timestamp: apt.createdAt,
-                href: "/appointments",
-                iconBg: "#fff7ed",
-                iconColor: "#ea580c",
-              });
-            }
-
-            for (const inv of data?.recentActivityInvoices ?? []) {
-              const statusLabel = inv.status === "paid" ? "Payment received" : inv.status === "partially_paid" ? "Partial payment" : `Invoice ${inv.status}`;
-              activities.push({
-                id: `inv-${inv.id}`,
-                type: "payment",
-                description: `${statusLabel} - ${inv.patientName}`,
-                detail: `${inv.invoiceNumber} \u00b7 ${formatCurrency(inv.totalAmount)}${inv.paymentMethod ? ` \u00b7 ${methodLabels[inv.paymentMethod] || inv.paymentMethod}` : ""}`,
-                timestamp: inv.date,
-                href: inv.patientId ? `/patients/${inv.patientId}` : "/invoices",
-                iconBg: "var(--green-light)",
-                iconColor: "var(--green)",
-              });
-            }
-
-            // Sort by timestamp descending and take 10
-            activities.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-            const feed = activities.slice(0, 10);
-
-            if (feed.length === 0) {
-              return (
-                <div className="text-center py-10">
-                  <svg className="w-10 h-10 mx-auto mb-2" style={{ color: "var(--grey-400)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                  <p className="text-[15px]" style={{ color: "var(--grey-500)" }}>No recent activity yet</p>
-                </div>
-              );
-            }
-
-            return (
-              <div className="relative">
-                {/* Timeline line */}
-                <div
-                  className="absolute top-0 bottom-0"
-                  style={{ left: 17, width: 2, background: "var(--grey-200)" }}
-                />
-                <div className="space-y-0.5">
-                  {feed.map((item) => (
-                    <Link
-                      key={item.id}
-                      href={item.href}
-                      className="flex items-start gap-3.5 py-2.5 px-3 -mx-3 relative transition-colors duration-100"
-                      style={{ borderRadius: "var(--radius-sm)" }}
-                      onMouseEnter={(e) => { e.currentTarget.style.background = "var(--grey-50)"; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
-                    >
-                      {/* Timeline dot */}
-                      <div
-                        className="w-[36px] h-[36px] flex items-center justify-center flex-shrink-0 relative z-10"
-                        style={{ background: item.iconBg, borderRadius: "var(--radius-sm)", border: "2px solid var(--white)" }}
-                      >
-                        {item.type === "appointment" ? (
-                          <svg className="w-4 h-4" style={{ color: item.iconColor }} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                          </svg>
-                        ) : (
-                          <svg className="w-4 h-4" style={{ color: item.iconColor }} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                        )}
-                      </div>
-                      {/* Content */}
-                      <div className="flex-1 min-w-0 pt-0.5">
-                        <p className="text-[15px] font-semibold truncate" style={{ color: "var(--grey-900)" }}>
-                          {item.description}
-                        </p>
-                        <p className="text-[13px] truncate" style={{ color: "var(--grey-500)" }}>
-                          {item.detail}
-                        </p>
-                      </div>
-                      {/* Time */}
-                      <span className="text-[13px] font-medium flex-shrink-0 pt-0.5" style={{ color: "var(--grey-500)" }}>
-                        {timeAgo(item.timestamp)}
-                      </span>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            );
-          })()}
         </div>
+      </section>
 
-        {/* Upcoming Appointments Today */}
-        <div className="p-5" style={cardStyle}>
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 flex items-center justify-center" style={{ background: "var(--blue-50)", borderRadius: "var(--radius-sm)", color: "var(--blue-500)" }}>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div>
-                <h2 className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>Upcoming Today</h2>
-                <p className="text-[13px] mt-0.5" style={{ color: "var(--grey-500)" }}>Remaining appointments</p>
-              </div>
-            </div>
-            <Link href="/appointments" className="text-[14px] font-semibold hover:underline" style={{ color: "var(--blue-500)" }}>View all</Link>
-          </div>
-          {!data?.upcomingTodayAppointments?.length ? (
-            <div className="text-center py-8">
-              <svg className="w-10 h-10 mx-auto mb-2" style={{ color: "var(--grey-400)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      {/* ─── Specialties ────────────────────────────────────────────── */}
+      <section style={{ maxWidth: 1000, margin: "0 auto", padding: "80px 24px", textAlign: "center" }}>
+        <span style={{ fontSize: 13, fontWeight: 700, color: "#2d6a4f", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+          Built For
+        </span>
+        <h2 style={{ fontSize: "clamp(28px, 4vw, 40px)", fontWeight: 800, color: "#111", marginTop: 8, marginBottom: 40 }}>
+          Every Wellness Practice
+        </h2>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 12, justifyContent: "center" }}>
+          {[
+            "Ayurveda Clinics",
+            "Panchakarma Centers",
+            "Yoga Studios",
+            "Naturopathy",
+            "Siddha Medicine",
+            "Unani Medicine",
+            "Homeopathy",
+            "Acupuncture",
+            "Wellness Spas",
+            "Physiotherapy",
+            "Chiropractic",
+            "TCM Clinics",
+          ].map((s) => (
+            <span
+              key={s}
+              style={{
+                padding: "10px 20px",
+                background: "white",
+                border: "1px solid #e8e5df",
+                borderRadius: 100,
+                fontSize: 14,
+                fontWeight: 500,
+                color: "#374151",
+              }}
+            >
+              {s}
+            </span>
+          ))}
+        </div>
+      </section>
+
+      {/* ─── CTA Section ────────────────────────────────────────────── */}
+      <section
+        style={{
+          background: "linear-gradient(135deg, #14532d, #1e4d3a, #2d6a4f)",
+          padding: "80px 24px",
+          textAlign: "center",
+        }}
+      >
+        <div style={{ maxWidth: 600, margin: "0 auto" }}>
+          <h2 style={{ fontSize: "clamp(28px, 4vw, 40px)", fontWeight: 800, color: "white", marginBottom: 16 }}>
+            Ready to Modernize Your Clinic?
+          </h2>
+          <p style={{ fontSize: 17, color: "#a7f3d0", marginBottom: 32, lineHeight: 1.6 }}>
+            Join clinics across the world who trust AYUR GATE to manage their practice. Start your free trial today.
+          </p>
+          <div style={{ display: "flex", gap: 16, justifyContent: "center", flexWrap: "wrap" }}>
+            <Link
+              href="/register"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                padding: "14px 36px",
+                background: "white",
+                color: "#14532d",
+                fontSize: 16,
+                fontWeight: 700,
+                borderRadius: 10,
+                textDecoration: "none",
+              }}
+            >
+              Start Free Trial
+              <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
               </svg>
-              <p className="text-[15px] font-medium" style={{ color: "var(--grey-500)" }}>All caught up for today</p>
-            </div>
-          ) : (
-            <div className="space-y-1.5">
-              {data.upcomingTodayAppointments.map((apt) => {
-                const sc = statusColors[apt.status] || statusColors.scheduled;
-                const patientName = apt.patient
-                  ? `${apt.patient.firstName} ${apt.patient.lastName}`
-                  : (apt.walkinName || "Walk-in");
-                const doctorName = apt.doctorRef?.name || apt.doctor;
-                return (
-                  <div
-                    key={apt.id}
-                    className="py-2.5 px-3 -mx-3 transition-colors duration-100"
-                    style={{ borderRadius: "var(--radius-sm)" }}
-                    onMouseEnter={(e) => { e.currentTarget.style.background = "var(--grey-50)"; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-[15px] font-semibold truncate" style={{ color: "var(--grey-900)", maxWidth: "60%" }}>
-                        {patientName}
-                      </span>
-                      <span
-                        className="text-[12px] font-bold uppercase px-2 py-0.5 flex-shrink-0"
-                        style={{ background: sc.bg, color: sc.color, borderRadius: "var(--radius-sm)" }}
-                      >
-                        {apt.status}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[14px] font-bold tabular-nums" style={{ color: "var(--blue-500)" }}>{apt.time}</span>
-                      <span className="text-[13px]" style={{ color: "var(--grey-400)" }}>&middot;</span>
-                      <span className="text-[13px] truncate" style={{ color: "var(--grey-500)" }}>{doctorName}</span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+            </Link>
+            <Link
+              href="/pricing"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                padding: "14px 36px",
+                background: "transparent",
+                color: "white",
+                fontSize: 16,
+                fontWeight: 600,
+                borderRadius: 10,
+                textDecoration: "none",
+                border: "1.5px solid rgba(255,255,255,0.3)",
+              }}
+            >
+              View Pricing
+            </Link>
+          </div>
         </div>
-      </div>
+      </section>
+
+      {/* ─── Footer ─────────────────────────────────────────────────── */}
+      <footer style={{ background: "#111", color: "#9ca3af", padding: "48px 24px" }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 40 }}>
+          <div>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+              <div
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 8,
+                  background: "linear-gradient(135deg, #14532d, #2d6a4f)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "white",
+                  fontWeight: 800,
+                  fontSize: 13,
+                }}
+              >
+                AG
+              </div>
+              <span style={{ fontSize: 16, fontWeight: 700, color: "white", letterSpacing: "0.08em" }}>AYUR GATE</span>
+            </div>
+            <p style={{ fontSize: 13, lineHeight: 1.6 }}>
+              Modern clinic management software for Ayurveda, wellness & healthcare practices.
+            </p>
+          </div>
+
+          <div>
+            <h4 style={{ color: "white", fontSize: 14, fontWeight: 600, marginBottom: 16 }}>Product</h4>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <a href="#features" style={{ fontSize: 13, color: "#9ca3af", textDecoration: "none" }}>Features</a>
+              <Link href="/pricing" style={{ fontSize: 13, color: "#9ca3af", textDecoration: "none" }}>Pricing</Link>
+              <a href="#how-it-works" style={{ fontSize: 13, color: "#9ca3af", textDecoration: "none" }}>How It Works</a>
+            </div>
+          </div>
+
+          <div>
+            <h4 style={{ color: "white", fontSize: 14, fontWeight: 600, marginBottom: 16 }}>Company</h4>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <a href="mailto:ayurcentresg@gmail.com" style={{ fontSize: 13, color: "#9ca3af", textDecoration: "none" }}>Contact Us</a>
+              <Link href="/login" style={{ fontSize: 13, color: "#9ca3af", textDecoration: "none" }}>Sign In</Link>
+              <Link href="/register" style={{ fontSize: 13, color: "#9ca3af", textDecoration: "none" }}>Start Trial</Link>
+            </div>
+          </div>
+
+          <div>
+            <h4 style={{ color: "white", fontSize: 14, fontWeight: 600, marginBottom: 16 }}>Support</h4>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <a href="mailto:ayurcentresg@gmail.com" style={{ fontSize: 13, color: "#9ca3af", textDecoration: "none" }}>ayurcentresg@gmail.com</a>
+            </div>
+          </div>
+        </div>
+
+        <div style={{ maxWidth: 1200, margin: "40px auto 0", paddingTop: 24, borderTop: "1px solid #333", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
+          <p style={{ fontSize: 12, color: "#6b7280" }}>
+            &copy; {new Date().getFullYear()} AYUR GATE. All rights reserved.
+          </p>
+          <p style={{ fontSize: 12, color: "#6b7280" }}>
+            Made with care for clinics worldwide
+          </p>
+        </div>
+      </footer>
+
+      {/* ─── Responsive CSS ─────────────────────────────────────────── */}
+      <style jsx global>{`
+        .hidden-mobile { display: flex !important; }
+        .show-mobile { display: none !important; }
+        .feature-card:hover {
+          box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+          transform: translateY(-2px);
+        }
+        @media (max-width: 768px) {
+          .hidden-mobile { display: none !important; }
+          .show-mobile { display: flex !important; }
+        }
+      `}</style>
     </div>
   );
 }

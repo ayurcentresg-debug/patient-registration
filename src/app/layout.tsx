@@ -3,8 +3,8 @@ import "./globals.css";
 import LayoutShell from "@/components/LayoutShell";
 
 export const metadata: Metadata = {
-  title: "Ayur Centre — Patient Registration & Management",
-  description: "Ayur Centre Pte. Ltd. — Ayurveda patient registration and clinic management system",
+  title: "AYUR GATE — Ayurveda Clinic Management Software",
+  description: "AYUR GATE — Modern clinic management software for Ayurveda, wellness & healthcare practices. Appointments, billing, inventory, multi-branch & more.",
 };
 
 export default function RootLayout({

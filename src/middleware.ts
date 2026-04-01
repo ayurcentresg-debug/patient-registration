@@ -30,11 +30,28 @@ export async function middleware(req: NextRequest) {
 
   // Allow public paths, static files, and Next.js internals
   if (
+    pathname === "/" ||
     PUBLIC_PATHS.some((p) => pathname.startsWith(p)) ||
     pathname.startsWith("/_next") ||
     pathname.startsWith("/favicon") ||
     pathname.includes(".")
   ) {
+    // If logged in and visiting "/", redirect to dashboard
+    if (pathname === "/") {
+      const token = req.cookies.get("auth_token")?.value;
+      if (token) {
+        try {
+          const { payload } = await jwtVerify(token, secret);
+          const role = payload.role as string;
+          if (role === "doctor" || role === "therapist") {
+            return NextResponse.redirect(new URL("/doctor", req.url));
+          }
+          return NextResponse.redirect(new URL("/dashboard", req.url));
+        } catch {
+          // Invalid token, show landing page
+        }
+      }
+    }
     return NextResponse.next();
   }
 
@@ -55,12 +72,17 @@ export async function middleware(req: NextRequest) {
 
     // Non-doctor trying to access doctor portal → redirect to main dashboard
     if (DOCTOR_PATHS.some(p => pathname.startsWith(p)) && role !== "doctor" && role !== "therapist" && role !== "admin") {
-      return NextResponse.redirect(new URL("/", req.url));
+      return NextResponse.redirect(new URL("/dashboard", req.url));
     }
 
-    // Doctor/therapist accessing root "/" → redirect to doctor portal
-    if ((role === "doctor" || role === "therapist") && pathname === "/") {
+    // Doctor/therapist accessing root "/" or "/dashboard" → redirect to doctor portal
+    if ((role === "doctor" || role === "therapist") && (pathname === "/" || pathname === "/dashboard")) {
       return NextResponse.redirect(new URL("/doctor", req.url));
+    }
+
+    // Logged-in user accessing "/" → redirect to dashboard
+    if (pathname === "/") {
+      return NextResponse.redirect(new URL("/dashboard", req.url));
     }
 
     return NextResponse.next();
