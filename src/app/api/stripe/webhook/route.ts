@@ -91,7 +91,7 @@ export async function POST(req: NextRequest) {
         if (clinic) {
           try {
             await sendEmail({
-              to: "ayurcentresg@gmail.com",
+              to: process.env.ADMIN_NOTIFICATION_EMAIL || "ayurcentresg@gmail.com",
               subject: `New paid subscription: ${clinic.name} → ${planConfig.name}`,
               html: `
                 <div style="font-family:sans-serif;max-width:500px;margin:0 auto;padding:24px;">

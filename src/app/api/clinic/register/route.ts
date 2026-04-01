@@ -146,7 +146,7 @@ export async function POST(request: NextRequest) {
     // Send notification email to admin
     try {
       await sendEmail({
-        to: "ayurcentresg@gmail.com",
+        to: process.env.ADMIN_NOTIFICATION_EMAIL || "ayurcentresg@gmail.com",
         subject: `🏥 New Clinic Registered: ${clinicName}`,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">

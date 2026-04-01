@@ -1,12 +1,12 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 
-const secret = new TextEncoder().encode(
-  process.env.JWT_SECRET || "fallback-dev-secret-change-in-production"
-);
+if (!process.env.JWT_SECRET) {
+  throw new Error("JWT_SECRET environment variable is required");
+}
+const secret = new TextEncoder().encode(process.env.JWT_SECRET);
 
-const SUPER_ADMIN_EMAIL =
-  process.env.SUPER_ADMIN_EMAIL || "superadmin@ayurgate.com";
+const SUPER_ADMIN_EMAIL = process.env.SUPER_ADMIN_EMAIL || "";
 const SUPER_ADMIN_PASSWORD = process.env.SUPER_ADMIN_PASSWORD;
 
 if (!SUPER_ADMIN_PASSWORD && process.env.NODE_ENV === "production") {

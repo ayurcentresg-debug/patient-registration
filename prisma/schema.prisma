@@ -111,6 +111,7 @@ model Patient {
   patientPackages PatientPackage[]
 
   @@unique([clinicId, patientIdNumber])
+  @@index([clinicId])
 }
 
 model FamilyMember {
@@ -165,6 +166,11 @@ model Appointment {
   doctorRef       User?    @relation(fields: [doctorId], references: [id], onDelete: SetNull)
   treatment       Treatment? @relation(fields: [treatmentId], references: [id], onDelete: SetNull)
   treatmentPkg    TreatmentPackage? @relation(fields: [packageId], references: [id], onDelete: SetNull)
+
+  @@index([clinicId])
+  @@index([date])
+  @@index([patientId])
+  @@index([doctorId])
 }
 
 model Communication {
@@ -178,6 +184,9 @@ model Communication {
   sentAt    DateTime @default(now())
 
   patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@index([clinicId])
+  @@index([patientId])
 }
 
 model ClinicalNote {
@@ -308,6 +317,7 @@ model InventoryItem {
   transferItems   StockTransferItem[]
 
   @@unique([clinicId, sku])
+  @@index([clinicId])
 }
 
 model InventoryVariant {
@@ -428,6 +438,9 @@ model Invoice {
   creditNotes     CreditNote[]
 
   @@unique([clinicId, invoiceNumber])
+  @@index([clinicId])
+  @@index([patientId])
+  @@index([date])
 }
 
 model InvoiceItem {
@@ -762,6 +775,7 @@ model User {
 
   @@unique([clinicId, email])
   @@unique([clinicId, staffIdNumber])
+  @@index([clinicId])
 }
 
 // ─── Multi-Branch ────────────────────────────────────────────────────────

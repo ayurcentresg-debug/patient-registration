@@ -1,9 +1,10 @@
 import { SignJWT, jwtVerify } from "jose";
 import bcrypt from "bcryptjs";
 
-const secret = new TextEncoder().encode(
-  process.env.JWT_SECRET || "fallback-dev-secret-change-in-production"
-);
+if (!process.env.JWT_SECRET) {
+  throw new Error("JWT_SECRET environment variable is required");
+}
+const secret = new TextEncoder().encode(process.env.JWT_SECRET);
 
 export interface JWTPayload {
   userId: string;
