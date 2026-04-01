@@ -41,6 +41,9 @@ model ClinicSubscription {
   currentPeriodEnd   DateTime?
   maxUsers        Int       @default(5) // trial = 5, starter = 10, etc.
   maxPatients     Int       @default(100) // trial = 100
+  stripeCustomerId     String?   @unique
+  stripeSubscriptionId String?   @unique
+  stripePriceId        String?
   paymentMethod   String?
   paymentReference String?
   notes           String?

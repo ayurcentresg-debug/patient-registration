@@ -14,6 +14,7 @@ interface SubscriptionInfo {
 export default function TrialBanner() {
   const [sub, setSub] = useState<SubscriptionInfo | null>(null);
   const [dismissed, setDismissed] = useState(false);
+  const [upgrading, setUpgrading] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -27,8 +28,29 @@ export default function TrialBanner() {
 
   if (!sub || dismissed) return null;
 
-  // Enterprise/paid plans — no banner
+  // Paid plans — no banner
   if (sub.plan !== "trial") return null;
+
+  async function handleUpgrade(plan: string) {
+    setUpgrading(plan);
+    try {
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan, annual: false }),
+      });
+      const data = await res.json();
+      if (res.ok && data.url) {
+        window.location.href = data.url;
+      } else {
+        router.push("/pricing");
+      }
+    } catch {
+      router.push("/pricing");
+    } finally {
+      setUpgrading(null);
+    }
+  }
 
   // Trial expired — show blocking overlay
   if (sub.isTrialExpired) {
@@ -45,23 +67,52 @@ export default function TrialBanner() {
           </h2>
           <p className="text-[14px] mb-6" style={{ color: "#6b7280" }}>
             Your 7-day free trial for <strong>{sub.clinicName}</strong> has ended.
-            Upgrade to a paid plan to continue using AYUR GATE.
+            Choose a plan to continue using AYUR GATE.
           </p>
-          <div className="space-y-3">
+
+          {/* Quick upgrade buttons */}
+          <div className="space-y-2.5 mb-4">
             <button
-              onClick={() => router.push("/pricing")}
-              className="w-full py-3 rounded-lg text-white font-semibold text-[15px] transition-opacity hover:opacity-90"
+              onClick={() => handleUpgrade("starter")}
+              disabled={upgrading === "starter"}
+              className="w-full py-3 rounded-lg font-semibold text-[14px] transition-all hover:shadow-md disabled:opacity-50"
+              style={{ background: "#ecfdf5", color: "#14532d", border: "1.5px solid #2d6a4f" }}
+            >
+              {upgrading === "starter" ? "Redirecting to Stripe..." : "Starter — $49/mo (10 staff, 500 patients)"}
+            </button>
+            <button
+              onClick={() => handleUpgrade("professional")}
+              disabled={upgrading === "professional"}
+              className="w-full py-3 rounded-lg text-white font-semibold text-[15px] transition-all hover:shadow-md disabled:opacity-50"
               style={{ background: "linear-gradient(135deg, #14532d, #2d6a4f)" }}
             >
-              View Plans & Upgrade
+              {upgrading === "professional" ? "Redirecting to Stripe..." : "Professional — $99/mo (25 staff, unlimited)"}
+            </button>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => router.push("/pricing")}
+              className="flex-1 py-2.5 rounded-lg font-medium text-[13px] transition-colors hover:bg-gray-50"
+              style={{ color: "#6b7280", border: "1px solid #e5e7eb" }}
+            >
+              Compare All Plans
             </button>
             <a
               href="mailto:ayurcentresg@gmail.com?subject=AYUR GATE Subscription Help"
-              className="block w-full py-2.5 rounded-lg font-medium text-[14px] transition-colors hover:bg-gray-50"
+              className="flex-1 py-2.5 rounded-lg font-medium text-[13px] text-center transition-colors hover:bg-gray-50"
               style={{ color: "#6b7280", border: "1px solid #e5e7eb" }}
             >
               Contact Support
             </a>
+          </div>
+
+          {/* Stripe badge */}
+          <div className="mt-4 flex items-center justify-center gap-1.5">
+            <svg className="w-3.5 h-3.5" fill="none" stroke="#9ca3af" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+            </svg>
+            <span className="text-[11px]" style={{ color: "#9ca3af" }}>Secure payments by Stripe</span>
           </div>
         </div>
       </div>

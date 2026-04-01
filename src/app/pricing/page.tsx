@@ -2,10 +2,12 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 const plans = [
   {
     name: "Trial",
+    key: "trial",
     price: "Free",
     period: "7 days",
     description: "Try everything before you commit",
@@ -19,9 +21,11 @@ const plans = [
     href: "/register",
     popular: false,
     color: "#6b7280",
+    hasCheckout: false,
   },
   {
     name: "Starter",
+    key: "starter",
     price: "$49",
     period: "/month",
     description: "Perfect for small clinics",
@@ -37,9 +41,11 @@ const plans = [
     href: "/register?plan=starter",
     popular: false,
     color: "#2d6a4f",
+    hasCheckout: true,
   },
   {
     name: "Professional",
+    key: "professional",
     price: "$99",
     period: "/month",
     description: "For growing multi-doctor clinics",
@@ -56,9 +62,11 @@ const plans = [
     href: "/register?plan=professional",
     popular: true,
     color: "#14532d",
+    hasCheckout: true,
   },
   {
     name: "Enterprise",
+    key: "enterprise",
     price: "Custom",
     period: "",
     description: "For clinic chains & franchises",
@@ -76,6 +84,7 @@ const plans = [
     href: "mailto:ayurcentresg@gmail.com?subject=AYUR GATE Enterprise Inquiry",
     popular: false,
     color: "#1e3a5f",
+    hasCheckout: false,
   },
 ];
 
@@ -90,13 +99,41 @@ const features = [
 
 export default function PricingPage() {
   const [annual, setAnnual] = useState(false);
+  const [loading, setLoading] = useState<string | null>(null);
+  const router = useRouter();
+
+  async function handleCheckout(planKey: string) {
+    setLoading(planKey);
+    try {
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan: planKey, annual }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.url) {
+        window.location.href = data.url;
+      } else if (res.status === 401) {
+        // Not logged in — redirect to register with plan
+        router.push(`/register?plan=${planKey}`);
+      } else {
+        alert(data.error || "Failed to start checkout");
+      }
+    } catch {
+      alert("Something went wrong. Please try again.");
+    } finally {
+      setLoading(null);
+    }
+  }
 
   return (
     <div className="min-h-screen" style={{ background: "#fefbf6" }}>
       {/* Header */}
       <header className="border-b" style={{ borderColor: "#e5e7eb", background: "white" }}>
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/pricing" className="flex items-center gap-2">
+          <Link href="/" className="flex items-center gap-2">
             <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "#14532d" }}>
               <span className="text-white text-sm font-black">AG</span>
             </div>
@@ -184,20 +221,55 @@ export default function PricingPage() {
                   ))}
                 </ul>
 
-                <Link
-                  href={plan.href}
-                  className="block text-center py-2.5 rounded-lg font-semibold text-[14px] transition-opacity hover:opacity-90"
-                  style={{
-                    background: plan.popular ? "#14532d" : "transparent",
-                    color: plan.popular ? "white" : plan.color,
-                    border: plan.popular ? "none" : `1.5px solid ${plan.color}`,
-                  }}
-                >
-                  {plan.cta}
-                </Link>
+                {plan.hasCheckout ? (
+                  <button
+                    onClick={() => handleCheckout(plan.key)}
+                    disabled={loading === plan.key}
+                    className="block w-full text-center py-2.5 rounded-lg font-semibold text-[14px] transition-opacity hover:opacity-90 disabled:opacity-50"
+                    style={{
+                      background: plan.popular ? "#14532d" : "transparent",
+                      color: plan.popular ? "white" : plan.color,
+                      border: plan.popular ? "none" : `1.5px solid ${plan.color}`,
+                    }}
+                  >
+                    {loading === plan.key ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                        </svg>
+                        Redirecting...
+                      </span>
+                    ) : (
+                      plan.cta
+                    )}
+                  </button>
+                ) : (
+                  <Link
+                    href={plan.href}
+                    className="block text-center py-2.5 rounded-lg font-semibold text-[14px] transition-opacity hover:opacity-90"
+                    style={{
+                      background: plan.popular ? "#14532d" : "transparent",
+                      color: plan.popular ? "white" : plan.color,
+                      border: plan.popular ? "none" : `1.5px solid ${plan.color}`,
+                    }}
+                  >
+                    {plan.cta}
+                  </Link>
+                )}
               </div>
             );
           })}
+        </div>
+      </section>
+
+      {/* Secure Payment Badge */}
+      <section className="text-center pb-12 px-6">
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full" style={{ background: "#f0fdf4", border: "1px solid #bbf7d0" }}>
+          <svg className="w-4 h-4" fill="none" stroke="#16a34a" strokeWidth={2} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+          </svg>
+          <span className="text-[13px] font-medium" style={{ color: "#16a34a" }}>Secure payments powered by Stripe</span>
         </div>
       </section>
 

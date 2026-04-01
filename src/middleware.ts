@@ -16,6 +16,7 @@ const PUBLIC_PATHS = [
   "/api/clinic/register",
   "/pricing",
   "/api/public",
+  "/api/stripe/webhook",
   "/trial-expired",
 ];
 
