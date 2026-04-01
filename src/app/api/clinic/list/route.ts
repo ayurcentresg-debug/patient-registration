@@ -1,18 +1,20 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getAuthPayload } from "@/lib/get-clinic-id";
+import { isSuperAdmin } from "@/lib/super-admin-auth";
 
 /**
  * GET /api/clinic/list
  *
- * Super-admin only: Lists all registered clinics with subscription info.
- * Only accessible by the platform admin (Ayur Centre clinic).
+ * Lists all registered clinics with subscription info.
+ * Accessible by clinic admins and the platform super admin.
  */
 export async function GET() {
   try {
+    const superAdmin = await isSuperAdmin();
     const payload = await getAuthPayload();
 
-    if (!payload || payload.role !== "admin") {
+    if (!superAdmin && (!payload || payload.role !== "admin")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

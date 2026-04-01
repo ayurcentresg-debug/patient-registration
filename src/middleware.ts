@@ -28,6 +28,32 @@ const DOCTOR_PATHS = ["/doctor"];
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
+  // ── Super Admin routes ──────────────────────────────────────────────
+  if (pathname.startsWith("/super-admin") || pathname.startsWith("/api/super-admin")) {
+    // Public: login page and login API
+    if (pathname === "/super-admin/login" || pathname.startsWith("/api/super-admin/login")) {
+      return NextResponse.next();
+    }
+
+    // All other /super-admin paths require valid super_admin_token
+    const saToken = req.cookies.get("super_admin_token")?.value;
+    if (!saToken) {
+      return NextResponse.redirect(new URL("/super-admin/login", req.url));
+    }
+
+    try {
+      const { payload } = await jwtVerify(saToken, secret);
+      if (payload.role !== "super_admin") {
+        return NextResponse.redirect(new URL("/super-admin/login", req.url));
+      }
+      return NextResponse.next();
+    } catch {
+      const response = NextResponse.redirect(new URL("/super-admin/login", req.url));
+      response.cookies.delete("super_admin_token");
+      return response;
+    }
+  }
+
   // Allow public paths, static files, and Next.js internals
   if (
     pathname === "/" ||

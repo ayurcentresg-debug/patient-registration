@@ -14,6 +14,12 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
   const isRegisterPage = pathname === "/register";
   const isPricingPage = pathname === "/pricing";
   const isDoctorPortal = pathname?.startsWith("/doctor");
+  const isSuperAdmin = pathname?.startsWith("/super-admin");
+
+  // Super admin pages have their own layout — no clinic sidebar or auth
+  if (isSuperAdmin) {
+    return <ThemeProvider>{children}</ThemeProvider>;
+  }
 
   // Public pages render without sidebar or auth check
   if (isLandingPage || isLoginPage || isInvitePage || isRegisterPage || isPricingPage) {
