@@ -91,9 +91,25 @@ export async function POST(req: NextRequest) {
     if (user.clinicId) {
       const clinic = await prisma.clinic.findUnique({
         where: { id: user.clinicId },
-        select: { onboardingComplete: true },
+        select: { onboardingComplete: true, createdAt: true },
       });
-      onboardingComplete = clinic?.onboardingComplete ?? true;
+
+      // Safety net: clinics created before the onboarding feature (2026-04-02)
+      // are auto-marked as onboarded so existing users aren't disrupted
+      if (clinic && !clinic.onboardingComplete) {
+        const onboardingLaunchDate = new Date("2026-04-02T00:00:00Z");
+        if (clinic.createdAt < onboardingLaunchDate) {
+          await prisma.clinic.update({
+            where: { id: user.clinicId },
+            data: { onboardingComplete: true, emailVerified: true },
+          });
+          onboardingComplete = true;
+        } else {
+          onboardingComplete = false;
+        }
+      } else {
+        onboardingComplete = clinic?.onboardingComplete ?? true;
+      }
     }
 
     // Create JWT with clinicId for multi-tenancy
