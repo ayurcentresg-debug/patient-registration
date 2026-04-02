@@ -161,7 +161,7 @@ export async function POST(request: NextRequest) {
 
     // Send invite email
     if (sendInvite && inviteToken) {
-      const baseUrl = request.headers.get("origin") || request.headers.get("host") || "http://localhost:3000";
+      const baseUrl = request.headers.get("origin") || request.headers.get("host") || process.env.NEXT_PUBLIC_APP_URL || "https://www.ayurgate.com";
       const inviteUrl = `${baseUrl.startsWith("http") ? baseUrl : `https://${baseUrl}`}/invite/${inviteToken}`;
       const roleLabel = role ? role.charAt(0).toUpperCase() + role.slice(1) : "Staff";
 
