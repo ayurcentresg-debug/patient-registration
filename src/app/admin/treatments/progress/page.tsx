@@ -444,7 +444,7 @@ export default function ProgressTrackerPage() {
                 const planPatientName = patientNameCache[item.plan.patientId] || "Patient";
                 return (
                   <div key={`${item.id}-${idx}`} className="p-4 flex items-center gap-3" style={cardStyle}>
-                    <div className="w-8 h-8 flex items-center justify-center rounded-full flex-shrink-0" style={{ background: item.completedSessions === item.totalSessions ? "#ecfdf5" : "#eff6ff" }}>
+                    <div className="w-8 h-8 flex items-center justify-center rounded-full flex-shrink-0" style={{ background: item.completedSessions === item.totalSessions ? "#ecfdf5" : "var(--blue-50)" }}>
                       {item.completedSessions === item.totalSessions ? (
                         <svg className="w-4 h-4" style={{ color: "#059669" }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
                       ) : (

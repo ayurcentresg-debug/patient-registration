@@ -2359,7 +2359,7 @@ export default function PatientDetailPage() {
                             <p className="text-[12px] font-bold uppercase tracking-wider mb-1" style={{ color: "var(--grey-500)" }}>Shared With</p>
                             <div className="flex flex-wrap gap-1.5">
                               {pkg.shares.filter(s => s.isActive).map(s => (
-                                <span key={s.id} className="inline-flex items-center gap-1 px-2 py-0.5 text-[12px] font-semibold" style={{ background: "#e3f2fd", color: "var(--blue-500)", borderRadius: "var(--radius-pill)" }}>
+                                <span key={s.id} className="inline-flex items-center gap-1 px-2 py-0.5 text-[12px] font-semibold" style={{ background: "var(--blue-50)", color: "var(--blue-500)", borderRadius: "var(--radius-pill)" }}>
                                   {s.sharedWithName} <span style={{ color: "var(--grey-500)" }}>({s.relation})</span>
                                 </span>
                               ))}
@@ -2605,7 +2605,7 @@ export default function PatientDetailPage() {
                           </button>
                           {rx.status === "active" && (
                             <button onClick={() => convertRxToInvoice(rx)} disabled={convertingRx === rx.id}
-                              className="p-1.5 hover:bg-blue-50 rounded transition-colors disabled:opacity-50" style={{ color: "var(--blue-500)" }} title="Convert to Invoice">
+                              className="p-1.5 hover:bg-emerald-50 rounded transition-colors disabled:opacity-50" style={{ color: "var(--blue-500)" }} title="Convert to Invoice">
                               {convertingRx === rx.id ? (
                                 <div className="w-4 h-4 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: "var(--blue-500)", borderTopColor: "transparent" }} />
                               ) : (
@@ -3500,7 +3500,7 @@ export default function PatientDetailPage() {
                   {treatmentPlans.map((tp) => {
                     const progress = tp.totalSessions > 0 ? Math.round((tp.completedSessions / tp.totalSessions) * 100) : 0;
                     const statusColors: Record<string, { bg: string; text: string }> = {
-                      active: { bg: "#e8f5e9", text: "#2e7d32" }, completed: { bg: "#e3f2fd", text: "#1565c0" },
+                      active: { bg: "#e8f5e9", text: "#2e7d32" }, completed: { bg: "var(--blue-50)", text: "var(--blue-700)" },
                       paused: { bg: "#fff3e0", text: "#e65100" }, cancelled: { bg: "#ffebee", text: "#c62828" },
                     };
                     const sc = statusColors[tp.status] || statusColors.active;
@@ -3637,7 +3637,7 @@ export default function PatientDetailPage() {
                       <p className="text-[9px] font-semibold uppercase" style={{ color: "var(--grey-500)" }}>Billed</p>
                     </div>
                     <div className="p-3 text-center" style={{ ...cardStyle }}>
-                      <p className="text-[16px] font-bold" style={{ color: "#1565c0" }}>S${patientInvoices.reduce((s, i) => s + i.paidAmount, 0).toFixed(0)}</p>
+                      <p className="text-[16px] font-bold" style={{ color: "var(--blue-700)" }}>S${patientInvoices.reduce((s, i) => s + i.paidAmount, 0).toFixed(0)}</p>
                       <p className="text-[9px] font-semibold uppercase" style={{ color: "var(--grey-500)" }}>Paid</p>
                     </div>
                     <div className="p-3 text-center" style={{ ...cardStyle }}>
@@ -3662,7 +3662,7 @@ export default function PatientDetailPage() {
                         {patientInvoices.map((inv, idx) => {
                           const statusColors: Record<string, { bg: string; text: string }> = {
                             paid: { bg: "#e8f5e9", text: "#2e7d32" }, pending: { bg: "#fff3e0", text: "#e65100" },
-                            partially_paid: { bg: "#e3f2fd", text: "#1565c0" }, draft: { bg: "var(--grey-100)", text: "var(--grey-600)" },
+                            partially_paid: { bg: "var(--blue-50)", text: "var(--blue-700)" }, draft: { bg: "var(--grey-100)", text: "var(--grey-600)" },
                             cancelled: { bg: "#ffebee", text: "#c62828" }, refunded: { bg: "#f3e5f5", text: "#7b1fa2" },
                           };
                           const sc = statusColors[inv.status] || statusColors.pending;

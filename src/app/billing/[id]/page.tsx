@@ -101,13 +101,13 @@ const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
   submitted: { bg: "#fff3e0", color: "#f57c00" },
   paid: { bg: "#e8f5e9", color: "var(--green)" },
   approved: { bg: "#e8f5e9", color: "var(--green)" },
-  partially_paid: { bg: "#e3f2fd", color: "var(--blue-500)" },
-  under_review: { bg: "#e3f2fd", color: "var(--blue-500)" },
+  partially_paid: { bg: "var(--blue-50)", color: "var(--blue-500)" },
+  under_review: { bg: "var(--blue-50)", color: "var(--blue-500)" },
   cancelled: { bg: "#ffebee", color: "var(--red)" },
   rejected: { bg: "#ffebee", color: "var(--red)" },
   settled: { bg: "#f3e5f5", color: "#7b1fa2" },
   refunded: { bg: "#f3e5f5", color: "#7b1fa2" },
-  issued: { bg: "#e3f2fd", color: "var(--blue-500)" },
+  issued: { bg: "var(--blue-50)", color: "var(--blue-500)" },
   applied: { bg: "#e8f5e9", color: "var(--green)" },
 };
 
@@ -115,7 +115,7 @@ const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
 const ITEM_TYPE_COLORS: Record<string, { bg: string; color: string }> = {
   consultation: { bg: "#e8f5e9", color: "var(--green)" },
   therapy: { bg: "#f3e5f5", color: "#7b1fa2" },
-  medicine: { bg: "#e3f2fd", color: "var(--blue-500)" },
+  medicine: { bg: "var(--blue-50)", color: "var(--blue-500)" },
   procedure: { bg: "#fff3e0", color: "#f57c00" },
   lab: { bg: "#e0f2f1", color: "#00897b" },
   other: { bg: "var(--grey-200)", color: "var(--grey-600)" },
@@ -124,7 +124,7 @@ const ITEM_TYPE_COLORS: Record<string, { bg: string; color: string }> = {
 // ─── Payment method colors ──────────────────────────────────────────────────
 const METHOD_COLORS: Record<string, { bg: string; color: string }> = {
   cash: { bg: "#e8f5e9", color: "var(--green)" },
-  card: { bg: "#e3f2fd", color: "var(--blue-500)" },
+  card: { bg: "var(--blue-50)", color: "var(--blue-500)" },
   upi: { bg: "#f3e5f5", color: "#7b1fa2" },
   insurance: { bg: "#fff3e0", color: "#f57c00" },
   bank_transfer: { bg: "#e0f2f1", color: "#00897b" },

@@ -37,7 +37,7 @@ const btnPrimary = { background: "var(--blue-500)", borderRadius: "var(--radius-
 const chipBase = "inline-flex px-2 py-0.5 text-[12px] font-bold uppercase tracking-wide";
 
 const PANEL_COLORS: Record<string, { bg: string; color: string }> = {
-  private: { bg: "#e3f2fd", color: "var(--blue-500)" },
+  private: { bg: "var(--blue-50)", color: "var(--blue-500)" },
   corporate: { bg: "#fff3e0", color: "#f57c00" },
   government: { bg: "#e8f5e9", color: "var(--green)" },
 };

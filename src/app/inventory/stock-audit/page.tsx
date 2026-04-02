@@ -579,7 +579,7 @@ export default function StockAuditPage() {
 
       {/* Branch Selector */}
       {branches.length > 0 && (
-        <div className="mb-4 p-3 rounded-lg flex items-center gap-3" style={{ ...cardStyle, background: "var(--blue-50, #eff6ff)" }}>
+        <div className="mb-4 p-3 rounded-lg flex items-center gap-3" style={{ ...cardStyle, background: "var(--blue-50)" }}>
           <label className="text-[13px] font-bold uppercase tracking-wide" style={{ color: "var(--grey-600)" }}>
             Branch
           </label>
@@ -610,7 +610,7 @@ export default function StockAuditPage() {
 
       {/* Barcode Scanner (visible when scan mode is on) */}
       {scanMode && (
-        <div className="mb-6 p-4 rounded-lg" style={{ ...cardStyle, border: "2px solid var(--blue-500)", background: "var(--blue-50, #eff6ff)" }}>
+        <div className="mb-6 p-4 rounded-lg" style={{ ...cardStyle, border: "2px solid var(--blue-500)", background: "var(--blue-50)" }}>
           <div className="flex items-center gap-2 mb-3">
             <svg className="w-5 h-5" style={{ color: "var(--blue-500)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />

@@ -179,7 +179,7 @@ export default function PrescriptionsPage() {
       .footer .sig-line { width: 180px; border-top: 1px solid #292524; padding-top: 6px; font-size: 11px; color: #78716c; }
       @media print { body { padding: 16px; } button { display: none !important; } }
     </style></head><body>
-    <div style="text-align:right;margin-bottom:16px"><button onclick="window.print()" style="padding:8px 20px;background:#3b82f6;color:white;border:none;border-radius:6px;cursor:pointer;font-size:14px;font-weight:600">Print</button></div>
+    <div style="text-align:right;margin-bottom:16px"><button onclick="window.print()" style="padding:8px 20px;background:#2d6a4f;color:white;border:none;border-radius:6px;cursor:pointer;font-size:14px;font-weight:600">Print</button></div>
     <div class="header">
       <div><h1>Prescription</h1><div class="rx-no">${rx.prescriptionNo}</div></div>
       <div style="text-align:right"><div style="font-size:13px;font-weight:600">Date: ${formatDate(rx.date)}</div></div>

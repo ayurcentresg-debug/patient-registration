@@ -1093,7 +1093,7 @@ export default function StockReportsPage() {
                         transferData.transfers.map((t) => {
                           const statusColors: Record<string, { bg: string; color: string }> = {
                             received: { bg: "#e8f5e9", color: "#2e7d32" },
-                            in_transit: { bg: "#e3f2fd", color: "#1565c0" },
+                            in_transit: { bg: "var(--blue-50)", color: "var(--blue-700)" },
                             cancelled: { bg: "#ffebee", color: "#c62828" },
                             draft: { bg: "#f5f5f5", color: "#757575" },
                           };

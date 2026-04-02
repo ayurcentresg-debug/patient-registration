@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
             subject: finalSubject,
             html: `
               <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                <h2 style="color: #2563eb;">${finalSubject}</h2>
+                <h2 style="color: #2d6a4f;">${finalSubject}</h2>
                 <p>Dear ${patient.firstName},</p>
                 <p>${finalMessage}</p>
                 <hr style="border-color: #e5e7eb;" />

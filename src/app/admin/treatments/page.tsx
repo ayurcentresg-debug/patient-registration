@@ -41,7 +41,7 @@ const CATEGORIES = [
 
 const CATEGORY_COLORS: Record<string, { bg: string; color: string }> = {
   massage: { bg: "#e8f5e9", color: "#2e7d32" },
-  panchakarma: { bg: "#e3f2fd", color: "#1565c0" },
+  panchakarma: { bg: "var(--blue-50)", color: "var(--blue-700)" },
   specialty: { bg: "#f3e5f5", color: "#7b1fa2" },
   consultation: { bg: "#fff3e0", color: "#f57c00" },
   detox: { bg: "#fce4ec", color: "#c62828" },

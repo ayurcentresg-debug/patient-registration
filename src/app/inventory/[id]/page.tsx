@@ -155,7 +155,7 @@ const TXN_TYPE_CONFIG: Record<string, { label: string; color: string; bg: string
   issue: { label: "Issue/Sale", color: "var(--red)", bg: "#ffebee", sign: "-" },
   adjustment: { label: "Adjustment", color: "#f57c00", bg: "#fff3e0", sign: "" },
   adjust: { label: "Adjustment", color: "#f57c00", bg: "#fff3e0", sign: "" },
-  return: { label: "Return", color: "var(--blue-500)", bg: "#e3f2fd", sign: "+" },
+  return: { label: "Return", color: "var(--blue-500)", bg: "var(--blue-50)", sign: "+" },
   expired: { label: "Expired", color: "#7b1fa2", bg: "#f3e5f5", sign: "" },
   damaged: { label: "Damaged", color: "var(--red)", bg: "#ffebee", sign: "" },
 };
@@ -386,7 +386,7 @@ function StockMovementChart({ movements, reorderLevel, period }: { movements: Mo
               <text x={tx + 10} y={ty + 18} fontSize={12} fill="#fff" fontWeight={700}>{dateStr}</text>
               <text x={tx + 10} y={ty + 34} fontSize={11} fill="#81c784">In: +{tooltip.day.stockIn}</text>
               <text x={tx + 80} y={ty + 34} fontSize={11} fill="#ef9a9a">Out: -{tooltip.day.stockOut}</text>
-              <text x={tx + 10} y={ty + 50} fontSize={11} fill="#90caf9">Net: {tooltip.day.netChange > 0 ? "+" : ""}{tooltip.day.netChange}</text>
+              <text x={tx + 10} y={ty + 50} fontSize={11} fill="var(--blue-200)">Net: {tooltip.day.netChange > 0 ? "+" : ""}{tooltip.day.netChange}</text>
               <text x={tx + 10} y={ty + 66} fontSize={12} fill="#fff" fontWeight={600}>Stock: {tooltip.day.closingStock}</text>
             </g>
           );
@@ -1054,7 +1054,7 @@ export default function InventoryDetailPage() {
               style={{
                 borderRadius: "var(--radius-sm)",
                 border: activeAction === "return" ? "1.5px solid var(--blue-500)" : "1px solid var(--grey-300)",
-                background: activeAction === "return" ? "#e3f2fd" : "var(--white)",
+                background: activeAction === "return" ? "var(--blue-50)" : "var(--white)",
                 color: activeAction === "return" ? "var(--blue-500)" : "var(--grey-700)",
               }}
             >

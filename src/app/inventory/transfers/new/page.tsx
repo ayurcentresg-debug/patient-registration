@@ -310,11 +310,11 @@ function NewTransferPageInner() {
       <h1 className="text-[24px] font-bold tracking-tight mb-4" style={{ color: "var(--grey-900)" }}>New Stock Transfer</h1>
 
       {templateName && (
-        <div className="flex items-center gap-2 px-4 py-2.5 mb-4" style={{ background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: "var(--radius-sm)" }}>
-          <svg className="w-4 h-4 shrink-0" style={{ color: "#2563eb" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="flex items-center gap-2 px-4 py-2.5 mb-4" style={{ background: "var(--blue-50)", border: "1px solid var(--blue-200)", borderRadius: "var(--radius-sm)" }}>
+          <svg className="w-4 h-4 shrink-0" style={{ color: "var(--blue-600)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
           </svg>
-          <span className="text-[14px] font-semibold" style={{ color: "#1d4ed8" }}>Creating from template: {templateName}</span>
+          <span className="text-[14px] font-semibold" style={{ color: "var(--blue-700)" }}>Creating from template: {templateName}</span>
         </div>
       )}
 

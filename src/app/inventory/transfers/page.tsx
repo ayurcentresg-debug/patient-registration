@@ -55,7 +55,7 @@ function formatDate(dateStr: string): string {
 function getStatusStyle(status: string): { bg: string; color: string } {
   switch (status) {
     case "draft": return { bg: "var(--grey-200)", color: "var(--grey-700)" };
-    case "in_transit": return { bg: "#dbeafe", color: "#1d4ed8" };
+    case "in_transit": return { bg: "var(--blue-100)", color: "var(--blue-700)" };
     case "received": return { bg: "#dcfce7", color: "var(--green)" };
     case "cancelled": return { bg: "#fef2f2", color: "var(--red)" };
     default: return { bg: "var(--grey-200)", color: "var(--grey-600)" };
@@ -253,7 +253,7 @@ export default function TransfersPage() {
         </div>
         <div className="p-4" style={{ ...cardStyle, boxShadow: "var(--shadow-sm)" }}>
           <p className="text-[14px] font-semibold uppercase tracking-wide" style={{ color: "var(--grey-600)" }}>In Transit</p>
-          <p className="text-[30px] font-bold mt-1 tracking-tight" style={{ color: "#1d4ed8" }}>{stats.inTransit}</p>
+          <p className="text-[30px] font-bold mt-1 tracking-tight" style={{ color: "var(--blue-700)" }}>{stats.inTransit}</p>
         </div>
         <div className="p-4" style={{ ...cardStyle, boxShadow: "var(--shadow-sm)" }}>
           <p className="text-[14px] font-semibold uppercase tracking-wide" style={{ color: "var(--grey-600)" }}>Received This Month</p>

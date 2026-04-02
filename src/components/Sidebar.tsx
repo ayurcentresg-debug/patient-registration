@@ -534,8 +534,8 @@ export default function Sidebar() {
                           style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 16px", textDecoration: "none", borderBottom: "1px solid #f3f4f6" }}
                           onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#f9fafb"; }}
                           onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}>
-                          <div style={{ width: 28, height: 28, borderRadius: 6, backgroundColor: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                            <svg style={{ width: 14, height: 14 }} fill="none" stroke="#3b82f6" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
+                          <div style={{ width: 28, height: 28, borderRadius: 6, backgroundColor: "var(--blue-50)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                            <svg style={{ width: 14, height: 14 }} fill="none" stroke="var(--blue-500)" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
                           </div>
                           <div style={{ minWidth: 0, flex: 1 }}>
                             <div style={{ fontSize: 12, fontWeight: 600, color: "#111" }}>{n.title}</div>
@@ -976,14 +976,14 @@ export default function Sidebar() {
                       width: 28,
                       height: 28,
                       borderRadius: "50%",
-                      backgroundColor: "var(--blue-50, #eff6ff)",
+                      backgroundColor: "var(--blue-50)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
                       flexShrink: 0,
                     }}
                   >
-                    <svg style={{ width: 14, height: 14 }} fill="none" stroke="var(--blue-500, #3b82f6)" viewBox="0 0 24 24">
+                    <svg style={{ width: 14, height: 14 }} fill="none" stroke="var(--blue-500)" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
                   </div>

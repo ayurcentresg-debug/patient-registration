@@ -43,7 +43,7 @@ const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
   draft: { bg: "var(--grey-200)", color: "var(--grey-600)" },
   pending: { bg: "#fff3e0", color: "#f57c00" },
   paid: { bg: "#e8f5e9", color: "var(--green)" },
-  partially_paid: { bg: "#e3f2fd", color: "var(--blue-500)" },
+  partially_paid: { bg: "var(--blue-50)", color: "var(--blue-500)" },
   cancelled: { bg: "#ffebee", color: "var(--red)" },
   refunded: { bg: "#f3e5f5", color: "#7b1fa2" },
 };

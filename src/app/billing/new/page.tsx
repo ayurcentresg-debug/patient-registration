@@ -88,7 +88,7 @@ const sectionTitle = { color: "var(--grey-900)", fontSize: "17px", fontWeight: 7
 const PAYMENT_METHODS = ["Cash", "Card", "UPI", "Insurance", "Bank Transfer"];
 
 const TYPE_COLORS: Record<string, { bg: string; color: string }> = {
-  consultation: { bg: "#e3f2fd", color: "var(--blue-500)" },
+  consultation: { bg: "var(--blue-50)", color: "var(--blue-500)" },
   therapy: { bg: "#e8f5e9", color: "var(--green)" },
   medicine: { bg: "#fff3e0", color: "#f57c00" },
   procedure: { bg: "#f3e5f5", color: "#7b1fa2" },
@@ -604,7 +604,7 @@ export default function NewInvoicePage() {
             {patientMode === "existing" ? (
               <>
                 {selectedPatient ? (
-                  <div className="flex items-center justify-between p-3" style={{ background: "var(--blue-50, #e3f2fd)", borderRadius: "var(--radius-sm)" }}>
+                  <div className="flex items-center justify-between p-3" style={{ background: "var(--blue-50)", borderRadius: "var(--radius-sm)" }}>
                     <div>
                       <p className="text-[15px] font-semibold" style={{ color: "var(--grey-900)" }}>{selectedPatient.firstName} {selectedPatient.lastName}</p>
                       <p className="text-[13px]" style={{ color: "var(--grey-600)" }}>{selectedPatient.patientIdNumber} &middot; {selectedPatient.phone}</p>
@@ -699,7 +699,7 @@ export default function NewInvoicePage() {
                           style={{
                             borderRadius: "var(--radius-sm)",
                             border: selectedAppointment?.id === apt.id ? "1.5px solid var(--blue-500)" : "1px solid var(--grey-300)",
-                            background: selectedAppointment?.id === apt.id ? "var(--blue-50, #e3f2fd)" : "var(--white)",
+                            background: selectedAppointment?.id === apt.id ? "var(--blue-50)" : "var(--white)",
                           }}
                         >
                           <div className="flex justify-between">
@@ -806,7 +806,7 @@ export default function NewInvoicePage() {
                             {med.packing && <span className="ml-1.5 text-[12px]" style={{ color: "var(--grey-500)" }}>{med.packing}</span>}
                             <span className="ml-1.5 text-[12px]" style={{ color: "var(--grey-400)" }}>{med.sku}</span>
                             {hasVariants && (
-                              <span className="ml-1.5 text-[11px] font-semibold px-1.5 py-0.5" style={{ background: "var(--blue-50, #e3f2fd)", color: "var(--blue-500)", borderRadius: "var(--radius-sm)" }}>
+                              <span className="ml-1.5 text-[11px] font-semibold px-1.5 py-0.5" style={{ background: "var(--blue-50)", color: "var(--blue-500)", borderRadius: "var(--radius-sm)" }}>
                                 +{med.variants!.length} sizes
                               </span>
                             )}

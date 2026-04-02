@@ -352,8 +352,8 @@ export default function SuperAdminDashboard() {
                               borderRadius: 20,
                               fontSize: 12,
                               fontWeight: 600,
-                              background: c.plan === "trial" ? "#ecfdf5" : "#eff6ff",
-                              color: c.plan === "trial" ? "#059669" : "#2563eb",
+                              background: c.plan === "trial" ? "#ecfdf5" : "var(--blue-50)",
+                              color: c.plan === "trial" ? "#059669" : "var(--blue-600)",
                             }}
                           >
                             {c.plan}

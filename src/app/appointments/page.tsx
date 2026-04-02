@@ -77,7 +77,7 @@ const BLOCK_COLORS = [
   { bg: "#e91e8c", text: "#fff" },
   { bg: "#f9a825", text: "#333" },
   { bg: "#7b1fa2", text: "#fff" },
-  { bg: "#1565c0", text: "#fff" },
+  { bg: "var(--blue-700)", text: "#fff" },
   { bg: "#e65100", text: "#fff" },
   { bg: "#2e7d32", text: "#fff" },
   { bg: "#c62828", text: "#fff" },
@@ -528,7 +528,7 @@ function QuickBookModal({
             <div>
               <label className="text-[14px] font-semibold mb-1 block" style={{ color: "var(--grey-700)" }}>Search Patient</label>
               {selectedPatient ? (
-                <div className="flex items-center justify-between p-3 rounded" style={{ background: "var(--blue-50)", border: "1px solid var(--blue-200, #93c5fd)" }}>
+                <div className="flex items-center justify-between p-3 rounded" style={{ background: "var(--blue-50)", border: "1px solid var(--blue-200)" }}>
                   <div>
                     <span className="text-[15px] font-bold" style={{ color: "var(--grey-900)" }}>
                       {selectedPatient.firstName} {selectedPatient.lastName}
@@ -566,7 +566,7 @@ function QuickBookModal({
                         <button
                           key={p.id}
                           onClick={() => { setSelectedPatient(p); setPatients([]); setSearch(""); }}
-                          className="w-full text-left px-3 py-2 hover:bg-blue-50 transition-colors"
+                          className="w-full text-left px-3 py-2 hover:bg-emerald-50 transition-colors"
                           style={{ borderBottom: "1px solid var(--grey-100)" }}
                         >
                           <div className="text-[15px] font-semibold" style={{ color: "var(--grey-900)" }}>
@@ -787,7 +787,7 @@ function QuickBookModal({
                     <div className="mt-2 space-y-1.5">
                       <label className="text-[13px] font-bold uppercase tracking-wider block" style={{ color: "var(--grey-500)" }}>Pricing</label>
                       {/* Single session */}
-                      <label className="flex items-center gap-2 p-2 rounded cursor-pointer transition-all" style={{ background: selectedPricingTier === "single" ? "#e3f2fd" : "var(--grey-50)", border: selectedPricingTier === "single" ? "1.5px solid var(--blue-500)" : "1px solid var(--grey-200)" }}>
+                      <label className="flex items-center gap-2 p-2 rounded cursor-pointer transition-all" style={{ background: selectedPricingTier === "single" ? "var(--blue-50)" : "var(--grey-50)", border: selectedPricingTier === "single" ? "1.5px solid var(--blue-500)" : "1px solid var(--grey-200)" }}>
                         <input type="radio" name="pricingTier" checked={selectedPricingTier === "single"} onChange={() => setSelectedPricingTier("single")} className="w-3.5 h-3.5" />
                         <div className="flex-1 flex justify-between">
                           <span className="text-[14px] font-semibold" style={{ color: "var(--grey-900)" }}>Single Session</span>
@@ -1591,7 +1591,7 @@ export default function AppointmentsPage() {
                   </div>
                   <div className="flex gap-1">
                     {apt.patientId ? (
-                      <Link href={`/patients/${apt.patientId}`} className="px-1.5 py-0.5 rounded text-[9px] font-bold" style={{ background: "#e3f2fd", color: "var(--blue-500)" }}>
+                      <Link href={`/patients/${apt.patientId}`} className="px-1.5 py-0.5 rounded text-[9px] font-bold" style={{ background: "var(--blue-50)", color: "var(--blue-500)" }}>
                         View
                       </Link>
                     ) : apt.walkinPhone ? (

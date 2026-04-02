@@ -50,7 +50,7 @@ const chipBase = "inline-flex px-2 py-0.5 text-[12px] font-bold uppercase tracki
 // ─── Status colors ──────────────────────────────────────────────────────────
 const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
   submitted: { bg: "#fff3e0", color: "#f57c00" },
-  under_review: { bg: "#e3f2fd", color: "var(--blue-500)" },
+  under_review: { bg: "var(--blue-50)", color: "var(--blue-500)" },
   approved: { bg: "#e8f5e9", color: "var(--green)" },
   partially_approved: { bg: "#e0f2f1", color: "#00897b" },
   rejected: { bg: "#ffebee", color: "var(--red)" },

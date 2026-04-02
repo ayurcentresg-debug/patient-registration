@@ -510,12 +510,12 @@ export default function InventoryPage() {
       {someSelected && (
         <div
           className="mb-4 px-4 py-3 flex flex-wrap items-center gap-3 yoda-fade-in"
-          style={{ background: "var(--blue-50, #e3f2fd)", borderRadius: "var(--radius)", border: "1px solid var(--blue-200, #90caf9)" }}
+          style={{ background: "var(--blue-50)", borderRadius: "var(--radius)", border: "1px solid var(--blue-200)" }}
         >
           <span className="text-[15px] font-semibold" style={{ color: "var(--blue-500)" }}>
             {selectedIds.size} item{selectedIds.size !== 1 ? "s" : ""} selected
           </span>
-          <span style={{ width: 1, height: 20, background: "var(--blue-200, #90caf9)" }} />
+          <span style={{ width: 1, height: 20, background: "var(--blue-200)" }} />
           <span className="text-[14px] font-medium" style={{ color: "var(--grey-700)" }}>Set status:</span>
           <button
             onClick={() => handleBulkStatusUpdate("active")}
@@ -648,7 +648,7 @@ export default function InventoryPage() {
                         </Link>
                       </td>
                       <td className="px-4 py-3">
-                        <span className={chipBase} style={{ borderRadius: "var(--radius-sm)", background: "var(--blue-50, #e3f2fd)", color: "var(--blue-500)" }}>
+                        <span className={chipBase} style={{ borderRadius: "var(--radius-sm)", background: "var(--blue-50)", color: "var(--blue-500)" }}>
                           {item.category}
                         </span>
                       </td>
@@ -658,7 +658,7 @@ export default function InventoryPage() {
                       <td className="px-4 py-3 text-[14px]" style={{ color: "var(--grey-600)" }}>
                         {item.packing || "\u2014"}
                         {item._count && item._count.variants > 0 && (
-                          <span className="ml-1 text-[11px] font-semibold px-1.5 py-0.5" style={{ background: "var(--blue-50, #e3f2fd)", color: "var(--blue-500)", borderRadius: "var(--radius-sm)" }}>
+                          <span className="ml-1 text-[11px] font-semibold px-1.5 py-0.5" style={{ background: "var(--blue-50)", color: "var(--blue-500)", borderRadius: "var(--radius-sm)" }}>
                             +{item._count.variants}
                           </span>
                         )}
@@ -730,7 +730,7 @@ export default function InventoryPage() {
                       />
                       <Link href={`/inventory/${item.id}`} className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className={chipBase} style={{ borderRadius: "var(--radius-sm)", background: "var(--blue-50, #e3f2fd)", color: "var(--blue-500)" }}>
+                        <span className={chipBase} style={{ borderRadius: "var(--radius-sm)", background: "var(--blue-50)", color: "var(--blue-500)" }}>
                           {item.category}
                         </span>
                         <span className="text-[13px] font-mono" style={{ color: "var(--grey-500)" }}>{item.sku}</span>

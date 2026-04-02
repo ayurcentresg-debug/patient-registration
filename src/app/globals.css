@@ -11,6 +11,7 @@
   --blue-800: #14532d;
   --blue-50: #f0faf4;
   --blue-100: #d1f2e0;
+  --blue-200: #a7d7be;
 
   /* Accent — Earthy Gold */
   --accent: #b68d40;
@@ -68,6 +69,7 @@
   --blue-800: #22c55e;
   --blue-50: rgba(74, 222, 128, 0.08);
   --blue-100: rgba(74, 222, 128, 0.15);
+  --blue-200: rgba(74, 222, 128, 0.25);
 
   /* Accent — Earthy Gold */
   --accent: #d4a94e;

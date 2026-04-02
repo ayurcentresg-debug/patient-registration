@@ -333,7 +333,7 @@ export default function SellPackagePage() {
   function getCategoryColor(category: string): { bg: string; color: string } {
     const map: Record<string, { bg: string; color: string }> = {
       Panchakarma: { bg: "#e8f5e9", color: "var(--green)" },
-      Therapy: { bg: "#e3f2fd", color: "var(--blue-500)" },
+      Therapy: { bg: "var(--blue-50)", color: "var(--blue-500)" },
       Consultation: { bg: "#fff3e0", color: "#f57c00" },
       Wellness: { bg: "#f3e5f5", color: "#7b1fa2" },
     };

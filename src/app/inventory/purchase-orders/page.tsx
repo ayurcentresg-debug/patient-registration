@@ -82,7 +82,7 @@ function formatDate(dateStr: string): string {
 function getStatusStyle(status: string): { bg: string; color: string } {
   switch (status) {
     case "draft": return { bg: "var(--grey-200)", color: "var(--grey-700)" };
-    case "submitted": return { bg: "#dbeafe", color: "#1d4ed8" };
+    case "submitted": return { bg: "var(--blue-100)", color: "var(--blue-700)" };
     case "partial": return { bg: "#d1f2e0", color: "#37845e" };
     case "received": return { bg: "#dcfce7", color: "var(--green)" };
     case "cancelled": return { bg: "#fef2f2", color: "var(--red)" };
@@ -332,7 +332,7 @@ export default function PurchaseOrdersPage() {
           <div className="px-5 py-4" style={{ borderBottom: "1px solid var(--grey-200)" }}>
             <div className="flex flex-wrap items-center gap-4">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 flex items-center justify-center" style={{ background: "#dbeafe", borderRadius: "var(--radius-sm)" }}>
+                <div className="w-8 h-8 flex items-center justify-center" style={{ background: "var(--blue-100)", borderRadius: "var(--radius-sm)" }}>
                   <svg className="w-4 h-4" style={{ color: "var(--blue-500)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                   </svg>
@@ -505,7 +505,7 @@ export default function PurchaseOrdersPage() {
         </div>
         <div className="p-4" style={{ ...cardStyle, boxShadow: "var(--shadow-sm)" }}>
           <p className="text-[14px] font-semibold uppercase tracking-wide" style={{ color: "var(--grey-600)" }}>Submitted</p>
-          <p className="text-[30px] font-bold mt-1 tracking-tight" style={{ color: "#1d4ed8" }}>{stats.submitted}</p>
+          <p className="text-[30px] font-bold mt-1 tracking-tight" style={{ color: "var(--blue-700)" }}>{stats.submitted}</p>
         </div>
         <div className="p-4" style={{ ...cardStyle, boxShadow: "var(--shadow-sm)" }}>
           <p className="text-[14px] font-semibold uppercase tracking-wide" style={{ color: "var(--grey-600)" }}>Received</p>

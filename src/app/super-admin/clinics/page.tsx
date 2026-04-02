@@ -137,8 +137,8 @@ function getTrialInfo(sub: ClinicData["subscription"]): { label: string; color: 
   if (sub.plan !== "trial") {
     return {
       label: sub.plan.charAt(0).toUpperCase() + sub.plan.slice(1),
-      color: "#2563eb",
-      bgColor: "#eff6ff",
+      color: "var(--blue-600)",
+      bgColor: "var(--blue-50)",
     };
   }
 

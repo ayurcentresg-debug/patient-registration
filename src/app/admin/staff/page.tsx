@@ -517,7 +517,7 @@ export default function StaffPage() {
                         <button
                           onClick={() => openPasswordModal(s)}
                           className="px-2.5 py-1 text-[13px] font-semibold transition-colors"
-                          style={{ background: "#eff6ff", color: "#2563eb", borderRadius: "var(--radius-sm)", border: "1px solid #bfdbfe" }}
+                          style={{ background: "var(--blue-50)", color: "var(--blue-600)", borderRadius: "var(--radius-sm)", border: "1px solid var(--blue-200)" }}
                           title="Set login password"
                         >
                           Password
@@ -603,7 +603,7 @@ export default function StaffPage() {
                 onClick={handleSetPassword}
                 disabled={passwordSaving}
                 className="px-5 py-2 text-[15px] font-semibold text-white disabled:opacity-50"
-                style={{ background: "#2563eb", borderRadius: "var(--radius-sm)" }}
+                style={{ background: "var(--blue-600)", borderRadius: "var(--radius-sm)" }}
               >
                 {passwordSaving ? "Saving..." : "Set Password"}
               </button>

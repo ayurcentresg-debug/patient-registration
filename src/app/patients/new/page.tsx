@@ -707,7 +707,7 @@ export default function NewPatientPage() {
       </div>
 
       {prefill.appointmentId && (
-        <div className="mb-4 px-4 py-3 text-[15px] font-medium flex items-center gap-2" style={{ background: "#eff6ff", color: "var(--blue-500)", borderRadius: "var(--radius-sm)", border: "1px solid var(--blue-200, #bfdbfe)" }}>
+        <div className="mb-4 px-4 py-3 text-[15px] font-medium flex items-center gap-2" style={{ background: "var(--blue-50)", color: "var(--blue-500)", borderRadius: "var(--radius-sm)", border: "1px solid var(--blue-200)" }}>
           <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
           Converting walk-in patient — name and phone have been pre-filled. Please verify and complete the remaining details.
         </div>
@@ -889,7 +889,7 @@ export default function NewPatientPage() {
                                 <div className="px-3 py-2 text-[14px]" style={{ color: "var(--grey-500)" }}>Searching...</div>
                               ) : familySearchResults.length > 0 ? (
                                 familySearchResults.map((p) => (
-                                  <button key={p.id} type="button" onClick={() => addFamilyMember(p)} className="w-full text-left px-3 py-2 hover:bg-blue-50 transition-colors flex items-center gap-2" style={{ borderBottom: "1px solid var(--grey-100)" }}>
+                                  <button key={p.id} type="button" onClick={() => addFamilyMember(p)} className="w-full text-left px-3 py-2 hover:bg-emerald-50 transition-colors flex items-center gap-2" style={{ borderBottom: "1px solid var(--grey-100)" }}>
                                     <span className="text-[14px] font-semibold" style={{ color: "var(--grey-900)" }}>{p.firstName} {p.lastName}</span>
                                     <span className="text-[12px]" style={{ color: "var(--grey-500)" }}>{p.patientIdNumber} · {p.phone}</span>
                                   </button>

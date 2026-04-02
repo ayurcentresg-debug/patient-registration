@@ -70,7 +70,7 @@ function formatDateTime(dateStr: string): string {
 function getStatusStyle(status: string): { bg: string; color: string } {
   switch (status) {
     case "draft": return { bg: "var(--grey-200)", color: "var(--grey-700)" };
-    case "in_transit": return { bg: "#dbeafe", color: "#1d4ed8" };
+    case "in_transit": return { bg: "var(--blue-100)", color: "var(--blue-700)" };
     case "received": return { bg: "#dcfce7", color: "var(--green)" };
     case "cancelled": return { bg: "#fef2f2", color: "var(--red)" };
     default: return { bg: "var(--grey-200)", color: "var(--grey-600)" };
@@ -706,7 +706,7 @@ export default function TransferDetailPage() {
                     return (
                       <tr key={item.id} style={{
                         borderBottom: i < transfer.items.length - 1 ? "1px solid var(--grey-200)" : "none",
-                        background: isHighlighted ? "#dbeafe" : isFullyReceived ? "var(--grey-50)" : "var(--white)",
+                        background: isHighlighted ? "var(--blue-100)" : isFullyReceived ? "var(--grey-50)" : "var(--white)",
                         opacity: isFullyReceived ? 0.6 : 1,
                         transition: "background 0.3s ease",
                       }}>
@@ -762,7 +762,7 @@ export default function TransferDetailPage() {
                 const isFullyReceived = remaining <= 0;
                 const isHighlightedMobile = highlightedItemId === item.id;
                 return (
-                  <div key={item.id} className="p-4 space-y-2" style={{ opacity: isFullyReceived ? 0.6 : 1, background: isHighlightedMobile ? "#dbeafe" : "transparent", transition: "background 0.3s ease" }}>
+                  <div key={item.id} className="p-4 space-y-2" style={{ opacity: isFullyReceived ? 0.6 : 1, background: isHighlightedMobile ? "var(--blue-100)" : "transparent", transition: "background 0.3s ease" }}>
                     <div className="flex justify-between items-start">
                       <div>
                         <p className="text-[15px] font-semibold" style={{ color: "var(--grey-900)" }}>{item.itemName}</p>
@@ -839,7 +839,7 @@ export default function TransferDetailPage() {
               date={transfer.status !== "draft" && transfer.status !== "cancelled" ? formatDateTime(transfer.updatedAt) : undefined}
               isActive={transfer.status === "in_transit" || transfer.status === "received"}
               isCompleted={transfer.status === "in_transit" || transfer.status === "received"}
-              color="#1d4ed8"
+              color="var(--blue-700)"
             />
             <TimelineConnector isActive={transfer.status === "received"} />
 
