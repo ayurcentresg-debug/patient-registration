@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
     }
 
     const totp = new OTPAuth.TOTP({
-      issuer: "Ayur Centre",
+      issuer: "AYUR GATE",
       label: user.email,
       algorithm: "SHA1",
       digits: 6,

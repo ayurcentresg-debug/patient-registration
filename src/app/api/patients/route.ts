@@ -217,7 +217,7 @@ export async function POST(request: NextRequest) {
       if (patient.email) {
         await sendEmail({
           to: patient.email,
-          subject: "Welcome to Ayur Centre - Registration Confirmed",
+          subject: "Welcome — AYUR GATE",
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
               <h2 style="color: #0d9488;">Registration Confirmed</h2>

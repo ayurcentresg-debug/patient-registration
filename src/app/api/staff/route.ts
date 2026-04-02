@@ -172,7 +172,7 @@ export async function POST(request: NextRequest) {
           html: staffInviteEmail({
             staffName: name,
             role: roleLabel,
-            clinicName: "Ayur Centre",
+            clinicName: "AYUR GATE",
             inviteUrl,
             tempPassword: "",
           }),
