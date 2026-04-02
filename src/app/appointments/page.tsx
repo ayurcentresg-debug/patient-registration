@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { PageGuide } from "@/components/HelpTip";
 import { downloadCSV } from "@/lib/csv-export";
+import Toast from "@/components/Toast";
 
 /* ─── Types ─── */
 interface Appointment {
@@ -144,18 +145,6 @@ function getPatientName(apt: Appointment): string {
   if (apt.isWalkin && apt.walkinName) return apt.walkinName + " (Walk-in)";
   if (apt.patient) return `${apt.patient.firstName} ${apt.patient.lastName}`;
   return "Unknown";
-}
-
-/* ─── Toast ─── */
-function Toast({ message, type, onClose }: { message: string; type: "success" | "error"; onClose: () => void }) {
-  useEffect(() => { const t = setTimeout(onClose, 3000); return () => clearTimeout(t); }, [onClose]);
-  return (
-    <div className="fixed top-5 right-5 z-[200] flex items-center gap-2 px-4 py-3 text-[15px] font-semibold yoda-slide-in"
-      style={{ background: type === "success" ? "var(--green)" : "var(--red)", color: "#fff", borderRadius: "var(--radius-sm)", boxShadow: "0 4px 20px rgba(0,0,0,0.15)", minWidth: 240 }}>
-      <span className="flex-1">{message}</span>
-      <button onClick={onClose} className="ml-2 opacity-80 hover:opacity-100">&times;</button>
-    </div>
-  );
 }
 
 /* ─── Mini Calendar ─── */

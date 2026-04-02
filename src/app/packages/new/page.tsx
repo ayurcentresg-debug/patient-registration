@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Toast from "@/components/Toast";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface Patient {
@@ -58,30 +59,6 @@ function formatDateDisplay(dateStr: string): string {
   const d = new Date(dateStr + "T00:00:00");
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
-}
-
-// ─── Toast Component ────────────────────────────────────────────────────────
-function Toast({ message, type, onClose }: { message: string; type: "success" | "error"; onClose: () => void }) {
-  useEffect(() => {
-    const timer = setTimeout(onClose, 4000);
-    return () => clearTimeout(timer);
-  }, [onClose]);
-
-  return (
-    <div
-      className="fixed top-6 right-6 z-50 px-4 py-3 flex items-center gap-3 text-[15px] font-medium yoda-slide-in"
-      style={{
-        borderRadius: "var(--radius)",
-        background: type === "success" ? "var(--green-light)" : "var(--red-light)",
-        color: type === "success" ? "var(--green)" : "var(--red)",
-        boxShadow: "var(--shadow-md)",
-        border: `1px solid ${type === "success" ? "var(--green)" : "var(--red)"}`,
-      }}
-    >
-      <span>{message}</span>
-      <button onClick={onClose} className="ml-2 font-bold opacity-60 hover:opacity-100">&times;</button>
-    </div>
-  );
 }
 
 // ─── Step Indicator ─────────────────────────────────────────────────────────

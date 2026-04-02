@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import Toast from "@/components/Toast";
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 const SPECIALIZATIONS = [
@@ -79,20 +80,6 @@ function formatTime(time: string): string {
 function FieldError({ error }: { error?: string }) {
   if (!error) return null;
   return <p className="mt-0.5 text-[13px] font-medium" style={{ color: "var(--red)" }}>{error}</p>;
-}
-
-function Toast({ message, type, onClose }: { message: string; type: "success" | "error"; onClose: () => void }) {
-  useEffect(() => { const t = setTimeout(onClose, 3500); return () => clearTimeout(t); }, [onClose]);
-  return (
-    <div className="fixed top-5 right-5 z-[100] flex items-center gap-2 px-4 py-3 text-[15px] font-semibold yoda-slide-in" role="alert"
-      style={{ background: type === "success" ? "var(--green)" : "var(--red)", color: "#fff", borderRadius: "var(--radius-sm)", boxShadow: "0 4px 20px rgba(0,0,0,0.15)", minWidth: 260 }}>
-      <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        {type === "success" ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /> : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />}
-      </svg>
-      <span className="flex-1">{message}</span>
-      <button onClick={onClose} className="ml-2 opacity-80 hover:opacity-100">&times;</button>
-    </div>
-  );
 }
 
 /* Practo-style profile row: right-aligned label with colon */

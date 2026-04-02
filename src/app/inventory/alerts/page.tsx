@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import InventoryTabs from "@/components/InventoryTabs";
+import Toast from "@/components/Toast";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface AlertItem {
@@ -53,27 +54,6 @@ function daysUntil(dateStr: string): number {
 
 function daysOverdue(dateStr: string): number {
   return Math.abs(daysUntil(dateStr));
-}
-
-// ─── Toast Component ────────────────────────────────────────────────────────
-function Toast({ message, type, onClose }: { message: string; type: "success" | "error"; onClose: () => void }) {
-  useEffect(() => {
-    const t = setTimeout(onClose, 3000);
-    return () => clearTimeout(t);
-  }, [onClose]);
-
-  return (
-    <div
-      className="fixed top-6 right-6 z-50 px-5 py-3 text-[15px] font-semibold text-white yoda-slide-in-right"
-      style={{
-        background: type === "success" ? "var(--green)" : "var(--red)",
-        borderRadius: "var(--radius)",
-        boxShadow: "var(--shadow-lg)",
-      }}
-    >
-      {message}
-    </div>
-  );
 }
 
 // ─── Confirm Dialog ─────────────────────────────────────────────────────────

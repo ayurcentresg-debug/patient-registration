@@ -6,6 +6,7 @@ import Link from "next/link";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { DetailPageSkeleton } from "@/components/Skeleton";
 import { validateName } from "@/lib/validation";
+import Toast from "@/components/Toast";
 
 const inputStyle = { border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)", fontSize: "15px" };
 const cardStyle = { background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-card)" };
@@ -74,21 +75,6 @@ const DOC_CATEGORIES = [
   { value: "prescription", label: "Prescription" },
   { value: "other", label: "Other" },
 ];
-
-/* ─── Toast ─── */
-function Toast({ message, type, onClose }: { message: string; type: "success" | "error"; onClose: () => void }) {
-  useEffect(() => { const t = setTimeout(onClose, 3500); return () => clearTimeout(t); }, [onClose]);
-  return (
-    <div className="fixed top-5 right-5 z-[100] flex items-center gap-2 px-4 py-3 text-[15px] font-semibold yoda-slide-in" role="alert"
-      style={{ background: type === "success" ? "var(--green)" : "var(--red)", color: "#fff", borderRadius: "var(--radius-sm)", boxShadow: "0 4px 20px rgba(0,0,0,0.15)", minWidth: 260 }}>
-      <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        {type === "success" ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /> : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />}
-      </svg>
-      <span className="flex-1">{message}</span>
-      <button onClick={onClose} className="ml-2 opacity-80 hover:opacity-100">&times;</button>
-    </div>
-  );
-}
 
 /* ─── Profile Row — Practo style: right-aligned label with colon, value on left ─── */
 function ProfileRow({ label, value, href, always }: { label: string; value: string | null | undefined; href?: string; always?: boolean }) {

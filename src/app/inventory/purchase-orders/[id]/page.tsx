@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import BarcodeScanner from "@/components/BarcodeScanner";
+import Toast from "@/components/Toast";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface POItem {
@@ -69,23 +70,6 @@ function getStatusStyle(status: string): { bg: string; color: string } {
     case "cancelled": return { bg: "#fef2f2", color: "var(--red)" };
     default: return { bg: "var(--grey-200)", color: "var(--grey-600)" };
   }
-}
-
-// ─── Toast Component ────────────────────────────────────────────────────────
-function Toast({ message, type, onClose }: { message: string; type: "success" | "error"; onClose: () => void }) {
-  useEffect(() => {
-    const t = setTimeout(onClose, 3000);
-    return () => clearTimeout(t);
-  }, [onClose]);
-
-  return (
-    <div
-      className="fixed top-6 right-6 z-50 px-5 py-3 text-[15px] font-semibold text-white yoda-slide-in-right"
-      style={{ background: type === "success" ? "var(--green)" : "var(--red)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-lg)" }}
-    >
-      {message}
-    </div>
-  );
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Toast from "@/components/Toast";
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 const SPECIALIZATIONS = [
@@ -42,36 +43,6 @@ const sectionTitle = { color: "var(--grey-900)", fontSize: "17px", fontWeight: 7
 function FieldError({ error }: { error?: string }) {
   if (!error) return null;
   return <p className="mt-0.5 text-[13px] font-medium" style={{ color: "var(--red)" }}>{error}</p>;
-}
-
-function Toast({ message, type, onClose }: { message: string; type: "success" | "error"; onClose: () => void }) {
-  useEffect(() => {
-    const timer = setTimeout(onClose, 4000);
-    return () => clearTimeout(timer);
-  }, [onClose]);
-
-  return (
-    <div
-      className="fixed top-5 right-5 z-[100] flex items-center gap-2 px-4 py-3 text-[15px] font-semibold yoda-slide-in"
-      style={{
-        background: type === "success" ? "var(--green)" : "var(--red)",
-        color: "var(--white)",
-        borderRadius: "var(--radius-sm)",
-        boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
-        minWidth: "260px",
-      }}
-      role="alert"
-      aria-live="assertive"
-    >
-      <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        {type === "success"
-          ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />}
-      </svg>
-      <span className="flex-1">{message}</span>
-      <button onClick={onClose} className="ml-2 opacity-80 hover:opacity-100" aria-label="Close notification">&times;</button>
-    </div>
-  );
 }
 
 // ─── Default weekly schedule ────────────────────────────────────────────────

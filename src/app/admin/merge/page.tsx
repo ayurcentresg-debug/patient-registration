@@ -4,6 +4,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import AdminTabs from "@/components/AdminTabs";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import Toast from "@/components/Toast";
 
 const cardStyle = { background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-card)" };
 
@@ -111,21 +112,6 @@ function getFieldValue(patient: PatientFull, key: string): string {
   if (key === "dateOfBirth") return formatDate(val as string);
   if (key === "gender") return (val as string).charAt(0).toUpperCase() + (val as string).slice(1);
   return String(val);
-}
-
-/* ─── Toast ─── */
-function Toast({ message, type, onClose }: { message: string; type: "success" | "error"; onClose: () => void }) {
-  useEffect(() => { const t = setTimeout(onClose, 4000); return () => clearTimeout(t); }, [onClose]);
-  return (
-    <div className="fixed top-5 right-5 z-[100] flex items-center gap-2 px-4 py-3 text-[15px] font-semibold yoda-slide-in" role="alert"
-      style={{ background: type === "success" ? "var(--green)" : "var(--red)", color: "#fff", borderRadius: "var(--radius-sm)", boxShadow: "0 4px 20px rgba(0,0,0,0.15)", minWidth: 280 }}>
-      <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        {type === "success" ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /> : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />}
-      </svg>
-      <span className="flex-1">{message}</span>
-      <button onClick={onClose} className="ml-2 opacity-80 hover:opacity-100">&times;</button>
-    </div>
-  );
 }
 
 /* ─── Collapsible Section ─── */
