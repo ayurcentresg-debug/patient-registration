@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
-import { getClinicId } from "@/lib/get-clinic-id";
+import { getClinicId, requireRole, ADMIN_ROLES, STAFF_ROLES } from "@/lib/get-clinic-id";
 
 // GET /api/settings - Fetch clinic settings
 export async function GET() {
@@ -45,6 +45,11 @@ export async function GET() {
 // PUT /api/settings - Update clinic settings
 export async function PUT(request: NextRequest) {
   try {
+    const auth = await requireRole(ADMIN_ROLES);
+    if (!auth) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     const clinicId = await getClinicId();
     const body = await request.json();
 

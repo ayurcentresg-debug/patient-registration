@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db";
-import { getClinicId } from "@/lib/get-clinic-id";
+import { getClinicId, requireRole, ADMIN_ROLES, STAFF_ROLES } from "@/lib/get-clinic-id";
 import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -195,6 +195,11 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const auth = await requireRole(STAFF_ROLES);
+    if (!auth) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     const clinicId = await getClinicId();
     const db = clinicId ? getTenantPrisma(clinicId) : prisma;
 

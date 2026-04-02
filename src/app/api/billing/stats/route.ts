@@ -19,34 +19,34 @@ export async function GET(request: NextRequest) {
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
     const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
 
-    // Today's revenue
-    const todayInvoices = await db.invoice.findMany({
+    // Today's revenue (aggregate instead of full row fetch)
+    const todayAgg = await db.invoice.aggregate({
+      _sum: { paidAmount: true },
       where: {
         date: { gte: todayStart, lte: todayEnd },
         status: { not: "cancelled" },
       },
-      select: { paidAmount: true },
     });
-    const todayRevenue = todayInvoices.reduce((sum, inv) => sum + inv.paidAmount, 0);
+    const todayRevenue = todayAgg._sum.paidAmount || 0;
 
     // Month revenue
-    const monthInvoices = await db.invoice.findMany({
+    const monthAgg = await db.invoice.aggregate({
+      _sum: { paidAmount: true },
       where: {
         date: { gte: monthStart, lte: monthEnd },
         status: { not: "cancelled" },
       },
-      select: { paidAmount: true },
     });
-    const monthRevenue = monthInvoices.reduce((sum, inv) => sum + inv.paidAmount, 0);
+    const monthRevenue = monthAgg._sum.paidAmount || 0;
 
     // Pending amount
-    const pendingInvoices = await db.invoice.findMany({
+    const pendingAgg = await db.invoice.aggregate({
+      _sum: { balanceAmount: true },
       where: {
         status: { in: ["pending", "partially_paid"] },
       },
-      select: { balanceAmount: true },
     });
-    const pendingAmount = pendingInvoices.reduce((sum, inv) => sum + inv.balanceAmount, 0);
+    const pendingAmount = pendingAgg._sum.balanceAmount || 0;
 
     // Counts
     const totalInvoices = await db.invoice.count();

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getClinicId } from "@/lib/get-clinic-id";
+import { getClinicId, requireRole, ADMIN_ROLES, STAFF_ROLES } from "@/lib/get-clinic-id";
 import { getTenantPrisma } from "@/lib/tenant-db";
 import { sendEmail } from "@/lib/email";
 import { staffInviteEmail } from "@/lib/email-templates";
@@ -95,6 +95,11 @@ export async function GET(request: NextRequest) {
 // POST /api/staff — create staff member
 export async function POST(request: NextRequest) {
   try {
+    const auth = await requireRole(ADMIN_ROLES);
+    if (!auth) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     const clinicId = await getClinicId();
     const db = clinicId ? getTenantPrisma(clinicId) : prisma;
 

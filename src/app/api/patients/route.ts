@@ -43,9 +43,20 @@ function normalizePhone(phone: string): string {
 }
 
 // Auto-generate patient ID like P10001
+// Uses MAX existing ID instead of COUNT to avoid race-condition duplicates
 async function generatePatientId(db: typeof prisma): Promise<string> {
-  const count = await db.patient.count();
-  const nextNum = 10001 + count;
+  const lastPatient = await db.patient.findFirst({
+    where: { patientIdNumber: { startsWith: "P" } },
+    orderBy: { patientIdNumber: "desc" },
+    select: { patientIdNumber: true },
+  });
+
+  if (!lastPatient || !lastPatient.patientIdNumber) {
+    return "P10001";
+  }
+
+  const lastNum = parseInt(lastPatient.patientIdNumber.replace("P", ""), 10);
+  const nextNum = (isNaN(lastNum) ? 10000 : lastNum) + 1;
   return `P${nextNum}`;
 }
 

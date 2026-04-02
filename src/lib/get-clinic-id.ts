@@ -44,3 +44,20 @@ export async function getAuthPayload() {
     return null;
   }
 }
+
+/** Admin-only roles that can manage settings, staff, branches, and delete records */
+export const ADMIN_ROLES = ["admin"];
+
+/** Roles allowed to manage inventory and billing */
+export const STAFF_ROLES = ["admin", "receptionist", "pharmacist", "staff"];
+
+/**
+ * Checks if the authenticated user has one of the allowed roles.
+ * Returns the payload if authorized, null otherwise.
+ */
+export async function requireRole(allowedRoles: string[]) {
+  const payload = await getAuthPayload();
+  if (!payload) return null;
+  if (!allowedRoles.includes(payload.role)) return null;
+  return payload;
+}
