@@ -25,6 +25,13 @@ model Clinic {
   currency        String   @default("SGD")
   timezone        String   @default("Asia/Singapore")
   isActive        Boolean  @default(true)
+
+  // Onboarding & verification
+  onboardingComplete Boolean @default(false)
+  emailVerified      Boolean @default(false)
+  verifyCode         String?
+  verifyCodeExpires  DateTime?
+
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 

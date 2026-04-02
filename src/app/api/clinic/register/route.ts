@@ -146,6 +146,7 @@ export async function POST(request: NextRequest) {
       role: result.user.role,
       name: result.user.name,
       clinicId: result.clinic.id,
+      onboardingComplete: false,
     });
 
     const cookie = serialize("auth_token", token, {

@@ -20,6 +20,16 @@ const PUBLIC_PATHS = [
   "/trial-expired",
 ];
 
+// Paths that require auth but are allowed during onboarding
+const ONBOARDING_ALLOWED_PATHS = [
+  "/onboarding",
+  "/api/onboarding",
+  "/api/verify-email",
+  "/api/auth/me",
+  "/api/settings",
+  "/api/upload",
+];
+
 // Routes only accessible by admin/receptionist/staff (not doctors)
 const ADMIN_ONLY_PATHS = ["/admin", "/reports", "/inventory", "/communications", "/billing"];
 
@@ -63,13 +73,17 @@ export async function middleware(req: NextRequest) {
     pathname.startsWith("/favicon") ||
     pathname.includes(".")
   ) {
-    // If logged in and visiting "/", redirect to dashboard
+    // If logged in and visiting "/", redirect appropriately
     if (pathname === "/") {
       const token = req.cookies.get("auth_token")?.value;
       if (token) {
         try {
           const { payload } = await jwtVerify(token, secret);
           const role = payload.role as string;
+          // New registrations → onboarding first
+          if (role === "admin" && payload.onboardingComplete === false) {
+            return NextResponse.redirect(new URL("/onboarding", req.url));
+          }
           if (role === "doctor" || role === "therapist") {
             return NextResponse.redirect(new URL("/doctor", req.url));
           }
@@ -91,6 +105,22 @@ export async function middleware(req: NextRequest) {
   try {
     const { payload } = await jwtVerify(token, secret);
     const role = payload.role as string;
+    const onboardingComplete = payload.onboardingComplete as boolean | undefined;
+
+    // ── Onboarding gate (admin only — invited staff skip this) ─────
+    if (role === "admin" && onboardingComplete === false) {
+      // Allow onboarding-related paths through
+      const isOnboardingPath = ONBOARDING_ALLOWED_PATHS.some((p) => pathname.startsWith(p));
+      if (!isOnboardingPath) {
+        return NextResponse.redirect(new URL("/onboarding", req.url));
+      }
+      return NextResponse.next();
+    }
+
+    // If user is on /onboarding but already completed → redirect to dashboard
+    if (pathname.startsWith("/onboarding") && onboardingComplete !== false) {
+      return NextResponse.redirect(new URL("/dashboard", req.url));
+    }
 
     // Doctor/therapist trying to access admin-only routes → redirect to doctor portal
     if ((role === "doctor" || role === "therapist") && ADMIN_ONLY_PATHS.some(p => pathname.startsWith(p))) {

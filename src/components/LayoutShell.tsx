@@ -7,6 +7,7 @@ import AuthProvider from "@/components/AuthProvider";
 import ThemeProvider from "@/components/ThemeProvider";
 import TrialBanner from "@/components/TrialBanner";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import EmailVerifyBanner from "@/components/EmailVerifyBanner";
 
 export default function LayoutShell({ children }: { children: React.ReactNode }) {
   // Register service worker for PWA support
@@ -21,6 +22,7 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
   const isInvitePage = pathname?.startsWith("/invite");
   const isRegisterPage = pathname === "/register";
   const isPricingPage = pathname === "/pricing";
+  const isOnboardingPage = pathname?.startsWith("/onboarding");
   const isDoctorPortal = pathname?.startsWith("/doctor");
   const isSuperAdmin = pathname?.startsWith("/super-admin");
 
@@ -30,7 +32,7 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
   }
 
   // Public pages render without sidebar or auth check
-  if (isLandingPage || isLoginPage || isInvitePage || isRegisterPage || isPricingPage) {
+  if (isLandingPage || isLoginPage || isInvitePage || isRegisterPage || isPricingPage || isOnboardingPage) {
     return <ThemeProvider>{children}</ThemeProvider>;
   }
 
@@ -54,6 +56,7 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
       <AuthProvider>
         <ErrorBoundary>
           <TrialBanner />
+          <EmailVerifyBanner />
           <div className="flex min-h-screen overflow-x-hidden">
             <Sidebar />
             <main className="flex-1 pt-14 pb-20 md:pb-0 min-w-0 w-0 overflow-x-hidden max-w-full" role="main">{children}</main>

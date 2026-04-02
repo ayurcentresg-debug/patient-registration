@@ -56,8 +56,8 @@ export default function RegisterPage() {
         return;
       }
 
-      // Auto-logged in via cookie — redirect to dashboard
-      router.push("/");
+      // Auto-logged in via cookie — redirect to onboarding wizard
+      router.push("/onboarding");
     } catch {
       setError("Network error. Please try again.");
     } finally {

@@ -86,6 +86,16 @@ export async function POST(req: NextRequest) {
       data: { lastLogin: new Date() },
     });
 
+    // Check onboarding status for this clinic
+    let onboardingComplete = true;
+    if (user.clinicId) {
+      const clinic = await prisma.clinic.findUnique({
+        where: { id: user.clinicId },
+        select: { onboardingComplete: true },
+      });
+      onboardingComplete = clinic?.onboardingComplete ?? true;
+    }
+
     // Create JWT with clinicId for multi-tenancy
     const token = await createToken({
       userId: user.id,
@@ -93,6 +103,7 @@ export async function POST(req: NextRequest) {
       role: user.role,
       name: user.name,
       clinicId: user.clinicId || "",
+      onboardingComplete,
     });
 
     // Set HTTP-only cookie
