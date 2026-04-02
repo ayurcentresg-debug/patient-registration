@@ -13,6 +13,12 @@ export default function SecurityPage() {
   const [success, setSuccess] = useState("");
   const [verifying, setVerifying] = useState(false);
 
+  // Password change state
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [pwLoading, setPwLoading] = useState(false);
+
   useEffect(() => {
     fetch("/api/auth/me")
       .then((r) => r.json())
@@ -245,6 +251,121 @@ export default function SecurityPage() {
       {/* Info */}
       <div className="mt-4 px-4 py-3 rounded-lg text-[14px]" style={{ background: "#d1f2e0", color: "#14532d" }}>
         <strong>Recommended apps:</strong> Google Authenticator, Microsoft Authenticator, Authy, or 1Password
+      </div>
+
+      {/* Password Change Card */}
+      <div className="rounded-xl p-6 mt-6" style={{ background: "var(--white)", border: "1.5px solid var(--grey-300)" }}>
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: "#d1f2e0" }}>
+            <svg className="w-5 h-5" fill="none" stroke="#2d6a4f" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+            </svg>
+          </div>
+          <div>
+            <h2 className="text-[17px] font-bold" style={{ color: "var(--grey-900)" }}>Change Password</h2>
+            <p className="text-[15px]" style={{ color: "var(--grey-500)" }}>Update your account password</p>
+          </div>
+        </div>
+
+        <form
+          onSubmit={async (e) => {
+            e.preventDefault();
+            setError("");
+            setSuccess("");
+
+            if (newPassword !== confirmPassword) {
+              setError("New passwords do not match");
+              return;
+            }
+
+            if (newPassword.length < 6) {
+              setError("New password must be at least 6 characters");
+              return;
+            }
+
+            setPwLoading(true);
+            try {
+              const res = await fetch("/api/auth/change-password", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ currentPassword, newPassword }),
+              });
+              const data = await res.json();
+
+              if (!res.ok) {
+                setError(data.error || "Failed to change password");
+                return;
+              }
+
+              setSuccess("Password changed successfully!");
+              setCurrentPassword("");
+              setNewPassword("");
+              setConfirmPassword("");
+            } catch {
+              setError("Network error. Please try again.");
+            } finally {
+              setPwLoading(false);
+            }
+          }}
+          className="space-y-4"
+        >
+          <div>
+            <label className="block text-[13px] font-medium mb-1" style={{ color: "#374151" }}>Current Password</label>
+            <input
+              type="password"
+              required
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              placeholder="Enter current password"
+              className="w-full px-3 py-2.5 rounded-lg text-[14px] outline-none transition-all"
+              style={{ border: "1.5px solid #e5e7eb", background: "#fafafa" }}
+              onFocus={(e) => { e.target.style.borderColor = "#2d6a4f"; }}
+              onBlur={(e) => { e.target.style.borderColor = "#e5e7eb"; }}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-[13px] font-medium mb-1" style={{ color: "#374151" }}>New Password</label>
+              <input
+                type="password"
+                required
+                minLength={6}
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Min 6 characters"
+                className="w-full px-3 py-2.5 rounded-lg text-[14px] outline-none transition-all"
+                style={{ border: "1.5px solid #e5e7eb", background: "#fafafa" }}
+                onFocus={(e) => { e.target.style.borderColor = "#2d6a4f"; }}
+                onBlur={(e) => { e.target.style.borderColor = "#e5e7eb"; }}
+              />
+            </div>
+            <div>
+              <label className="block text-[13px] font-medium mb-1" style={{ color: "#374151" }}>Confirm New Password</label>
+              <input
+                type="password"
+                required
+                minLength={6}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Confirm new password"
+                className="w-full px-3 py-2.5 rounded-lg text-[14px] outline-none transition-all"
+                style={{ border: "1.5px solid #e5e7eb", background: "#fafafa" }}
+                onFocus={(e) => { e.target.style.borderColor = "#2d6a4f"; }}
+                onBlur={(e) => { e.target.style.borderColor = "#e5e7eb"; }}
+              />
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={pwLoading}
+            className="px-5 py-2.5 text-[15px] font-bold text-white rounded-lg transition-all hover:opacity-90 disabled:opacity-60"
+            style={{ background: "#2d6a4f" }}
+          >
+            {pwLoading ? "Updating..." : "Update Password"}
+          </button>
+        </form>
       </div>
     </div>
   );
