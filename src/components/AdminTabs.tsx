@@ -37,7 +37,7 @@ export default function AdminTabs() {
               color: active ? "var(--blue-500)" : "var(--grey-600)",
               borderBottom: active ? "2px solid var(--blue-500)" : "2px solid transparent",
               marginBottom: "-2px",
-              background: active ? "var(--blue-50, rgba(33,150,243,0.04))" : "transparent",
+              background: active ? "var(--blue-50)" : "transparent",
               borderRadius: "var(--radius-sm) var(--radius-sm) 0 0",
             }}
           >

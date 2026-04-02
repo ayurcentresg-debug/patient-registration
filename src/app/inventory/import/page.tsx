@@ -471,7 +471,7 @@ export default function InventoryImportPage() {
               style={{
                 border: `2px dashed ${dragActive ? "var(--blue-500)" : "var(--grey-300)"}`,
                 borderRadius: "var(--radius)",
-                background: dragActive ? "var(--blue-50, rgba(33,150,243,0.04))" : "var(--grey-50, #f9fafb)",
+                background: dragActive ? "var(--blue-50)" : "var(--grey-50)",
               }}
             >
               <svg className="w-12 h-12" style={{ color: dragActive ? "var(--blue-500)" : "var(--grey-400)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">

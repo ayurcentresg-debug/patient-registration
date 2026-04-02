@@ -131,7 +131,7 @@ export function PageGuide({ storageKey, title, subtitle, steps }: PageGuideProps
       className="mb-5 p-4 relative yoda-fade-in"
       style={{
         background: "linear-gradient(135deg, #f0f7ff 0%, #e8f4f8 100%)",
-        border: "1px solid var(--blue-200, #90caf9)",
+        border: "1px solid var(--blue-200)",
         borderRadius: "var(--radius)",
       }}
     >
@@ -181,7 +181,7 @@ interface SectionNoteProps {
 
 export function SectionNote({ text, type = "info" }: SectionNoteProps) {
   const styles = {
-    info: { bg: "#f0f7ff", border: "var(--blue-200, #90caf9)", color: "var(--blue-500)", icon: "ℹ" },
+    info: { bg: "var(--blue-50)", border: "var(--blue-200)", color: "var(--blue-500)", icon: "ℹ" },
     tip: { bg: "#f0faf0", border: "#a5d6a7", color: "var(--green)", icon: "💡" },
     warning: { bg: "#fff8e1", border: "#ffe082", color: "#f57c00", icon: "⚠" },
   };
