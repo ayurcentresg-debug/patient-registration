@@ -91,7 +91,7 @@ export async function GET(request: NextRequest) {
 
     // Claims trend - last 6 months using raw SQL
     const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1);
-    const claimsTrend = await prisma.$queryRawUnsafe<
+    const claimsTrend = await db.$queryRawUnsafe<
       Array<{ month: string; submitted: number; approved: number; settled: number; rejected: number }>
     >(
       `SELECT
@@ -102,9 +102,10 @@ export async function GET(request: NextRequest) {
         SUM(CASE WHEN status = 'rejected' THEN 1 ELSE 0 END) as rejected
       FROM InsuranceClaim
       WHERE submittedDate >= ?
+        ${clinicId ? "AND clinicId = ?" : ""}
       GROUP BY strftime('%Y-%m', submittedDate)
       ORDER BY month ASC`,
-      sixMonthsAgo.toISOString()
+      ...(clinicId ? [sixMonthsAgo.toISOString(), clinicId] : [sixMonthsAgo.toISOString()])
     );
 
     // Ensure trend numbers are actual numbers (SQLite returns BigInt)

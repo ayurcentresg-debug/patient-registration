@@ -3,11 +3,7 @@ import { prisma } from "@/lib/db";
 import { getClinicId } from "@/lib/get-clinic-id";
 import { getTenantPrisma } from "@/lib/tenant-db";
 import bcrypt from "bcryptjs";
-import { jwtVerify } from "jose";
-
-const secret = new TextEncoder().encode(
-  process.env.JWT_SECRET || ""
-);
+import { verifyToken } from "@/lib/auth";
 
 // POST /api/setup-doctor-passwords
 // Admin-only endpoint to set default passwords for doctors who don't have one
@@ -22,8 +18,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { payload } = await jwtVerify(token, secret);
-    if (payload.role !== "admin") {
+    const payload = await verifyToken(token);
+    if (!payload || payload.role !== "admin") {
       return NextResponse.json({ error: "Admin only" }, { status: 403 });
     }
 

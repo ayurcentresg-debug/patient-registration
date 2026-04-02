@@ -2,11 +2,7 @@ import { prisma } from "@/lib/db";
 import { getClinicId } from "@/lib/get-clinic-id";
 import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextRequest, NextResponse } from "next/server";
-import { jwtVerify } from "jose";
-
-const secret = new TextEncoder().encode(
-  process.env.JWT_SECRET || ""
-);
+import { verifyToken } from "@/lib/auth";
 
 export async function GET(request: NextRequest) {
   try {
@@ -16,9 +12,10 @@ export async function GET(request: NextRequest) {
     const token = request.cookies.get("auth_token")?.value;
     if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { payload } = await jwtVerify(token, secret);
-    const userId = payload.userId as string;
-    const userName = payload.name as string;
+    const payload = await verifyToken(token);
+    if (!payload) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const userId = payload.userId;
+    const userName = payload.name;
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);

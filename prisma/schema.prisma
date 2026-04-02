@@ -208,6 +208,9 @@ model ClinicalNote {
   updatedAt       DateTime @updatedAt
 
   patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@index([patientId])
+  @@index([clinicId])
 }
 
 model Document {
@@ -223,6 +226,9 @@ model Document {
   uploadedAt  DateTime @default(now())
 
   patient Patient @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  @@index([patientId])
+  @@index([clinicId])
 }
 
 // ─── Vitals Tracking ─────────────────────────────────────────────────────
@@ -467,6 +473,9 @@ model InvoiceItem {
   amount          Float    @default(0) // final amount after discount + gst
 
   invoice         Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId])
+  @@index([clinicId])
 }
 
 model Payment {
@@ -484,6 +493,8 @@ model Payment {
   invoice         Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
 
   @@unique([clinicId, receiptNumber])
+  @@index([invoiceId])
+  @@index([clinicId])
 }
 
 // ─── Insurance ───────────────────────────────────────────────────────────

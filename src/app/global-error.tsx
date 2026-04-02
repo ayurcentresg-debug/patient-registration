@@ -37,7 +37,7 @@ export default function GlobalError({
               Something went wrong
             </h2>
             <p style={{ fontSize: "15px", color: "#666", marginBottom: "20px" }}>
-              {error.message || "An unexpected error occurred."}
+              An unexpected error occurred. Please try again or contact support if the problem persists.
             </p>
             <button
               onClick={reset}
@@ -46,7 +46,7 @@ export default function GlobalError({
                 fontSize: "15px",
                 fontWeight: 600,
                 color: "#fff",
-                background: "#1976d2",
+                background: "#14532d",
                 border: "none",
                 borderRadius: "8px",
                 cursor: "pointer",

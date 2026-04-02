@@ -139,28 +139,28 @@ export async function GET(request: NextRequest) {
 
     // Raw SQL queries for peak hours and hourly distribution
     const [peakHoursRaw, hourlyDistributionRaw] = await Promise.all([
-      prisma.$queryRawUnsafe<Array<{ hour: number; dayOfWeek: number; count: number }>>(
+      db.$queryRawUnsafe<Array<{ hour: number; dayOfWeek: number; count: number }>>(
         `SELECT
           CAST(strftime('%H', date) AS INTEGER) as hour,
           CAST(strftime('%w', date) AS INTEGER) as dayOfWeek,
           COUNT(*) as count
         FROM Appointment
         WHERE date >= ? AND date <= ?
+          ${clinicId ? "AND clinicId = ?" : ""}
         GROUP BY strftime('%H', date), strftime('%w', date)
         ORDER BY count DESC`,
-        fromDate.toISOString(),
-        toDate.toISOString()
+        ...(clinicId ? [fromDate.toISOString(), toDate.toISOString(), clinicId] : [fromDate.toISOString(), toDate.toISOString()])
       ),
-      prisma.$queryRawUnsafe<Array<{ hour: number; count: number }>>(
+      db.$queryRawUnsafe<Array<{ hour: number; count: number }>>(
         `SELECT
           CAST(strftime('%H', date) AS INTEGER) as hour,
           COUNT(*) as count
         FROM Appointment
         WHERE date >= ? AND date <= ?
+          ${clinicId ? "AND clinicId = ?" : ""}
         GROUP BY strftime('%H', date)
         ORDER BY hour ASC`,
-        fromDate.toISOString(),
-        toDate.toISOString()
+        ...(clinicId ? [fromDate.toISOString(), toDate.toISOString(), clinicId] : [fromDate.toISOString(), toDate.toISOString()])
       ),
     ]);
 

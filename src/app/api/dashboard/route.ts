@@ -131,61 +131,62 @@ export async function GET() {
       }),
 
       // ── Weekly revenue (last 7 days) ──────────────────────────────────
-      prisma.$queryRawUnsafe<{ date: string; revenue: number }[]>(
+      db.$queryRawUnsafe<{ date: string; revenue: number }[]>(
         `SELECT strftime('%Y-%m-%d', date) as date, COALESCE(SUM(totalAmount), 0) as revenue
          FROM Invoice
          WHERE date >= ? AND date < ?
            AND status NOT IN ('cancelled', 'draft')
+           ${clinicId ? "AND clinicId = ?" : ""}
          GROUP BY strftime('%Y-%m-%d', date)
          ORDER BY date ASC`,
-        sevenDaysAgoISO,
-        tomorrowISO
+        ...(clinicId ? [sevenDaysAgoISO, tomorrowISO, clinicId] : [sevenDaysAgoISO, tomorrowISO])
       ),
 
       // ── Appointment status breakdown (today) ──────────────────────────
-      prisma.$queryRawUnsafe<{ status: string; count: number }[]>(
+      db.$queryRawUnsafe<{ status: string; count: number }[]>(
         `SELECT status, COUNT(*) as count
          FROM Appointment
          WHERE date >= ? AND date < ?
+           ${clinicId ? "AND clinicId = ?" : ""}
          GROUP BY status`,
-        todayISO,
-        tomorrowISO
+        ...(clinicId ? [todayISO, tomorrowISO, clinicId] : [todayISO, tomorrowISO])
       ),
 
       // ── Monthly appointment trend (last 6 months) ─────────────────────
-      prisma.$queryRawUnsafe<{ month: string; count: number }[]>(
+      db.$queryRawUnsafe<{ month: string; count: number }[]>(
         `SELECT strftime('%Y-%m', date) as month, COUNT(*) as count
          FROM Appointment
          WHERE date >= ?
+           ${clinicId ? "AND clinicId = ?" : ""}
          GROUP BY strftime('%Y-%m', date)
          ORDER BY month ASC`,
-        sixMonthsAgoISO
+        ...(clinicId ? [sixMonthsAgoISO, clinicId] : [sixMonthsAgoISO])
       ),
 
       // ── Top treatments this month ─────────────────────────────────────
-      prisma.$queryRawUnsafe<{ name: string; count: number }[]>(
+      db.$queryRawUnsafe<{ name: string; count: number }[]>(
         `SELECT treatmentName as name, COUNT(*) as count
          FROM Appointment
          WHERE date >= ? AND date < ?
            AND treatmentName IS NOT NULL AND treatmentName != ''
+           ${clinicId ? "AND clinicId = ?" : ""}
          GROUP BY treatmentName
          ORDER BY count DESC
          LIMIT 10`,
-        monthStartISO,
-        tomorrowISO
+        ...(clinicId ? [monthStartISO, tomorrowISO, clinicId] : [monthStartISO, tomorrowISO])
       ),
 
       // ── Revenue by payment method this month ──────────────────────────
-      prisma.$queryRawUnsafe<{ paymentMethod: string; revenue: number }[]>(
+      db.$queryRawUnsafe<{ paymentMethod: string; revenue: number }[]>(
         `SELECT p.method as paymentMethod, COALESCE(SUM(p.amount), 0) as revenue
          FROM Payment p
          JOIN Invoice i ON p.invoiceId = i.id
          WHERE i.date >= ? AND i.date < ?
            AND i.status NOT IN ('cancelled', 'draft')
+           ${clinicId ? "AND i.clinicId = ?" : ""}
          GROUP BY p.method
          ORDER BY revenue DESC`,
-        monthStartISO,
-        tomorrowISO
+        ...(clinicId ? [monthStartISO, tomorrowISO, clinicId] : [monthStartISO, tomorrowISO])
       ),
 
       // ── Recent appointments (for activity feed) ─────────────────────

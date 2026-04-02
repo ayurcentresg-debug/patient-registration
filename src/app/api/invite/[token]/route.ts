@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { hashPassword } from "@/lib/auth";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 // GET /api/invite/[token] — validate invite token
 export async function GET(
@@ -36,6 +37,18 @@ export async function POST(
   { params }: { params: Promise<{ token: string }> }
 ) {
   try {
+    const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    const { allowed, retryAfterMs } = checkRateLimit(ip, "/api/invite", {
+      maxRequests: 10,
+      windowMs: 15 * 60 * 1000,
+    });
+    if (!allowed) {
+      return NextResponse.json(
+        { error: "Too many attempts. Please try again later." },
+        { status: 429, headers: { "Retry-After": String(Math.ceil(retryAfterMs / 1000)) } }
+      );
+    }
+
     const { token } = await params;
     const { password } = await request.json();
 
