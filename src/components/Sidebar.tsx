@@ -94,10 +94,18 @@ export default function Sidebar() {
   const [notifLoading, setNotifLoading] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
 
+  // Clinic branding
+  const [clinicName, setClinicName] = useState("AYUR GATE");
+  const clinicInitials = clinicName.split(/\s+/).map(w => w[0]).join("").slice(0, 2).toUpperCase();
+
   const totalNotifCount = lowStockAlerts.length + pendingReminders.length + transferNotifications.length;
 
   useEffect(() => {
     setMounted(true);
+    // Fetch clinic name from settings
+    fetch("/api/settings").then(r => r.ok ? r.json() : null).then(data => {
+      if (data?.clinicName) setClinicName(data.clinicName);
+    }).catch(() => {});
   }, []);
 
   // Fetch notifications on mount and every 60s
@@ -285,10 +293,10 @@ export default function Sidebar() {
               letterSpacing: "-0.02em",
             }}
           >
-            AC
+            {clinicInitials}
           </div>
           <span style={{ color: "#fff", fontSize: 15, fontWeight: 700, letterSpacing: "-0.01em" }}>
-            Ayur Centre
+            {clinicName}
           </span>
         </div>
 
@@ -598,7 +606,7 @@ export default function Sidebar() {
               fontSize: 13,
             }}
           >
-            AC
+            {clinicInitials}
           </div>
           <div
             className="ml-3 overflow-hidden whitespace-nowrap"
@@ -609,7 +617,7 @@ export default function Sidebar() {
               minWidth: 0,
             }}
           >
-            <h1 className="text-[15px] font-bold text-white tracking-tight">Ayur Centre</h1>
+            <h1 className="text-[15px] font-bold text-white tracking-tight">{clinicName}</h1>
             <p className="text-[12px] font-medium" style={{ color: "rgba(255,255,255,0.45)" }}>Ayurveda Clinic</p>
           </div>
 
