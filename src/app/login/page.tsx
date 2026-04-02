@@ -279,7 +279,7 @@ export default function LoginPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@clinic.com"
+                placeholder="you@clinic.com"
               />
 
               <InputField

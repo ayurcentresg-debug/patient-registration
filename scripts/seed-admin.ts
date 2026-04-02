@@ -27,9 +27,12 @@ async function main() {
 
   // ─── Admin ────────────────────────────────────────────────────────────
   const existingAdmin = await prisma.user.findFirst({ where: { email: "admin@clinic.com" } });
-  const admin = existingAdmin
-    ? await prisma.user.update({ where: { id: existingAdmin.id }, data: { password: adminPassword, role: "admin", isActive: true } })
-    : await prisma.user.create({ data: {
+  if (existingAdmin) {
+    // Never overwrite existing admin password — only ensure active
+    await prisma.user.update({ where: { id: existingAdmin.id }, data: { isActive: true } });
+    console.log(`⏭️  Admin already exists: ${existingAdmin.email} (password unchanged)`);
+  } else {
+    const admin = await prisma.user.create({ data: {
       name: "Admin",
       email: "admin@clinic.com",
       password: adminPassword,
@@ -37,9 +40,9 @@ async function main() {
       isActive: true,
       staffIdNumber: "A10001",
       status: "active",
-    },
-  });
-  console.log(`✅ Admin: ${admin.email}`);
+    }});
+    console.log(`✅ Admin created: ${admin.email}`);
+  }
 
   // ─── Doctors ──────────────────────────────────────────────────────────
   const doctors = [
@@ -94,7 +97,9 @@ async function main() {
   for (const doc of doctors) {
     const existingDoc = await prisma.user.findFirst({ where: { email: doc.email } });
     if (existingDoc) {
-      await prisma.user.update({ where: { id: existingDoc.id }, data: { password: doctorPassword, isActive: true, status: "active" } });
+      // Never overwrite existing password — only ensure active
+      await prisma.user.update({ where: { id: existingDoc.id }, data: { isActive: true, status: "active" } });
+      console.log(`⏭️  Doctor already exists: ${doc.name} (password unchanged)`);
     } else {
       await prisma.user.create({ data: {
         name: doc.name, email: doc.email, password: doctorPassword, role: "doctor",
@@ -102,8 +107,8 @@ async function main() {
         staffIdNumber: doc.staffIdNumber, consultationFee: doc.consultationFee,
         slotDuration: doc.slotDuration, schedule: doc.schedule, isActive: true, status: "active",
       }});
+      console.log(`✅ Doctor created: ${doc.name} (${doc.email})`);
     }
-    console.log(`✅ Doctor: ${doc.name} (${doc.email})`);
   }
 
   // ─── Therapists ───────────────────────────────────────────────────────
@@ -127,15 +132,17 @@ async function main() {
   for (const t of therapists) {
     const existingT = await prisma.user.findFirst({ where: { email: t.email } });
     if (existingT) {
-      await prisma.user.update({ where: { id: existingT.id }, data: { password: doctorPassword, isActive: true, status: "active" } });
+      // Never overwrite existing password — only ensure active
+      await prisma.user.update({ where: { id: existingT.id }, data: { isActive: true, status: "active" } });
+      console.log(`⏭️  Therapist already exists: ${t.name} (password unchanged)`);
     } else {
       await prisma.user.create({ data: {
         name: t.name, email: t.email, password: doctorPassword, role: "therapist",
         specialization: t.specialization, department: t.department, staffIdNumber: t.staffIdNumber,
         consultationFee: 0, slotDuration: 30, schedule: "{}", isActive: true, status: "active",
       }});
+      console.log(`✅ Therapist created: ${t.name} (${t.email})`);
     }
-    console.log(`✅ Therapist: ${t.name} (${t.email})`);
   }
 
   // ─── Patients ─────────────────────────────────────────────────────────
@@ -207,15 +214,9 @@ async function main() {
   }
 
   console.log("✅ Clinic settings seeded");
-  console.log("\n🎉 All done! Login credentials:");
-  console.log(`   Admin:      admin@clinic.com / ${rawAdminPass}`);
-  console.log(`   Doctors:    rajesh@clinic.com / ${rawDoctorPass}`);
-  console.log(`               3phala@gmail.com / ${rawDoctorPass}`);
-  console.log(`               ayurvista@gmail.com / ${rawDoctorPass}`);
-  console.log(`   Therapists: siju@staff.local / ${rawDoctorPass}`);
-  console.log(`               linu@staff.local / ${rawDoctorPass}`);
-  console.log("\n💡 To set custom passwords, use env vars:");
-  console.log("   SEED_ADMIN_PASSWORD=YourAdminPass SEED_DOCTOR_PASSWORD=YourDoctorPass");
+  console.log("\n🎉 Seed complete.");
+  console.log("💡 Set passwords via env vars: SEED_ADMIN_PASSWORD, SEED_DOCTOR_PASSWORD");
+  console.log("   Passwords are only applied when creating NEW users (existing passwords are never overwritten).");
 
   await prisma.$disconnect();
 }
