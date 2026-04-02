@@ -1,0 +1,14 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Sign In — AYUR GATE",
+  description: "Sign in to your AYUR GATE clinic management dashboard. Manage patients, appointments, billing, inventory & more.",
+  openGraph: {
+    title: "Sign In — AYUR GATE",
+    description: "Sign in to your AYUR GATE clinic management dashboard. Manage patients, appointments, billing, inventory & more.",
+  },
+};
+
+export default function LoginLayout({ children }: { children: React.ReactNode }) {
+  return <>{children}</>;
+}
