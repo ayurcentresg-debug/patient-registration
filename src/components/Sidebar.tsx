@@ -471,6 +471,90 @@ export default function Sidebar() {
                 </span>
               )}
             </button>
+
+            {/* Notification Dropdown */}
+            {notifOpen && (
+              <div style={{ position: "absolute", top: "calc(100% + 8px)", right: 0, width: 320, backgroundColor: "#fff", borderRadius: 12, boxShadow: "0 8px 32px rgba(0,0,0,0.18)", border: "1px solid #e5e7eb", zIndex: 100, overflow: "hidden" }}>
+                <div style={{ padding: "12px 16px 8px", borderBottom: "1px solid #e5e7eb", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: "#111" }}>Notifications</span>
+                  {totalNotifCount > 0 && (
+                    <span style={{ fontSize: 11, fontWeight: 600, color: "#6b7280", backgroundColor: "#f3f4f6", padding: "2px 8px", borderRadius: 99 }}>{totalNotifCount}</span>
+                  )}
+                </div>
+                <div style={{ maxHeight: 340, overflowY: "auto" }}>
+                  {notifLoading && totalNotifCount === 0 && (
+                    <div style={{ padding: "20px 16px", fontSize: 13, color: "#6b7280", textAlign: "center" }}>Loading...</div>
+                  )}
+                  {!notifLoading && totalNotifCount === 0 && (
+                    <div style={{ padding: "20px 16px", fontSize: 13, color: "#6b7280", textAlign: "center" }}>No new notifications</div>
+                  )}
+                  {lowStockAlerts.length > 0 && (
+                    <>
+                      <div style={{ padding: "8px 16px 4px", fontSize: 10, fontWeight: 700, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em" }}>Low Stock</div>
+                      {lowStockAlerts.slice(0, 5).map((alert, idx) => (
+                        <Link key={alert.id || idx} href="/inventory/alerts" onClick={() => setNotifOpen(false)}
+                          style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 16px", textDecoration: "none", borderBottom: "1px solid #f3f4f6" }}
+                          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#f9fafb"; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}>
+                          <div style={{ width: 28, height: 28, borderRadius: 6, backgroundColor: "#fef2f2", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                            <svg style={{ width: 14, height: 14 }} fill="none" stroke="#ef4444" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                          </div>
+                          <div style={{ minWidth: 0, flex: 1 }}>
+                            <div style={{ fontSize: 12, fontWeight: 600, color: "#111" }}>{alert.name || alert.itemName || "Item"}</div>
+                            <div style={{ fontSize: 11, color: "#6b7280" }}>{alert.message || `Stock: ${alert.currentStock ?? "?"}`}</div>
+                          </div>
+                        </Link>
+                      ))}
+                    </>
+                  )}
+                  {pendingReminders.length > 0 && (
+                    <>
+                      <div style={{ padding: "8px 16px 4px", fontSize: 10, fontWeight: 700, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em" }}>Reminders</div>
+                      {pendingReminders.slice(0, 5).map((r, idx) => (
+                        <Link key={r.id || idx} href="/communications" onClick={() => setNotifOpen(false)}
+                          style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 16px", textDecoration: "none", borderBottom: "1px solid #f3f4f6" }}
+                          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#f9fafb"; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}>
+                          <div style={{ width: 28, height: 28, borderRadius: 6, backgroundColor: "#fffbeb", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                            <svg style={{ width: 14, height: 14 }} fill="none" stroke="#f59e0b" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                          </div>
+                          <div style={{ minWidth: 0, flex: 1 }}>
+                            <div style={{ fontSize: 12, fontWeight: 600, color: "#111" }}>{r.patientName || r.type || "Reminder"}</div>
+                            <div style={{ fontSize: 11, color: "#6b7280" }}>{r.message || "Pending"}</div>
+                          </div>
+                        </Link>
+                      ))}
+                    </>
+                  )}
+                  {transferNotifications.length > 0 && (
+                    <>
+                      <div style={{ padding: "8px 16px 4px", fontSize: 10, fontWeight: 700, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em" }}>Transfers</div>
+                      {transferNotifications.slice(0, 5).map((n) => (
+                        <Link key={n.id} href={n.link || "/inventory/transfers"} onClick={() => { setNotifOpen(false); fetch("/api/notifications", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ids: [n.id] }) }).catch(() => {}); }}
+                          style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 16px", textDecoration: "none", borderBottom: "1px solid #f3f4f6" }}
+                          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#f9fafb"; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}>
+                          <div style={{ width: 28, height: 28, borderRadius: 6, backgroundColor: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                            <svg style={{ width: 14, height: 14 }} fill="none" stroke="#3b82f6" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
+                          </div>
+                          <div style={{ minWidth: 0, flex: 1 }}>
+                            <div style={{ fontSize: 12, fontWeight: 600, color: "#111" }}>{n.title}</div>
+                            <div style={{ fontSize: 11, color: "#6b7280" }}>{getTimeAgo(n.createdAt)}</div>
+                          </div>
+                        </Link>
+                      ))}
+                    </>
+                  )}
+                </div>
+                {totalNotifCount > 0 && (
+                  <div style={{ borderTop: "1px solid #e5e7eb", padding: "8px 16px", display: "flex", justifyContent: "space-between" }}>
+                    <Link href="/inventory/alerts" onClick={() => setNotifOpen(false)} style={{ fontSize: 12, fontWeight: 600, color: "#14532d", textDecoration: "none" }}>View all</Link>
+                    <button onClick={async () => { await fetch("/api/notifications", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ markAllRead: true }) }).catch(() => {}); setTransferNotifications([]); }}
+                      style={{ fontSize: 12, fontWeight: 600, color: "#6b7280", background: "none", border: "none", cursor: "pointer", padding: 0 }}>Mark all read</button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </header>

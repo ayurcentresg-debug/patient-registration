@@ -1,0 +1,20 @@
+User-agent: *
+Allow: /
+Allow: /pricing
+Allow: /register
+
+Disallow: /api/
+Disallow: /dashboard
+Disallow: /patients
+Disallow: /appointments
+Disallow: /billing
+Disallow: /inventory
+Disallow: /admin
+Disallow: /doctor
+Disallow: /communications
+Disallow: /reports
+Disallow: /security
+Disallow: /super-admin
+Disallow: /invite
+
+Sitemap: https://www.ayurgate.com/sitemap.xml
