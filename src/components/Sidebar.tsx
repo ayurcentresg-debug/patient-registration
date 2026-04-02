@@ -250,7 +250,7 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* ============ MOBILE TOP HEADER ============ */}
+      {/* ============ MOBILE TOP HEADER (< md) ============ */}
       <header
         className="md:hidden fixed top-0 left-0 right-0 z-50"
         style={{
@@ -263,7 +263,7 @@ export default function Sidebar() {
           boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
         }}
       >
-        {/* Left: Hamburger + Logo */}
+        {/* Left: Hamburger + Brand */}
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -283,20 +283,20 @@ export default function Sidebar() {
               width: 30,
               height: 30,
               borderRadius: 7,
-              backgroundColor: "var(--blue-500)",
+              backgroundColor: "#14532d",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               color: "#fff",
               fontSize: 11,
               fontWeight: 900,
-              letterSpacing: "-0.02em",
+              letterSpacing: "1px",
             }}
           >
-            {clinicInitials}
+            AG
           </div>
-          <span style={{ color: "#fff", fontSize: 15, fontWeight: 700, letterSpacing: "-0.01em" }}>
-            {clinicName}
+          <span style={{ color: "#fff", fontSize: 15, fontWeight: 700, letterSpacing: "1px" }}>
+            AYUR GATE
           </span>
         </div>
 
@@ -311,20 +311,167 @@ export default function Sidebar() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </button>
-          <button
-            onClick={() => { setNotifOpen(!notifOpen); setMobileMenuOpen(false); setMobileSearchOpen(false); }}
-            aria-label="View notifications"
-            style={{ background: "none", border: "none", cursor: "pointer", padding: 8, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}
+          <div ref={notifRef} style={{ position: "relative" }}>
+            <button
+              onClick={() => { setNotifOpen(!notifOpen); setMobileMenuOpen(false); setMobileSearchOpen(false); }}
+              aria-label="View notifications"
+              style={{ background: "none", border: "none", cursor: "pointer", padding: 8, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}
+            >
+              <svg style={{ width: 20, height: 20 }} fill="none" stroke="rgba(255,255,255,0.8)" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
+              {totalNotifCount > 0 && (
+                <span style={{ position: "absolute", top: 4, right: 4, backgroundColor: "#ef4444", color: "#fff", fontSize: 8, fontWeight: 700, borderRadius: 99, minWidth: 14, height: 14, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 3px" }}>
+                  {totalNotifCount > 99 ? "99+" : totalNotifCount}
+                </span>
+              )}
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* ============ DESKTOP TOP BAR (md+) — right of sidebar ============ */}
+      <header
+        className="hidden md:flex fixed top-0 right-0 z-40 items-center justify-between"
+        style={{
+          left: 64,
+          height: 56,
+          backgroundColor: "var(--sidebar-bg, #1b3a2d)",
+          padding: "0 20px",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+        }}
+      >
+        {/* Left: Brand */}
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: 8,
+              backgroundColor: "#14532d",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "#fff",
+              fontSize: 12,
+              fontWeight: 900,
+              letterSpacing: "1px",
+              border: "1.5px solid rgba(255,255,255,0.15)",
+            }}
           >
-            <svg style={{ width: 20, height: 20 }} fill="none" stroke="rgba(255,255,255,0.8)" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-            </svg>
-            {totalNotifCount > 0 && (
-              <span style={{ position: "absolute", top: 4, right: 4, backgroundColor: "#ef4444", color: "#fff", fontSize: 8, fontWeight: 700, borderRadius: 99, minWidth: 14, height: 14, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 3px" }}>
-                {totalNotifCount > 99 ? "99+" : totalNotifCount}
-              </span>
+            AG
+          </div>
+          <span style={{ color: "#fff", fontSize: 16, fontWeight: 700, letterSpacing: "1.5px" }}>
+            AYUR GATE
+          </span>
+          {clinicName !== "AYUR GATE" && (
+            <span style={{ color: "rgba(255,255,255,0.5)", fontSize: 13, fontWeight: 500, marginLeft: 4 }}>
+              — {clinicName}
+            </span>
+          )}
+        </div>
+
+        {/* Right: Search + Notifications */}
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          {/* Search */}
+          <div ref={searchRef} style={{ position: "relative" }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                backgroundColor: "rgba(255,255,255,0.1)",
+                borderRadius: 8,
+                padding: "0 12px",
+                height: 36,
+                width: searchTerm ? 260 : 200,
+                transition: "width 0.2s ease",
+              }}
+            >
+              <svg style={{ width: 16, height: 16, flexShrink: 0 }} fill="none" stroke="rgba(255,255,255,0.6)" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <input
+                type="text"
+                placeholder="Search patients..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onFocus={() => { if (searchResults.length > 0) setSearchOpen(true); }}
+                style={{
+                  flex: 1,
+                  border: "none",
+                  outline: "none",
+                  background: "transparent",
+                  padding: "0 8px",
+                  fontSize: 13,
+                  color: "#fff",
+                }}
+              />
+              {searchTerm && (
+                <button onClick={() => { setSearchTerm(""); setSearchOpen(false); }} style={{ background: "none", border: "none", cursor: "pointer", padding: 2, display: "flex" }}>
+                  <svg style={{ width: 14, height: 14 }} fill="none" stroke="rgba(255,255,255,0.6)" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
+            </div>
+            {/* Desktop search results dropdown */}
+            {searchOpen && searchResults.length > 0 && (
+              <div style={{ position: "absolute", top: "calc(100% + 6px)", left: 0, right: 0, backgroundColor: "#fff", borderRadius: 10, boxShadow: "0 8px 32px rgba(0,0,0,0.18)", border: "1px solid #e5e7eb", zIndex: 100, overflow: "hidden" }}>
+                {searchResults.map((patient, idx) => (
+                  <button
+                    key={patient.id || idx}
+                    onClick={() => handleSearchResultClick(patient.id)}
+                    style={{ display: "flex", alignItems: "center", gap: 10, width: "100%", padding: "10px 14px", border: "none", backgroundColor: "transparent", cursor: "pointer", textAlign: "left", borderBottom: idx < searchResults.length - 1 ? "1px solid #f3f4f6" : "none" }}
+                    onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#f9fafb"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}
+                  >
+                    <div style={{ width: 28, height: 28, borderRadius: "50%", backgroundColor: "#d1f2e0", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <svg style={{ width: 14, height: 14 }} fill="none" stroke="#14532d" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                    </div>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: "#111" }}>{getPatientDisplayName(patient)}</span>
+                  </button>
+                ))}
+              </div>
             )}
-          </button>
+            {searchOpen && searchResults.length === 0 && searchTerm.trim() && !searchLoading && (
+              <div style={{ position: "absolute", top: "calc(100% + 6px)", left: 0, right: 0, backgroundColor: "#fff", borderRadius: 10, boxShadow: "0 8px 32px rgba(0,0,0,0.18)", border: "1px solid #e5e7eb", zIndex: 100, padding: 16, textAlign: "center", fontSize: 13, color: "#6b7280" }}>
+                No patients found
+              </div>
+            )}
+          </div>
+
+          {/* Notifications Bell */}
+          <div ref={notifRef} style={{ position: "relative" }}>
+            <button
+              onClick={() => setNotifOpen(!notifOpen)}
+              style={{
+                backgroundColor: notifOpen ? "rgba(255,255,255,0.15)" : "transparent",
+                border: "none",
+                cursor: "pointer",
+                position: "relative",
+                padding: 8,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                borderRadius: 8,
+                transition: "background 0.15s",
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.1)"; }}
+              onMouseLeave={(e) => { if (!notifOpen) e.currentTarget.style.backgroundColor = "transparent"; }}
+              title="Notifications"
+            >
+              <svg style={{ width: 20, height: 20 }} fill="none" stroke="rgba(255,255,255,0.8)" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
+              {totalNotifCount > 0 && (
+                <span style={{ position: "absolute", top: 2, right: 2, backgroundColor: "#ef4444", color: "#fff", fontSize: 9, fontWeight: 700, borderRadius: 99, minWidth: 16, height: 16, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 4px" }}>
+                  {totalNotifCount > 99 ? "99+" : totalNotifCount}
+                </span>
+              )}
+            </button>
+          </div>
         </div>
       </header>
 
@@ -586,27 +733,28 @@ export default function Sidebar() {
         onMouseEnter={() => setExpanded(true)}
         onMouseLeave={() => setExpanded(false)}
       >
-        {/* Logo + Notification Bell */}
+        {/* Logo */}
         <div
           className="flex items-center py-5"
           style={{
             borderBottom: "1px solid rgba(255,255,255,0.08)",
-            height: 64,
+            height: 56,
             paddingLeft: expanded ? 18 : 0,
             justifyContent: expanded ? "flex-start" : "center",
             transition: "padding-left 0.2s ease",
           }}
         >
           <div
-            className="flex items-center justify-center rounded-lg text-white font-black tracking-tight flex-shrink-0"
+            className="flex items-center justify-center rounded-lg text-white font-black flex-shrink-0"
             style={{
               width: 36,
               height: 36,
-              backgroundColor: "var(--blue-500)",
-              fontSize: 13,
+              backgroundColor: "#14532d",
+              fontSize: 12,
+              letterSpacing: "1px",
             }}
           >
-            {clinicInitials}
+            AG
           </div>
           <div
             className="ml-3 overflow-hidden whitespace-nowrap"
@@ -617,382 +765,13 @@ export default function Sidebar() {
               minWidth: 0,
             }}
           >
-            <h1 className="text-[15px] font-bold text-white tracking-tight">{clinicName}</h1>
-            <p className="text-[12px] font-medium" style={{ color: "rgba(255,255,255,0.45)" }}>Ayurveda Clinic</p>
+            <h1 className="text-[15px] font-bold text-white" style={{ letterSpacing: "1.5px" }}>AYUR GATE</h1>
+            <p className="text-[11px] font-medium" style={{ color: "rgba(255,255,255,0.45)" }}>{clinicName !== "AYUR GATE" ? clinicName : "Ayurveda Clinic"}</p>
           </div>
 
-          {/* Notification Bell */}
-          <div
-            ref={notifRef}
-            style={{
-              position: "relative",
-              opacity: expanded ? 1 : 0,
-              width: expanded ? "auto" : 0,
-              overflow: expanded ? "visible" : "hidden",
-              transition: "opacity 0.15s ease",
-              marginRight: expanded ? 14 : 0,
-              flexShrink: 0,
-            }}
-          >
-            <button
-              onClick={() => setNotifOpen(!notifOpen)}
-              style={{
-                backgroundColor: "transparent",
-                border: "none",
-                cursor: "pointer",
-                position: "relative",
-                padding: 4,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                borderRadius: 6,
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.1)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "transparent";
-              }}
-              title="Notifications"
-            >
-              <svg
-                style={{ width: 20, height: 20 }}
-                fill="none"
-                stroke="rgba(255,255,255,0.7)"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={1.8}
-                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                />
-              </svg>
-              {totalNotifCount > 0 && (
-                <span
-                  style={{
-                    position: "absolute",
-                    top: 0,
-                    right: 0,
-                    backgroundColor: "#ef4444",
-                    color: "#fff",
-                    fontSize: 9,
-                    fontWeight: 700,
-                    borderRadius: 99,
-                    minWidth: 16,
-                    height: 16,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    padding: "0 4px",
-                    lineHeight: 1,
-                    transform: "translate(4px, -4px)",
-                  }}
-                >
-                  {totalNotifCount > 99 ? "99+" : totalNotifCount}
-                </span>
-              )}
-            </button>
-
-            {/* Notification Dropdown */}
-            {notifOpen && (
-              <div
-                style={{
-                  position: "absolute",
-                  top: "calc(100% + 8px)",
-                  left: 0,
-                  width: 280,
-                  backgroundColor: "#fff",
-                  borderRadius: 10,
-                  boxShadow: "0 8px 32px rgba(0,0,0,0.18)",
-                  border: "1px solid var(--grey-200, #e5e7eb)",
-                  zIndex: 100,
-                  overflow: "hidden",
-                }}
-              >
-                <div
-                  style={{
-                    padding: "12px 14px 8px",
-                    borderBottom: "1px solid var(--grey-200, #e5e7eb)",
-                  }}
-                >
-                  <span style={{ fontSize: 13, fontWeight: 700, color: "var(--grey-900, #111)" }}>
-                    Notifications
-                  </span>
-                </div>
-
-                <div style={{ maxHeight: 300, overflowY: "auto" }}>
-                  {notifLoading && totalNotifCount === 0 && (
-                    <div style={{ padding: "16px 14px", fontSize: 12, color: "var(--grey-500, #6b7280)", textAlign: "center" }}>
-                      Loading...
-                    </div>
-                  )}
-
-                  {!notifLoading && totalNotifCount === 0 && (
-                    <div style={{ padding: "16px 14px", fontSize: 12, color: "var(--grey-500, #6b7280)", textAlign: "center" }}>
-                      No new notifications
-                    </div>
-                  )}
-
-                  {/* Low Stock Alerts */}
-                  {lowStockAlerts.length > 0 && (
-                    <>
-                      <div style={{ padding: "8px 14px 4px", fontSize: 10, fontWeight: 700, color: "var(--grey-500, #6b7280)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                        Low Stock Alerts
-                      </div>
-                      {lowStockAlerts.slice(0, 5).map((alert, idx) => (
-                        <Link
-                          key={alert.id || idx}
-                          href="/inventory/alerts"
-                          onClick={() => setNotifOpen(false)}
-                          style={{
-                            display: "flex",
-                            alignItems: "flex-start",
-                            gap: 10,
-                            padding: "8px 14px",
-                            textDecoration: "none",
-                            borderBottom: "1px solid var(--grey-100, #f3f4f6)",
-                            cursor: "pointer",
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = "var(--grey-50, #f9fafb)";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = "transparent";
-                          }}
-                        >
-                          <div
-                            style={{
-                              width: 28,
-                              height: 28,
-                              borderRadius: 6,
-                              backgroundColor: "#fef2f2",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              flexShrink: 0,
-                              marginTop: 1,
-                            }}
-                          >
-                            <svg style={{ width: 14, height: 14 }} fill="none" stroke="#ef4444" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                          </div>
-                          <div style={{ minWidth: 0, flex: 1 }}>
-                            <div style={{ fontSize: 12, fontWeight: 600, color: "var(--grey-900, #111)", lineHeight: 1.3 }}>
-                              {alert.name || alert.itemName || "Item"}
-                            </div>
-                            <div style={{ fontSize: 11, color: "var(--grey-500, #6b7280)", marginTop: 1 }}>
-                              {alert.message || (alert.currentStock !== undefined
-                                ? `Stock: ${alert.currentStock} (reorder at ${alert.reorderLevel || 0})`
-                                : "Low stock warning")}
-                            </div>
-                          </div>
-                        </Link>
-                      ))}
-                    </>
-                  )}
-
-                  {/* Pending Reminders */}
-                  {pendingReminders.length > 0 && (
-                    <>
-                      <div style={{ padding: "8px 14px 4px", fontSize: 10, fontWeight: 700, color: "var(--grey-500, #6b7280)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                        Pending Reminders
-                      </div>
-                      {pendingReminders.slice(0, 5).map((reminder, idx) => (
-                        <Link
-                          key={reminder.id || idx}
-                          href="/communications/reminders"
-                          onClick={() => setNotifOpen(false)}
-                          style={{
-                            display: "flex",
-                            alignItems: "flex-start",
-                            gap: 10,
-                            padding: "8px 14px",
-                            textDecoration: "none",
-                            borderBottom: "1px solid var(--grey-100, #f3f4f6)",
-                            cursor: "pointer",
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = "var(--grey-50, #f9fafb)";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = "transparent";
-                          }}
-                        >
-                          <div
-                            style={{
-                              width: 28,
-                              height: 28,
-                              borderRadius: 6,
-                              backgroundColor: "#f0faf4",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              flexShrink: 0,
-                              marginTop: 1,
-                            }}
-                          >
-                            <svg style={{ width: 14, height: 14 }} fill="none" stroke="#f59e0b" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                          </div>
-                          <div style={{ minWidth: 0, flex: 1 }}>
-                            <div style={{ fontSize: 12, fontWeight: 600, color: "var(--grey-900, #111)", lineHeight: 1.3 }}>
-                              {reminder.patientName || reminder.type || "Reminder"}
-                            </div>
-                            <div style={{ fontSize: 11, color: "var(--grey-500, #6b7280)", marginTop: 1 }}>
-                              {reminder.message || (reminder.dueDate ? `Due: ${reminder.dueDate}` : "Pending reminder")}
-                            </div>
-                          </div>
-                        </Link>
-                      ))}
-                    </>
-                  )}
-
-                  {/* Transfer / System Notifications */}
-                  {transferNotifications.length > 0 && (
-                    <>
-                      <div style={{ padding: "8px 14px 4px", fontSize: 10, fontWeight: 700, color: "var(--grey-500, #6b7280)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                        Transfer Updates
-                      </div>
-                      {transferNotifications.slice(0, 5).map((notif) => {
-                        const iconColor =
-                          notif.type === "transfer_incoming" ? "#3b82f6" :
-                          notif.type === "transfer_received" ? "#22c55e" :
-                          notif.type === "transfer_cancelled" ? "#ef4444" : "#6b7280";
-                        const bgColor =
-                          notif.type === "transfer_incoming" ? "#eff6ff" :
-                          notif.type === "transfer_received" ? "#f0fdf4" :
-                          notif.type === "transfer_cancelled" ? "#fef2f2" : "#f9fafb";
-                        const iconPath =
-                          notif.type === "transfer_incoming"
-                            ? "M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
-                            : notif.type === "transfer_received"
-                            ? "M5 13l4 4L19 7"
-                            : notif.type === "transfer_cancelled"
-                            ? "M6 18L18 6M6 6l12 12"
-                            : "M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z";
-                        const timeAgo = getTimeAgo(notif.createdAt);
-
-                        return (
-                          <Link
-                            key={notif.id}
-                            href={notif.link || "/inventory/transfers"}
-                            onClick={() => {
-                              setNotifOpen(false);
-                              // Mark this notification as read
-                              fetch("/api/notifications", {
-                                method: "PUT",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({ ids: [notif.id] }),
-                              }).catch(() => {});
-                            }}
-                            style={{
-                              display: "flex",
-                              alignItems: "flex-start",
-                              gap: 10,
-                              padding: "8px 14px",
-                              textDecoration: "none",
-                              borderBottom: "1px solid var(--grey-100, #f3f4f6)",
-                              borderLeft: "3px solid " + iconColor,
-                              cursor: "pointer",
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.backgroundColor = "var(--grey-50, #f9fafb)";
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.backgroundColor = "transparent";
-                            }}
-                          >
-                            <div
-                              style={{
-                                width: 28,
-                                height: 28,
-                                borderRadius: 6,
-                                backgroundColor: bgColor,
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                flexShrink: 0,
-                                marginTop: 1,
-                              }}
-                            >
-                              <svg style={{ width: 14, height: 14 }} fill="none" stroke={iconColor} viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={iconPath} />
-                              </svg>
-                            </div>
-                            <div style={{ minWidth: 0, flex: 1 }}>
-                              <div style={{ fontSize: 12, fontWeight: 600, color: "var(--grey-900, #111)", lineHeight: 1.3 }}>
-                                {notif.title}
-                              </div>
-                              <div style={{ fontSize: 11, color: "var(--grey-500, #6b7280)", marginTop: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                                {notif.message}
-                              </div>
-                              <div style={{ fontSize: 10, color: "var(--grey-400, #9ca3af)", marginTop: 2 }}>
-                                {timeAgo}
-                              </div>
-                            </div>
-                          </Link>
-                        );
-                      })}
-                    </>
-                  )}
-                </div>
-
-                {totalNotifCount > 0 && (
-                  <div style={{ borderTop: "1px solid var(--grey-200, #e5e7eb)", padding: "8px 14px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <Link
-                      href="/inventory/alerts"
-                      onClick={() => setNotifOpen(false)}
-                      style={{
-                        fontSize: 11,
-                        fontWeight: 600,
-                        color: "var(--blue-500, #3b82f6)",
-                        textDecoration: "none",
-                      }}
-                    >
-                      View all alerts
-                    </Link>
-                    {transferNotifications.length > 0 && (
-                      <button
-                        onClick={async (e) => {
-                          e.preventDefault();
-                          try {
-                            await fetch("/api/notifications", {
-                              method: "PUT",
-                              headers: { "Content-Type": "application/json" },
-                              body: JSON.stringify({ markAllRead: true }),
-                            });
-                            setTransferNotifications([]);
-                          } catch {
-                            // Silently fail
-                          }
-                        }}
-                        style={{
-                          fontSize: 11,
-                          fontWeight: 600,
-                          color: "var(--grey-500, #6b7280)",
-                          textDecoration: "none",
-                          background: "none",
-                          border: "none",
-                          cursor: "pointer",
-                          padding: 0,
-                        }}
-                        onMouseEnter={(e) => { e.currentTarget.style.color = "var(--blue-500, #3b82f6)"; }}
-                        onMouseLeave={(e) => { e.currentTarget.style.color = "var(--grey-500, #6b7280)"; }}
-                      >
-                        Mark all read
-                      </button>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
         </div>
 
-        {/* Search Bar */}
+        {/* Search Bar (sidebar collapsed: icon only) */}
         <div
           ref={searchRef}
           style={{
