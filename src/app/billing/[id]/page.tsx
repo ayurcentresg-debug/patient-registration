@@ -589,7 +589,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
             {/* Receipt header */}
             <div className="text-center mb-6" style={{ borderBottom: "2px solid #333", paddingBottom: 12 }}>
               {clinicSettings?.logoUrl ? (
-                <img src={clinicSettings.logoUrl} alt="Logo" style={{ height: 48, margin: "0 auto 8px" }} />
+                <img src={clinicSettings.logoUrl} alt="Logo" style={{ height: 48, margin: "0 auto 8px" }} onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
               ) : (
                 <div style={{ width: 48, height: 48, margin: "0 auto 8px", background: "#2d6a4f", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 700, fontSize: 18 }}>
                   {clinicInitials}
@@ -699,7 +699,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
           <div className="hidden print:block mb-8" style={{ borderBottom: "2px solid var(--grey-900)", paddingBottom: 16 }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 16, marginBottom: 8 }}>
               {clinicSettings?.logoUrl ? (
-                <img src={clinicSettings.logoUrl} alt="Logo" style={{ height: 56 }} />
+                <img src={clinicSettings.logoUrl} alt="Logo" style={{ height: 56 }} onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
               ) : (
                 <div style={{ width: 56, height: 56, background: "#2d6a4f", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 700, fontSize: 22, flexShrink: 0 }}>
                   {clinicInitials}

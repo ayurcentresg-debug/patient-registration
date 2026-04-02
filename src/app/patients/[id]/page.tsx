@@ -158,6 +158,7 @@ export default function PatientDetailPage() {
   const [patient, setPatient] = useState<Patient | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [clinicName, setClinicName] = useState("");
   const [activeSection, setActiveSection] = useState("profile");
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const [editing, setEditing] = useState(false);
@@ -403,18 +404,21 @@ export default function PatientDetailPage() {
 
   const fetchFamilyBalances = useCallback(async () => {
     if (familyMembers.length === 0) return;
-    const balances: Array<{ patientId: string; name: string; relation: string; balance: number }> = [];
-    for (const fm of familyMembers) {
-      if (!fm.linkedPatientId) continue;
-      try {
+    const linked = familyMembers.filter((fm) => fm.linkedPatientId);
+    if (linked.length === 0) return;
+    const results = await Promise.allSettled(
+      linked.map(async (fm) => {
         const r = await fetch(`/api/invoices?patientId=${fm.linkedPatientId}&status=pending,partially_paid`);
-        if (r.ok) {
-          const data = await r.json();
-          const list = Array.isArray(data) ? data : data.invoices || [];
-          const bal = list.reduce((s: number, inv: Record<string, unknown>) => s + ((inv.balanceAmount as number) ?? 0), 0);
-          if (bal > 0) balances.push({ patientId: fm.linkedPatientId, name: fm.memberName, relation: fm.relation, balance: bal });
-        }
-      } catch { /* ignore */ }
+        if (!r.ok) return null;
+        const data = await r.json();
+        const list = Array.isArray(data) ? data : data.invoices || [];
+        const bal = list.reduce((s: number, inv: Record<string, unknown>) => s + ((inv.balanceAmount as number) ?? 0), 0);
+        return bal > 0 ? { patientId: fm.linkedPatientId!, name: fm.memberName, relation: fm.relation, balance: bal } : null;
+      })
+    );
+    const balances: Array<{ patientId: string; name: string; relation: string; balance: number }> = [];
+    for (const r of results) {
+      if (r.status === "fulfilled" && r.value != null) balances.push(r.value);
     }
     setFamilyBalances(balances);
   }, [familyMembers]);
@@ -539,7 +543,10 @@ export default function PatientDetailPage() {
     } catch { /* ignore */ }
   }, [patient, id]);
 
-  useEffect(() => { setMounted(true); fetchPatient(); fetchClinicalNotes(); fetchDocuments(); fetchFamilyMembers(); fetchPendingBalance(); fetchVitals(); }, [fetchPatient, fetchClinicalNotes, fetchDocuments, fetchFamilyMembers, fetchPendingBalance, fetchVitals]);
+  useEffect(() => {
+    setMounted(true); fetchPatient(); fetchClinicalNotes(); fetchDocuments(); fetchFamilyMembers(); fetchPendingBalance(); fetchVitals();
+    fetch("/api/settings").then(r => r.ok ? r.json() : null).then(d => { if (d?.clinicName) setClinicName(d.clinicName); }).catch(() => {});
+  }, [fetchPatient, fetchClinicalNotes, fetchDocuments, fetchFamilyMembers, fetchPendingBalance, fetchVitals]);
 
   useEffect(() => { fetchFamilyBalances(); }, [fetchFamilyBalances]);
 
@@ -1198,8 +1205,8 @@ export default function PatientDetailPage() {
     .empty-msg { color: #a8a29e; font-style: italic; font-size: 12px; padding: 8px 0; }
   `;
   const pdfHeader = (docType: string, docTypeClass: string, title: string, subtitle: string) =>
-    `<div class="header"><div><div class="doc-type ${docTypeClass}">${docType}</div><h1>${title}</h1><p class="subtitle">${subtitle}</p></div><div class="clinic"><strong>Ayur Centre</strong><br/>Generated: ${new Date().toLocaleDateString("en-SG", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}</div></div>`;
-  const pdfFooter = `<div class="footer">Confidential Document &mdash; Generated from Yoda Clinic Management System &mdash; Not valid without authorized clinic stamp</div>`;
+    `<div class="header"><div><div class="doc-type ${docTypeClass}">${docType}</div><h1>${title}</h1><p class="subtitle">${subtitle}</p></div><div class="clinic"><strong>${clinicName || "Clinic"}</strong><br/>Generated: ${new Date().toLocaleDateString("en-SG", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}</div></div>`;
+  const pdfFooter = `<div class="footer">Confidential Document &mdash; Generated from AYUR GATE &mdash; Not valid without authorized clinic stamp</div>`;
   const openPdfWindow = (title: string, body: string) => {
     const w = window.open("", "_blank");
     if (!w) { showToast("Popup blocked — please allow popups", "error"); return; }
@@ -1554,7 +1561,7 @@ export default function PatientDetailPage() {
             style={{ background: patient.photoUrl ? "transparent" : "linear-gradient(135deg, #f0faf4, #d1f2e0)", borderRadius: "var(--radius-pill)", border: patient.photoUrl ? "2px solid var(--grey-200)" : "2px solid #a7e3bd" }}
             onClick={() => { setPhotoFile(null); setPhotoPreview(null); setShowPhotoModal(true); }}>
             {patient.photoUrl ? (
-              <img src={patient.photoUrl} alt={`${patient.firstName} ${patient.lastName}`} className="w-full h-full object-cover" style={{ borderRadius: "var(--radius-pill)" }} />
+              <img src={patient.photoUrl} alt={`${patient.firstName} ${patient.lastName}`} className="w-full h-full object-cover" style={{ borderRadius: "var(--radius-pill)" }} onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
             ) : (
               <span className="text-[22px] sm:text-[26px] font-bold" style={{ color: "#2d6a4f" }}>{patient.firstName[0]}{patient.lastName[0]}</span>
             )}
@@ -2879,7 +2886,7 @@ export default function PatientDetailPage() {
                         {/* Thumbnail / Preview */}
                         {isImage ? (
                           <div className="w-full h-36 overflow-hidden" style={{ background: "var(--grey-50)", borderBottom: "1px solid var(--grey-200)" }}>
-                            <img src={doc.filePath} alt={doc.fileName} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200" />
+                            <img src={doc.filePath} alt={doc.fileName} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200" onError={(e) => { (e.target as HTMLImageElement).src = ""; (e.target as HTMLImageElement).style.display = "none"; }} />
                           </div>
                         ) : (
                           <div className="w-full h-36 flex flex-col items-center justify-center" style={{ background: cc.bg, borderBottom: "1px solid var(--grey-200)" }}>
@@ -2948,7 +2955,7 @@ export default function PatientDetailPage() {
                     <div style={{ background: "var(--grey-100)", borderRadius: "0 0 var(--radius) var(--radius)", overflow: "hidden", maxHeight: "calc(90vh - 60px)" }}>
                       {viewingDoc.fileType.startsWith("image/") ? (
                         <div className="flex items-center justify-center p-4" style={{ maxHeight: "calc(90vh - 60px)", overflow: "auto" }}>
-                          <img src={viewingDoc.filePath} alt={viewingDoc.fileName} className="max-w-full max-h-[75vh] object-contain" style={{ borderRadius: "var(--radius-sm)" }} />
+                          <img src={viewingDoc.filePath} alt={viewingDoc.fileName} className="max-w-full max-h-[75vh] object-contain" style={{ borderRadius: "var(--radius-sm)" }} onError={(e) => { (e.target as HTMLImageElement).alt = "Failed to load image"; }} />
                         </div>
                       ) : viewingDoc.fileType === "application/pdf" ? (
                         <iframe src={viewingDoc.filePath} className="w-full" style={{ height: "calc(90vh - 60px)", border: "none" }} title={viewingDoc.fileName} />
@@ -3948,7 +3955,7 @@ export default function PatientDetailPage() {
                 /* Current photo view */
                 <div>
                   <div className="w-[280px] h-[340px] mx-auto overflow-hidden" style={{ borderRadius: "var(--radius)", border: "1px solid var(--grey-200)" }}>
-                    <img src={patient.photoUrl} alt={`${patient.firstName} ${patient.lastName}`} className="w-full h-full object-cover" />
+                    <img src={patient.photoUrl} alt={`${patient.firstName} ${patient.lastName}`} className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
                   </div>
                 </div>
               ) : (

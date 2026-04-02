@@ -97,6 +97,9 @@ export default function SellPackagePage() {
   const [step, setStep] = useState<Step>(1);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [clinicName, setClinicName] = useState("");
+
+  useEffect(() => { fetch("/api/settings").then(r => r.ok ? r.json() : null).then(d => { if (d?.clinicName) setClinicName(d.clinicName); }).catch(() => {}); }, []);
 
   // Step 1: Patient
   const [patientSearch, setPatientSearch] = useState("");
@@ -761,7 +764,7 @@ export default function SellPackagePage() {
                 <div className="flex items-start justify-between">
                   <div>
                     <p className="text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-500)" }}>Package Invoice</p>
-                    <p className="text-[16px] font-bold mt-0.5" style={{ color: "var(--grey-900)" }}>Ayur Centre Pte. Ltd.</p>
+                    <p className="text-[16px] font-bold mt-0.5" style={{ color: "var(--grey-900)" }}>{clinicName || "Clinic"}</p>
                   </div>
                   <div className="text-right">
                     <p className="text-[13px]" style={{ color: "var(--grey-500)" }}>Date: {new Date().toLocaleDateString("en-SG")}</p>

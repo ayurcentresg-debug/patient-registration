@@ -127,6 +127,7 @@ function escapeCSV(value: string | number | null | undefined): string {
 // ═══════════════════════════════════════════════════════════════════════════════
 export default function StockReportsPage() {
   const [mounted, setMounted] = useState(false);
+  const [clinicName, setClinicName] = useState("");
   const [activeTab, setActiveTab] = useState<ReportTab>("stock-summary");
   const [allItems, setAllItems] = useState<InventoryItem[]>([]);
   const [lowStockItems, setLowStockItems] = useState<InventoryItem[]>([]);
@@ -141,6 +142,7 @@ export default function StockReportsPage() {
 
   useEffect(() => {
     setMounted(true);
+    fetch("/api/settings").then(r => r.ok ? r.json() : null).then(d => { if (d?.clinicName) setClinicName(d.clinicName); }).catch(() => {});
   }, []);
 
   // ─── Fetch Branches ─────────────────────────────────────────────────────────
@@ -513,7 +515,7 @@ export default function StockReportsPage() {
       {/* ─── Print-only Header ──────────────────────────────────────────── */}
       <div className="print-header" style={{ display: "none" }}>
         <h1 style={{ fontSize: "18px", fontWeight: "bold", textAlign: "center", margin: 0 }}>
-          Ayur Centre Pte. Ltd.
+          {clinicName || "Clinic"}
         </h1>
         <p style={{ fontSize: "13px", textAlign: "center", margin: "2px 0 0" }}>
           Stock Report &mdash; {todayFormatted()}
