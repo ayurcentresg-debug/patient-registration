@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import AdminTabs from "@/components/AdminTabs";
 import TreatmentTabs from "@/components/TreatmentTabs";
+import { cardStyle } from "@/lib/styles";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface PlanItem {
@@ -76,8 +77,6 @@ const MILESTONE_STATUS_COLORS: Record<string, { bg: string; color: string; label
   achieved: { bg: "#ecfdf5", color: "#059669", label: "Achieved" },
   missed: { bg: "#fef2f2", color: "#dc2626", label: "Missed" },
 };
-
-const cardStyle = { background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-card)" };
 
 function formatCurrency(amount: number): string {
   return `S$${(amount ?? 0).toLocaleString("en-SG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;

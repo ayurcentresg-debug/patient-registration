@@ -2,9 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import CommunicationTabs from "@/components/CommunicationTabs";
-
-const inputStyle = { border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)", fontSize: "15px" };
-const cardStyle = { background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-card)" };
+import { cardStyle, inputStyle } from "@/lib/styles";
 
 const CHANNEL_COLORS: Record<string, string> = { whatsapp: "#25D366", email: "#3b82f6", sms: "#8b5cf6" };
 const CHANNEL_BG: Record<string, string> = { whatsapp: "#ecfdf5", email: "#eff6ff", sms: "#f5f3ff" };

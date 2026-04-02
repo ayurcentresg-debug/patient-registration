@@ -12,6 +12,7 @@ import {
   TopTreatmentsChart,
 } from "@/components/DashboardCharts";
 import { DashboardSkeleton } from "@/components/Skeleton";
+import { cardStyle } from "@/lib/styles";
 
 interface TodayAppointment {
   id: string;
@@ -134,14 +135,6 @@ function timeAgo(dateStr: string): string {
   if (diffDays < 7) return `${diffDays}d ago`;
   return then.toLocaleDateString("en-SG", { day: "numeric", month: "short" });
 }
-
-/* ─── Card wrapper ─── */
-const cardStyle = {
-  background: "var(--white)",
-  border: "1px solid var(--grey-300)",
-  borderRadius: "var(--radius)",
-  boxShadow: "var(--shadow-card)",
-};
 
 export default function Dashboard() {
   const [data, setData] = useState<DashboardData | null>(null);

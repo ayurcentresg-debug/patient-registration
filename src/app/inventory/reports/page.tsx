@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import InventoryTabs from "@/components/InventoryTabs";
+import { cardStyle } from "@/lib/styles";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface InventoryItem {
@@ -63,12 +64,6 @@ interface TransferData {
 }
 
 // ─── YODA Design Tokens ─────────────────────────────────────────────────────
-const cardStyle = {
-  background: "var(--white)",
-  border: "1px solid var(--grey-300)",
-  borderRadius: "var(--radius)",
-  boxShadow: "var(--shadow-card)",
-};
 const btnPrimary: React.CSSProperties = {
   background: "var(--blue-500)",
   borderRadius: "var(--radius-sm)",

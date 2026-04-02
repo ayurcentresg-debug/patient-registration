@@ -7,9 +7,8 @@ import ConfirmDialog from "@/components/ConfirmDialog";
 import { DetailPageSkeleton } from "@/components/Skeleton";
 import { validateName } from "@/lib/validation";
 import Toast from "@/components/Toast";
+import { cardStyle, inputStyle } from "@/lib/styles";
 
-const inputStyle = { border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)", fontSize: "15px" };
-const cardStyle = { background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-card)" };
 const drName = (name: string) => name.match(/^Dr\.?\s/i) ? name : `Dr. ${name}`;
 
 const FAMILY_RELATIONS = [

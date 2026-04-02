@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Toast from "@/components/Toast";
+import { cardStyle, btnPrimary, inputStyle, chipBase } from "@/lib/styles";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface PackageDetail {
@@ -70,12 +71,6 @@ interface Doctor {
 }
 
 type TabId = "sessions" | "sharing" | "payment" | "details";
-
-// ─── YODA Design Tokens ─────────────────────────────────────────────────────
-const cardStyle = { background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-card)" };
-const inputStyle = { border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)", fontSize: "15px" };
-const btnPrimary = { background: "var(--blue-500)", borderRadius: "var(--radius-sm)" };
-const chipBase = "inline-flex px-2 py-0.5 text-[12px] font-bold uppercase tracking-wide";
 
 // ─── Status colors ──────────────────────────────────────────────────────────
 const STATUS_COLORS: Record<string, { bg: string; color: string }> = {

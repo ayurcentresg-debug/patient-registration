@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Toast from "@/components/Toast";
+import { cardStyle, inputStyle } from "@/lib/styles";
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 const SPECIALIZATIONS = [
@@ -32,10 +33,8 @@ interface DaySchedule {
 type WeeklySchedule = Record<string, DaySchedule>;
 
 // ─── YODA Styles ────────────────────────────────────────────────────────────
-const inputStyle = { border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)", fontSize: "15px" };
 const inputErrorStyle = { ...inputStyle, border: "1px solid var(--red)", background: "#fff5f5" };
 const labelStyle = { color: "var(--grey-600)", fontSize: "15px", fontWeight: 400 as const };
-const cardStyle = { background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius)" as const, boxShadow: "var(--shadow-card)" as const };
 const sectionTitle = { color: "var(--grey-900)", fontSize: "17px", fontWeight: 700 as const };
 
 function FieldError({ error }: { error?: string }) {

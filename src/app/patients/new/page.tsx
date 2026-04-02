@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { validateName } from "@/lib/validation";
 import Toast from "@/components/Toast";
+import { cardStyle } from "@/lib/styles";
 
 const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 const ETHNICITIES = ["Chinese", "Indian", "Malay", "Others"];
@@ -130,12 +131,6 @@ const inputErrorStyle = {
   maxWidth: fieldMaxWidth,
 };
 const labelStyle = { color: "var(--grey-700)", fontSize: "14px", fontWeight: 600 as const };
-const cardStyle = {
-  background: "var(--white)",
-  border: "1px solid var(--grey-300)",
-  borderRadius: "var(--radius)" as const,
-  boxShadow: "var(--shadow-card)" as const,
-};
 const sectionTitle = { color: "var(--grey-900)", fontSize: "17px", fontWeight: 700 as const };
 
 /* Field error helper */

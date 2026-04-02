@@ -5,8 +5,7 @@ import Link from "next/link";
 import AdminTabs from "@/components/AdminTabs";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import Toast from "@/components/Toast";
-
-const cardStyle = { background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-card)" };
+import { cardStyle } from "@/lib/styles";
 
 interface PatientSummary {
   id: string;

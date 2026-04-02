@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { SectionNote } from "@/components/HelpTip";
 import Toast from "@/components/Toast";
+import { cardStyle, btnPrimary, inputStyle, chipBase } from "@/lib/styles";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface Patient {
@@ -80,10 +81,6 @@ interface InvoiceItem {
 }
 
 // ─── YODA Design Tokens ─────────────────────────────────────────────────────
-const cardStyle = { background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-card)" };
-const inputStyle = { border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)", fontSize: "15px" };
-const btnPrimary = { background: "var(--blue-500)", borderRadius: "var(--radius-sm)" };
-const chipBase = "inline-flex px-2 py-0.5 text-[12px] font-bold uppercase tracking-wide";
 const sectionTitle = { color: "var(--grey-900)", fontSize: "17px", fontWeight: 700 as const };
 
 const PAYMENT_METHODS = ["Cash", "Card", "UPI", "Insurance", "Bank Transfer"];

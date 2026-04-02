@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import InventoryTabs from "@/components/InventoryTabs";
 import Toast from "@/components/Toast";
+import { cardStyle } from "@/lib/styles";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface AlertItem {
@@ -38,7 +39,6 @@ interface AlertsData {
 }
 
 // ─── Design Tokens ──────────────────────────────────────────────────────────
-const cardStyle = { background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-card)" };
 const btnPrimary = { background: "var(--blue-500)", borderRadius: "var(--radius-sm)", color: "white" };
 
 function formatDate(dateStr: string): string {

@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import InventoryTabs from "@/components/InventoryTabs";
 import Toast from "@/components/Toast";
+import { cardStyle, inputStyle } from "@/lib/styles";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface Supplier {
@@ -29,9 +30,7 @@ interface SupplierForm {
 }
 
 // ─── Design Tokens ──────────────────────────────────────────────────────────
-const cardStyle = { background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-card)" };
 const btnPrimary = { background: "var(--blue-500)", borderRadius: "var(--radius-sm)", color: "white" };
-const inputStyle = { border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)" };
 
 function formatCurrency(amount: number): string {
   return `S$${amount.toLocaleString("en-SG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;

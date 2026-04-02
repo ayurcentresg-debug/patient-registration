@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import InventoryTabs from "@/components/InventoryTabs";
 import BarcodeScanner from "@/components/BarcodeScanner";
+import { cardStyle, btnPrimary, inputStyle, chipBase } from "@/lib/styles";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface InventoryItem {
@@ -40,12 +41,6 @@ interface AuditResult {
   total: number;
   errors: string[];
 }
-
-// ─── YODA Design Tokens ─────────────────────────────────────────────────────
-const cardStyle = { background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-card)" };
-const inputStyle = { border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)", fontSize: "15px" };
-const btnPrimary = { background: "var(--blue-500)", borderRadius: "var(--radius-sm)" };
-const chipBase = "inline-flex px-2 py-0.5 text-[12px] font-bold uppercase tracking-wide";
 
 const CATEGORIES = [
   { value: "all", label: "All Categories" },

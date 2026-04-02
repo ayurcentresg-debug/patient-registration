@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { SectionNote } from "@/components/HelpTip";
 import Toast from "@/components/Toast";
+import { cardStyle, inputStyle } from "@/lib/styles";
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 const CATEGORIES = [
@@ -26,23 +27,10 @@ const SUBCATEGORIES: Record<string, string[]> = {
 const UNITS = ["bottle", "nos", "jar", "pkt", "container", "tube", "ml", "gm", "kg", "litre", "box"];
 
 // ─── YODA Design Tokens ─────────────────────────────────────────────────────
-const inputStyle = {
-  border: "1px solid var(--grey-400)",
-  borderRadius: "var(--radius-sm)",
-  color: "var(--grey-900)",
-  background: "var(--white)",
-  fontSize: "15px",
-};
 const inputErrorStyle = {
   ...inputStyle,
   border: "1px solid var(--red)",
   background: "#fff5f5",
-};
-const cardStyle = {
-  background: "var(--white)",
-  border: "1px solid var(--grey-300)",
-  borderRadius: "var(--radius)" as const,
-  boxShadow: "var(--shadow-card)" as const,
 };
 const sectionTitle = { color: "var(--grey-900)", fontSize: "17px", fontWeight: 700 as const };
 

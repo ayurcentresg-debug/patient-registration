@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import AdminTabs from "@/components/AdminTabs";
 import TreatmentTabs from "@/components/TreatmentTabs";
+import { cardStyle, inputStyle } from "@/lib/styles";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface PatientOption {
@@ -29,8 +30,6 @@ interface MilestoneItem {
 }
 
 // ─── Constants ──────────────────────────────────────────────────────────────
-const cardStyle = { background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-card)" };
-const inputStyle = { border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)" };
 
 function formatCurrency(amount: number): string {
   return `S$${(amount ?? 0).toLocaleString("en-SG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;

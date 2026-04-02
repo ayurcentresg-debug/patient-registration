@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import BillingTabs from "@/components/BillingTabs";
+import { cardStyle, btnPrimary, chipBase } from "@/lib/styles";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface InsuranceClaim {
@@ -41,11 +42,6 @@ interface ClaimStats {
 
 type SortField = "claimNumber" | "submittedDate" | "patientName" | "claimAmount" | "status" | "approvedAmount";
 type SortDir = "asc" | "desc";
-
-// ─── YODA Design Tokens ─────────────────────────────────────────────────────
-const cardStyle = { background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-card)" };
-const btnPrimary = { background: "var(--blue-500)", borderRadius: "var(--radius-sm)" };
-const chipBase = "inline-flex px-2 py-0.5 text-[12px] font-bold uppercase tracking-wide";
 
 // ─── Status colors ──────────────────────────────────────────────────────────
 const STATUS_COLORS: Record<string, { bg: string; color: string }> = {

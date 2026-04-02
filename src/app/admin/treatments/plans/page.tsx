@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import AdminTabs from "@/components/AdminTabs";
 import TreatmentTabs from "@/components/TreatmentTabs";
+import { cardStyle, inputStyle } from "@/lib/styles";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface PlanItem {
@@ -57,9 +58,6 @@ const STATUS_COLORS: Record<string, { bg: string; color: string; label: string }
   paused: { bg: "#faf3e6", color: "#b68d40", label: "Paused" },
   cancelled: { bg: "#fef2f2", color: "#dc2626", label: "Cancelled" },
 };
-
-const cardStyle = { background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-card)" };
-const inputStyle = { border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)" };
 
 function formatCurrency(amount: number): string {
   return `S$${(amount ?? 0).toLocaleString("en-SG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;

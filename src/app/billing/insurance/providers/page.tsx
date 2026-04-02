@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import BillingTabs from "@/components/BillingTabs";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import { cardStyle, btnPrimary, inputStyle, chipBase } from "@/lib/styles";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface InsuranceProvider {
@@ -30,11 +31,6 @@ interface ProviderForm {
 }
 
 const EMPTY_FORM: ProviderForm = { name: "", code: "", panelType: "private", contactPerson: "", phone: "", email: "", address: "" };
-
-// ─── YODA Design Tokens ─────────────────────────────────────────────────────
-const cardStyle = { background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-card)" };
-const btnPrimary = { background: "var(--blue-500)", borderRadius: "var(--radius-sm)" };
-const chipBase = "inline-flex px-2 py-0.5 text-[12px] font-bold uppercase tracking-wide";
 
 const PANEL_COLORS: Record<string, { bg: string; color: string }> = {
   private: { bg: "var(--blue-50)", color: "var(--blue-500)" },
@@ -220,8 +216,6 @@ export default function InsuranceProvidersPage() {
       </div>
     );
   }
-
-  const inputStyle = { border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)" };
 
   return (
     <div className="p-6 md:p-8 yoda-fade-in">

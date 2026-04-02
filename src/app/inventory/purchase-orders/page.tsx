@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import InventoryTabs from "@/components/InventoryTabs";
+import { cardStyle } from "@/lib/styles";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface Branch {
@@ -67,7 +68,6 @@ interface SuggestionsData {
 }
 
 // ─── Design Tokens ──────────────────────────────────────────────────────────
-const cardStyle = { background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-card)" };
 const btnPrimary = { background: "var(--blue-500)", borderRadius: "var(--radius-sm)", color: "white" };
 
 function formatCurrency(amount: number): string {

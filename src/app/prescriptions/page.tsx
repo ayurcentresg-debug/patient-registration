@@ -3,9 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { TablePageSkeleton } from "@/components/Skeleton";
-
-const inputStyle = { border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)", fontSize: "15px" };
-const cardStyle = { background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-card)" };
+import { cardStyle, inputStyle } from "@/lib/styles";
 
 const STATUS_MAP: Record<string, { label: string; bg: string; color: string }> = {
   active: { label: "Active", bg: "var(--green-light)", color: "var(--green)" },

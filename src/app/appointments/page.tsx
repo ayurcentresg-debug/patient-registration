@@ -5,6 +5,7 @@ import Link from "next/link";
 import { PageGuide } from "@/components/HelpTip";
 import { downloadCSV } from "@/lib/csv-export";
 import Toast from "@/components/Toast";
+import { inputStyle } from "@/lib/styles";
 
 /* ─── Types ─── */
 interface Appointment {
@@ -426,8 +427,6 @@ function QuickBookModal({
     }
     setSaving(false);
   }
-
-  const inputStyle = { border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)" };
 
   return (
     <>

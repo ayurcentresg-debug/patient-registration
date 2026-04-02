@@ -5,6 +5,7 @@ import AdminTabs from "@/components/AdminTabs";
 import TreatmentTabs from "@/components/TreatmentTabs";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { PageGuide } from "@/components/HelpTip";
+import { cardStyle, inputStyle, chipBase } from "@/lib/styles";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface TreatmentPackage {
@@ -47,10 +48,6 @@ const CATEGORY_COLORS: Record<string, { bg: string; color: string }> = {
   detox: { bg: "#fce4ec", color: "#c62828" },
   therapy: { bg: "#e0f2f1", color: "#00695c" },
 };
-
-const cardStyle = { background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-card)" };
-const inputStyle = { border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)" };
-const chipBase = "inline-flex px-2 py-0.5 text-[12px] font-bold uppercase tracking-wide";
 
 function formatCurrency(amount: number): string {
   return `S$${(amount ?? 0).toLocaleString("en-SG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -241,7 +238,6 @@ export default function TreatmentsPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
-
 
   // Modals
   const [showTreatmentModal, setShowTreatmentModal] = useState(false);

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
 import Toast from "@/components/Toast";
+import { cardStyle, inputStyle } from "@/lib/styles";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface Branch {
@@ -39,9 +40,7 @@ interface TransferLineItem {
 }
 
 // ─── Design Tokens ──────────────────────────────────────────────────────────
-const cardStyle = { background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-card)" };
 const btnPrimary = { background: "var(--blue-500)", borderRadius: "var(--radius-sm)", color: "white" };
-const inputStyle = { border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)" };
 
 function generateTempId(): string {
   return `temp_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;

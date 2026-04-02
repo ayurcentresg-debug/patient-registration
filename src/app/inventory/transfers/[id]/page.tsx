@@ -7,6 +7,7 @@ import ConfirmDialog from "@/components/ConfirmDialog";
 import BarcodeScanner from "@/components/BarcodeScanner";
 import { useAuth } from "@/components/AuthProvider";
 import Toast from "@/components/Toast";
+import { cardStyle, inputStyle } from "@/lib/styles";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface TransferItem {
@@ -52,9 +53,7 @@ interface StockTransfer {
 }
 
 // ─── Design Tokens ──────────────────────────────────────────────────────────
-const cardStyle = { background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-card)" };
 const btnPrimary = { background: "var(--blue-500)", borderRadius: "var(--radius-sm)", color: "white" };
-const inputStyle = { border: "1px solid var(--grey-400)", borderRadius: "var(--radius-sm)", color: "var(--grey-900)", background: "var(--white)" };
 
 function formatDate(dateStr: string): string {
   const d = new Date(dateStr);

@@ -4,23 +4,10 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import Link from "next/link";
 import InventoryTabs from "@/components/InventoryTabs";
 import Toast from "@/components/Toast";
+import { cardStyle, btnPrimary, inputStyle } from "@/lib/styles";
 
 // ─── YODA Design Tokens ─────────────────────────────────────────────────────
-const cardStyle = {
-  background: "var(--white)",
-  border: "1px solid var(--grey-300)",
-  borderRadius: "var(--radius)" as const,
-  boxShadow: "var(--shadow-card)" as const,
-};
-const inputStyle = {
-  border: "1px solid var(--grey-400)",
-  borderRadius: "var(--radius-sm)",
-  color: "var(--grey-900)",
-  background: "var(--white)",
-  fontSize: "15px",
-};
 const sectionTitle = { color: "var(--grey-900)", fontSize: "17px", fontWeight: 700 as const };
-const btnPrimary = { background: "var(--blue-500)", borderRadius: "var(--radius-sm)" };
 
 // ─── Column definitions for mapping ─────────────────────────────────────────
 const MAPPABLE_COLUMNS = [

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { PageGuide } from "@/components/HelpTip";
 import { PatientListSkeleton } from "@/components/Skeleton";
 import { downloadCSV } from "@/lib/csv-export";
+import { cardStyle, btnPrimary, chipBase } from "@/lib/styles";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface Patient {
@@ -23,11 +24,6 @@ interface Patient {
 
 type SortField = "name" | "createdAt" | "status" | "gender";
 type SortDir = "asc" | "desc";
-
-// ─── YODA Design Tokens ─────────────────────────────────────────────────────
-const cardStyle = { background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-card)" };
-const btnPrimary = { background: "var(--blue-500)", borderRadius: "var(--radius-sm)" };
-const chipBase = "inline-flex px-2 py-0.5 text-[12px] font-bold uppercase tracking-wide";
 
 // ─── Utility: format date consistently (avoids hydration mismatches) ────────
 function formatDate(dateStr: string): string {
