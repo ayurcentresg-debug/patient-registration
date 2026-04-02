@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import Toast from "@/components/Toast";
 import { cardStyle, inputStyle } from "@/lib/styles";
+import { formatCurrency } from "@/lib/formatters";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface Supplier {
@@ -39,10 +40,6 @@ interface POLineItem {
 
 // ─── Design Tokens ──────────────────────────────────────────────────────────
 const btnPrimary = { background: "var(--blue-500)", borderRadius: "var(--radius-sm)", color: "white" };
-
-function formatCurrency(amount: number): string {
-  return `S$${amount.toLocaleString("en-SG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
 
 function generateTempId(): string {
   return `temp_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;

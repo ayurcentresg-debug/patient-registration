@@ -5,6 +5,7 @@ import { useRouter, useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Toast from "@/components/Toast";
 import { cardStyle, btnPrimary, inputStyle, chipBase } from "@/lib/styles";
+import { formatCurrencyExact as formatCurrency, formatDate, formatDateLong } from "@/lib/formatters";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface PackageDetail {
@@ -80,27 +81,6 @@ const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
   cancelled: { bg: "#ffebee", color: "var(--red)" },
   refunded: { bg: "#fff3e0", color: "#f57c00" },
 };
-
-// ─── Utility ────────────────────────────────────────────────────────────────
-function formatCurrency(amount: number): string {
-  return `S$${(amount ?? 0).toLocaleString("en-SG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
-
-function formatDate(dateStr: string): string {
-  if (!dateStr) return "—";
-  const d = new Date(dateStr);
-  const day = String(d.getDate()).padStart(2, "0");
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  const year = d.getFullYear();
-  return `${day}/${month}/${year}`;
-}
-
-function formatDateLong(dateStr: string): string {
-  if (!dateStr) return "—";
-  const d = new Date(dateStr + (dateStr.includes("T") ? "" : "T00:00:00"));
-  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
-}
 
 function getTodayString(): string {
   const d = new Date();

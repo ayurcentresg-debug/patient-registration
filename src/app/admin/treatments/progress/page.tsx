@@ -5,6 +5,7 @@ import Link from "next/link";
 import AdminTabs from "@/components/AdminTabs";
 import TreatmentTabs from "@/components/TreatmentTabs";
 import { cardStyle } from "@/lib/styles";
+import { formatCurrency, formatDate, formatDateTime } from "@/lib/formatters";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface PlanItem {
@@ -91,20 +92,6 @@ const MILESTONE_STATUS_COLORS: Record<string, { bg: string; color: string; label
   achieved: { bg: "#ecfdf5", color: "#059669", label: "Achieved" },
   missed: { bg: "#fef2f2", color: "#dc2626", label: "Missed" },
 };
-
-function formatCurrency(amount: number): string {
-  return `S$${(amount ?? 0).toLocaleString("en-SG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
-
-function formatDate(dateStr: string | null): string {
-  if (!dateStr) return "\u2014";
-  return new Date(dateStr).toLocaleDateString("en-SG", { day: "2-digit", month: "short", year: "numeric" });
-}
-
-function formatDateTime(dateStr: string | null): string {
-  if (!dateStr) return "\u2014";
-  return new Date(dateStr).toLocaleDateString("en-SG", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
-}
 
 function daysBetween(from: string, to: Date): number {
   const start = new Date(from);

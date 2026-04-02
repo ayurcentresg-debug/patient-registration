@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Toast from "@/components/Toast";
 import { cardStyle, inputStyle, chipBase } from "@/lib/styles";
+import { formatDateShort as formatDate, formatDateTime } from "@/lib/formatters";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface InventoryVariant {
@@ -112,23 +113,6 @@ const UNITS = ["bottle", "nos", "jar", "pkt", "container", "tube", "ml", "gm", "
 // ─── YODA Design Tokens ─────────────────────────────────────────────────────
 const inputErrorStyle = { ...inputStyle, border: "1px solid var(--red)", background: "#fff5f5" };
 const sectionTitle = { color: "var(--grey-900)", fontSize: "17px", fontWeight: 700 as const };
-
-// ─── Helpers ────────────────────────────────────────────────────────────────
-function formatDate(dateStr: string): string {
-  const d = new Date(dateStr);
-  const day = String(d.getDate()).padStart(2, "0");
-  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  return `${day} ${months[d.getMonth()]} ${d.getFullYear()}`;
-}
-
-function formatDateTime(dateStr: string): string {
-  const d = new Date(dateStr);
-  const day = String(d.getDate()).padStart(2, "0");
-  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  const h = String(d.getHours()).padStart(2, "0");
-  const m = String(d.getMinutes()).padStart(2, "0");
-  return `${day} ${months[d.getMonth()]} ${d.getFullYear()}, ${h}:${m}`;
-}
 
 function daysUntil(dateStr: string): number {
   const d = new Date(dateStr);

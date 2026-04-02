@@ -6,6 +6,7 @@ import Link from "next/link";
 import { SectionNote } from "@/components/HelpTip";
 import Toast from "@/components/Toast";
 import { cardStyle, btnPrimary, inputStyle, chipBase } from "@/lib/styles";
+import { formatCurrencyExact as formatCurrency } from "@/lib/formatters";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface Patient {
@@ -102,10 +103,6 @@ function calcItemAmount(item: InvoiceItem): number {
   const base = item.qty * item.unitPrice - item.discount;
   const gst = base * (item.gstPercent / 100);
   return base + gst;
-}
-
-function formatCurrency(amount: number): string {
-  return `S$${(amount ?? 0).toLocaleString("en-SG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════

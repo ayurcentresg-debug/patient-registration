@@ -6,6 +6,7 @@ import { PageGuide } from "@/components/HelpTip";
 import { PatientListSkeleton } from "@/components/Skeleton";
 import { downloadCSV } from "@/lib/csv-export";
 import { cardStyle, btnPrimary, chipBase } from "@/lib/styles";
+import { formatDate } from "@/lib/formatters";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface Patient {
@@ -24,15 +25,6 @@ interface Patient {
 
 type SortField = "name" | "createdAt" | "status" | "gender";
 type SortDir = "asc" | "desc";
-
-// ─── Utility: format date consistently (avoids hydration mismatches) ────────
-function formatDate(dateStr: string): string {
-  const d = new Date(dateStr);
-  const day = String(d.getDate()).padStart(2, "0");
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  const year = d.getFullYear();
-  return `${day}/${month}/${year}`;
-}
 
 // ─── Filter Chip Component ──────────────────────────────────────────────────
 function FilterChip({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {

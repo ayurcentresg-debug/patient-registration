@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import InventoryTabs from "@/components/InventoryTabs";
 import { cardStyle } from "@/lib/styles";
+import { formatCurrency, formatDate } from "@/lib/formatters";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface InventoryItem {
@@ -89,16 +90,6 @@ const CATEGORIES = [
   { value: "consumable", label: "Consumable" },
   { value: "equipment", label: "Equipment" },
 ];
-
-// ─── Utilities ──────────────────────────────────────────────────────────────
-function formatCurrency(amount: number): string {
-  return `S$${amount.toLocaleString("en-SG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
-
-function formatDate(dateStr: string): string {
-  const d = new Date(dateStr);
-  return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;
-}
 
 function todayFormatted(): string {
   const d = new Date();

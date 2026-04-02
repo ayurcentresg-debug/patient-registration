@@ -8,6 +8,7 @@ import BarcodeScanner from "@/components/BarcodeScanner";
 import { useAuth } from "@/components/AuthProvider";
 import Toast from "@/components/Toast";
 import { cardStyle, inputStyle } from "@/lib/styles";
+import { formatDate, formatDateTime } from "@/lib/formatters";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface TransferItem {
@@ -54,18 +55,6 @@ interface StockTransfer {
 
 // ─── Design Tokens ──────────────────────────────────────────────────────────
 const btnPrimary = { background: "var(--blue-500)", borderRadius: "var(--radius-sm)", color: "white" };
-
-function formatDate(dateStr: string): string {
-  const d = new Date(dateStr);
-  return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;
-}
-
-function formatDateTime(dateStr: string): string {
-  const d = new Date(dateStr);
-  const date = `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;
-  const time = d.toLocaleTimeString("en-SG", { hour: "2-digit", minute: "2-digit", hour12: true });
-  return `${date} ${time}`;
-}
 
 function getStatusStyle(status: string): { bg: string; color: string } {
   switch (status) {

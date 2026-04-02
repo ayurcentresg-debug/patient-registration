@@ -13,6 +13,7 @@ import {
 } from "@/components/DashboardCharts";
 import { DashboardSkeleton } from "@/components/Skeleton";
 import { cardStyle } from "@/lib/styles";
+import { formatCurrency, timeAgo } from "@/lib/formatters";
 
 interface TodayAppointment {
   id: string;
@@ -116,25 +117,6 @@ const methodLabels: Record<string, string> = {
   insurance: "Insurance",
   bank_transfer: "Bank Transfer",
 };
-
-function formatCurrency(amount: number): string {
-  return `S$${(amount ?? 0).toLocaleString("en-SG", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
-}
-
-function timeAgo(dateStr: string): string {
-  const now = new Date();
-  const then = new Date(dateStr);
-  const diffMs = now.getTime() - then.getTime();
-  const diffMins = Math.floor(diffMs / 60000);
-  if (diffMins < 1) return "Just now";
-  if (diffMins < 60) return `${diffMins}m ago`;
-  const diffHrs = Math.floor(diffMins / 60);
-  if (diffHrs < 24) return `${diffHrs}h ago`;
-  const diffDays = Math.floor(diffHrs / 24);
-  if (diffDays === 1) return "Yesterday";
-  if (diffDays < 7) return `${diffDays}d ago`;
-  return then.toLocaleDateString("en-SG", { day: "numeric", month: "short" });
-}
 
 export default function Dashboard() {
   const [data, setData] = useState<DashboardData | null>(null);

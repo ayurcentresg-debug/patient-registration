@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Toast from "@/components/Toast";
 import { cardStyle, inputStyle, chipBase } from "@/lib/styles";
+import { formatDate } from "@/lib/formatters";
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 const SPECIALIZATIONS = [
@@ -61,12 +62,6 @@ const sectionTitle = { color: "var(--grey-900)", fontSize: "17px", fontWeight: 7
 const labelStyle = { color: "var(--grey-600)", fontSize: "15px", fontWeight: 400 as const };
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
-function formatDate(dateStr: string): string {
-  const d = new Date(dateStr);
-  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
-}
-
 function formatTime(time: string): string {
   const [h, m] = time.split(":");
   const hour = parseInt(h, 10);

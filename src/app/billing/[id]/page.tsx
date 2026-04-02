@@ -4,6 +4,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import Toast from "@/components/Toast";
 import { cardStyle, inputStyle, chipBase } from "@/lib/styles";
+import { formatCurrencyExact as formatCurrency, formatDate } from "@/lib/formatters";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface InvoiceItem {
@@ -126,18 +127,6 @@ const METHOD_COLORS: Record<string, { bg: string; color: string }> = {
   insurance: { bg: "#fff3e0", color: "#f57c00" },
   bank_transfer: { bg: "#e0f2f1", color: "#00897b" },
 };
-
-// ─── Utility ────────────────────────────────────────────────────────────────
-function formatDate(dateStr: string): string {
-  const d = new Date(dateStr);
-  const day = String(d.getDate()).padStart(2, "0");
-  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  return `${day} ${months[d.getMonth()]} ${d.getFullYear()}`;
-}
-
-function formatCurrency(amount: number): string {
-  return `S$${(amount ?? 0).toLocaleString("en-SG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
 
 function formatStatusLabel(status: string): string {
   return status.replace(/_/g, " ");

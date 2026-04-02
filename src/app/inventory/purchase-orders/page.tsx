@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import InventoryTabs from "@/components/InventoryTabs";
 import { cardStyle } from "@/lib/styles";
+import { formatCurrency, formatDate } from "@/lib/formatters";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface Branch {
@@ -69,15 +70,6 @@ interface SuggestionsData {
 
 // ─── Design Tokens ──────────────────────────────────────────────────────────
 const btnPrimary = { background: "var(--blue-500)", borderRadius: "var(--radius-sm)", color: "white" };
-
-function formatCurrency(amount: number): string {
-  return `S$${amount.toLocaleString("en-SG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
-
-function formatDate(dateStr: string): string {
-  const d = new Date(dateStr);
-  return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;
-}
 
 function getStatusStyle(status: string): { bg: string; color: string } {
   switch (status) {

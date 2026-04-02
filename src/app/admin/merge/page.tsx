@@ -6,6 +6,7 @@ import AdminTabs from "@/components/AdminTabs";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import Toast from "@/components/Toast";
 import { cardStyle } from "@/lib/styles";
+import { formatDate } from "@/lib/formatters";
 
 interface PatientSummary {
   id: string;
@@ -85,12 +86,6 @@ const MERGE_FIELDS: FieldDef[] = [
   { key: "allergies", label: "Allergies", section: "medical" },
   { key: "medicalNotes", label: "Medical Notes", section: "medical" },
 ];
-
-function formatDate(dateStr: string): string {
-  const d = new Date(dateStr);
-  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
-}
 
 /** Parse a field that might be a JSON array string, comma-separated, or plain text */
 function parseListField(val: string | null | undefined): string[] {

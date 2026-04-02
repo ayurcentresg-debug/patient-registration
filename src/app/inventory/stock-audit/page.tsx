@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import InventoryTabs from "@/components/InventoryTabs";
 import BarcodeScanner from "@/components/BarcodeScanner";
 import { cardStyle, btnPrimary, inputStyle, chipBase } from "@/lib/styles";
+import { formatDateTime } from "@/lib/formatters";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface InventoryItem {
@@ -87,16 +88,6 @@ const SUBCATEGORY_OPTIONS = [
   { value: "Sneham", label: "Sneham" },
   { value: "Tailam", label: "Tailam" },
 ];
-
-// ─── Helpers ────────────────────────────────────────────────────────────────
-function formatDateTime(dateStr: string): string {
-  const d = new Date(dateStr);
-  const day = String(d.getDate()).padStart(2, "0");
-  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  const h = String(d.getHours()).padStart(2, "0");
-  const m = String(d.getMinutes()).padStart(2, "0");
-  return `${day} ${months[d.getMonth()]} ${d.getFullYear()}, ${h}:${m}`;
-}
 
 // ─── Component ──────────────────────────────────────────────────────────────
 export default function StockAuditPage() {

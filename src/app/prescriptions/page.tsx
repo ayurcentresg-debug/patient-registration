@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { TablePageSkeleton } from "@/components/Skeleton";
 import { cardStyle, inputStyle } from "@/lib/styles";
+import { formatDateShort as formatDate } from "@/lib/formatters";
 
 const STATUS_MAP: Record<string, { label: string; bg: string; color: string }> = {
   active: { label: "Active", bg: "var(--green-light)", color: "var(--green)" },
@@ -42,10 +43,6 @@ interface Prescription {
 interface Doctor { id: string; name: string; }
 
 const ITEMS_PER_PAGE = 15;
-
-function formatDate(d: string) {
-  return new Date(d).toLocaleDateString("en-SG", { day: "2-digit", month: "short", year: "numeric" });
-}
 
 function calcAge(dob: string | null): string {
   if (!dob) return "";

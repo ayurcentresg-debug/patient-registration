@@ -5,6 +5,7 @@ import Link from "next/link";
 import InventoryTabs from "@/components/InventoryTabs";
 import Toast from "@/components/Toast";
 import { cardStyle } from "@/lib/styles";
+import { formatDate } from "@/lib/formatters";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface AlertItem {
@@ -40,11 +41,6 @@ interface AlertsData {
 
 // ─── Design Tokens ──────────────────────────────────────────────────────────
 const btnPrimary = { background: "var(--blue-500)", borderRadius: "var(--radius-sm)", color: "white" };
-
-function formatDate(dateStr: string): string {
-  const d = new Date(dateStr);
-  return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;
-}
 
 function daysUntil(dateStr: string): number {
   const d = new Date(dateStr);

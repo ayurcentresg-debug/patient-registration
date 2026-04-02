@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Toast from "@/components/Toast";
 import { cardStyle, btnPrimary, inputStyle } from "@/lib/styles";
+import { formatCurrency, formatDateLong as formatDateDisplay } from "@/lib/formatters";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface Patient {
@@ -36,10 +37,6 @@ interface PackageOption {
 type Step = 1 | 2 | 3 | 4;
 
 // ─── Utility ────────────────────────────────────────────────────────────────
-function formatCurrency(amount: number): string {
-  return `S$${(amount ?? 0).toLocaleString("en-SG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
-
 function getDefaultExpiry(): string {
   const d = new Date();
   d.setFullYear(d.getFullYear() + 1);
@@ -49,12 +46,6 @@ function getDefaultExpiry(): string {
 function getTodayString(): string {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
-
-function formatDateDisplay(dateStr: string): string {
-  const d = new Date(dateStr + "T00:00:00");
-  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  return `${months[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
 }
 
 // ─── Step Indicator ─────────────────────────────────────────────────────────

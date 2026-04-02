@@ -8,6 +8,7 @@ import { DetailPageSkeleton } from "@/components/Skeleton";
 import { validateName } from "@/lib/validation";
 import Toast from "@/components/Toast";
 import { cardStyle, inputStyle } from "@/lib/styles";
+import { formatCurrency, formatDate } from "@/lib/formatters";
 
 const drName = (name: string) => name.match(/^Dr\.?\s/i) ? name : `Dr. ${name}`;
 
@@ -116,16 +117,6 @@ function genderRelationLabel(relation: string, gender?: string | null): string {
     nephew_niece: { male: "Nephew", female: "Niece" },
   };
   return map[relation]?.[gender] || labels[relation] || relation;
-}
-
-function formatDate(dateStr: string): string {
-  const d = new Date(dateStr);
-  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
-}
-
-function formatCurrency(amount: number): string {
-  return `S$${(amount ?? 0).toLocaleString("en-SG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 function calcAge(dob: string | null): string {

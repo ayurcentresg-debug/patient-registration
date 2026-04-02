@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import InventoryTabs from "@/components/InventoryTabs";
 import Toast from "@/components/Toast";
 import { cardStyle, inputStyle } from "@/lib/styles";
+import { formatCurrency } from "@/lib/formatters";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface Supplier {
@@ -31,10 +32,6 @@ interface SupplierForm {
 
 // ─── Design Tokens ──────────────────────────────────────────────────────────
 const btnPrimary = { background: "var(--blue-500)", borderRadius: "var(--radius-sm)", color: "white" };
-
-function formatCurrency(amount: number): string {
-  return `S$${amount.toLocaleString("en-SG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
 
 const emptyForm: SupplierForm = { name: "", contactPerson: "", phone: "", email: "", address: "", gstNumber: "" };
 

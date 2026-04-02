@@ -6,6 +6,7 @@ import TreatmentTabs from "@/components/TreatmentTabs";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { PageGuide } from "@/components/HelpTip";
 import { cardStyle, inputStyle, chipBase } from "@/lib/styles";
+import { formatCurrency } from "@/lib/formatters";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface TreatmentPackage {
@@ -48,10 +49,6 @@ const CATEGORY_COLORS: Record<string, { bg: string; color: string }> = {
   detox: { bg: "#fce4ec", color: "#c62828" },
   therapy: { bg: "#e0f2f1", color: "#00695c" },
 };
-
-function formatCurrency(amount: number): string {
-  return `S$${(amount ?? 0).toLocaleString("en-SG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
 
 // ─── Treatment Form Modal ───────────────────────────────────────────────────
 function TreatmentModal({ treatment, onSave, onClose }: {

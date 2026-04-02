@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import AdminTabs from "@/components/AdminTabs";
 import TreatmentTabs from "@/components/TreatmentTabs";
 import { cardStyle, inputStyle } from "@/lib/styles";
+import { formatCurrency } from "@/lib/formatters";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface PatientOption {
@@ -30,10 +31,6 @@ interface MilestoneItem {
 }
 
 // ─── Constants ──────────────────────────────────────────────────────────────
-
-function formatCurrency(amount: number): string {
-  return `S$${(amount ?? 0).toLocaleString("en-SG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
 
 let keyCounter = 0;
 function nextKey() {
