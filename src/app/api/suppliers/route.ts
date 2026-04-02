@@ -31,27 +31,26 @@ export async function GET(request: NextRequest) {
     const suppliers = await db.supplier.findMany({
       where,
       orderBy: { createdAt: "desc" },
+      include: {
+        purchaseOrders: {
+          select: { totalAmount: true },
+        },
+      },
     });
 
-    // Enrich with purchase stats
-    const suppliersWithStats = await Promise.all(
-      suppliers.map(async (supplier) => {
-        const purchaseOrders = await db.purchaseOrder.findMany({
-          where: { supplierId: supplier.id },
-          select: { totalAmount: true },
-        });
-
-        return {
-          ...supplier,
-          purchaseStats: {
-            totalOrders: purchaseOrders.length,
-            totalValue: Math.round(
-              purchaseOrders.reduce((sum, po) => sum + po.totalAmount, 0) * 100
-            ) / 100,
-          },
-        };
-      })
-    );
+    // Map to response shape with purchase stats (single query, no N+1)
+    const suppliersWithStats = suppliers.map((supplier) => {
+      const { purchaseOrders, ...rest } = supplier;
+      return {
+        ...rest,
+        purchaseStats: {
+          totalOrders: purchaseOrders.length,
+          totalValue: Math.round(
+            purchaseOrders.reduce((sum, po) => sum + po.totalAmount, 0) * 100
+          ) / 100,
+        },
+      };
+    });
 
     return NextResponse.json(suppliersWithStats);
   } catch (error) {
