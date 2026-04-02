@@ -176,7 +176,8 @@ export async function DELETE(
     );
 
     if (medicineItems.length > 0) {
-      const transactionOps: unknown[] = [];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const transactionOps: any[] = [];
 
       for (const item of medicineItems) {
         const inventoryItem = await db.inventoryItem.findUnique({

@@ -2,28 +2,39 @@ import Link from "next/link";
 
 export default function NotFound() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] p-8">
-      <div
-        className="max-w-md w-full p-6 text-center"
-        style={{
-          background: "var(--white)",
-          border: "1px solid var(--grey-300)",
-          borderRadius: "var(--radius)",
-          boxShadow: "var(--shadow-card)",
-        }}
-      >
-        <h2 className="text-[48px] font-bold mb-1" style={{ color: "var(--grey-300)" }}>404</h2>
-        <h3 className="text-[20px] font-bold mb-2" style={{ color: "var(--grey-900)" }}>Page Not Found</h3>
-        <p className="text-[15px] mb-5" style={{ color: "var(--grey-600)" }}>
-          The page you are looking for does not exist or has been moved.
+    <div className="min-h-screen flex items-center justify-center" style={{ background: "#fefbf6" }}>
+      <div className="text-center px-6 max-w-md">
+        {/* Logo */}
+        <div className="flex items-center justify-center gap-2 mb-8">
+          <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: "#14532d" }}>
+            <span className="text-sm font-extrabold text-white">AG</span>
+          </div>
+          <span className="text-xl font-bold tracking-wider" style={{ color: "#14532d" }}>AYUR GATE</span>
+        </div>
+
+        {/* 404 */}
+        <div className="text-[120px] font-extrabold leading-none mb-2" style={{ color: "#e5e7eb" }}>404</div>
+        <h1 className="text-2xl font-bold mb-3" style={{ color: "#111827" }}>Page not found</h1>
+        <p className="text-base mb-8" style={{ color: "#6b7280" }}>
+          The page you&apos;re looking for doesn&apos;t exist or has been moved.
         </p>
-        <Link
-          href="/"
-          className="inline-block px-5 py-2 text-[15px] font-semibold text-white transition-opacity hover:opacity-90"
-          style={{ background: "var(--blue-500)", borderRadius: "var(--radius-sm)" }}
-        >
-          Go to Dashboard
-        </Link>
+
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+          <Link
+            href="/dashboard"
+            className="px-6 py-2.5 text-sm font-semibold text-white rounded-lg transition-all hover:opacity-90"
+            style={{ background: "#14532d" }}
+          >
+            Go to Dashboard
+          </Link>
+          <Link
+            href="/"
+            className="px-6 py-2.5 text-sm font-semibold rounded-lg transition-all hover:bg-gray-50"
+            style={{ color: "#374151", border: "1.5px solid #e5e7eb" }}
+          >
+            Back to Home
+          </Link>
+        </div>
       </div>
     </div>
   );

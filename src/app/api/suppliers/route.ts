@@ -28,7 +28,8 @@ export async function GET(request: NextRequest) {
       where.status = status;
     }
 
-    const suppliers = await db.supplier.findMany({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const suppliers = await (db.supplier.findMany as any)({
       where,
       orderBy: { createdAt: "desc" },
       include: {
@@ -39,14 +40,15 @@ export async function GET(request: NextRequest) {
     });
 
     // Map to response shape with purchase stats (single query, no N+1)
-    const suppliersWithStats = suppliers.map((supplier) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const suppliersWithStats = suppliers.map((supplier: any) => {
       const { purchaseOrders, ...rest } = supplier;
       return {
         ...rest,
         purchaseStats: {
           totalOrders: purchaseOrders.length,
           totalValue: Math.round(
-            purchaseOrders.reduce((sum, po) => sum + po.totalAmount, 0) * 100
+            purchaseOrders.reduce((sum: number, po: { totalAmount: number }) => sum + po.totalAmount, 0) * 100
           ) / 100,
         },
       };

@@ -281,7 +281,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Create invoice, items, stock transactions, and inventory updates in a single transaction
-    const transactionOps: unknown[] = [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const transactionOps: any[] = [];
 
     // Create the invoice
     const invoiceCreate = db.invoice.create({

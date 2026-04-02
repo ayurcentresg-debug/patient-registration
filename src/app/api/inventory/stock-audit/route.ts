@@ -65,7 +65,8 @@ export async function POST(request: NextRequest) {
           });
           const branchLabel = branch ? `${branch.name} (${branch.code})` : branchId;
 
-          const txns: unknown[] = [];
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const txns: any[] = [];
 
           // Create stock transaction with branch info in notes
           txns.push(

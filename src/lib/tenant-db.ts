@@ -18,7 +18,9 @@ const GLOBAL_MODELS = new Set(["Clinic", "ClinicSubscription"]);
  * All read queries are filtered by clinicId.
  * All create operations auto-inject clinicId.
  */
-export function getTenantPrisma(clinicId: string) {
+export function getTenantPrisma(clinicId: string): typeof prisma {
+  // The $extends return type differs slightly from PrismaClient but is API-compatible
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return prisma.$extends({
     query: {
       $allOperations({ model, operation, args, query }) {
@@ -96,7 +98,7 @@ export function getTenantPrisma(clinicId: string) {
         return query(args);
       },
     },
-  });
+  }) as unknown as typeof prisma;
 }
 
 export type TenantPrismaClient = ReturnType<typeof getTenantPrisma>;
