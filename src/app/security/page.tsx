@@ -115,7 +115,7 @@ export default function SecurityPage() {
   }
 
   return (
-    <div className="p-6 max-w-2xl mx-auto">
+    <div className="p-6 max-w-2xl mx-auto yoda-fade-in">
       <h1 className="text-[24px] font-bold mb-1" style={{ color: "var(--grey-900)" }}>Security Settings</h1>
       <p className="text-[16px] mb-6" style={{ color: "var(--grey-500)" }}>Manage your account security and two-factor authentication</p>
 

@@ -102,10 +102,12 @@ const features = [
 export default function PricingPage() {
   const [annual, setAnnual] = useState(false);
   const [loading, setLoading] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   async function handleCheckout(planKey: string) {
     setLoading(planKey);
+    setError(null);
     try {
       const res = await fetch("/api/stripe/checkout", {
         method: "POST",
@@ -121,10 +123,10 @@ export default function PricingPage() {
         // Not logged in — redirect to register with plan
         router.push(`/register?plan=${planKey}`);
       } else {
-        alert(data.error || "Failed to start checkout");
+        setError(data.error || "Failed to start checkout");
       }
     } catch {
-      alert("Something went wrong. Please try again.");
+      setError("Something went wrong. Please try again.");
     } finally {
       setLoading(null);
     }
@@ -132,6 +134,13 @@ export default function PricingPage() {
 
   return (
     <div className="min-h-screen" style={{ background: "#fefbf6" }}>
+      {/* Error toast */}
+      {error && (
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-lg shadow-lg flex items-center gap-3 yoda-slide-in" style={{ background: "var(--red-light, #fef2f2)", border: "1px solid var(--red, #dc2626)", color: "var(--red, #dc2626)" }}>
+          <span className="text-[14px] font-medium">{error}</span>
+          <button onClick={() => setError(null)} className="text-[18px] font-bold leading-none opacity-60 hover:opacity-100">&times;</button>
+        </div>
+      )}
       {/* Header */}
       <header className="border-b" style={{ borderColor: "#e5e7eb", background: "white" }}>
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">

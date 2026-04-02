@@ -261,7 +261,7 @@ export default function StockAuditPage() {
     }
 
     if (entries.length === 0) {
-      alert("No physical counts entered. Please enter at least one count.");
+      setToast({ message: "No physical counts entered. Please enter at least one count.", type: "error" });
       return;
     }
 
@@ -318,11 +318,11 @@ export default function StockAuditPage() {
         }
       } else {
         const err = await res.json();
-        alert(`Audit failed: ${err.error || "Unknown error"}`);
+        setToast({ message: `Audit failed: ${err.error || "Unknown error"}`, type: "error" });
       }
     } catch (err) {
       // Submission failed
-      alert("Failed to submit audit. Please try again.");
+      setToast({ message: "Failed to submit audit. Please try again.", type: "error" });
     } finally {
       setSubmitting(false);
       setSubmitProgress(0);

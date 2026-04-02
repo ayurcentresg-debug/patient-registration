@@ -1138,7 +1138,7 @@ export default function AppointmentsPage() {
   }
 
   return (
-    <div className="flex flex-col" style={{ background: "var(--background)", minHeight: "100vh" }}>
+    <div className="flex flex-col yoda-fade-in" style={{ background: "var(--background)", minHeight: "100vh" }}>
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
       {/* Quick Book Modal */}

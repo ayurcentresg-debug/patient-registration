@@ -106,7 +106,7 @@ export default function DoctorPortal() {
   }
 
   return (
-    <div className="min-h-screen" style={{ background: "#fefbf6" }}>
+    <div className="min-h-screen yoda-fade-in" style={{ background: "#fefbf6" }}>
       {/* Header */}
       <header className="sticky top-0 z-50 px-4 py-3 flex items-center justify-between" style={{ background: "#2d6a4f", boxShadow: "0 2px 8px rgba(0,0,0,0.15)" }}>
         <div className="flex items-center gap-3">

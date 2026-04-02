@@ -282,7 +282,7 @@ export default function InventoryPage() {
       fetchItems();
       fetchStats();
     } catch {
-      alert("Failed to update items. Please try again.");
+      setError("Failed to update items. Please try again.");
     } finally {
       setBulkLoading(false);
     }
