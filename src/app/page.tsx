@@ -153,7 +153,7 @@ export default function LandingPage() {
             <span className="text-[14px] font-bold tracking-wider" style={{ color: "#14532d" }}>AYUR GATE</span>
           </div>
           <p className="text-[13px]" style={{ color: "#9ca3af" }}>
-            &copy; 2025 AYUR GATE. Built for Ayurveda clinics worldwide.
+            &copy; 2026 AYUR GATE. Built for Ayurveda clinics worldwide.
           </p>
         </div>
       </footer>
