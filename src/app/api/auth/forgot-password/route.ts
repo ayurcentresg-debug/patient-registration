@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { generateOTP } from "@/lib/auth";
 import { sendEmail } from "@/lib/email";
+import { passwordResetEmail } from "@/lib/email-templates";
 import { checkRateLimit } from "@/lib/rate-limit";
 
 // In-memory OTP store (in production, use Redis or DB)
@@ -45,18 +46,8 @@ export async function POST(req: NextRequest) {
     try {
       await sendEmail({
         to: email,
-        subject: "Password Reset Code - Ayur Centre",
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px;">
-            <h2 style="color: #14532d; margin-bottom: 16px;">Password Reset</h2>
-            <p style="color: #374151; font-size: 14px;">Hi ${user.name},</p>
-            <p style="color: #374151; font-size: 14px;">Your password reset code is:</p>
-            <div style="background: #d1f2e0; border: 2px solid #2d6a4f; border-radius: 8px; padding: 20px; text-align: center; margin: 24px 0;">
-              <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #14532d;">${otp}</span>
-            </div>
-            <p style="color: #6b7280; font-size: 12px;">This code expires in 10 minutes. If you didn't request this, ignore this email.</p>
-          </div>
-        `,
+        subject: "Password Reset Code — AYUR GATE",
+        html: passwordResetEmail(user.name, otp),
       });
     } catch (emailErr) {
       console.error("Failed to send reset email:", emailErr);

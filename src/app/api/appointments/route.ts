@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { getClinicId } from "@/lib/get-clinic-id";
 import { getTenantPrisma } from "@/lib/tenant-db";
 import { sendEmail } from "@/lib/email";
+import { appointmentConfirmationEmail } from "@/lib/email-templates";
 import { sendWhatsApp } from "@/lib/whatsapp";
 
 const includeRelations = {
@@ -198,12 +199,19 @@ export async function POST(request: NextRequest) {
       if (!isWalkin && pat?.email) {
         await sendEmail({
           to: pat.email,
-          subject: "Appointment Confirmation",
-          html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;"><h2 style="color:#2563eb;">Appointment Confirmed</h2><p>Dear ${patientName},</p><pre style="background:#f0f9ff;padding:12px;border-radius:8px;">${msg}</pre></div>`,
+          subject: "Appointment Confirmed — AYUR GATE",
+          html: appointmentConfirmationEmail({
+            patientName,
+            date: appointmentDate.toLocaleDateString("en-SG", { weekday: "long", year: "numeric", month: "long", day: "numeric" }),
+            time: body.time,
+            doctor: body.doctor,
+            type: body.type || "Consultation",
+            notes: body.reason || undefined,
+          }),
         });
       }
-    } catch (e) {
-      console.error("Appointment email failed:", e);
+    } catch {
+      // Email failure is non-critical
     }
 
     // Send WhatsApp confirmation

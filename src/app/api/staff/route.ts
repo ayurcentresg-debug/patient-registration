@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { getClinicId } from "@/lib/get-clinic-id";
 import { getTenantPrisma } from "@/lib/tenant-db";
 import { sendEmail } from "@/lib/email";
+import { staffInviteEmail } from "@/lib/email-templates";
 import crypto from "crypto";
 
 const VALID_ROLES = ["admin", "doctor", "therapist", "pharmacist", "receptionist", "staff"];
@@ -167,24 +168,14 @@ export async function POST(request: NextRequest) {
       try {
         await sendEmail({
           to: email,
-          subject: "You're invited to join Ayur Centre",
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px;">
-              <div style="text-align: center; margin-bottom: 24px;">
-                <div style="display: inline-block; width: 48px; height: 48px; background: #14532d; border-radius: 12px; line-height: 48px; color: white; font-weight: bold; font-size: 18px;">AC</div>
-              </div>
-              <h2 style="color: #14532d; margin-bottom: 8px; text-align: center;">Welcome to Ayur Centre</h2>
-              <p style="color: #374151; font-size: 14px;">Hi ${name},</p>
-              <p style="color: #374151; font-size: 14px;">You've been invited to join <strong>Ayur Centre Pte. Ltd.</strong> as a <strong>${roleLabel}</strong>.</p>
-              <p style="color: #374151; font-size: 14px;">Click the button below to set your password and activate your account:</p>
-              <div style="text-align: center; margin: 24px 0;">
-                <a href="${inviteUrl}" style="display: inline-block; background: #14532d; color: white; padding: 12px 32px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px;">Set Your Password</a>
-              </div>
-              <p style="color: #6b7280; font-size: 12px;">This link expires in 7 days. If you didn't expect this invitation, you can ignore this email.</p>
-              <hr style="border-color: #e5e7eb; margin: 24px 0;" />
-              <p style="color: #6b7280; font-size: 12px;">Ayur Centre Pte. Ltd.</p>
-            </div>
-          `,
+          subject: `You're invited to join — AYUR GATE`,
+          html: staffInviteEmail({
+            staffName: name,
+            role: roleLabel,
+            clinicName: "Ayur Centre",
+            inviteUrl,
+            tempPassword: "",
+          }),
         });
         // Invite email sent
       } catch (emailErr) {
