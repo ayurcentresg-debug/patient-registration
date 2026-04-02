@@ -112,7 +112,7 @@ export async function POST(req: NextRequest) {
           }
         }
 
-        console.log(`Clinic ${clinicId} upgraded to ${plan}`);
+        // Clinic upgraded
         break;
       }
 
@@ -139,7 +139,7 @@ export async function POST(req: NextRequest) {
               currentPeriodEnd: period.end,
             },
           });
-          console.log(`Subscription renewed for clinic ${sub.clinicId}`);
+          // Subscription renewed
         }
         break;
       }
@@ -182,7 +182,7 @@ export async function POST(req: NextRequest) {
               currentPeriodEnd: period.end,
             },
           });
-          console.log(`Subscription updated for clinic ${sub.clinicId}: ${newPlan}`);
+          // Subscription plan updated
         }
         break;
       }
@@ -202,13 +202,13 @@ export async function POST(req: NextRequest) {
               stripePriceId: null,
             },
           });
-          console.log(`Subscription cancelled for clinic ${sub.clinicId}`);
+          // Subscription cancelled
         }
         break;
       }
 
       default:
-        console.log(`Unhandled event type: ${event.type}`);
+        // Unhandled event type — ignore
     }
 
     return NextResponse.json({ received: true });

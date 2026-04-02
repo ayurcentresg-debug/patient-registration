@@ -82,7 +82,7 @@ export default function BarcodeScanner({ onScan, placeholder = "Scan barcode or 
         }
       );
     } catch (err) {
-      console.error("Camera error:", err);
+      // Camera access failed
       setCameraError("Camera not available. Use a USB barcode scanner or type the code manually.");
       setCameraActive(false);
     }

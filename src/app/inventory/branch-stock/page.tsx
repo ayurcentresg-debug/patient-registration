@@ -94,7 +94,7 @@ export default function BranchStockPage() {
       const json = await res.json();
       setData(json);
     } catch (err) {
-      console.error("Failed to load branch comparison:", err);
+      // Fetch failed — silently handled
     } finally {
       setLoading(false);
     }

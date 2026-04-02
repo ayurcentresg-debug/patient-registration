@@ -142,7 +142,7 @@ export default function StockAuditPage() {
         setItems(data);
       }
     } catch (err) {
-      console.error("Failed to fetch inventory items:", err);
+      // Fetch failed — silently handled
     } finally {
       setLoading(false);
     }
@@ -321,7 +321,7 @@ export default function StockAuditPage() {
         alert(`Audit failed: ${err.error || "Unknown error"}`);
       }
     } catch (err) {
-      console.error("Audit submission error:", err);
+      // Submission failed
       alert("Failed to submit audit. Please try again.");
     } finally {
       setSubmitting(false);

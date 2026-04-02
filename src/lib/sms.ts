@@ -12,7 +12,7 @@ function getClient() {
 export async function sendSMS(to: string, message: string): Promise<{ success: boolean; sid?: string; error?: string }> {
   const client = getClient();
   if (!client) {
-    console.log("[SMS] Twilio not configured. Message:", message);
+    // Twilio not configured — return mock success
     return { success: true, sid: "mock-sms-" + Date.now() };
   }
   try {

@@ -18,7 +18,7 @@ export async function sendWhatsApp({
 }) {
   const client = getClient();
   if (!client) {
-    console.log("[WhatsApp] Twilio not configured. Message:", message);
+    // Twilio not configured — return mock success
     return { sid: "mock-wa-" + Date.now() };
   }
   const result = await client.messages.create({

@@ -178,7 +178,7 @@ export default function Dashboard() {
         return r.json();
       })
       .then(setInventoryStats)
-      .catch((err) => console.error("Inventory stats fetch failed:", err));
+      .catch(() => {});
   }, [selectedBranchId]);
 
   useEffect(() => {
@@ -188,7 +188,7 @@ export default function Dashboard() {
         return r.json();
       })
       .then(setData)
-      .catch((err) => console.error("Dashboard fetch failed:", err))
+      .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
 

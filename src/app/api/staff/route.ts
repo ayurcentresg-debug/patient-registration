@@ -186,7 +186,7 @@ export async function POST(request: NextRequest) {
             </div>
           `,
         });
-        console.log(`📧 Invite email sent to ${email}`);
+        // Invite email sent
       } catch (emailErr) {
         console.error("Failed to send invite email:", emailErr);
         // Don't fail the creation just because email failed
