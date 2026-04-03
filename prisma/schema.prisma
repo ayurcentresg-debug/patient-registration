@@ -1077,6 +1077,47 @@ model StaffLeave {
   @@index([startDate, endDate])
 }
 
+// ─── Commission / Incentive Tracking ─────────────────────────────────────
+
+model CommissionRule {
+  id              String   @id @default(cuid())
+  clinicId        String?
+  userId          String?  // null = default rule for all staff
+  role            String?  // apply to specific role (doctor, therapist) - used if userId is null
+  type            String   @default("percentage") // "percentage" | "fixed"
+  value           Float    // e.g., 15 for 15% or 50 for S$50 fixed per appointment
+  minRevenue      Float?   // optional: only apply if invoice total >= this amount
+  maxCommission   Float?   // optional: cap commission at this amount per month
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([clinicId])
+}
+
+model CommissionPayout {
+  id              String   @id @default(cuid())
+  clinicId        String?
+  userId          String
+  period          String   // "2026-04" (year-month)
+  appointments    Int
+  totalRevenue    Float
+  commissionRate  Float    // the rate applied
+  commissionType  String   // percentage or fixed
+  commissionAmount Float   // calculated commission
+  adjustments     Float    @default(0) // manual adjustments (+/-)
+  finalAmount     Float    // commissionAmount + adjustments
+  status          String   @default("pending") // pending | approved | paid
+  paidAt          DateTime?
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([clinicId])
+  @@index([userId])
+  @@index([period])
+}
+
 // ─── Audit Log ───────────────────────────────────────────────────────────
 
 model AuditLog {
