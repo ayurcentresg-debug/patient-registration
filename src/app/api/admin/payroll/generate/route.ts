@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { getClinicId, requireRole, ADMIN_ROLES } from "@/lib/get-clinic-id";
 import { getTenantPrisma } from "@/lib/tenant-db";
 import { logAudit } from "@/lib/audit";
+import { calculateStatutory } from "@/lib/payroll-rules";
 
 const PAID_LEAVE_THRESHOLD = 2; // paid leave days per month
 
@@ -104,19 +105,38 @@ export async function POST(request: NextRequest) {
       const perDay = dailyRate(workingDays, config.baseSalary);
       const unpaidLeaveDeduction = unpaidLeaveDays * perDay;
 
-      // CPF calculations (on base salary + allowances)
-      const cpfBase = config.baseSalary + totalAllowances;
-      const cpfEmployeeAmt = (config.cpfEmployee / 100) * cpfBase;
-      const cpfEmployerAmt = (config.cpfEmployer / 100) * cpfBase;
-
       // Gross pay (before deductions)
       const grossPay = config.baseSalary + totalAllowances + commission;
 
-      // Total deductions
-      const totalDeductions = cpfEmployeeAmt + unpaidLeaveDeduction + totalConfigDeductions;
+      // Country-specific statutory calculations
+      const country = config.country || "SG";
+      const statutory = calculateStatutory(country, grossPay, {
+        age: config.age || undefined,
+        annualIncome: grossPay * 12,
+      });
+
+      // For backward compatibility, still populate cpfEmployee/cpfEmployer fields
+      // For SG: use CPF amounts; for other countries: use the primary employee/employer fund
+      const cpfEmployeeAmt = country === "SG"
+        ? (statutory.employeeContributions.find(c => c.name === "CPF Employee")?.amount || 0)
+        : statutory.employeeContributions[0]?.amount || 0;
+      const cpfEmployerAmt = country === "SG"
+        ? (statutory.employerContributions.find(c => c.name === "CPF Employer")?.amount || 0)
+        : statutory.employerContributions[0]?.amount || 0;
+
+      // Total deductions = all employee statutory + tax + unpaid leave + custom deductions
+      const totalDeductions = statutory.totalEmployeeDeductions + unpaidLeaveDeduction + totalConfigDeductions;
 
       // Net pay
       const netPay = grossPay - totalDeductions;
+
+      // Build statutory breakdown JSON
+      const statutoryBreakdown = JSON.stringify({
+        employeeContributions: statutory.employeeContributions,
+        employerContributions: statutory.employerContributions,
+        taxWithholding: statutory.taxWithholding,
+        taxDetails: statutory.taxDetails,
+      });
 
       // Check if payroll record already exists for this user+period
       const existingPayroll = await db.payroll.findFirst({
@@ -142,6 +162,10 @@ export async function POST(request: NextRequest) {
         unpaidLeaveDays,
         allowanceBreakdown: JSON.stringify(allowances),
         deductionBreakdown: JSON.stringify(deductions),
+        country,
+        employerContributions: statutory.totalEmployerCost,
+        taxWithholding: statutory.taxWithholding,
+        statutoryBreakdown,
       };
 
       if (existingPayroll) {

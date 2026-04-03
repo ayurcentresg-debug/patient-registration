@@ -2,10 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getClinicId, requireRole, ADMIN_ROLES } from "@/lib/get-clinic-id";
 import { getTenantPrisma } from "@/lib/tenant-db";
-
-function formatCurrency(amount: number) {
-  return `S$${amount.toFixed(2)}`;
-}
+import { getCountryConfig, formatCurrencyByCountry } from "@/lib/payroll-rules";
 
 function formatPeriodLabel(period: string) {
   const [y, m] = period.split("-");
@@ -49,12 +46,65 @@ export async function GET(
       }
     }
 
+    const country = payroll.country || "SG";
+    const countryConfig = getCountryConfig(country);
+    const fmt = (amount: number) => formatCurrencyByCountry(amount, country);
+
     const allowances: { name: string; amount: number }[] = JSON.parse(
       payroll.allowanceBreakdown || "[]"
     );
     const deductions: { name: string; amount: number }[] = JSON.parse(
       payroll.deductionBreakdown || "[]"
     );
+
+    // Parse statutory breakdown
+    let statutoryData: {
+      employeeContributions?: { name: string; amount: number; rate?: number }[];
+      employerContributions?: { name: string; amount: number; rate?: number }[];
+      taxWithholding?: number;
+      taxDetails?: string;
+    } = {};
+    try {
+      const raw = payroll.statutoryBreakdown || "[]";
+      statutoryData = JSON.parse(raw);
+      // Handle legacy array format
+      if (Array.isArray(statutoryData)) {
+        statutoryData = {};
+      }
+    } catch {
+      statutoryData = {};
+    }
+
+    const employeeContribs = statutoryData.employeeContributions || [];
+    const employerContribs = statutoryData.employerContributions || [];
+    const taxWithholding = statutoryData.taxWithholding || payroll.taxWithholding || 0;
+    const taxDetails = statutoryData.taxDetails || "";
+
+    // Build statutory deductions rows (employee side)
+    const statutoryEmployeeRows = employeeContribs.length > 0
+      ? employeeContribs.map((c) =>
+          `<tr><td>${c.name}${c.rate ? ` (${c.rate}%)` : ""}</td><td class="amount">${fmt(c.amount)}</td></tr>`
+        ).join("")
+      : `<tr><td>CPF - Employee (${payroll.cpfEmployee > 0 ? ((payroll.cpfEmployee / (payroll.baseSalary + payroll.totalAllowances)) * 100).toFixed(1) : "0"}%)</td><td class="amount">${fmt(payroll.cpfEmployee)}</td></tr>`;
+
+    // Tax withholding row
+    const taxRow = taxWithholding > 0
+      ? `<tr><td>Tax Withholding${country === "IN" ? " (TDS)" : country === "MY" ? " (PCB)" : ""}</td><td class="amount">${fmt(taxWithholding)}</td></tr>`
+      : "";
+
+    // Employer contributions section
+    const employerRows = employerContribs.length > 0
+      ? employerContribs.map((c) =>
+          `<tr><td>${c.name}${c.rate ? ` (${c.rate}%)` : ""}</td><td class="amount">${fmt(c.amount)}</td></tr>`
+        ).join("")
+      : `<tr><td>CPF - Employer</td><td class="amount">${fmt(payroll.cpfEmployer)}</td></tr>`;
+
+    const totalEmployerCost = employerContribs.length > 0
+      ? employerContribs.reduce((s, c) => s + c.amount, 0)
+      : payroll.cpfEmployer;
+
+    // Country label for display
+    const countryLabel = countryConfig.label;
 
     const html = `<!DOCTYPE html>
 <html lang="en">
@@ -70,6 +120,7 @@ export async function GET(
   .company-address { font-size: 13px; color: #666; margin-top: 4px; }
   .payslip-title { font-size: 20px; font-weight: 600; color: #1e40af; text-align: right; }
   .period { font-size: 14px; color: #666; text-align: right; margin-top: 4px; }
+  .country-badge { display: inline-block; font-size: 11px; font-weight: 700; color: #1e40af; background: #dbeafe; padding: 2px 8px; border-radius: 4px; margin-top: 4px; text-transform: uppercase; }
   .employee-info { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 30px; padding: 16px; background: #f8fafc; border-radius: 8px; }
   .info-label { font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; }
   .info-value { font-size: 15px; font-weight: 600; margin-top: 2px; }
@@ -88,6 +139,10 @@ export async function GET(
   .meta-item { text-align: center; }
   .meta-number { font-size: 22px; font-weight: 700; color: #1e40af; }
   .meta-label { font-size: 12px; color: #666; text-transform: uppercase; }
+  .employer-section { margin-top: 12px; padding: 14px; background: #f0fdf4; border-radius: 6px; font-size: 13px; color: #166534; }
+  .employer-section table { margin: 8px 0 0 0; }
+  .employer-section td { padding: 4px 14px; border-bottom: 1px solid #bbf7d0; font-size: 13px; }
+  .employer-section .total-row td { border-top: 1px solid #166534; border-bottom: none; }
   @media print { body { padding: 20px; } .no-print { display: none; } }
 </style>
 </head>
@@ -100,6 +155,7 @@ export async function GET(
     <div>
       <div class="payslip-title">PAYSLIP</div>
       <div class="period">${formatPeriodLabel(payroll.period)}</div>
+      <div class="country-badge">${countryLabel} (${countryConfig.currency})</div>
     </div>
   </div>
 
@@ -141,34 +197,40 @@ export async function GET(
   <table>
     <thead><tr><th>Description</th><th class="amount">Amount</th></tr></thead>
     <tbody>
-      <tr><td>Base Salary</td><td class="amount">${formatCurrency(payroll.baseSalary)}</td></tr>
-      ${allowances.map((a) => `<tr><td>${a.name}</td><td class="amount">${formatCurrency(a.amount)}</td></tr>`).join("")}
-      ${payroll.commission > 0 ? `<tr><td>Commission</td><td class="amount">${formatCurrency(payroll.commission)}</td></tr>` : ""}
-      ${payroll.overtime > 0 ? `<tr><td>Overtime</td><td class="amount">${formatCurrency(payroll.overtime)}</td></tr>` : ""}
-      ${payroll.bonus > 0 ? `<tr><td>Bonus</td><td class="amount">${formatCurrency(payroll.bonus)}</td></tr>` : ""}
-      <tr class="total-row"><td>Gross Pay</td><td class="amount">${formatCurrency(payroll.grossPay)}</td></tr>
+      <tr><td>Base Salary</td><td class="amount">${fmt(payroll.baseSalary)}</td></tr>
+      ${allowances.map((a) => `<tr><td>${a.name}</td><td class="amount">${fmt(a.amount)}</td></tr>`).join("")}
+      ${payroll.commission > 0 ? `<tr><td>Commission</td><td class="amount">${fmt(payroll.commission)}</td></tr>` : ""}
+      ${payroll.overtime > 0 ? `<tr><td>Overtime</td><td class="amount">${fmt(payroll.overtime)}</td></tr>` : ""}
+      ${payroll.bonus > 0 ? `<tr><td>Bonus</td><td class="amount">${fmt(payroll.bonus)}</td></tr>` : ""}
+      <tr class="total-row"><td>Gross Pay</td><td class="amount">${fmt(payroll.grossPay)}</td></tr>
     </tbody>
   </table>
 
-  <div class="section-title">Deductions</div>
+  <div class="section-title">Statutory Deductions</div>
   <table>
     <thead><tr><th>Description</th><th class="amount">Amount</th></tr></thead>
     <tbody>
-      <tr><td>CPF - Employee (${payroll.cpfEmployee > 0 ? ((payroll.cpfEmployee / (payroll.baseSalary + payroll.totalAllowances)) * 100).toFixed(1) : "0"}%)</td><td class="amount">${formatCurrency(payroll.cpfEmployee)}</td></tr>
-      ${payroll.unpaidLeave > 0 ? `<tr><td>Unpaid Leave (${payroll.unpaidLeaveDays} days)</td><td class="amount">${formatCurrency(payroll.unpaidLeave)}</td></tr>` : ""}
-      ${deductions.map((d) => `<tr><td>${d.name}</td><td class="amount">${formatCurrency(d.amount)}</td></tr>`).join("")}
-      <tr class="total-row"><td>Total Deductions</td><td class="amount">${formatCurrency(payroll.totalDeductions)}</td></tr>
+      ${statutoryEmployeeRows}
+      ${taxRow}
+      ${payroll.unpaidLeave > 0 ? `<tr><td>Unpaid Leave (${payroll.unpaidLeaveDays} days)</td><td class="amount">${fmt(payroll.unpaidLeave)}</td></tr>` : ""}
+      ${deductions.map((d) => `<tr><td>${d.name}</td><td class="amount">${fmt(d.amount)}</td></tr>`).join("")}
+      <tr class="total-row"><td>Total Deductions</td><td class="amount">${fmt(payroll.totalDeductions)}</td></tr>
     </tbody>
   </table>
 
-  <div style="margin-top: 12px; padding: 10px 14px; background: #f0fdf4; border-radius: 6px; font-size: 13px; color: #166534;">
-    <strong>Employer CPF Contribution:</strong> ${formatCurrency(payroll.cpfEmployer)}
-    <span style="color: #94a3b8; margin-left: 8px;">(not deducted from salary)</span>
+  <div class="employer-section">
+    <strong>Employer Statutory Contributions</strong> <span style="color: #94a3b8; margin-left: 8px;">(not deducted from salary)</span>
+    <table>
+      ${employerRows}
+      <tr class="total-row"><td><strong>Total Employer Cost</strong></td><td class="amount"><strong>${fmt(totalEmployerCost)}</strong></td></tr>
+    </table>
   </div>
+
+  ${taxDetails ? `<div style="margin-top: 12px; padding: 10px 14px; background: #fef3c7; border-radius: 6px; font-size: 12px; color: #92400e;"><strong>Tax Note:</strong> ${taxDetails}</div>` : ""}
 
   <div class="net-pay">
     <span class="net-pay-label">Net Pay</span>
-    <span class="net-pay-amount">${formatCurrency(payroll.netPay)}</span>
+    <span class="net-pay-amount">${fmt(payroll.netPay)}</span>
   </div>
 
   ${payroll.notes ? `<div style="margin-top: 20px; padding: 12px; background: #fffbeb; border-radius: 6px; font-size: 13px; color: #92400e;"><strong>Notes:</strong> ${payroll.notes}</div>` : ""}

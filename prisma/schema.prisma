@@ -1146,13 +1146,15 @@ model SalaryConfig {
   id              String   @id @default(cuid())
   clinicId        String?
   userId          String   @unique
+  country         String   @default("SG") // "SG" | "IN" | "MY"
   baseSalary      Float    // monthly base salary
   salaryType      String   @default("monthly") // "monthly" | "hourly"
   hourlyRate      Float?   // if hourly
+  age             Int?     // employee age (for age-based CPF in SG)
   allowances      String   @default("[]") // JSON: [{ name: "Transport", amount: 200 }, ...]
   deductions      String   @default("[]") // JSON: [{ name: "Insurance", amount: 50 }, ...]
-  cpfEmployee     Float    @default(20) // employee CPF rate % (Singapore)
-  cpfEmployer     Float    @default(17) // employer CPF rate %
+  cpfEmployee     Float    @default(20) // employee CPF rate % (Singapore) — kept as override
+  cpfEmployer     Float    @default(17) // employer CPF rate % — kept as override
   bankName        String?
   bankAccount     String?
   isActive        Boolean  @default(true)
@@ -1167,6 +1169,7 @@ model Payroll {
   clinicId        String?
   userId          String
   period          String   // "2026-04"
+  country         String   @default("SG") // "SG" | "IN" | "MY"
 
   // Earnings
   baseSalary      Float
@@ -1182,6 +1185,9 @@ model Payroll {
   unpaidLeave     Float    @default(0) // deduction for unpaid leave days
   otherDeductions Float    @default(0)
   totalDeductions Float
+  employerContributions Float @default(0) // total employer statutory cost
+  taxWithholding  Float    @default(0) // monthly tax withholding (TDS/PCB)
+  statutoryBreakdown String @default("[]") // JSON of all statutory items
 
   // Net
   netPay          Float

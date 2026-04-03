@@ -65,6 +65,8 @@ export async function POST(request: NextRequest) {
       cpfEmployer = 17,
       bankName,
       bankAccount,
+      country = "SG",
+      age,
     } = body;
 
     if (!userId || baseSalary === undefined) {
@@ -88,6 +90,8 @@ export async function POST(request: NextRequest) {
           cpfEmployer: parseFloat(cpfEmployer),
           bankName: bankName || null,
           bankAccount: bankAccount || null,
+          country: country || "SG",
+          age: age ? parseInt(age) : null,
           isActive: true,
         },
       });
@@ -110,6 +114,8 @@ export async function POST(request: NextRequest) {
           cpfEmployer: parseFloat(cpfEmployer),
           bankName: bankName || null,
           bankAccount: bankAccount || null,
+          country: country || "SG",
+          age: age ? parseInt(age) : null,
         },
       });
       await logAudit({
