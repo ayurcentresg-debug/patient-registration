@@ -1140,6 +1140,72 @@ model CommissionPayout {
   @@index([period])
 }
 
+// ─── Payroll ─────────────────────────────────────────────────────────────
+
+model SalaryConfig {
+  id              String   @id @default(cuid())
+  clinicId        String?
+  userId          String   @unique
+  baseSalary      Float    // monthly base salary
+  salaryType      String   @default("monthly") // "monthly" | "hourly"
+  hourlyRate      Float?   // if hourly
+  allowances      String   @default("[]") // JSON: [{ name: "Transport", amount: 200 }, ...]
+  deductions      String   @default("[]") // JSON: [{ name: "Insurance", amount: 50 }, ...]
+  cpfEmployee     Float    @default(20) // employee CPF rate % (Singapore)
+  cpfEmployer     Float    @default(17) // employer CPF rate %
+  bankName        String?
+  bankAccount     String?
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([clinicId])
+}
+
+model Payroll {
+  id              String   @id @default(cuid())
+  clinicId        String?
+  userId          String
+  period          String   // "2026-04"
+
+  // Earnings
+  baseSalary      Float
+  totalAllowances Float    @default(0)
+  commission      Float    @default(0)
+  overtime        Float    @default(0)
+  bonus           Float    @default(0)
+  grossPay        Float
+
+  // Deductions
+  cpfEmployee     Float    @default(0)
+  cpfEmployer     Float    @default(0)
+  unpaidLeave     Float    @default(0) // deduction for unpaid leave days
+  otherDeductions Float    @default(0)
+  totalDeductions Float
+
+  // Net
+  netPay          Float
+
+  // Meta
+  workingDays     Int      @default(0)
+  leaveDays       Int      @default(0)
+  unpaidLeaveDays Int      @default(0)
+
+  status          String   @default("draft") // "draft" | "confirmed" | "paid"
+  paidAt          DateTime?
+  notes           String?
+  allowanceBreakdown String @default("[]") // JSON array
+  deductionBreakdown String @default("[]") // JSON array
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([clinicId])
+  @@index([userId])
+  @@index([period])
+  @@unique([clinicId, userId, period])
+}
+
 // ─── Audit Log ───────────────────────────────────────────────────────────
 
 model AuditLog {
