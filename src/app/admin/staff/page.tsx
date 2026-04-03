@@ -128,6 +128,7 @@ export default function StaffPage() {
   const [passwordSaving, setPasswordSaving] = useState(false);
   const [passwordError, setPasswordError] = useState("");
   const [onLeaveIds, setOnLeaveIds] = useState<Set<string>>(new Set());
+  const [showImport, setShowImport] = useState(false);
 
   const showToast = (msg: string, type: "ok" | "err" = "ok") => {
     setToast({ msg, type });
@@ -366,6 +367,14 @@ export default function StaffPage() {
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
             Performance
           </a>
+          <button
+            onClick={() => setShowImport(true)}
+            className="inline-flex items-center gap-2 px-4 py-2 text-[14px] font-semibold transition-colors"
+            style={{ background: "var(--grey-100)", color: "var(--grey-700)", borderRadius: "var(--radius-sm)", border: "1px solid var(--grey-400)" }}
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+            Import CSV
+          </button>
           <button
             onClick={openAdd}
             className="inline-flex items-center gap-2 text-white px-5 py-2 text-[15px] font-semibold"
@@ -847,6 +856,392 @@ export default function StaffPage() {
           </div>
         </div>
       )}
+
+      {/* ─── CSV Import Modal ──────────────────────────────────────────── */}
+      {showImport && (
+        <BulkImportModal
+          onClose={() => setShowImport(false)}
+          onComplete={() => { setShowImport(false); fetchStaff(); showToast("Bulk import completed"); }}
+        />
+      )}
+    </div>
+  );
+}
+
+// ─── Bulk Import Modal ──────────────────────────────────────────────────────
+const VALID_IMPORT_ROLES = ["admin", "doctor", "therapist", "pharmacist", "receptionist", "staff"];
+
+interface ParsedRow {
+  name: string;
+  email: string;
+  phone: string;
+  role: string;
+  gender: string;
+  specialization: string;
+  department: string;
+  consultationFee: string;
+  slotDuration: string;
+  errors: string[];
+}
+
+interface ImportResult {
+  created: number;
+  skipped: number;
+  errors: Array<{ row: number; email: string; error: string }>;
+}
+
+function parseCSVLine(line: string): string[] {
+  const fields: string[] = [];
+  let current = "";
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (inQuotes) {
+      if (ch === '"' && line[i + 1] === '"') { current += '"'; i++; }
+      else if (ch === '"') { inQuotes = false; }
+      else { current += ch; }
+    } else {
+      if (ch === '"') { inQuotes = true; }
+      else if (ch === ',') { fields.push(current.trim()); current = ""; }
+      else { current += ch; }
+    }
+  }
+  fields.push(current.trim());
+  return fields;
+}
+
+function BulkImportModal({ onClose, onComplete }: { onClose: () => void; onComplete: () => void }) {
+  const [step, setStep] = useState<"upload" | "preview" | "importing" | "done">("upload");
+  const [rows, setRows] = useState<ParsedRow[]>([]);
+  const [dragOver, setDragOver] = useState(false);
+  const [fileError, setFileError] = useState("");
+  const [result, setResult] = useState<ImportResult | null>(null);
+  const [importError, setImportError] = useState("");
+
+  const processCSV = (text: string) => {
+    setFileError("");
+    const lines = text.split(/\r?\n/).filter((l) => l.trim());
+    if (lines.length < 2) {
+      setFileError("CSV file must have a header row and at least one data row.");
+      return;
+    }
+
+    const headers = parseCSVLine(lines[0]).map((h) => h.toLowerCase().replace(/\s+/g, ""));
+    const nameIdx = headers.findIndex((h) => h === "name");
+    const emailIdx = headers.findIndex((h) => h === "email");
+    const phoneIdx = headers.findIndex((h) => h === "phone");
+    const roleIdx = headers.findIndex((h) => h === "role");
+    const genderIdx = headers.findIndex((h) => h === "gender");
+    const specIdx = headers.findIndex((h) => h === "specialization");
+    const deptIdx = headers.findIndex((h) => h === "department");
+    const feeIdx = headers.findIndex((h) => ["consultationfee", "fee"].includes(h));
+    const slotIdx = headers.findIndex((h) => ["slotduration", "slot"].includes(h));
+
+    if (nameIdx === -1 || emailIdx === -1 || roleIdx === -1) {
+      setFileError("CSV must have 'name', 'email', and 'role' columns.");
+      return;
+    }
+
+    const dataLines = lines.slice(1);
+    if (dataLines.length > 200) {
+      setFileError("Maximum 200 rows allowed per import.");
+      return;
+    }
+
+    const parsed: ParsedRow[] = dataLines.map((line) => {
+      const cols = parseCSVLine(line);
+      const get = (idx: number) => (idx >= 0 && idx < cols.length ? cols[idx] : "");
+      const errs: string[] = [];
+      const name = get(nameIdx);
+      const email = get(emailIdx);
+      const role = get(roleIdx).toLowerCase();
+      if (!name) errs.push("Missing name");
+      if (!email) errs.push("Missing email");
+      if (!role) errs.push("Missing role");
+      else if (!VALID_IMPORT_ROLES.includes(role)) errs.push(`Invalid role: ${role}`);
+      return {
+        name,
+        email,
+        phone: get(phoneIdx),
+        role,
+        gender: get(genderIdx),
+        specialization: get(specIdx),
+        department: get(deptIdx),
+        consultationFee: get(feeIdx),
+        slotDuration: get(slotIdx),
+        errors: errs,
+      };
+    });
+
+    setRows(parsed);
+    setStep("preview");
+  };
+
+  const handleFile = (file: File) => {
+    if (!file.name.endsWith(".csv")) {
+      setFileError("Please upload a .csv file.");
+      return;
+    }
+    if (file.size > 1024 * 1024) {
+      setFileError("File too large. Maximum 1MB.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => processCSV(e.target?.result as string);
+    reader.readAsText(file);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
+    if (e.dataTransfer.files.length > 0) handleFile(e.dataTransfer.files[0]);
+  };
+
+  const handleImport = async () => {
+    setStep("importing");
+    setImportError("");
+    const payload = rows
+      .filter((r) => r.errors.length === 0)
+      .map(({ errors: _e, ...rest }) => rest);
+
+    if (payload.length === 0) {
+      setImportError("No valid rows to import.");
+      setStep("preview");
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/staff/import", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ staff: payload }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        setImportError(data.error || "Import failed");
+        setStep("preview");
+        return;
+      }
+      const data: ImportResult = await res.json();
+      setResult(data);
+      setStep("done");
+    } catch {
+      setImportError("Network error");
+      setStep("preview");
+    }
+  };
+
+  const validCount = rows.filter((r) => r.errors.length === 0).length;
+  const errorCount = rows.filter((r) => r.errors.length > 0).length;
+
+  return (
+    <div className="fixed inset-0 z-[150] flex items-center justify-center" style={{ background: "rgba(0,0,0,.45)" }}>
+      <div
+        className="w-full max-w-2xl max-h-[85vh] overflow-y-auto p-6 relative"
+        style={{
+          background: "var(--white)",
+          border: "1px solid var(--grey-300)",
+          borderRadius: "var(--radius)",
+          boxShadow: "var(--shadow-card)",
+        }}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="text-[20px] font-bold" style={{ color: "var(--grey-900)" }}>Bulk Import Staff</h2>
+          <button onClick={onClose} className="p-1 hover:opacity-70" style={{ color: "var(--grey-600)" }}>
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>
+        </div>
+
+        {/* Upload Step */}
+        {step === "upload" && (
+          <div>
+            <div className="mb-4">
+              <a
+                href="/api/staff/import/template"
+                download
+                className="inline-flex items-center gap-2 text-[14px] font-semibold px-4 py-2 transition-colors"
+                style={{ color: "var(--blue-500)", background: "var(--blue-50, #eff6ff)", borderRadius: "var(--radius-sm)", border: "1px solid var(--blue-200, #bfdbfe)" }}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                Download CSV Template
+              </a>
+            </div>
+            <div
+              className="border-2 border-dashed rounded-lg p-10 text-center cursor-pointer transition-colors"
+              style={{
+                borderColor: dragOver ? "var(--blue-500)" : "var(--grey-400)",
+                background: dragOver ? "var(--blue-50, #eff6ff)" : "var(--grey-50, #fafafa)",
+              }}
+              onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+              onDragLeave={() => setDragOver(false)}
+              onDrop={handleDrop}
+              onClick={() => {
+                const input = document.createElement("input");
+                input.type = "file";
+                input.accept = ".csv";
+                input.onchange = (e) => {
+                  const f = (e.target as HTMLInputElement).files?.[0];
+                  if (f) handleFile(f);
+                };
+                input.click();
+              }}
+            >
+              <svg className="w-10 h-10 mx-auto mb-3" style={{ color: "var(--grey-500)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
+              <p className="text-[15px] font-semibold" style={{ color: "var(--grey-700)" }}>
+                Drag & drop your CSV file here
+              </p>
+              <p className="text-[13px] mt-1" style={{ color: "var(--grey-500)" }}>
+                or click to browse (max 200 rows)
+              </p>
+            </div>
+            {fileError && (
+              <p className="mt-3 text-[14px] font-semibold" style={{ color: "var(--red, #dc2626)" }}>{fileError}</p>
+            )}
+            <p className="mt-4 text-[13px]" style={{ color: "var(--grey-500)" }}>
+              Default password for all imported staff: <span className="font-mono font-semibold">Welcome@123</span> (must be changed on first login)
+            </p>
+          </div>
+        )}
+
+        {/* Preview Step */}
+        {step === "preview" && (
+          <div>
+            <div className="flex items-center gap-4 mb-4">
+              <span className="text-[14px] font-semibold" style={{ color: "var(--grey-700)" }}>
+                {rows.length} row{rows.length !== 1 ? "s" : ""} found
+              </span>
+              {validCount > 0 && (
+                <span className="text-[13px] px-2 py-0.5 rounded font-bold" style={{ background: "#e8f5e9", color: "#2e7d32" }}>
+                  {validCount} valid
+                </span>
+              )}
+              {errorCount > 0 && (
+                <span className="text-[13px] px-2 py-0.5 rounded font-bold" style={{ background: "#ffebee", color: "#c62828" }}>
+                  {errorCount} with errors
+                </span>
+              )}
+            </div>
+            <div className="overflow-x-auto mb-4" style={{ border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)" }}>
+              <table className="w-full text-[13px]" style={{ borderCollapse: "collapse" }}>
+                <thead>
+                  <tr style={{ background: "var(--grey-100)" }}>
+                    <th className="text-left px-3 py-2 font-bold" style={{ color: "var(--grey-700)" }}>#</th>
+                    <th className="text-left px-3 py-2 font-bold" style={{ color: "var(--grey-700)" }}>Name</th>
+                    <th className="text-left px-3 py-2 font-bold" style={{ color: "var(--grey-700)" }}>Email</th>
+                    <th className="text-left px-3 py-2 font-bold" style={{ color: "var(--grey-700)" }}>Phone</th>
+                    <th className="text-left px-3 py-2 font-bold" style={{ color: "var(--grey-700)" }}>Role</th>
+                    <th className="text-left px-3 py-2 font-bold" style={{ color: "var(--grey-700)" }}>Gender</th>
+                    <th className="text-left px-3 py-2 font-bold" style={{ color: "var(--grey-700)" }}>Specialization</th>
+                    <th className="text-left px-3 py-2 font-bold" style={{ color: "var(--grey-700)" }}>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.slice(0, 5).map((r, i) => (
+                    <tr key={i} style={{ borderTop: "1px solid var(--grey-200)", background: r.errors.length > 0 ? "#fff5f5" : "transparent" }}>
+                      <td className="px-3 py-2" style={{ color: "var(--grey-500)" }}>{i + 1}</td>
+                      <td className="px-3 py-2 font-semibold" style={{ color: "var(--grey-900)" }}>{r.name || "-"}</td>
+                      <td className="px-3 py-2" style={{ color: "var(--grey-700)" }}>{r.email || "-"}</td>
+                      <td className="px-3 py-2" style={{ color: "var(--grey-700)" }}>{r.phone || "-"}</td>
+                      <td className="px-3 py-2 capitalize" style={{ color: "var(--grey-700)" }}>{r.role || "-"}</td>
+                      <td className="px-3 py-2 capitalize" style={{ color: "var(--grey-700)" }}>{r.gender || "-"}</td>
+                      <td className="px-3 py-2" style={{ color: "var(--grey-700)" }}>{r.specialization || "-"}</td>
+                      <td className="px-3 py-2">
+                        {r.errors.length > 0 ? (
+                          <span className="text-[12px] font-bold" style={{ color: "#c62828" }}>{r.errors.join(", ")}</span>
+                        ) : (
+                          <span className="text-[12px] font-bold" style={{ color: "#2e7d32" }}>OK</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {rows.length > 5 && (
+                <div className="px-3 py-2 text-[13px]" style={{ color: "var(--grey-500)", borderTop: "1px solid var(--grey-200)" }}>
+                  ...and {rows.length - 5} more row{rows.length - 5 !== 1 ? "s" : ""}
+                </div>
+              )}
+            </div>
+            {importError && (
+              <p className="mb-3 text-[14px] font-semibold" style={{ color: "var(--red, #dc2626)" }}>{importError}</p>
+            )}
+            <div className="flex items-center justify-between">
+              <button
+                onClick={() => { setStep("upload"); setRows([]); setFileError(""); setImportError(""); }}
+                className="px-4 py-2 text-[14px] font-semibold"
+                style={{ color: "var(--grey-700)", background: "var(--grey-100)", borderRadius: "var(--radius-sm)", border: "1px solid var(--grey-400)" }}
+              >
+                Back
+              </button>
+              <button
+                onClick={handleImport}
+                disabled={validCount === 0}
+                className="px-5 py-2 text-[15px] font-semibold text-white disabled:opacity-50"
+                style={{ background: "var(--blue-500)", borderRadius: "var(--radius-sm)" }}
+              >
+                Import {validCount} Staff
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Importing Step */}
+        {step === "importing" && (
+          <div className="py-10 text-center">
+            <div className="inline-block w-8 h-8 border-3 border-t-transparent rounded-full animate-spin mb-4" style={{ borderColor: "var(--blue-500)", borderTopColor: "transparent" }} />
+            <p className="text-[15px] font-semibold" style={{ color: "var(--grey-700)" }}>Importing {validCount} staff members...</p>
+          </div>
+        )}
+
+        {/* Done Step */}
+        {step === "done" && result && (
+          <div>
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: "#e8f5e9" }}>
+                <svg className="w-5 h-5" style={{ color: "#2e7d32" }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+              </div>
+              <div>
+                <p className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>Import Complete</p>
+                <p className="text-[14px]" style={{ color: "var(--grey-600)" }}>
+                  {result.created} created, {result.skipped} skipped
+                </p>
+              </div>
+            </div>
+            {result.errors.length > 0 && (
+              <div className="mb-4 max-h-48 overflow-y-auto" style={{ border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)" }}>
+                <table className="w-full text-[13px]" style={{ borderCollapse: "collapse" }}>
+                  <thead>
+                    <tr style={{ background: "var(--grey-100)" }}>
+                      <th className="text-left px-3 py-2 font-bold" style={{ color: "var(--grey-700)" }}>Row</th>
+                      <th className="text-left px-3 py-2 font-bold" style={{ color: "var(--grey-700)" }}>Email</th>
+                      <th className="text-left px-3 py-2 font-bold" style={{ color: "var(--grey-700)" }}>Issue</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {result.errors.map((e, i) => (
+                      <tr key={i} style={{ borderTop: "1px solid var(--grey-200)" }}>
+                        <td className="px-3 py-2" style={{ color: "var(--grey-500)" }}>{e.row}</td>
+                        <td className="px-3 py-2" style={{ color: "var(--grey-700)" }}>{e.email}</td>
+                        <td className="px-3 py-2" style={{ color: "#c62828" }}>{e.error}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            <div className="flex justify-end">
+              <button
+                onClick={onComplete}
+                className="px-5 py-2 text-[15px] font-semibold text-white"
+                style={{ background: "var(--blue-500)", borderRadius: "var(--radius-sm)" }}
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
