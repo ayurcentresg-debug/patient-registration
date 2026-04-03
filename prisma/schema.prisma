@@ -1053,6 +1053,30 @@ model Notification {
   createdAt   DateTime @default(now())
 }
 
+// ─── Staff Leave / Availability ─────────────────────────────────────────
+
+model StaffLeave {
+  id          String   @id @default(cuid())
+  clinicId    String?
+  userId      String
+  type        String   // "leave" | "block" | "holiday"
+  title       String   // "Annual Leave", "Sick Leave", "Lunch Block", "Clinic Holiday"
+  startDate   DateTime
+  endDate     DateTime
+  startTime   String?  // null = full day, "14:00" = time-specific block
+  endTime     String?  // null = full day, "17:00" = time-specific block
+  allDay      Boolean  @default(true)
+  status      String   @default("approved") // "pending" | "approved" | "rejected"
+  notes       String?
+  recurring   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([clinicId])
+  @@index([userId])
+  @@index([startDate, endDate])
+}
+
 // ─── Audit Log ───────────────────────────────────────────────────────────
 
 model AuditLog {

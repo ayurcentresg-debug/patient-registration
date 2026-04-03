@@ -103,8 +103,54 @@ export async function GET(
       });
     }
 
+    // ─── Check staff leaves & clinic holidays ───────────────────────────
+    const requestedDate = new Date(dateStr + "T00:00:00");
+    const requestedDateEnd = new Date(dateStr + "T23:59:59");
+
+    const leaves = await db.staffLeave.findMany({
+      where: {
+        OR: [{ userId: id }, { userId: "clinic" }],
+        status: "approved",
+        startDate: { lte: requestedDateEnd },
+        endDate: { gte: requestedDate },
+      },
+    });
+
+    // Check for full-day leave or holiday — return no slots
+    const fullDayLeave = leaves.find((l) => l.allDay);
+    if (fullDayLeave) {
+      return NextResponse.json({
+        doctorId: id,
+        date: dateStr,
+        dayOfWeek,
+        slotDuration: doctor.slotDuration,
+        slots: [],
+        leaveReason: fullDayLeave.title,
+      });
+    }
+
+    // Collect time blocks to exclude
+    const blockedRanges: { start: number; end: number }[] = [];
+    for (const leave of leaves) {
+      if (!leave.allDay && leave.startTime && leave.endTime) {
+        blockedRanges.push({
+          start: timeToMinutes(leave.startTime),
+          end: timeToMinutes(leave.endTime),
+        });
+      }
+    }
+
     // Generate all possible slots from the schedule blocks
     const allSlotTimes = generateSlots(blocks, doctor.slotDuration);
+
+    // Filter out slots that fall within blocked time ranges
+    const filteredSlotTimes = allSlotTimes.filter((slotTime) => {
+      const slotStart = timeToMinutes(slotTime);
+      const slotEnd = slotStart + doctor.slotDuration;
+      return !blockedRanges.some(
+        (range) => slotStart < range.end && slotEnd > range.start
+      );
+    });
 
     // Query existing appointments for this doctor on the given date
     const startOfDay = new Date(dateStr + "T00:00:00");
@@ -128,8 +174,8 @@ export async function GET(
 
     const bookedTimes = new Set(existingAppointments.map((a) => a.time));
 
-    // Build the response with availability info
-    const slots = allSlotTimes.map((time) => ({
+    // Build the response with availability info (using filtered slots that exclude leave blocks)
+    const slots = filteredSlotTimes.map((time) => ({
       time,
       available: !bookedTimes.has(time),
     }));

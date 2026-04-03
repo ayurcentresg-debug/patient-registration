@@ -127,6 +127,7 @@ export default function StaffPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordSaving, setPasswordSaving] = useState(false);
   const [passwordError, setPasswordError] = useState("");
+  const [onLeaveIds, setOnLeaveIds] = useState<Set<string>>(new Set());
 
   const showToast = (msg: string, type: "ok" | "err" = "ok") => {
     setToast({ msg, type });
@@ -146,6 +147,27 @@ export default function StaffPage() {
   }, [roleFilter, search]);
 
   useEffect(() => { fetchStaff(); }, [fetchStaff]);
+
+  // Fetch on-leave status for all staff
+  useEffect(() => {
+    if (staff.length === 0) return;
+    const today = new Date().toISOString().split("T")[0];
+    const ids = new Set<string>();
+    Promise.all(
+      staff.map(async (s) => {
+        try {
+          const res = await fetch(`/api/staff/${s.id}/leave?from=${today}&to=${today}`);
+          if (!res.ok) return;
+          const leaves = await res.json();
+          const active = leaves.some(
+            (l: { allDay: boolean; status: string; userId: string }) =>
+              l.status === "approved" && (l.allDay || l.userId === "clinic")
+          );
+          if (active) ids.add(s.id);
+        } catch { /* ignore */ }
+      })
+    ).then(() => setOnLeaveIds(new Set(ids)));
+  }, [staff]);
 
   // ─── Form handlers ─────────────────────────────────────────────────────
   const openAdd = () => {
@@ -494,6 +516,14 @@ export default function StaffPage() {
                       >
                         {s.status}
                       </span>
+                      {onLeaveIds.has(s.id) && (
+                        <span
+                          className="inline-flex ml-1 px-2 py-0.5 text-[12px] font-bold uppercase tracking-wide"
+                          style={{ borderRadius: "var(--radius-pill)", background: "#fef2f2", color: "#dc2626" }}
+                        >
+                          On Leave
+                        </span>
+                      )}
                       {s.invitePending && (
                         <span
                           className="inline-flex ml-1 px-2 py-0.5 text-[12px] font-bold uppercase tracking-wide"
@@ -514,6 +544,14 @@ export default function StaffPage() {
                         >
                           Edit
                         </button>
+                        <a
+                          href={`/admin/staff/${s.id}/leave`}
+                          className="px-2.5 py-1 text-[13px] font-semibold transition-colors inline-block"
+                          style={{ background: "#faf5ff", color: "#7c3aed", borderRadius: "var(--radius-sm)", border: "1px solid #e9d5ff" }}
+                          title="Manage leaves & availability"
+                        >
+                          Leaves
+                        </a>
                         <button
                           onClick={() => openPasswordModal(s)}
                           className="px-2.5 py-1 text-[13px] font-semibold transition-colors"
