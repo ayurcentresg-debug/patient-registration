@@ -10,14 +10,12 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@heroicons/react": "^2.2.0",
     "@prisma/adapter-better-sqlite3": "^7.5.0",
     "@prisma/client": "^7.5.0",
     "@types/better-sqlite3": "^7.6.13",
     "bcryptjs": "^3.0.3",
     "better-sqlite3": "^12.8.0",
     "cookie": "^1.1.1",
-    "date-fns": "^4.1.0",
     "dotenv": "^17.3.1",
     "html5-qrcode": "^2.3.8",
     "jose": "^6.2.2",
@@ -32,8 +30,7 @@
     "recharts": "^3.8.1",
     "resend": "^6.10.0",
     "stripe": "^21.0.1",
-    "twilio": "^5.13.1",
-    "xlsx": "^0.18.5"
+    "twilio": "^5.13.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

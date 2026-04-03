@@ -73,8 +73,11 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") || "50")));
     const all = searchParams.get("all") === "true";
 
+    const gender = searchParams.get("gender") || "";
+
     const where: Record<string, unknown> = { deletedAt: null };
     if (status) where.status = status;
+    if (gender) where.gender = gender;
     if (search) {
       where.OR = [
         { firstName: { contains: search } },

@@ -99,8 +99,8 @@ export default function PatientsPage() {
 
     const params = new URLSearchParams();
     if (search) params.set("search", search);
-    // Send status filter to API if not "all" (server-side filtering for performance)
     if (statusFilter !== "all") params.set("status", statusFilter);
+    if (genderFilter !== "all") params.set("gender", genderFilter);
     if (!search) {
       params.set("page", String(page));
       params.set("limit", "50");
@@ -125,26 +125,20 @@ export default function PatientsPage() {
       })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
-  }, [search, statusFilter, page]);
+  }, [search, statusFilter, genderFilter, page]);
 
   // Reset to page 1 when search or filter changes
-  useEffect(() => { setPage(1); }, [search, statusFilter]);
+  useEffect(() => { setPage(1); }, [search, statusFilter, genderFilter]);
 
   useEffect(() => {
     const timeout = setTimeout(fetchPatients, 300);
     return () => clearTimeout(timeout);
   }, [fetchPatients]);
 
-  // ─── Client-side sorting & gender filter (fast for typical patient counts) ─
+  // ─── Client-side sorting ────────────────────────────────────────────────
   const filteredAndSorted = useMemo(() => {
-    let result = [...patients];
+    const result = [...patients];
 
-    // Gender filter (client-side since API doesn't support it yet)
-    if (genderFilter !== "all") {
-      result = result.filter((p) => p.gender === genderFilter);
-    }
-
-    // Sort
     result.sort((a, b) => {
       const dir = sortDir === "asc" ? 1 : -1;
       switch (sortField) {
@@ -162,7 +156,7 @@ export default function PatientsPage() {
     });
 
     return result;
-  }, [patients, genderFilter, sortField, sortDir]);
+  }, [patients, sortField, sortDir]);
 
   // ─── Sort toggle handler ────────────────────────────────────────────────
   function handleSort(field: SortField) {

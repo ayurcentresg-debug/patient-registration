@@ -3,7 +3,10 @@ import "./globals.css";
 import LayoutShell from "@/components/LayoutShell";
 
 export const metadata: Metadata = {
-  title: "AYUR GATE — Ayurveda Clinic Management Software",
+  title: {
+    default: "AYUR GATE — Ayurveda Clinic Management Software",
+    template: "%s — AYUR GATE",
+  },
   description: "AYUR GATE — Modern clinic management software for Ayurveda, wellness & healthcare practices. Appointments, billing, inventory, multi-branch & more.",
   manifest: "/manifest.json",
   themeColor: "#14532d",
