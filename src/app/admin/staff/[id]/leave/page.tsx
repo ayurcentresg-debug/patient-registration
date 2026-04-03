@@ -25,6 +25,25 @@ interface StaffMember {
   name: string;
   role: string;
   staffIdNumber: string | null;
+  specialization?: string | null;
+}
+
+interface AffectedAppointment {
+  id: string;
+  date: string;
+  time: string;
+  status: string;
+  patientName: string;
+  treatmentName: string | null;
+  type: string;
+}
+
+interface AvailableDoctor {
+  id: string;
+  name: string;
+  role: string;
+  specialization: string | null;
+  available: boolean;
 }
 
 interface LeaveForm {
@@ -131,6 +150,14 @@ export default function StaffLeavePage() {
   const [calMonth, setCalMonth] = useState(new Date().getMonth());
   const [calYear, setCalYear] = useState(new Date().getFullYear());
   const [view, setView] = useState<"list" | "calendar">("list");
+  const [affectedAppts, setAffectedAppts] = useState<AffectedAppointment[]>([]);
+  const [showAffectedAlert, setShowAffectedAlert] = useState(false);
+  const [showReassignModal, setShowReassignModal] = useState(false);
+  const [reassignLoading, setReassignLoading] = useState(false);
+  const [reassignAssignments, setReassignAssignments] = useState<Record<string, string>>({});
+  const [reassignDoctors, setReassignDoctors] = useState<Record<string, AvailableDoctor[]>>({});
+  const [reassignResult, setReassignResult] = useState<{ reassigned: number; failed: number; errors: Array<{ appointmentId: string; error: string }> } | null>(null);
+  const [autoAssigningLeave, setAutoAssigningLeave] = useState(false);
 
   const showToast = (msg: string, type: "ok" | "err" = "ok") => {
     setToast({ msg, type });
@@ -240,6 +267,25 @@ export default function StaffLeavePage() {
       showToast(editingId ? "Leave updated" : "Leave created");
       closeForm();
       fetchLeaves();
+
+      // After creating a NEW leave, check for affected appointments
+      if (!editingId && staffMember && ["doctor", "therapist"].includes(staffMember.role)) {
+        try {
+          const affRes = await fetch(
+            `/api/appointments/affected?doctorId=${id}&from=${payload.startDate}&to=${payload.endDate}`
+          );
+          if (affRes.ok) {
+            const affData: AffectedAppointment[] = await affRes.json();
+            if (affData.length > 0) {
+              setAffectedAppts(affData);
+              setShowAffectedAlert(true);
+              setReassignAssignments({});
+              setReassignDoctors({});
+              setReassignResult(null);
+            }
+          }
+        } catch { /* ignore - non-critical */ }
+      }
     } catch {
       setFormError("Network error");
     } finally {
@@ -554,6 +600,267 @@ export default function StaffLeavePage() {
             })}
           </div>
         )
+      )}
+
+      {/* ─── Affected Appointments Alert ─────────────────────────────────── */}
+      {showAffectedAlert && affectedAppts.length > 0 && (
+        <div
+          className="p-4 mb-5"
+          style={{
+            ...cardStyle,
+            background: "#fffbeb",
+            borderColor: "#fde68a",
+          }}
+        >
+          <div className="flex items-start gap-3">
+            <svg className="w-5 h-5 flex-shrink-0 mt-0.5" style={{ color: "#d97706" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+            <div className="flex-1">
+              <p className="text-[15px] font-semibold" style={{ color: "#92400e" }}>
+                This staff member has {affectedAppts.length} appointment{affectedAppts.length !== 1 ? "s" : ""} during this leave period
+              </p>
+              <p className="text-[13px] mt-1" style={{ color: "#a16207" }}>
+                These appointments may need to be reassigned to another doctor/therapist.
+              </p>
+              <div className="flex items-center gap-2 mt-3">
+                <button
+                  onClick={() => {
+                    setShowReassignModal(true);
+                    setShowAffectedAlert(false);
+                  }}
+                  className="px-4 py-1.5 text-[13px] font-semibold text-white"
+                  style={{ background: "#d97706", borderRadius: "var(--radius-sm)" }}
+                >
+                  Reassign Appointments
+                </button>
+                <button
+                  onClick={() => setShowAffectedAlert(false)}
+                  className="px-4 py-1.5 text-[13px] font-semibold"
+                  style={{ background: "var(--white)", color: "var(--grey-600)", borderRadius: "var(--radius-sm)", border: "1px solid var(--grey-300)" }}
+                >
+                  Dismiss
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Reassignment Modal ───────────────────────────────────────────── */}
+      {showReassignModal && (
+        <div className="fixed inset-0 z-50 flex items-start justify-center" style={{ background: "rgba(0,0,0,0.35)" }} onClick={() => setShowReassignModal(false)}>
+          <div
+            className="bg-white w-full max-w-3xl mx-4 mt-8 mb-8 overflow-y-auto yoda-slide-in"
+            style={{ maxHeight: "calc(100vh - 64px)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-lg)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal header */}
+            <div className="px-5 py-4 flex items-center justify-between" style={{ borderBottom: "1px solid var(--grey-300)" }}>
+              <div>
+                <h3 className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>
+                  Reassign Appointments
+                </h3>
+                <p className="text-[14px] mt-0.5" style={{ color: "var(--grey-500)" }}>
+                  {affectedAppts.length} appointment{affectedAppts.length !== 1 ? "s" : ""} to reassign
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={async () => {
+                    setAutoAssigningLeave(true);
+                    const newAssignments: Record<string, string> = {};
+                    for (const appt of affectedAppts) {
+                      try {
+                        const specParam = staffMember?.specialization
+                          ? `&specialization=${encodeURIComponent(staffMember.specialization)}`
+                          : "";
+                        const res = await fetch(
+                          `/api/doctors/available?date=${appt.date}&time=${appt.time}&excludeDoctorId=${id}${specParam}`
+                        );
+                        if (res.ok) {
+                          const data: AvailableDoctor[] = await res.json();
+                          setReassignDoctors((prev) => ({ ...prev, [appt.id]: data }));
+                          const best = data.find((d) => d.available);
+                          if (best) newAssignments[appt.id] = best.id;
+                        }
+                      } catch { /* skip */ }
+                    }
+                    setReassignAssignments((prev) => ({ ...prev, ...newAssignments }));
+                    setAutoAssigningLeave(false);
+                    const assigned = Object.keys(newAssignments).length;
+                    const unassigned = affectedAppts.length - assigned;
+                    if (unassigned > 0) {
+                      showToast(`Auto-assigned ${assigned}. ${unassigned} need manual handling.`, "err");
+                    } else {
+                      showToast(`Auto-assigned all ${assigned} appointments`);
+                    }
+                  }}
+                  disabled={autoAssigningLeave}
+                  className="px-3 py-1.5 text-[13px] font-semibold disabled:opacity-50"
+                  style={{ background: "#ecfdf5", color: "#059669", borderRadius: "var(--radius-sm)", border: "1px solid #a7f3d0" }}
+                >
+                  {autoAssigningLeave ? "Assigning..." : "Auto-assign"}
+                </button>
+              </div>
+            </div>
+
+            {/* Result banner */}
+            {reassignResult && (
+              <div
+                className="mx-5 mt-4 p-3"
+                style={{
+                  borderRadius: "var(--radius-sm)",
+                  background: reassignResult.failed > 0 ? "#fef2f2" : "#e8f5e9",
+                  border: `1px solid ${reassignResult.failed > 0 ? "#fecaca" : "#a5d6a7"}`,
+                }}
+              >
+                <p className="text-[14px] font-semibold" style={{ color: reassignResult.failed > 0 ? "#dc2626" : "#2e7d32" }}>
+                  {reassignResult.reassigned} reassigned, {reassignResult.failed} failed
+                </p>
+                {reassignResult.errors.map((e, i) => (
+                  <p key={i} className="text-[12px] mt-1" style={{ color: "#dc2626" }}>{e.error}</p>
+                ))}
+              </div>
+            )}
+
+            {/* Appointment list */}
+            <div className="px-5 py-4 space-y-3 max-h-[60vh] overflow-y-auto">
+              {affectedAppts.map((appt) => (
+                <div
+                  key={appt.id}
+                  className="p-3 flex flex-col sm:flex-row sm:items-center gap-3"
+                  style={{
+                    borderRadius: "var(--radius-sm)",
+                    border: "1px solid var(--grey-200)",
+                    background: reassignAssignments[appt.id] ? "#f0faf4" : "var(--white)",
+                  }}
+                >
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[14px] font-semibold" style={{ color: "var(--grey-900)" }}>
+                      {appt.patientName}
+                    </p>
+                    <p className="text-[13px]" style={{ color: "var(--grey-600)" }}>
+                      {new Date(appt.date + "T00:00:00").toLocaleDateString("en-SG", { day: "2-digit", month: "short", year: "numeric" })}
+                      {" "}at {appt.time}
+                      <span
+                        className="ml-2 inline-flex px-1.5 py-0.5 text-[10px] font-bold uppercase"
+                        style={{ borderRadius: "var(--radius-pill)", background: "#eff6ff", color: "#2563eb" }}
+                      >
+                        {appt.status}
+                      </span>
+                    </p>
+                    {appt.treatmentName && (
+                      <p className="text-[12px]" style={{ color: "var(--grey-500)" }}>{appt.treatmentName}</p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    {reassignDoctors[appt.id] ? (
+                      <select
+                        value={reassignAssignments[appt.id] || ""}
+                        onChange={(e) =>
+                          setReassignAssignments((prev) => ({ ...prev, [appt.id]: e.target.value }))
+                        }
+                        className="px-2 py-1.5 text-[13px] min-w-[150px]"
+                        style={inputStyle}
+                      >
+                        <option value="">Select doctor...</option>
+                        {reassignDoctors[appt.id].map((d) => (
+                          <option key={d.id} value={d.id} disabled={!d.available}>
+                            {d.name} {d.specialization ? `(${d.specialization})` : ""} {!d.available ? "- Busy" : ""}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <button
+                        onClick={async () => {
+                          try {
+                            const specParam = staffMember?.specialization
+                              ? `&specialization=${encodeURIComponent(staffMember.specialization)}`
+                              : "";
+                            const res = await fetch(
+                              `/api/doctors/available?date=${appt.date}&time=${appt.time}&excludeDoctorId=${id}${specParam}`
+                            );
+                            if (res.ok) {
+                              const data: AvailableDoctor[] = await res.json();
+                              setReassignDoctors((prev) => ({ ...prev, [appt.id]: data }));
+                            }
+                          } catch { /* ignore */ }
+                        }}
+                        className="px-2.5 py-1 text-[12px] font-semibold"
+                        style={{ background: "var(--grey-100)", color: "var(--grey-700)", borderRadius: "var(--radius-sm)", border: "1px solid var(--grey-300)" }}
+                      >
+                        Find doctors
+                      </button>
+                    )}
+                    {reassignAssignments[appt.id] && (
+                      <svg className="w-4 h-4" style={{ color: "#059669" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Footer */}
+            <div className="px-5 py-4 flex justify-end gap-2" style={{ borderTop: "1px solid var(--grey-300)" }}>
+              <button
+                onClick={() => setShowReassignModal(false)}
+                className="px-4 py-2 text-[15px] font-semibold"
+                style={{ background: "var(--grey-100)", color: "var(--grey-700)", borderRadius: "var(--radius-sm)", border: "1px solid var(--grey-300)" }}
+              >
+                Close
+              </button>
+              <button
+                onClick={async () => {
+                  const toReassign = Object.entries(reassignAssignments).filter(([, v]) => v);
+                  if (toReassign.length === 0) {
+                    showToast("No appointments assigned to a doctor", "err");
+                    return;
+                  }
+                  setReassignLoading(true);
+                  // Group by doctor
+                  const byDoc: Record<string, string[]> = {};
+                  for (const [apptId, docId] of toReassign) {
+                    if (!byDoc[docId]) byDoc[docId] = [];
+                    byDoc[docId].push(apptId);
+                  }
+                  let totalR = 0, totalF = 0;
+                  const allErr: Array<{ appointmentId: string; error: string }> = [];
+                  for (const [docId, apptIds] of Object.entries(byDoc)) {
+                    try {
+                      const res = await fetch("/api/appointments/reassign", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ appointmentIds: apptIds, newDoctorId: docId, reason: "Leave reassignment" }),
+                      });
+                      if (res.ok) {
+                        const d = await res.json();
+                        totalR += d.reassigned;
+                        totalF += d.failed;
+                        allErr.push(...d.errors);
+                      } else { totalF += apptIds.length; }
+                    } catch { totalF += apptIds.length; }
+                  }
+                  setReassignResult({ reassigned: totalR, failed: totalF, errors: allErr });
+                  setReassignLoading(false);
+                  if (totalR > 0) {
+                    showToast(`Reassigned ${totalR} appointments`);
+                    // Remove reassigned from list
+                    const reassignedIds = new Set(toReassign.map(([id]) => id));
+                    setAffectedAppts((prev) => prev.filter((a) => !reassignedIds.has(a.id)));
+                  }
+                }}
+                disabled={reassignLoading || Object.values(reassignAssignments).filter(Boolean).length === 0}
+                className="px-5 py-2 text-[15px] font-semibold text-white disabled:opacity-50"
+                style={{ background: "var(--blue-500)", borderRadius: "var(--radius-sm)" }}
+              >
+                {reassignLoading ? "Reassigning..." : `Reassign All (${Object.values(reassignAssignments).filter(Boolean).length})`}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* ─── Add/Edit Modal ──────────────────────────────────────────────── */}

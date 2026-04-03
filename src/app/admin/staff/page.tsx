@@ -571,6 +571,16 @@ export default function StaffPage() {
                         >
                           Leaves
                         </a>
+                        {["doctor", "therapist"].includes(s.role) && (
+                          <a
+                            href={`/admin/staff/reassign?doctor=${s.id}`}
+                            className="px-2.5 py-1 text-[13px] font-semibold transition-colors inline-block"
+                            style={{ background: "#fef3c7", color: "#92400e", borderRadius: "var(--radius-sm)", border: "1px solid #fde68a" }}
+                            title="Reassign appointments"
+                          >
+                            Reassign
+                          </a>
+                        )}
                         <a
                           href={`/admin/staff/${s.id}/documents`}
                           className="px-2.5 py-1 text-[13px] font-semibold transition-colors inline-flex items-center gap-1"
