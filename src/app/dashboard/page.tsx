@@ -4,13 +4,13 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import StatsCard from "@/components/StatsCard";
 import { PageGuide } from "@/components/HelpTip";
-import {
-  WeeklyRevenueChart,
-  AppointmentStatusChart,
-  MonthlyTrendChart,
-  RevenueByMethodChart,
-  TopTreatmentsChart,
-} from "@/components/DashboardCharts";
+import dynamic from "next/dynamic";
+
+const WeeklyRevenueChart = dynamic(() => import("@/components/DashboardCharts").then(m => m.WeeklyRevenueChart), { ssr: false });
+const AppointmentStatusChart = dynamic(() => import("@/components/DashboardCharts").then(m => m.AppointmentStatusChart), { ssr: false });
+const MonthlyTrendChart = dynamic(() => import("@/components/DashboardCharts").then(m => m.MonthlyTrendChart), { ssr: false });
+const RevenueByMethodChart = dynamic(() => import("@/components/DashboardCharts").then(m => m.RevenueByMethodChart), { ssr: false });
+const TopTreatmentsChart = dynamic(() => import("@/components/DashboardCharts").then(m => m.TopTreatmentsChart), { ssr: false });
 import { DashboardSkeleton } from "@/components/Skeleton";
 import { cardStyle } from "@/lib/styles";
 import { formatCurrency, timeAgo } from "@/lib/formatters";
@@ -121,6 +121,7 @@ const methodLabels: Record<string, string> = {
 export default function Dashboard() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [inventoryStats, setInventoryStats] = useState<{
     totalItems: number;
     totalValue: number;
@@ -159,16 +160,33 @@ export default function Dashboard() {
   useEffect(() => {
     fetch("/api/dashboard")
       .then((r) => {
-        if (!r.ok) throw new Error(`API error: ${r.status}`);
+        if (!r.ok) throw new Error(`Failed to load dashboard (${r.status})`);
         return r.json();
       })
       .then(setData)
-      .catch(() => {})
+      .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   }, []);
 
   if (loading) {
     return <DashboardSkeleton />;
+  }
+
+  if (error) {
+    return (
+      <div className="p-8 text-center">
+        <div className="inline-block p-6 rounded-xl bg-red-50 border border-red-200">
+          <p className="text-red-700 font-medium mb-2">Something went wrong</p>
+          <p className="text-red-500 text-sm mb-4">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
   }
 
   // Revenue calculations

@@ -16,6 +16,8 @@ export async function GET(request: NextRequest) {
     const to = searchParams.get("to");
     const search = searchParams.get("search");
     const branchId = searchParams.get("branchId");
+    const page = Math.max(1, parseInt(searchParams.get("page") || "1"));
+    const limit = Math.min(200, Math.max(1, parseInt(searchParams.get("limit") || "50")));
 
     const where: Record<string, unknown> = {};
 
@@ -53,24 +55,28 @@ export async function GET(request: NextRequest) {
       ];
     }
 
-    const invoices = await db.invoice.findMany({
-      where,
-      include: {
-        _count: {
-          select: { items: true },
-        },
-        payments: {
-          select: {
-            id: true,
-            amount: true,
-            method: true,
-            date: true,
+    const [invoices, total] = await Promise.all([
+      db.invoice.findMany({
+        where,
+        include: {
+          _count: {
+            select: { items: true },
+          },
+          payments: {
+            select: {
+              id: true,
+              amount: true,
+              method: true,
+              date: true,
+            },
           },
         },
-      },
-      orderBy: { date: "desc" },
-      take: 100,
-    });
+        orderBy: { date: "desc" },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      db.invoice.count({ where }),
+    ]);
 
     // Check which invoices are linked to packages
     const invoiceIds = invoices.map((inv) => inv.id);
@@ -89,7 +95,10 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    return NextResponse.json(enriched);
+    return NextResponse.json({
+      invoices: enriched,
+      pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+    });
   } catch (error) {
     console.error("Error fetching invoices:", error);
     return NextResponse.json(
