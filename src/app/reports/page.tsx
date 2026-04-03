@@ -22,6 +22,7 @@ const SECTIONS = [
   { id: "insurance", label: "Insurance" },
   { id: "aging", label: "Outstanding" },
   { id: "appointments", label: "Appointments" },
+  { id: "staff-performance", label: "Staff Perf." },
 ];
 
 const STATUS_COLORS: Record<string, string> = {
@@ -381,6 +382,11 @@ export default function ReportsPage() {
   const [transferSummary, setTransferSummary] = useState<{ totalTransfers: number; totalItemsMoved: number; inTransit: number } | null>(null);
   const [transferSummaryFetched, setTransferSummaryFetched] = useState(false);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [staffPerfData, setStaffPerfData] = useState<any>(null);
+  const [staffPerfLoading, setStaffPerfLoading] = useState(false);
+  const [staffPerfFetched, setStaffPerfFetched] = useState(false);
+
   const [branches, setBranches] = useState<Array<{ id: string; name: string }>>([]);
   const [selectedBranchId, setSelectedBranchId] = useState("");
 
@@ -432,9 +438,11 @@ export default function ReportsPage() {
     setInventoryFetched(false);
     setInsuranceFetched(false);
     setTransferSummaryFetched(false);
+    setStaffPerfFetched(false);
     setInventoryData(null);
     setInsuranceData(null);
     setTransferSummary(null);
+    setStaffPerfData(null);
   }, [period, customFrom, customTo, selectedBranchId]);
 
   const fetchInventory = useCallback(async () => {
@@ -532,7 +540,15 @@ export default function ReportsPage() {
       fetchTransferSummary();
     }
     if (activeSection === "insurance") fetchInsurance();
-  }, [activeSection, fetchInventory, fetchInsurance, fetchTransferSummary]);
+    if (activeSection === "staff-performance" && !staffPerfFetched) {
+      setStaffPerfLoading(true);
+      fetch(`/api/staff/performance?period=${period}${period === "custom" && customFrom ? `&from=${customFrom}` : ""}${period === "custom" && customTo ? `&to=${customTo}` : ""}`)
+        .then((r) => r.ok ? r.json() : null)
+        .then((data) => { setStaffPerfData(data); setStaffPerfFetched(true); })
+        .catch(() => {})
+        .finally(() => setStaffPerfLoading(false));
+    }
+  }, [activeSection, fetchInventory, fetchInsurance, fetchTransferSummary, staffPerfFetched, period, customFrom, customTo]);
 
   const handlePrint = useCallback(() => {
     const printWindow = window.open("", "_blank");
@@ -1590,6 +1606,89 @@ export default function ReportsPage() {
                 })()}
               </div>
             </Card>
+          )}
+        </Section>
+      )}
+
+      {/* ═══ STAFF PERFORMANCE SECTION ═══ */}
+      {activeSection === "staff-performance" && (
+        <Section title="Staff Performance" onExportCSV={() => {
+          if (!staffPerfData?.staff) return;
+          const headers = ["Name", "Role", "Department", "Appointments", "Completed", "Completion %", "No-Shows", "Cancelled", "Unique Patients", "Revenue", "Avg/Appt", "Avg/Day"];
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const rows = staffPerfData.staff.map((s: any) => [
+            s.name, s.role, s.department || "", String(s.total), String(s.completed),
+            `${s.completionRate}%`, String(s.noShows), String(s.cancelled),
+            String(s.uniquePatients), formatCurrency(s.totalRevenue),
+            formatCurrency(s.avgRevenuePerAppt), String(s.avgApptsPerDay),
+          ]);
+          downloadCSV(`staff-performance-${period}`, headers, rows);
+        }}>
+          {staffPerfLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="w-8 h-8 border-3 rounded-full animate-spin" style={{ borderColor: "#e5e7eb", borderTopColor: "#2d6a4f" }} />
+            </div>
+          ) : !staffPerfData?.staff?.length ? (
+            <Card><p className="text-[15px] text-center py-6" style={{ color: "var(--grey-500)" }}>No staff performance data for this period</p></Card>
+          ) : (
+            <>
+              {/* Clinic totals */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+                <StatCard label="Total Appointments" value={String(staffPerfData.clinicTotals?.totalAppointments || 0)} color="#3b82f6"
+                  icon="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                <StatCard label="Completion Rate" value={`${staffPerfData.clinicTotals?.completionRate || 0}%`} color="#16a34a"
+                  icon="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <StatCard label="Unique Patients" value={String(staffPerfData.clinicTotals?.uniquePatients || 0)} color="#8b5cf6"
+                  icon="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                <StatCard label="Total Revenue" value={formatCurrency(staffPerfData.clinicTotals?.totalRevenue || 0)} color="#2d6a4f"
+                  icon="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </div>
+
+              {/* Staff table */}
+              <Card>
+                <div className="overflow-x-auto">
+                  <table className="w-full" style={{ borderCollapse: "collapse" }}>
+                    <thead>
+                      <tr style={{ borderBottom: "2px solid var(--grey-200)" }}>
+                        {["Staff", "Role", "Appts", "Completed", "Rate", "No-Shows", "Patients", "Revenue", "Trend"].map((h) => (
+                          <th key={h} className="text-left py-2.5 px-2 text-[12px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-500)" }}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                      {staffPerfData.staff.map((s: any) => (
+                        <tr key={s.id} style={{ borderBottom: "1px solid var(--grey-100)" }}>
+                          <td className="py-2.5 px-2">
+                            <p className="text-[14px] font-semibold" style={{ color: "var(--grey-900)" }}>{s.name}</p>
+                            <p className="text-[12px]" style={{ color: "var(--grey-500)" }}>{s.staffIdNumber}</p>
+                          </td>
+                          <td className="py-2.5 px-2 text-[13px] font-medium capitalize" style={{ color: "var(--grey-600)" }}>{s.role}</td>
+                          <td className="py-2.5 px-2 text-[14px] font-bold" style={{ color: "var(--grey-900)" }}>{s.total}</td>
+                          <td className="py-2.5 px-2 text-[14px] font-semibold" style={{ color: "#16a34a" }}>{s.completed}</td>
+                          <td className="py-2.5 px-2">
+                            <span className="text-[13px] font-bold px-2 py-0.5 rounded" style={{
+                              background: s.completionRate >= 80 ? "#dcfce7" : s.completionRate >= 60 ? "#fef9c3" : "#fee2e2",
+                              color: s.completionRate >= 80 ? "#16a34a" : s.completionRate >= 60 ? "#ca8a04" : "#dc2626",
+                            }}>{s.completionRate}%</span>
+                          </td>
+                          <td className="py-2.5 px-2 text-[14px] font-medium" style={{ color: s.noShows > 0 ? "#f59e0b" : "var(--grey-500)" }}>{s.noShows}</td>
+                          <td className="py-2.5 px-2 text-[14px] font-medium" style={{ color: "var(--grey-700)" }}>{s.uniquePatients}</td>
+                          <td className="py-2.5 px-2 text-[14px] font-bold" style={{ color: "#2d6a4f" }}>{formatCurrency(s.totalRevenue)}</td>
+                          <td className="py-2.5 px-2">
+                            {s.trends && (
+                              <div className="flex items-center gap-1">
+                                {s.trends.appointments !== 0 && <ChangeBadge value={s.total > 0 ? Math.round((s.trends.appointments / Math.max(s.total - s.trends.appointments, 1)) * 100) : 0} />}
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </Card>
+            </>
           )}
         </Section>
       )}

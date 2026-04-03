@@ -130,6 +130,21 @@ export default function Dashboard() {
   } | null>(null);
   const [branches, setBranches] = useState<{ id: string; name: string; code: string; isMainBranch: boolean }[]>([]);
   const [selectedBranchId, setSelectedBranchId] = useState<string>("");
+  const [staffSummary, setStaffSummary] = useState<{
+    availableCount: number;
+    onLeaveCount: number;
+    onLeaveNames: string[];
+    topPerformer: { name: string; appointments: number; revenue: number } | null;
+    isClinicHoliday: boolean;
+  } | null>(null);
+
+  // Fetch staff summary
+  useEffect(() => {
+    fetch("/api/dashboard/staff-summary")
+      .then((r) => r.ok ? r.json() : null)
+      .then(setStaffSummary)
+      .catch(() => {});
+  }, []);
 
   // Fetch branches once
   useEffect(() => {
@@ -301,6 +316,50 @@ export default function Dashboard() {
           color="blue"
         />
       </div>
+
+      {/* ═══════ Staff Today ═══════ */}
+      {staffSummary && (
+        <div className="mb-6 p-4 flex items-center gap-4 flex-wrap" style={{ ...cardStyle, boxShadow: "var(--shadow-sm)" }}>
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 flex items-center justify-center" style={{ background: "#d1f2e0", borderRadius: "var(--radius-sm)", color: "#2d6a4f" }}>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-[14px] font-bold" style={{ color: "var(--grey-900)" }}>Staff Today</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-4 flex-wrap flex-1">
+            <span className="text-[14px] font-semibold" style={{ color: "#2d6a4f" }}>
+              {staffSummary.availableCount} available
+            </span>
+            {staffSummary.onLeaveCount > 0 && (
+              <span className="text-[14px] font-semibold px-2 py-0.5 rounded" style={{ background: "#fff7ed", color: "#ea580c" }} title={staffSummary.onLeaveNames.join(", ")}>
+                {staffSummary.onLeaveCount} on leave
+                {staffSummary.onLeaveNames.length > 0 && (
+                  <span className="text-[12px] font-medium ml-1" style={{ color: "#9a3412" }}>
+                    ({staffSummary.onLeaveNames.slice(0, 2).join(", ")}{staffSummary.onLeaveNames.length > 2 ? ` +${staffSummary.onLeaveNames.length - 2}` : ""})
+                  </span>
+                )}
+              </span>
+            )}
+            {staffSummary.isClinicHoliday && (
+              <span className="text-[14px] font-bold px-2 py-0.5 rounded" style={{ background: "#fef2f2", color: "#dc2626" }}>
+                Clinic Holiday
+              </span>
+            )}
+            {staffSummary.topPerformer && (
+              <span className="ml-auto text-[13px] font-medium" style={{ color: "var(--grey-600)" }}>
+                Top: <strong style={{ color: "var(--grey-900)" }}>{staffSummary.topPerformer.name}</strong>
+                <span className="ml-1 text-[12px] px-1.5 py-0.5 rounded" style={{ background: "#d1f2e0", color: "#14532d" }}>
+                  {staffSummary.topPerformer.appointments} appts
+                </span>
+              </span>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ═══════ Inventory Overview ═══════ */}
       <div className="mb-6">

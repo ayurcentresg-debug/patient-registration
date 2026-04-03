@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getClinicId, requireRole, ADMIN_ROLES } from "@/lib/get-clinic-id";
+import { getClinicId, getAuthPayload, requireRole, ADMIN_ROLES } from "@/lib/get-clinic-id";
 import { getTenantPrisma } from "@/lib/tenant-db";
 
 // GET /api/staff/[id]/performance — individual staff performance detail
@@ -9,14 +9,18 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
+    // Allow admin access to any staff, or allow doctor/therapist to access own data
     const auth = await requireRole(ADMIN_ROLES);
     if (!auth) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      const payload = await getAuthPayload();
+      if (!payload || payload.userId !== id) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
     }
 
     const clinicId = await getClinicId();
     const db = clinicId ? getTenantPrisma(clinicId) : prisma;
-    const { id } = await params;
 
     // Fetch the staff member
     const staffMember = await db.user.findUnique({

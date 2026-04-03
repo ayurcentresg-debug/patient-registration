@@ -344,7 +344,212 @@ export default function DoctorPortal() {
             <p className="text-[14px] font-semibold" style={{ color: "#b68d40" }}>Appointments</p>
           </Link>
         </div>
+
+        {/* ═══════ My Performance ═══════ */}
+        <MyPerformanceSection userId={user?.id || null} />
+
+        {/* ═══════ My Leave ═══════ */}
+        <MyLeaveSection userId={user?.id || null} />
       </main>
+    </div>
+  );
+}
+
+// ─── My Performance Section ────────────────────────────────────────────────
+function MyPerformanceSection({ userId }: { userId: string | null }) {
+  const [perf, setPerf] = useState<{
+    total: number; completed: number; completionRate: number;
+    uniquePatients: number; totalRevenue: number;
+  } | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!userId) { setLoading(false); return; }
+    fetch(`/api/staff/${userId}/performance?period=month`)
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => {
+        if (data?.metrics) setPerf(data.metrics);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [userId]);
+
+  const cardStyle = { background: "var(--white, #fff)", border: "1px solid var(--grey-300, #d6d3d1)", borderRadius: "var(--radius, 10px)", boxShadow: "var(--shadow-card, 0 1px 3px rgba(0,0,0,0.06))" };
+
+  return (
+    <div className="mt-8">
+      <h3 className="text-[17px] font-bold mb-3" style={{ color: "var(--grey-900, #1c1917)" }}>My Performance (This Month)</h3>
+      {loading ? (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="h-20 animate-pulse" style={{ background: "var(--grey-100, #f5f5f4)", borderRadius: "10px" }} />
+          ))}
+        </div>
+      ) : !perf ? (
+        <div className="p-6 text-center" style={cardStyle}>
+          <p className="text-[15px]" style={{ color: "var(--grey-500, #78716c)" }}>Performance data not available</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {[
+            { label: "Appointments", value: perf.total, color: "#2d6a4f", bg: "#f0faf4" },
+            { label: "Completion Rate", value: `${perf.completionRate}%`, color: "#059669", bg: "#ecfdf5" },
+            { label: "Revenue", value: `$${Math.round(perf.totalRevenue).toLocaleString()}`, color: "#b68d40", bg: "#faf3e6" },
+            { label: "Unique Patients", value: perf.uniquePatients, color: "#7c3aed", bg: "#f5f3ff" },
+          ].map((item) => (
+            <div key={item.label} className="p-4" style={cardStyle}>
+              <p className="text-[12px] font-bold uppercase tracking-wide mb-1" style={{ color: "var(--grey-500, #78716c)" }}>{item.label}</p>
+              <p className="text-[22px] font-bold" style={{ color: item.color }}>{item.value}</p>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── My Leave Section ──────────────────────────────────────────────────────
+function MyLeaveSection({ userId }: { userId: string | null }) {
+  const [leaves, setLeaves] = useState<Array<{
+    id: string; type: string; title: string; startDate: string; endDate: string;
+    allDay: boolean; status: string; notes: string | null;
+  }>>([]);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [formData, setFormData] = useState({ title: "Annual Leave", startDate: "", endDate: "", notes: "" });
+
+  const cardStyle = { background: "var(--white, #fff)", border: "1px solid var(--grey-300, #d6d3d1)", borderRadius: "var(--radius, 10px)", boxShadow: "var(--shadow-card, 0 1px 3px rgba(0,0,0,0.06))" };
+  const inputStyle = { border: "1px solid var(--grey-400, #a8a29e)", borderRadius: "6px", color: "var(--grey-900, #1c1917)", background: "var(--white, #fff)", fontSize: "15px" };
+
+  const fetchLeaves = useCallback(() => {
+    if (!userId) { setLoading(false); return; }
+    const now = new Date();
+    const from = now.toISOString().split("T")[0];
+    const future = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+    const to = future.toISOString().split("T")[0];
+    fetch(`/api/staff/${userId}/leave?from=${from}&to=${to}`)
+      .then((r) => r.ok ? r.json() : [])
+      .then((data) => { if (Array.isArray(data)) setLeaves(data); })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [userId]);
+
+  useEffect(() => { fetchLeaves(); }, [fetchLeaves]);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!userId || !formData.startDate || !formData.endDate) return;
+    setSubmitting(true);
+    try {
+      const res = await fetch(`/api/staff/${userId}/leave`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "leave",
+          title: formData.title,
+          startDate: formData.startDate,
+          endDate: formData.endDate,
+          allDay: true,
+          status: "pending",
+          notes: formData.notes || null,
+        }),
+      });
+      if (res.ok) {
+        setShowForm(false);
+        setFormData({ title: "Annual Leave", startDate: "", endDate: "", notes: "" });
+        fetchLeaves();
+      }
+    } catch { /* ignore */ }
+    finally { setSubmitting(false); }
+  }
+
+  const statusBadge = (status: string) => {
+    const styles: Record<string, { bg: string; color: string }> = {
+      approved: { bg: "#ecfdf5", color: "#059669" },
+      pending: { bg: "#fff7ed", color: "#ea580c" },
+      rejected: { bg: "#fef2f2", color: "#dc2626" },
+    };
+    const s = styles[status] || styles.pending;
+    return (
+      <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded" style={{ background: s.bg, color: s.color }}>
+        {status}
+      </span>
+    );
+  };
+
+  return (
+    <div className="mt-8">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-[17px] font-bold" style={{ color: "var(--grey-900, #1c1917)" }}>My Leave (Next 30 Days)</h3>
+        <button
+          onClick={() => setShowForm(!showForm)}
+          className="px-3 py-1.5 text-[13px] font-bold rounded-lg"
+          style={{ background: "#2d6a4f", color: "#fff" }}
+        >
+          {showForm ? "Cancel" : "Request Leave"}
+        </button>
+      </div>
+
+      {/* Leave Request Form */}
+      {showForm && (
+        <form onSubmit={handleSubmit} className="mb-4 p-4 space-y-3" style={cardStyle}>
+          <div>
+            <label className="block text-[13px] font-bold mb-1" style={{ color: "var(--grey-600, #57534e)" }}>Leave Type</label>
+            <select value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} className="w-full px-3 py-2" style={inputStyle}>
+              <option value="Annual Leave">Annual Leave</option>
+              <option value="Sick Leave">Sick Leave</option>
+              <option value="Personal Leave">Personal Leave</option>
+              <option value="Emergency Leave">Emergency Leave</option>
+            </select>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-[13px] font-bold mb-1" style={{ color: "var(--grey-600, #57534e)" }}>Start Date</label>
+              <input type="date" value={formData.startDate} onChange={(e) => setFormData({ ...formData, startDate: e.target.value })} className="w-full px-3 py-2" style={inputStyle} required />
+            </div>
+            <div>
+              <label className="block text-[13px] font-bold mb-1" style={{ color: "var(--grey-600, #57534e)" }}>End Date</label>
+              <input type="date" value={formData.endDate} onChange={(e) => setFormData({ ...formData, endDate: e.target.value })} className="w-full px-3 py-2" style={inputStyle} required />
+            </div>
+          </div>
+          <div>
+            <label className="block text-[13px] font-bold mb-1" style={{ color: "var(--grey-600, #57534e)" }}>Notes (optional)</label>
+            <input type="text" value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} className="w-full px-3 py-2" style={inputStyle} placeholder="Reason for leave..." />
+          </div>
+          <button type="submit" disabled={submitting} className="px-4 py-2 text-[14px] font-bold rounded-lg" style={{ background: "#2d6a4f", color: "#fff", opacity: submitting ? 0.7 : 1 }}>
+            {submitting ? "Submitting..." : "Submit Request"}
+          </button>
+        </form>
+      )}
+
+      {loading ? (
+        <div className="space-y-2">
+          {[...Array(2)].map((_, i) => (
+            <div key={i} className="h-16 animate-pulse" style={{ background: "var(--grey-100, #f5f5f4)", borderRadius: "10px" }} />
+          ))}
+        </div>
+      ) : leaves.length === 0 ? (
+        <div className="p-6 text-center" style={cardStyle}>
+          <p className="text-[15px]" style={{ color: "var(--grey-500, #78716c)" }}>No upcoming leaves</p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {leaves.map((leave) => (
+            <div key={leave.id} className="p-3 flex items-center justify-between" style={cardStyle}>
+              <div>
+                <p className="text-[15px] font-semibold" style={{ color: "var(--grey-900, #1c1917)" }}>{leave.title}</p>
+                <p className="text-[13px]" style={{ color: "var(--grey-500, #78716c)" }}>
+                  {new Date(leave.startDate).toLocaleDateString("en-SG", { day: "numeric", month: "short" })}
+                  {leave.startDate !== leave.endDate && ` - ${new Date(leave.endDate).toLocaleDateString("en-SG", { day: "numeric", month: "short" })}`}
+                  {leave.notes && <> &middot; {leave.notes}</>}
+                </p>
+              </div>
+              {statusBadge(leave.status)}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
