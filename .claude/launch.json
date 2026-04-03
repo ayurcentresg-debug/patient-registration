@@ -2,10 +2,10 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "patient-app",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
-      "autoPort": true
+      "name": "dev",
+      "runtimeExecutable": "/usr/local/bin/npx",
+      "runtimeArgs": ["next", "dev"],
+      "port": 3000
     }
   ]
 }
