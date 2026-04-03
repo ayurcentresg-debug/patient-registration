@@ -357,14 +357,24 @@ export default function StaffPage() {
           <h1 className="text-[24px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>Staff Management</h1>
           <p className="text-[15px] mt-0.5" style={{ color: "var(--grey-600)" }}>Manage doctors, therapists, and clinic staff</p>
         </div>
-        <button
-          onClick={openAdd}
-          className="inline-flex items-center gap-2 text-white px-5 py-2 text-[15px] font-semibold"
-          style={{ background: "var(--blue-500)", borderRadius: "var(--radius-sm)" }}
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-          Add Staff
-        </button>
+        <div className="flex items-center gap-2">
+          <a
+            href="/admin/staff/performance"
+            className="inline-flex items-center gap-2 px-4 py-2 text-[15px] font-semibold transition-colors"
+            style={{ background: "var(--green-light)", color: "var(--green)", borderRadius: "var(--radius-sm)", border: "1px solid var(--green)" }}
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+            Performance
+          </a>
+          <button
+            onClick={openAdd}
+            className="inline-flex items-center gap-2 text-white px-5 py-2 text-[15px] font-semibold"
+            style={{ background: "var(--blue-500)", borderRadius: "var(--radius-sm)" }}
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+            Add Staff
+          </button>
+        </div>
       </div>
 
       <AdminTabs />
