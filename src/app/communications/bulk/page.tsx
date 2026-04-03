@@ -27,6 +27,7 @@ export default function BulkSendPage() {
 
   // Step 2: Compose
   const [channel, setChannel] = useState<"whatsapp" | "email" | "sms">("whatsapp");
+  const [senderType, setSenderType] = useState<"transactional" | "marketing">("transactional");
   const [selectedTemplate, setSelectedTemplate] = useState("");
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
@@ -147,39 +148,36 @@ export default function BulkSendPage() {
     setSendResults(null);
 
     const recipients = Array.from(selectedIds);
-    let sent = 0;
-    let failed = 0;
-    const failedList: string[] = [];
 
-    for (let i = 0; i < recipients.length; i++) {
-      try {
-        const res = await fetch("/api/communications", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            patientId: recipients[i],
-            type: channel,
-            subject: channel === "email" ? subject : undefined,
-            message,
-          }),
-        });
-        if (res.ok) {
-          sent++;
-        } else {
-          failed++;
-          const pat = patients.find((p) => p.id === recipients[i]);
-          failedList.push(pat ? `${pat.firstName} ${pat.lastName}` : recipients[i]);
-        }
-      } catch {
-        failed++;
-        const pat = patients.find((p) => p.id === recipients[i]);
-        failedList.push(pat ? `${pat.firstName} ${pat.lastName}` : recipients[i]);
+    try {
+      setSendProgress(30);
+      const res = await fetch("/api/communications/bulk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          patientIds: recipients,
+          channel,
+          subject: channel === "email" ? subject : undefined,
+          message,
+          templateId: selectedTemplate || undefined,
+          senderType: channel === "email" ? senderType : undefined,
+        }),
+      });
+
+      setSendProgress(90);
+      if (res.ok) {
+        const data = await res.json();
+        setSendResults({ sent: data.sent, failed: data.failed, failedList: [] });
+      } else {
+        const err = await res.json();
+        setSendResults({ sent: 0, failed: recipients.length, failedList: [err.error || "Server error"] });
       }
-      setSendProgress(Math.round(((i + 1) / recipients.length) * 100));
+    } catch {
+      setSendResults({ sent: 0, failed: recipients.length, failedList: ["Network error"] });
     }
 
+    setSendProgress(100);
     setSending(false);
-    setSendResults({ sent, failed, failedList });
   }
 
   const filteredPatients = getFilteredPatients();
@@ -363,6 +361,41 @@ export default function BulkSendPage() {
                 ))}
               </div>
             </div>
+
+            {/* Sender Type (email only) */}
+            {channel === "email" && (
+              <div>
+                <label className="block mb-1 text-[14px] font-semibold" style={{ color: "var(--grey-700)" }}>Send From</label>
+                <div className="flex gap-2">
+                  <button
+                    type="button" onClick={() => setSenderType("transactional")}
+                    className="flex-1 px-3 py-2.5 text-[14px] font-semibold transition-all duration-150"
+                    style={{
+                      borderRadius: "var(--radius-sm)",
+                      border: senderType === "transactional" ? "2px solid var(--blue-500)" : "1px solid var(--grey-300)",
+                      background: senderType === "transactional" ? "var(--blue-50)" : "var(--white)",
+                      color: senderType === "transactional" ? "var(--blue-500)" : "var(--grey-600)",
+                    }}
+                  >
+                    <span className="block text-[13px]">info@ayurgate.com</span>
+                    <span className="block text-[11px] opacity-70 mt-0.5">Transactional</span>
+                  </button>
+                  <button
+                    type="button" onClick={() => setSenderType("marketing")}
+                    className="flex-1 px-3 py-2.5 text-[14px] font-semibold transition-all duration-150"
+                    style={{
+                      borderRadius: "var(--radius-sm)",
+                      border: senderType === "marketing" ? "2px solid #14532d" : "1px solid var(--grey-300)",
+                      background: senderType === "marketing" ? "#f0fdf4" : "var(--white)",
+                      color: senderType === "marketing" ? "#14532d" : "var(--grey-600)",
+                    }}
+                  >
+                    <span className="block text-[13px]">ayurgate@gmail.com</span>
+                    <span className="block text-[11px] opacity-70 mt-0.5">Marketing / Bulk</span>
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Template */}
             <div>

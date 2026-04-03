@@ -35,10 +35,30 @@ function getTransporter(): nodemailer.Transporter | null {
   return _transporter;
 }
 
-// ── Default sender ─────────────────────────────────────────────────────
-const DEFAULT_FROM = "AYUR GATE <info@ayurgate.com>";
+// ── Marketing SMTP (Gmail for bulk / marketing emails) ────────────────
+let _marketingTransporter: nodemailer.Transporter | null = null;
+function getMarketingTransporter(): nodemailer.Transporter | null {
+  if (_marketingTransporter) return _marketingTransporter;
+  if (!process.env.MARKETING_SMTP_HOST) return null;
+  _marketingTransporter = nodemailer.createTransport({
+    host: process.env.MARKETING_SMTP_HOST,
+    port: Number(process.env.MARKETING_SMTP_PORT) || 587,
+    secure: false,
+    family: 4,
+    auth: {
+      user: process.env.MARKETING_SMTP_USER,
+      pass: process.env.MARKETING_SMTP_PASS,
+    },
+  } as nodemailer.TransportOptions);
+  return _marketingTransporter;
+}
 
-// ── Unified send function ──────────────────────────────────────────────
+// ── Default senders ───────────────────────────────────────────────────
+const DEFAULT_FROM = "AYUR GATE <info@ayurgate.com>";
+const MARKETING_FROM =
+  process.env.MARKETING_EMAIL_FROM || "AYUR GATE <ayurgate@gmail.com>";
+
+// ── Unified send function (transactional) ─────────────────────────────
 export async function sendEmail({
   to,
   subject,
@@ -78,4 +98,33 @@ export async function sendEmail({
   // No provider configured
   console.warn("⚠️  No email provider configured (set RESEND_API_KEY or SMTP_HOST)");
   return { messageId: null, provider: "none" };
+}
+
+/**
+ * Send a marketing email via Gmail SMTP (ayurgate@gmail.com).
+ * Falls back to transactional sendEmail() if marketing SMTP is not configured.
+ */
+export async function sendMarketingEmail({
+  to,
+  subject,
+  html,
+  from,
+}: {
+  to: string;
+  subject: string;
+  html: string;
+  from?: string;
+}) {
+  const sender = from || MARKETING_FROM;
+
+  // Strategy 1: Marketing SMTP (Gmail)
+  const marketing = getMarketingTransporter();
+  if (marketing) {
+    const info = await marketing.sendMail({ from: sender, to, subject, html });
+    return { messageId: info.messageId, provider: "marketing-smtp" };
+  }
+
+  // Fallback: use transactional sender
+  console.warn("⚠️  Marketing SMTP not configured — falling back to transactional email");
+  return sendEmail({ to, subject, html, from: sender });
 }

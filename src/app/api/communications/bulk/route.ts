@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getClinicId } from "@/lib/get-clinic-id";
 import { getTenantPrisma } from "@/lib/tenant-db";
-import { sendEmail } from "@/lib/email";
+import { sendEmail, sendMarketingEmail } from "@/lib/email";
 import { sendWhatsApp } from "@/lib/whatsapp";
 import { sendSMS } from "@/lib/sms";
 
@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
     const db = clinicId ? getTenantPrisma(clinicId) : prisma;
 
     const body = await request.json();
-    const { patientIds, channel, subject, message, templateId } = body;
+    const { patientIds, channel, subject, message, templateId, senderType, htmlBody } = body;
 
     if (!patientIds || !Array.isArray(patientIds) || patientIds.length === 0) {
       return NextResponse.json({ error: "patientIds array is required" }, { status: 400 });
@@ -75,18 +75,23 @@ export async function POST(request: NextRequest) {
 
       try {
         if (channel === "email" && patient.email) {
-          await sendEmail({
-            to: patient.email,
-            subject: finalSubject,
-            html: `
-              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          // Use rich HTML body if provided, otherwise wrap plain message
+          const emailHtml = htmlBody
+            ? substituteVariables(htmlBody, variables)
+            : `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                 <h2 style="color: #2d6a4f;">${finalSubject}</h2>
                 <p>Dear ${patient.firstName},</p>
                 <p>${finalMessage}</p>
                 <hr style="border-color: #e5e7eb;" />
                 <p style="color: #6b7280; font-size: 12px;">Sent via AYUR GATE</p>
-              </div>
-            `,
+              </div>`;
+
+          // Use marketing sender (Gmail SMTP) or transactional
+          const emailFn = senderType === "marketing" ? sendMarketingEmail : sendEmail;
+          await emailFn({
+            to: patient.email,
+            subject: finalSubject,
+            html: emailHtml,
           });
         } else if (channel === "whatsapp" && patient.whatsapp) {
           await sendWhatsApp({ to: patient.whatsapp, message: finalMessage });
