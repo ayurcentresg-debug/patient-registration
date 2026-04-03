@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import CommunicationTabs from "@/components/CommunicationTabs";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { cardStyle, inputStyle } from "@/lib/styles";
@@ -16,6 +16,8 @@ const CATEGORIES = [
   { value: "medication", label: "Medication" },
   { value: "welcome", label: "Welcome" },
   { value: "birthday", label: "Birthday" },
+  { value: "marketing", label: "Marketing" },
+  { value: "newsletter", label: "Newsletter" },
   { value: "custom", label: "Custom" },
 ];
 
@@ -26,6 +28,8 @@ const CATEGORY_COLORS: Record<string, { bg: string; color: string }> = {
   medication: { bg: "#fce7f3", color: "#be185d" },
   welcome: { bg: "#ede9fe", color: "#7c3aed" },
   birthday: { bg: "#fff1f2", color: "#e11d48" },
+  marketing: { bg: "#f0fdf4", color: "#14532d" },
+  newsletter: { bg: "#fef3c7", color: "#92400e" },
   custom: { bg: "var(--grey-100)", color: "var(--grey-700)" },
 };
 
@@ -63,6 +67,25 @@ export default function TemplatesPage() {
 
   // Seed loading
   const [seeding, setSeeding] = useState(false);
+
+  // HTML upload ref
+  const htmlFileInputRef = useRef<HTMLInputElement>(null);
+
+  function handleHtmlUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      const htmlContent = evt.target?.result as string;
+      setFormBody(htmlContent);
+      setFormChannel("email");
+      setFormName(file.name.replace(/\.html?$/i, ""));
+      setShowForm(true);
+    };
+    reader.readAsText(file);
+    // Reset input so same file can be re-uploaded
+    e.target.value = "";
+  }
 
   // Toast
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
@@ -278,6 +301,23 @@ export default function TemplatesPage() {
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
             {seeding ? "Loading..." : "Load Defaults"}
+          </button>
+          <input
+            type="file"
+            accept=".html,.htm"
+            ref={htmlFileInputRef}
+            onChange={handleHtmlUpload}
+            className="hidden"
+          />
+          <button
+            onClick={() => htmlFileInputRef.current?.click()}
+            className="inline-flex items-center justify-center gap-2 px-4 py-2 text-[15px] font-semibold transition-colors duration-150"
+            style={{ background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius-sm)", color: "var(--grey-700)" }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = "var(--grey-100)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = "var(--white)"; }}
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+            Upload HTML
           </button>
           <button
             onClick={openNewForm}

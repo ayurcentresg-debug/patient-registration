@@ -39,6 +39,11 @@ export default function BulkSendPage() {
   const [sendResults, setSendResults] = useState<{ sent: number; failed: number; failedList: string[] } | null>(null);
 
   // Toast
+  // Clinic settings
+  const [clinicEmail, setClinicEmail] = useState("");
+  const [clinicName, setClinicName] = useState("");
+
+  // Toast
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const showToast = useCallback((msg: string, type: "success" | "error") => {
     setToast({ message: msg, type });
@@ -50,6 +55,16 @@ export default function BulkSendPage() {
       .then((r) => r.json())
       .then(setPatients)
       .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    fetch("/api/settings")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.email) setClinicEmail(data.email);
+        if (data.clinicName) setClinicName(data.clinicName);
+      })
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -366,34 +381,40 @@ export default function BulkSendPage() {
             {channel === "email" && (
               <div>
                 <label className="block mb-1 text-[14px] font-semibold" style={{ color: "var(--grey-700)" }}>Send From</label>
-                <div className="flex gap-2">
-                  <button
-                    type="button" onClick={() => setSenderType("transactional")}
-                    className="flex-1 px-3 py-2.5 text-[14px] font-semibold transition-all duration-150"
-                    style={{
-                      borderRadius: "var(--radius-sm)",
-                      border: senderType === "transactional" ? "2px solid var(--blue-500)" : "1px solid var(--grey-300)",
-                      background: senderType === "transactional" ? "var(--blue-50)" : "var(--white)",
-                      color: senderType === "transactional" ? "var(--blue-500)" : "var(--grey-600)",
-                    }}
-                  >
-                    <span className="block text-[13px]">info@ayurgate.com</span>
-                    <span className="block text-[11px] opacity-70 mt-0.5">Transactional</span>
-                  </button>
-                  <button
-                    type="button" onClick={() => setSenderType("marketing")}
-                    className="flex-1 px-3 py-2.5 text-[14px] font-semibold transition-all duration-150"
-                    style={{
-                      borderRadius: "var(--radius-sm)",
-                      border: senderType === "marketing" ? "2px solid #14532d" : "1px solid var(--grey-300)",
-                      background: senderType === "marketing" ? "#f0fdf4" : "var(--white)",
-                      color: senderType === "marketing" ? "#14532d" : "var(--grey-600)",
-                    }}
-                  >
-                    <span className="block text-[13px]">ayurgate@gmail.com</span>
-                    <span className="block text-[11px] opacity-70 mt-0.5">Marketing / Bulk</span>
-                  </button>
-                </div>
+                {!clinicEmail ? (
+                  <p className="text-[14px] px-3 py-2.5" style={{ color: "var(--red)", background: "var(--red-light)", borderRadius: "var(--radius-sm)" }}>
+                    Configure your clinic email in Settings
+                  </p>
+                ) : (
+                  <div className="flex gap-2">
+                    <button
+                      type="button" onClick={() => setSenderType("transactional")}
+                      className="flex-1 px-3 py-2.5 text-[14px] font-semibold transition-all duration-150"
+                      style={{
+                        borderRadius: "var(--radius-sm)",
+                        border: senderType === "transactional" ? "2px solid var(--blue-500)" : "1px solid var(--grey-300)",
+                        background: senderType === "transactional" ? "var(--blue-50)" : "var(--white)",
+                        color: senderType === "transactional" ? "var(--blue-500)" : "var(--grey-600)",
+                      }}
+                    >
+                      <span className="block text-[13px]">{clinicEmail}</span>
+                      <span className="block text-[11px] opacity-70 mt-0.5">Transactional</span>
+                    </button>
+                    <button
+                      type="button" onClick={() => setSenderType("marketing")}
+                      className="flex-1 px-3 py-2.5 text-[14px] font-semibold transition-all duration-150"
+                      style={{
+                        borderRadius: "var(--radius-sm)",
+                        border: senderType === "marketing" ? "2px solid #14532d" : "1px solid var(--grey-300)",
+                        background: senderType === "marketing" ? "#f0fdf4" : "var(--white)",
+                        color: senderType === "marketing" ? "#14532d" : "var(--grey-600)",
+                      }}
+                    >
+                      <span className="block text-[13px]">{clinicName ? `${clinicName} <${clinicEmail}>` : clinicEmail}</span>
+                      <span className="block text-[11px] opacity-70 mt-0.5">Marketing / Bulk</span>
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 
