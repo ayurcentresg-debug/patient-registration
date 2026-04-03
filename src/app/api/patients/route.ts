@@ -5,6 +5,7 @@ import { getTenantPrisma } from "@/lib/tenant-db";
 import { sendEmail } from "@/lib/email";
 import { sendWhatsApp } from "@/lib/whatsapp";
 import { validateName } from "@/lib/validation";
+import { logAudit } from "@/lib/audit";
 
 /**
  * Normalize phone number for consistent storage.
@@ -72,7 +73,7 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") || "50")));
     const all = searchParams.get("all") === "true";
 
-    const where: Record<string, unknown> = {};
+    const where: Record<string, unknown> = { deletedAt: null };
     if (status) where.status = status;
     if (search) {
       where.OR = [
@@ -219,6 +220,13 @@ export async function POST(request: NextRequest) {
         medicalNotes: body.medicalNotes || null,
         groups: body.groups || "[]",
       },
+    });
+
+    await logAudit({
+      action: "create",
+      entity: "patient",
+      entityId: patient.id,
+      details: { patientIdNumber: patient.patientIdNumber, name: `${patient.firstName} ${patient.lastName}` },
     });
 
     // Send welcome notifications

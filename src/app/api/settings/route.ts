@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import { getClinicId, requireRole, ADMIN_ROLES, STAFF_ROLES } from "@/lib/get-clinic-id";
+import { logAudit } from "@/lib/audit";
 
 // GET /api/settings - Fetch clinic settings
 export async function GET() {
@@ -117,6 +118,13 @@ export async function PUT(request: NextRequest) {
         },
       });
     }
+
+    await logAudit({
+      action: "update",
+      entity: "settings",
+      entityId: settings.id,
+      details: { fieldsChanged: Object.keys(updateData) },
+    });
 
     return NextResponse.json(settings);
   } catch (error) {

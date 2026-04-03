@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { getClinicId, requireRole, ADMIN_ROLES, STAFF_ROLES } from "@/lib/get-clinic-id";
 import { getTenantPrisma } from "@/lib/tenant-db";
 import bcrypt from "bcryptjs";
+import { logAudit } from "@/lib/audit";
 
 // GET /api/staff/[id]
 export async function GET(
@@ -77,6 +78,13 @@ export async function PUT(
     }
 
     const user = await db.user.update({ where: { id }, data: updateData });
+
+    await logAudit({
+      action: "update",
+      entity: "staff",
+      entityId: id,
+    });
+
     const { password: _, totpSecret: __, ...safe } = user as Record<string, unknown>;
     return NextResponse.json(safe);
   } catch (error) {
@@ -123,6 +131,14 @@ export async function DELETE(
 
     // Soft delete — set inactive
     await db.user.update({ where: { id }, data: { isActive: false, status: "inactive" } });
+
+    await logAudit({
+      action: "delete",
+      entity: "staff",
+      entityId: id,
+      details: { name: existing.name },
+    });
+
     return NextResponse.json({ message: "Staff member deactivated successfully" });
   } catch (error) {
     console.error("Failed to delete staff member:", error);

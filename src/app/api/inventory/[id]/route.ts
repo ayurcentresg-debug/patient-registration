@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db";
 import { getClinicId, requireRole, ADMIN_ROLES, STAFF_ROLES } from "@/lib/get-clinic-id";
 import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextRequest, NextResponse } from "next/server";
+import { logAudit } from "@/lib/audit";
 
 // GET /api/inventory/[id] - Get single item with transactions
 export async function GET(
@@ -233,6 +234,13 @@ export async function DELETE(
 
     await db.inventoryItem.delete({
       where: { id },
+    });
+
+    await logAudit({
+      action: "delete",
+      entity: "inventory",
+      entityId: id,
+      details: { name: item.name },
     });
 
     return NextResponse.json({ message: "Item deleted successfully" });

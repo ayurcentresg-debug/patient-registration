@@ -5,6 +5,7 @@ import { getTenantPrisma } from "@/lib/tenant-db";
 import { sendEmail } from "@/lib/email";
 import { staffInviteEmail } from "@/lib/email-templates";
 import crypto from "crypto";
+import { logAudit } from "@/lib/audit";
 
 const VALID_ROLES = ["admin", "doctor", "therapist", "pharmacist", "receptionist", "staff"];
 const ROLE_PREFIXES: Record<string, string> = {
@@ -188,6 +189,13 @@ export async function POST(request: NextRequest) {
         // Don't fail the creation just because email failed
       }
     }
+
+    await logAudit({
+      action: "create",
+      entity: "staff",
+      entityId: user.id,
+      details: { name, email, role: role || "staff" },
+    });
 
     const { password: _, totpSecret: __, ...safeUser } = user as Record<string, unknown>;
     return NextResponse.json(safeUser, { status: 201 });

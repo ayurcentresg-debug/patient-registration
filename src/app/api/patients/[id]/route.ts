@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getClinicId, requireRole, ADMIN_ROLES, STAFF_ROLES } from "@/lib/get-clinic-id";
+import { getClinicId, requireRole, ADMIN_ROLES } from "@/lib/get-clinic-id";
 import { getTenantPrisma } from "@/lib/tenant-db";
 import { validateName } from "@/lib/validation";
+import { logAudit } from "@/lib/audit";
 
 /** Normalize phone: strip formatting, add country code for SG/IN local numbers */
 function normalizePhone(phone: string): string {
@@ -52,7 +53,7 @@ export async function GET(
       },
     });
 
-    if (!patient) {
+    if (!patient || patient.deletedAt) {
       return NextResponse.json({ error: "Patient not found" }, { status: 404 });
     }
 
@@ -139,6 +140,13 @@ export async function PUT(
       },
     });
 
+    await logAudit({
+      action: "update",
+      entity: "patient",
+      entityId: id,
+      details: { fields: Object.keys(updateData) },
+    });
+
     return NextResponse.json(patient);
   } catch (error) {
     console.error("PUT /api/patients/[id] error:", error);
@@ -162,16 +170,22 @@ export async function DELETE(
     const { id } = await params;
 
     const existing = await db.patient.findUnique({ where: { id } });
-    if (!existing) {
+    if (!existing || existing.deletedAt) {
       return NextResponse.json({ error: "Patient not found" }, { status: 404 });
     }
 
-    // Delete related records first, then patient
-    await db.communication.deleteMany({ where: { patientId: id } });
-    await db.appointment.deleteMany({ where: { patientId: id } });
-    await db.clinicalNote.deleteMany({ where: { patientId: id } });
-    await db.document.deleteMany({ where: { patientId: id } });
-    await db.patient.delete({ where: { id } });
+    // Soft-delete: set deletedAt timestamp instead of destroying data
+    await db.patient.update({
+      where: { id },
+      data: { deletedAt: new Date(), status: "inactive" },
+    });
+
+    await logAudit({
+      action: "delete",
+      entity: "patient",
+      entityId: id,
+      details: { patientIdNumber: existing.patientIdNumber, name: `${existing.firstName} ${existing.lastName}` },
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {

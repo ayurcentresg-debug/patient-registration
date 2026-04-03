@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getClinicId, requireRole, ADMIN_ROLES, STAFF_ROLES } from "@/lib/get-clinic-id";
 import { getTenantPrisma } from "@/lib/tenant-db";
+import { logAudit } from "@/lib/audit";
 
 // GET /api/branches/[id] - Get a single branch
 export async function GET(
@@ -121,6 +122,12 @@ export async function PUT(
       data: updateData,
     });
 
+    await logAudit({
+      action: "update",
+      entity: "branch",
+      entityId: id,
+    });
+
     return NextResponse.json(branch);
   } catch (error) {
     console.error("PUT /api/branches/[id] error:", error);
@@ -155,6 +162,13 @@ export async function DELETE(
     const branch = await db.branch.update({
       where: { id },
       data: { isActive: false },
+    });
+
+    await logAudit({
+      action: "delete",
+      entity: "branch",
+      entityId: id,
+      details: { name: existing.name },
     });
 
     return NextResponse.json(branch);

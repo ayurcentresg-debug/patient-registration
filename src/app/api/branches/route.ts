@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getClinicId, requireRole, ADMIN_ROLES, STAFF_ROLES } from "@/lib/get-clinic-id";
 import { getTenantPrisma } from "@/lib/tenant-db";
+import { logAudit } from "@/lib/audit";
 
 // GET /api/branches - List branches with optional active filter
 export async function GET(request: NextRequest) {
@@ -97,6 +98,13 @@ export async function POST(request: NextRequest) {
         isMainBranch: body.isMainBranch || false,
         operatingHours: body.operatingHours || "{}",
       },
+    });
+
+    await logAudit({
+      action: "create",
+      entity: "branch",
+      entityId: branch.id,
+      details: { name: branch.name },
     });
 
     return NextResponse.json(branch, { status: 201 });
