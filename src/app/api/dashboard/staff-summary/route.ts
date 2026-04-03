@@ -81,12 +81,35 @@ export async function GET() {
       }
     }
 
+    // Count documents expiring within 30 days
+    const thirtyDaysFromNow = new Date();
+    thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+
+    const expiringDocuments = await db.staffDocument.count({
+      where: {
+        expiryDate: {
+          lte: thirtyDaysFromNow,
+          gte: todayStart,
+        },
+      },
+    });
+
+    // Count already expired documents
+    const expiredDocuments = await db.staffDocument.count({
+      where: {
+        expiryDate: {
+          lt: todayStart,
+        },
+      },
+    });
+
     return NextResponse.json({
       availableCount: availableStaff.length,
       onLeaveCount: onLeaveStaff.length,
       onLeaveNames: onLeaveStaff.map((s) => s.name),
       topPerformer,
       isClinicHoliday: hasClinicHoliday,
+      expiringDocuments: expiringDocuments + expiredDocuments,
     });
   } catch (error) {
     console.error("Staff summary API error:", error);
