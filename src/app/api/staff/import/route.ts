@@ -100,6 +100,7 @@ export async function POST(request: NextRequest) {
         const isClinical = CLINICAL_ROLES.includes(role);
         const phone = (record.phone || "").trim() || null;
         const gender = (record.gender || "").trim().toLowerCase() || null;
+        const ethnicity = (record.ethnicity || "").trim().toLowerCase() || null;
         const specialization = isClinical ? ((record.specialization || "").trim() || null) : null;
         const department = isClinical ? ((record.department || "").trim() || null) : null;
         const consultationFee = isClinical && record.consultationFee
@@ -118,6 +119,7 @@ export async function POST(request: NextRequest) {
             password: hashedPassword,
             staffIdNumber,
             gender,
+            ethnicity,
             specialization,
             department,
             consultationFee: consultationFee !== null && !isNaN(consultationFee) ? consultationFee : null,

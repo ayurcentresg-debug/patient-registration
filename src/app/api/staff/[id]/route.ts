@@ -66,6 +66,7 @@ export async function PUT(
     if (body.phone !== undefined) updateData.phone = body.phone || null;
     if (body.role !== undefined) updateData.role = body.role;
     if (body.gender !== undefined) updateData.gender = body.gender || null;
+    if (body.ethnicity !== undefined) updateData.ethnicity = body.ethnicity || null;
     if (body.specialization !== undefined) updateData.specialization = body.specialization || null;
     if (body.department !== undefined) updateData.department = body.department || null;
     if (body.consultationFee !== undefined) updateData.consultationFee = body.consultationFee !== null ? Number(body.consultationFee) : null;

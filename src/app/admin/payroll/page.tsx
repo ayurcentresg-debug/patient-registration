@@ -456,6 +456,13 @@ function PayrollTab({ showToast }: { showToast: (m: string, t: "ok" | "err") => 
           >
             {bulkEmailing ? "Emailing..." : "📧 Email All Payslips"}
           </button>
+          <button
+            onClick={() => window.open("/api/public/sample-payslip", "_blank")}
+            className="px-4 py-2.5 font-semibold text-[14px] rounded-lg"
+            style={{ background: "#f0fdf4", color: "#166534", border: "1px solid #bbf7d0" }}
+          >
+            Sample Payslip
+          </button>
         </div>
       </div>
 
@@ -469,6 +476,13 @@ function PayrollTab({ showToast }: { showToast: (m: string, t: "ok" | "err") => 
           <div className="p-12 text-center" style={{ color: "var(--grey-500)" }}>
             <p className="text-lg font-semibold mb-2">No payroll records for {formatPeriodLabel(period)}</p>
             <p className="text-[14px]">Click &ldquo;Generate Payroll&rdquo; to create payroll records for all configured staff.</p>
+            <button
+              onClick={() => window.open("/api/public/sample-payslip", "_blank")}
+              className="mt-4 px-4 py-2 font-semibold text-[13px] rounded-lg"
+              style={{ background: "#f0fdf4", color: "#166534", border: "1px solid #bbf7d0" }}
+            >
+              View Sample Payslip
+            </button>
           </div>
         ) : (
           <table className="w-full text-[14px]">

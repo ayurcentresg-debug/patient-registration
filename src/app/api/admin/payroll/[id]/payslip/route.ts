@@ -74,13 +74,15 @@ export async function GET(
     const employerContribs = statutoryData.employerContributions || [];
     const taxWithholding = statutoryData.taxWithholding || payroll.taxWithholding || 0;
 
-    // Build earnings rows
+    // Build earnings rows — MOM requires: basic, allowances, additional payments, OT (always shown)
+    const totalAllowances = allowances.reduce((s, a) => s + a.amount, 0);
+    const additionalPay = (payroll.bonus || 0) + (payroll.commission || 0);
     const earningsRows = [
       `<tr><td>Basic Salary</td><td>${fmt(payroll.baseSalary)}</td></tr>`,
       ...allowances.map((a) => `<tr><td>${a.name}</td><td>${fmt(a.amount)}</td></tr>`),
-      payroll.commission > 0 ? `<tr><td>Commission</td><td>${fmt(payroll.commission)}</td></tr>` : "",
-      payroll.overtime > 0 ? `<tr><td>Overtime</td><td>${fmt(payroll.overtime)}</td></tr>` : "",
-      payroll.bonus > 0 ? `<tr><td>Bonus</td><td>${fmt(payroll.bonus)}</td></tr>` : "",
+      allowances.length === 0 ? `<tr><td>Allowances</td><td>${fmt(0)}</td></tr>` : "",
+      `<tr><td>Additional Pay (Bonus/PH/Rest)</td><td>${fmt(additionalPay)}</td></tr>`,
+      `<tr><td>Overtime</td><td>${fmt(payroll.overtime || 0)}</td></tr>`,
     ].filter(Boolean).join("");
 
     // Build deduction rows
@@ -104,8 +106,15 @@ export async function GET(
       : payroll.cpfEmployer;
 
     const logoHtml = clinicLogo
-      ? `<img src="${clinicLogo}" alt="" style="max-height:36px;max-width:150px;margin-bottom:4px;display:block;" />`
-      : `<div style="width:36px;height:36px;background:rgba(255,255,255,0.2);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:14px;border:1.5px solid rgba(255,255,255,0.3);">${clinicName.charAt(0)}${clinicName.split(" ")[1]?.charAt(0) || ""}</div>`;
+      ? `<img src="${clinicLogo}" alt="" style="max-height:40px;max-width:150px;display:block;" />`
+      : `<div style="width:40px;height:40px;background:#14532d;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:16px;">${clinicName.charAt(0)}${clinicName.split(" ")[1]?.charAt(0) || ""}</div>`;
+
+    // Salary period dates
+    const [periodYear, periodMonth] = payroll.period.split("-");
+    const periodStartDate = new Date(parseInt(periodYear), parseInt(periodMonth) - 1, 1);
+    const periodEndDate = new Date(parseInt(periodYear), parseInt(periodMonth), 0);
+    const periodStartStr = periodStartDate.toLocaleDateString("en-SG", { day: "numeric", month: "short", year: "numeric" });
+    const periodEndStr = periodEndDate.toLocaleDateString("en-SG", { day: "numeric", month: "short", year: "numeric" });
 
     const paidDate = payroll.paidAt
       ? new Date(payroll.paidAt).toLocaleDateString("en-SG", { day: "2-digit", month: "short", year: "numeric" })
@@ -121,54 +130,57 @@ export async function GET(
   @page { size: A4 portrait; margin: 10mm; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: 'Segoe UI', -apple-system, sans-serif; color: #1a1a1a; background: #e8ecf1; padding: 20px; }
-  .payslip { width: 580px; margin: 0 auto; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.12); }
-  .header { background: linear-gradient(135deg, #14532d 0%, #166534 40%, #15803d 100%); padding: 12px 18px; display: flex; justify-content: space-between; align-items: center; }
-  .logo-area { display: flex; align-items: center; gap: 10px; }
-  .company-info h1 { font-size: 15px; font-weight: 700; color: #fff; }
-  .company-info p { font-size: 9px; color: rgba(255,255,255,0.75); margin-top: 1px; }
-  .payslip-badge h2 { font-size: 18px; font-weight: 800; color: #fff; letter-spacing: 2px; text-align: right; }
-  .payslip-badge .period-text { font-size: 11px; color: rgba(255,255,255,0.8); margin-top: 2px; text-align: right; }
-  .sg-badge { display: inline-block; margin-top: 3px; font-size: 8px; font-weight: 700; color: #14532d; background: #bbf7d0; padding: 2px 7px; border-radius: 10px; letter-spacing: 0.5px; }
-  .emp-row { display: flex; background: #f0fdf4; border-bottom: 1px solid #dcfce7; padding: 7px 18px; gap: 8px; }
+  .payslip { width: 720px; margin: 0 auto; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.12); }
+
+  .header { background: #ffffff; padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e5e7eb; }
+  .logo-area { display: flex; align-items: center; gap: 12px; }
+  .company-info h1 { font-size: 20px; font-weight: 700; color: #14532d; letter-spacing: 0.3px; }
+  .company-info p { font-size: 12px; color: #4b5563; margin-top: 2px; }
+  .payslip-badge { text-align: right; }
+  .payslip-badge h2 { font-size: 22px; font-weight: 800; color: #374151; letter-spacing: 2px; }
+  .payslip-badge .period-text { font-size: 13px; color: #6b7280; margin-top: 3px; }
+
+  .emp-row { display: flex; background: #f9fafb; border-bottom: 1px solid #e5e7eb; padding: 14px 24px; gap: 10px; }
   .emp-item { flex: 1; }
-  .emp-item .lbl { font-size: 7px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600; }
-  .emp-item .val { font-size: 11px; font-weight: 700; color: #14532d; margin-top: 1px; }
-  .body { padding: 10px 18px 6px; }
-  .info-row { display: flex; gap: 8px; margin-bottom: 8px; }
-  .info-card { flex: 1; border-radius: 6px; padding: 6px 10px; font-size: 10px; }
-  .days-card { background: #faf5ff; border: 1px solid #e9d5ff; }
-  .days-card .title { color: #7c3aed; font-weight: 700; font-size: 8px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
-  .days-row { display: flex; gap: 12px; }
-  .days-item { text-align: center; }
-  .days-item .num { font-size: 13px; font-weight: 800; color: #7c3aed; }
-  .days-item .txt { font-size: 7px; color: #6b21a8; text-transform: uppercase; }
-  .two-col { display: flex; gap: 10px; margin-bottom: 8px; }
+  .emp-item .lbl { font-size: 10px; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600; }
+  .emp-item .val { font-size: 15px; font-weight: 700; color: #1f2937; margin-top: 2px; }
+
+  .body { padding: 16px 24px 10px; }
+  .two-col { display: flex; gap: 14px; margin-bottom: 12px; }
   .col { flex: 1; }
+
   .section { border-radius: 8px; overflow: hidden; border: 1px solid #e5e7eb; }
-  .section-head { padding: 4px 10px; font-size: 9px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; }
-  .section-head.earn { background: #14532d; color: #fff; }
-  .section-head.deduct { background: #7c2d12; color: #fff; }
+  .section-head { padding: 8px 14px; font-size: 11px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; }
+  .section-head.earn { background: #f0fdf4; color: #166534; border-bottom: 1px solid #e5e7eb; }
+  .section-head.deduct { background: #fff7ed; color: #9a3412; border-bottom: 1px solid #e5e7eb; }
   .section table { width: 100%; border-collapse: collapse; }
-  .section td { padding: 2px 10px; font-size: 10px; border-bottom: 1px solid #f3f4f6; }
+  .section td { padding: 6px 14px; font-size: 13px; border-bottom: 1px solid #f3f4f6; }
   .section td:last-child { text-align: right; font-variant-numeric: tabular-nums; font-weight: 500; }
   .section tr:last-child td { border-bottom: none; }
-  .section .subtotal td { font-weight: 700; font-size: 10px; border-top: 1.5px solid; border-bottom: none; padding: 3px 10px; }
-  .section .subtotal.earn td { border-top-color: #14532d; color: #14532d; background: #f0fdf4; }
-  .section .subtotal.deduct td { border-top-color: #7c2d12; color: #7c2d12; background: #fef2f2; }
-  .net-pay-bar { display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #14532d, #166534); color: #fff; padding: 7px 14px; border-radius: 6px; margin-bottom: 6px; }
-  .net-pay-bar .label { font-size: 12px; font-weight: 600; }
-  .net-pay-bar .amount { font-size: 18px; font-weight: 800; }
-  .cpf-card { background: #eff6ff; border: 1px solid #bfdbfe; }
-  .cpf-card .title { color: #1e40af; font-weight: 700; font-size: 8px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
-  .cpf-card td { padding: 1px 0; font-size: 9px; color: #1e3a5f; border: none; }
+  .section .subtotal td { font-weight: 700; font-size: 14px; border-top: 1.5px solid; border-bottom: none; padding: 8px 14px; }
+  .section .subtotal.earn td { border-top-color: #d1d5db; color: #166534; background: #f9fafb; }
+  .section .subtotal.deduct td { border-top-color: #d1d5db; color: #9a3412; background: #f9fafb; }
+
+  .net-pay-bar { display: flex; justify-content: space-between; align-items: center; background: #f9fafb; border: 1.5px solid #d1d5db; color: #1f2937; padding: 12px 18px; border-radius: 8px; margin-bottom: 12px; }
+  .net-pay-bar .label { font-size: 16px; font-weight: 600; }
+  .net-pay-bar .amount { font-size: 24px; font-weight: 800; letter-spacing: 0.5px; }
+
+  .info-row { display: flex; gap: 12px; margin-bottom: 10px; }
+  .info-card { flex: 1; border-radius: 8px; padding: 10px 14px; font-size: 12px; }
+  .cpf-card { background: #f9fafb; border: 1px solid #e5e7eb; }
+  .cpf-card .title { color: #4b5563; font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .cpf-card table { width: 100%; }
+  .cpf-card td { padding: 3px 0; font-size: 12px; color: #374151; border: none; }
   .cpf-card td:last-child { text-align: right; font-weight: 600; }
-  .pay-card { background: #fefce8; border: 1px solid #fde68a; }
-  .pay-card .title { color: #92400e; font-weight: 700; font-size: 8px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
-  .pay-card .detail { font-size: 9px; color: #78350f; line-height: 1.5; }
+  .pay-card { background: #f9fafb; border: 1px solid #e5e7eb; }
+  .pay-card .title { color: #4b5563; font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .pay-card .detail { font-size: 12px; color: #374151; line-height: 1.6; }
   .pay-card .detail strong { font-weight: 700; }
-  .slip-footer { border-top: 1px solid #e5e7eb; padding: 4px 16px; text-align: center; font-size: 7px; color: #9ca3af; background: #fafafa; }
-  .action-bar { display: flex; gap: 10px; justify-content: center; margin: 16px auto 0; width: 580px; }
-  .action-bar button { padding: 8px 20px; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; }
+
+  .slip-footer { border-top: 1px solid #e5e7eb; padding: 8px 24px; text-align: center; font-size: 10px; color: #9ca3af; background: #fafafa; }
+  .action-bar { display: flex; gap: 12px; justify-content: center; margin: 20px auto 0; width: 720px; }
+  .action-bar button { padding: 10px 24px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
+
   @media print {
     body { background: #fff; padding: 0; margin: 0; }
     .payslip { box-shadow: none; border-radius: 0; width: 100%; max-width: 190mm; margin: 0 auto; page-break-inside: avoid; break-inside: avoid; }
@@ -191,7 +203,6 @@ export async function GET(
       <div class="payslip-badge">
         <h2>PAYSLIP</h2>
         <div class="period-text">${formatPeriodLabel(payroll.period)}</div>
-        <span class="sg-badge">${countryConfig.label} &middot; ${countryConfig.currency}</span>
       </div>
     </div>
 
@@ -199,21 +210,11 @@ export async function GET(
       <div class="emp-item"><div class="lbl">Employee</div><div class="val">${user?.name || "N/A"}</div></div>
       <div class="emp-item"><div class="lbl">Staff ID</div><div class="val">${user?.staffIdNumber || "N/A"}</div></div>
       <div class="emp-item"><div class="lbl">Designation</div><div class="val">${(user?.role || "staff").charAt(0).toUpperCase() + (user?.role || "staff").slice(1)}</div></div>
-      <div class="emp-item"><div class="lbl">Status</div><div class="val">${payroll.status.charAt(0).toUpperCase() + payroll.status.slice(1)}</div></div>
+      <div class="emp-item"><div class="lbl">Pay Date</div><div class="val">${paidDate}</div></div>
+      <div class="emp-item"><div class="lbl">Salary Period</div><div class="val">${periodStartStr} – ${periodEndStr}</div></div>
     </div>
 
     <div class="body">
-      <div class="info-row" style="margin-bottom:8px;">
-        <div class="info-card days-card" style="flex:1;">
-          <div class="title">Attendance</div>
-          <div class="days-row">
-            <div class="days-item"><div class="num">${payroll.workingDays}</div><div class="txt">Working</div></div>
-            <div class="days-item"><div class="num">${payroll.leaveDays}</div><div class="txt">Leave</div></div>
-            <div class="days-item"><div class="num">${payroll.unpaidLeaveDays}</div><div class="txt">Unpaid</div></div>
-          </div>
-        </div>
-      </div>
-
       <div class="two-col">
         <div class="col">
           <div class="section">
@@ -245,7 +246,7 @@ export async function GET(
           <div class="title">Employer Contributions (not deducted)</div>
           <table>
             ${employerRowsHtml}
-            <tr style="border-top:1px solid #93c5fd;"><td style="font-weight:700;">Total Employer Cost</td><td style="font-weight:800;">${fmt(totalEmployerCost)}</td></tr>
+            <tr style="border-top:1px solid #d1d5db;"><td style="font-weight:700;">Total Employer Cost</td><td style="font-weight:800;">${fmt(totalEmployerCost)}</td></tr>
           </table>
         </div>
         <div class="info-card pay-card">

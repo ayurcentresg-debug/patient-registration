@@ -62,27 +62,96 @@ export function formatCurrencyByCountry(amount: number, country: string): string
   return `${config.currencySymbol}${amount.toFixed(2)}`;
 }
 
+// ─── Singapore SHG Fund Rate Tables ───────────────────────────────────────
+// Self-Help Group contributions based on ethnicity & monthly wages
+// Source: https://www.cpf.gov.sg/employer/employer-obligations/contributions-to-self-help-groups
+
+type SHGTier = { maxWage: number; amount: number };
+
+const SHG_RATES: Record<string, { fundName: string; tiers: SHGTier[] }> = {
+  chinese: {
+    fundName: "CDAC",
+    tiers: [
+      { maxWage: 2000, amount: 0.50 },
+      { maxWage: 3500, amount: 1.00 },
+      { maxWage: 5000, amount: 1.50 },
+      { maxWage: 7500, amount: 2.00 },
+      { maxWage: Infinity, amount: 3.00 },
+    ],
+  },
+  malay: {
+    fundName: "MBMF",
+    tiers: [
+      { maxWage: 1000, amount: 3.00 },
+      { maxWage: 2000, amount: 4.50 },
+      { maxWage: 3000, amount: 6.50 },
+      { maxWage: 4000, amount: 15.00 },
+      { maxWage: 6000, amount: 19.50 },
+      { maxWage: 8000, amount: 22.00 },
+      { maxWage: 10000, amount: 24.00 },
+      { maxWage: Infinity, amount: 26.00 },
+    ],
+  },
+  indian: {
+    fundName: "SINDA",
+    tiers: [
+      { maxWage: 1000, amount: 1.00 },
+      { maxWage: 1500, amount: 3.00 },
+      { maxWage: 2500, amount: 5.00 },
+      { maxWage: 4500, amount: 7.00 },
+      { maxWage: 7500, amount: 9.00 },
+      { maxWage: 10000, amount: 12.00 },
+      { maxWage: 15000, amount: 18.00 },
+      { maxWage: Infinity, amount: 30.00 },
+    ],
+  },
+  eurasian: {
+    fundName: "ECF",
+    tiers: [
+      { maxWage: 1000, amount: 2.00 },
+      { maxWage: 1500, amount: 4.00 },
+      { maxWage: 2500, amount: 6.00 },
+      { maxWage: 4000, amount: 9.00 },
+      { maxWage: 7000, amount: 12.00 },
+      { maxWage: 10000, amount: 16.00 },
+      { maxWage: Infinity, amount: 20.00 },
+    ],
+  },
+};
+
+export function calculateSHG(monthlyWage: number, ethnicity?: string): { fundName: string; amount: number } {
+  const eth = (ethnicity || "chinese").toLowerCase();
+  const fund = SHG_RATES[eth];
+  if (!fund) return { fundName: "SHG", amount: 0 };
+  const tier = fund.tiers.find((t) => monthlyWage <= t.maxWage);
+  return { fundName: fund.fundName, amount: tier?.amount || 0 };
+}
+
 // ─── Singapore (SG) ────────────────────────────────────────────────────────
 
-function calculateSingapore(grossSalary: number, options?: { age?: number; annualIncome?: number }): StatutoryResult {
+function calculateSingapore(grossSalary: number, options?: { age?: number; annualIncome?: number; ethnicity?: string }): StatutoryResult {
   const age = options?.age || 30;
-  const OW_CEILING = 6800; // Ordinary Wage ceiling per month
+  const OW_CEILING = 8000; // Ordinary Wage ceiling per month (updated 1 Jan 2026)
   const AW_CEILING = 102000; // Annual ceiling
+  const CPF_ANNUAL_LIMIT = 37740; // Annual CPF contribution limit
 
-  // CPF rates by age group
+  // CPF rates by age group (effective 1 Jan 2026)
   let cpfEmployeeRate: number;
   let cpfEmployerRate: number;
   if (age <= 55) {
     cpfEmployeeRate = 0.20;
     cpfEmployerRate = 0.17;
   } else if (age <= 60) {
-    cpfEmployeeRate = 0.17;
-    cpfEmployerRate = 0.145;
+    cpfEmployeeRate = 0.18;
+    cpfEmployerRate = 0.16;
   } else if (age <= 65) {
-    cpfEmployeeRate = 0.13;
-    cpfEmployerRate = 0.11;
-  } else {
+    cpfEmployeeRate = 0.125;
+    cpfEmployerRate = 0.125;
+  } else if (age <= 70) {
     cpfEmployeeRate = 0.075;
+    cpfEmployerRate = 0.09;
+  } else {
+    cpfEmployeeRate = 0.05;
     cpfEmployerRate = 0.075;
   }
 
@@ -96,12 +165,12 @@ function calculateSingapore(grossSalary: number, options?: { age?: number; annua
   sdl = Math.max(2, Math.min(11.25, sdl));
   sdl = Math.round(sdl * 100) / 100;
 
-  // SHG Fund: simplified flat S$2/month
-  const shg = 2;
+  // SHG Fund: based on ethnicity and salary tier
+  const shgResult = calculateSHG(grossSalary, options?.ethnicity);
 
   const employeeContributions: StatutoryItem[] = [
     { name: "CPF Employee", amount: cpfEmployee, rate: cpfEmployeeRate * 100 },
-    { name: "SHG Fund", amount: shg },
+    { name: `SHG Fund (${shgResult.fundName})`, amount: shgResult.amount },
   ];
 
   const employerContributions: StatutoryItem[] = [
@@ -109,7 +178,7 @@ function calculateSingapore(grossSalary: number, options?: { age?: number; annua
     { name: "SDL", amount: sdl, rate: 0.25 },
   ];
 
-  const totalEmployeeDeductions = cpfEmployee + shg;
+  const totalEmployeeDeductions = cpfEmployee + shgResult.amount;
   const totalEmployerCost = cpfEmployer + sdl;
 
   return {
@@ -273,7 +342,7 @@ function calculateMalaysia(grossSalary: number, options?: { age?: number; annual
 export function calculateStatutory(
   country: string,
   grossSalary: number,
-  options?: { age?: number; annualIncome?: number }
+  options?: { age?: number; annualIncome?: number; ethnicity?: string }
 ): StatutoryResult {
   switch (country) {
     case "IN":

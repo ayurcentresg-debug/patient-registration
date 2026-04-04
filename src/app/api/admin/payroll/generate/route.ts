@@ -108,11 +108,18 @@ export async function POST(request: NextRequest) {
       // Gross pay (before deductions)
       const grossPay = config.baseSalary + totalAllowances + commission;
 
+      // Get user ethnicity for SHG calculation
+      const staffUser = await db.user.findFirst({
+        where: { id: config.userId },
+        select: { ethnicity: true },
+      });
+
       // Country-specific statutory calculations
       const country = config.country || "SG";
       const statutory = calculateStatutory(country, grossPay, {
         age: config.age || undefined,
         annualIncome: grossPay * 12,
+        ethnicity: staffUser?.ethnicity || undefined,
       });
 
       // For backward compatibility, still populate cpfEmployee/cpfEmployer fields

@@ -774,8 +774,9 @@ model User {
   // Staff identification
   staffIdNumber   String?   // D10001, T10001, P10001, R10001, A10001, S10001
 
-  // Clinical fields (doctor/therapist only)
+  // Demographics
   gender          String?   // "male" | "female"
+  ethnicity       String?   // "chinese" | "malay" | "indian" | "eurasian" | "other" — for SHG fund calculation
   specialization  String?
   department      String?
   consultationFee Float?

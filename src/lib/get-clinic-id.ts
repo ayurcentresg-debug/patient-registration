@@ -45,8 +45,8 @@ export async function getAuthPayload() {
   }
 }
 
-/** Admin-only roles that can manage settings, staff, branches, and delete records */
-export const ADMIN_ROLES = ["admin"];
+/** Roles that can access admin panel — settings, staff, payroll, branches */
+export const ADMIN_ROLES = ["admin", "receptionist", "staff"];
 
 /** Roles allowed to manage inventory and billing */
 export const STAFF_ROLES = ["admin", "receptionist", "pharmacist", "staff"];

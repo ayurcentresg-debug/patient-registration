@@ -14,6 +14,7 @@ interface Staff {
   isActive: boolean;
   staffIdNumber: string | null;
   gender: string | null;
+  ethnicity: string | null;
   specialization: string | null;
   department: string | null;
   consultationFee: number | null;
@@ -35,6 +36,7 @@ interface StaffForm {
   phone: string;
   role: string;
   gender: string;
+  ethnicity: string;
   specialization: string;
   department: string;
   consultationFee: string;
@@ -84,7 +86,7 @@ const DAYS = [
 ];
 
 const EMPTY_FORM: StaffForm = {
-  name: "", email: "", phone: "", role: "doctor", gender: "",
+  name: "", email: "", phone: "", role: "doctor", gender: "", ethnicity: "",
   specialization: "", department: "", consultationFee: "", slotDuration: "30",
   schedule: {}, sendInvite: false,
 };
@@ -187,6 +189,7 @@ export default function StaffPage() {
       phone: s.phone || "",
       role: s.role,
       gender: s.gender || "",
+      ethnicity: s.ethnicity || "",
       specialization: s.specialization || "",
       department: s.department || "",
       consultationFee: s.consultationFee !== null ? String(s.consultationFee) : "",
@@ -223,6 +226,7 @@ export default function StaffPage() {
       phone: form.phone.trim() || null,
       role: form.role,
       gender: form.gender || null,
+      ethnicity: form.ethnicity || null,
       specialization: isClinical ? form.specialization : null,
       department: isClinical ? form.department : null,
       consultationFee: isClinical && form.consultationFee ? Number(form.consultationFee) : null,
@@ -755,6 +759,17 @@ export default function StaffPage() {
                   </select>
                 </div>
               </div>
+              <div>
+                <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Ethnicity <span className="font-normal text-[12px]" style={{ color: "var(--grey-400)" }}>(for SHG fund)</span></label>
+                <select value={form.ethnicity} onChange={(e) => setForm({ ...form, ethnicity: e.target.value })} className="w-full px-3 py-2 text-[15px]" style={inputStyle}>
+                  <option value="">-- Select --</option>
+                  <option value="chinese">Chinese (CDAC)</option>
+                  <option value="malay">Malay (MBMF)</option>
+                  <option value="indian">Indian (SINDA)</option>
+                  <option value="eurasian">Eurasian (ECF)</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
 
               {/* Clinical fields */}
               {isClinical && (
@@ -896,6 +911,7 @@ interface ParsedRow {
   phone: string;
   role: string;
   gender: string;
+  ethnicity: string;
   specialization: string;
   department: string;
   consultationFee: string;
@@ -951,6 +967,7 @@ function BulkImportModal({ onClose, onComplete }: { onClose: () => void; onCompl
     const phoneIdx = headers.findIndex((h) => h === "phone");
     const roleIdx = headers.findIndex((h) => h === "role");
     const genderIdx = headers.findIndex((h) => h === "gender");
+    const ethnicityIdx = headers.findIndex((h) => h === "ethnicity");
     const specIdx = headers.findIndex((h) => h === "specialization");
     const deptIdx = headers.findIndex((h) => h === "department");
     const feeIdx = headers.findIndex((h) => ["consultationfee", "fee"].includes(h));
@@ -984,6 +1001,7 @@ function BulkImportModal({ onClose, onComplete }: { onClose: () => void; onCompl
         phone: get(phoneIdx),
         role,
         gender: get(genderIdx),
+        ethnicity: get(ethnicityIdx),
         specialization: get(specIdx),
         department: get(deptIdx),
         consultationFee: get(feeIdx),

@@ -83,6 +83,14 @@ export async function POST(
     const employerContribs = statutoryData.employerContributions || [];
     const taxWithholding = statutoryData.taxWithholding || payroll.taxWithholding || 0;
 
+    // MOM-required fields
+    const [periodYear, periodMonth] = payroll.period.split("-");
+    const periodStartDate = new Date(parseInt(periodYear), parseInt(periodMonth) - 1, 1);
+    const periodEndDate = new Date(parseInt(periodYear), parseInt(periodMonth), 0);
+    const periodStartStr = periodStartDate.toLocaleDateString("en-SG", { day: "numeric", month: "short", year: "numeric" });
+    const periodEndStr = periodEndDate.toLocaleDateString("en-SG", { day: "numeric", month: "short", year: "numeric" });
+    const additionalPay = (payroll.bonus || 0) + (payroll.commission || 0);
+
     const statutoryEmployeeRows = employeeContribs.length > 0
       ? employeeContribs.map((c) =>
           `<tr><td style="padding:8px 14px;border-bottom:1px solid #e2e8f0;font-size:14px;">${c.name}${c.rate ? ` (${c.rate}%)` : ""}</td><td style="padding:8px 14px;border-bottom:1px solid #e2e8f0;font-size:14px;text-align:right;font-variant-numeric:tabular-nums;">${fmt(c.amount)}</td></tr>`
@@ -107,100 +115,105 @@ export async function POST(
       ? `<img src="${clinicLogo}" alt="${clinicName}" style="max-height:50px;max-width:200px;margin-bottom:8px;" /><br/>`
       : "";
 
+    const td = `padding:8px 14px;border-bottom:1px solid #f3f4f6;font-size:14px;`;
+    const tdR = `${td}text-align:right;font-variant-numeric:tabular-nums;`;
+
     const html = `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
-<body style="margin:0;padding:0;background:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
-<div style="max-width:640px;margin:0 auto;padding:24px 16px;">
+<body style="margin:0;padding:0;background:#e8ecf1;font-family:'Segoe UI',-apple-system,sans-serif;">
+<div style="max-width:720px;margin:0 auto;padding:24px 16px;">
 
   <!-- Header -->
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:linear-gradient(135deg,#1e3a5f,#1e40af);border-radius:12px;padding:24px 28px;margin-bottom:24px;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px 12px 0 0;border-bottom:2px solid #e5e7eb;">
     <tr>
-      <td style="padding:24px 28px;">
+      <td style="padding:20px 24px;">
         ${logoHtml}
-        <div style="font-size:22px;font-weight:800;color:white;letter-spacing:1px;">${clinicName}</div>
-        ${clinicAddress ? `<div style="font-size:13px;color:rgba(255,255,255,0.7);margin-top:4px;">${clinicAddress}</div>` : ""}
+        <div style="font-size:20px;font-weight:700;color:#14532d;letter-spacing:0.3px;">${clinicName}</div>
+        ${clinicAddress ? `<div style="font-size:12px;color:#4b5563;margin-top:2px;">${clinicAddress}</div>` : ""}
       </td>
-      <td style="text-align:right;padding:24px 28px;">
-        <div style="font-size:20px;font-weight:700;color:white;">PAYSLIP</div>
-        <div style="font-size:14px;color:rgba(255,255,255,0.8);margin-top:4px;">${formatPeriodLabel(payroll.period)}</div>
-        <div style="display:inline-block;font-size:11px;font-weight:700;color:#1e40af;background:#dbeafe;padding:2px 8px;border-radius:4px;margin-top:6px;">${countryConfig.label} (${countryConfig.currency})</div>
+      <td style="text-align:right;padding:20px 24px;">
+        <div style="font-size:22px;font-weight:800;color:#374151;letter-spacing:2px;">PAYSLIP</div>
+        <div style="font-size:13px;color:#6b7280;margin-top:3px;">${formatPeriodLabel(payroll.period)}</div>
       </td>
     </tr>
   </table>
 
   <!-- Employee Info -->
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc;border-radius:8px;margin-bottom:24px;border:1px solid #e2e8f0;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9fafb;border-bottom:1px solid #e5e7eb;">
     <tr>
-      <td style="padding:14px 20px;width:50%;">
-        <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Employee Name</div>
-        <div style="font-size:15px;font-weight:700;margin-top:3px;color:#0f172a;">${user.name}</div>
+      <td style="padding:14px 24px;">
+        <div style="font-size:10px;color:#9ca3af;text-transform:uppercase;letter-spacing:0.8px;font-weight:600;">Employee</div>
+        <div style="font-size:15px;font-weight:700;color:#1f2937;margin-top:2px;">${user.name}</div>
       </td>
-      <td style="padding:14px 20px;width:50%;">
-        <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Staff ID</div>
-        <div style="font-size:15px;font-weight:700;margin-top:3px;color:#0f172a;">${user.staffIdNumber || "N/A"}</div>
+      <td style="padding:14px 24px;">
+        <div style="font-size:10px;color:#9ca3af;text-transform:uppercase;letter-spacing:0.8px;font-weight:600;">Staff ID</div>
+        <div style="font-size:15px;font-weight:700;color:#1f2937;margin-top:2px;">${user.staffIdNumber || "N/A"}</div>
+      </td>
+      <td style="padding:14px 24px;">
+        <div style="font-size:10px;color:#9ca3af;text-transform:uppercase;letter-spacing:0.8px;font-weight:600;">Designation</div>
+        <div style="font-size:15px;font-weight:700;color:#1f2937;margin-top:2px;">${(user.role || "staff").charAt(0).toUpperCase() + (user.role || "staff").slice(1)}</div>
       </td>
     </tr>
     <tr>
-      <td style="padding:14px 20px;">
-        <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Role</div>
-        <div style="font-size:15px;font-weight:700;margin-top:3px;color:#0f172a;">${(user.role || "staff").charAt(0).toUpperCase() + (user.role || "staff").slice(1)}</div>
+      <td style="padding:0 24px 14px;">
+        <div style="font-size:10px;color:#9ca3af;text-transform:uppercase;letter-spacing:0.8px;font-weight:600;">Pay Date</div>
+        <div style="font-size:15px;font-weight:700;color:#1f2937;margin-top:2px;">${payroll.paidAt ? new Date(payroll.paidAt).toLocaleDateString("en-SG", { day: "2-digit", month: "short", year: "numeric" }) : "Pending"}</div>
       </td>
-      <td style="padding:14px 20px;">
-        <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Working Days / Leave</div>
-        <div style="font-size:15px;font-weight:700;margin-top:3px;color:#0f172a;">${payroll.workingDays} days / ${payroll.leaveDays} leave</div>
+      <td colspan="2" style="padding:0 24px 14px;">
+        <div style="font-size:10px;color:#9ca3af;text-transform:uppercase;letter-spacing:0.8px;font-weight:600;">Salary Period</div>
+        <div style="font-size:15px;font-weight:700;color:#1f2937;margin-top:2px;">${periodStartStr} – ${periodEndStr}</div>
       </td>
     </tr>
   </table>
 
   <!-- Earnings -->
-  <div style="font-size:16px;font-weight:700;color:#1e40af;margin-bottom:10px;">Earnings</div>
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:white;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;margin-bottom:20px;">
-    <thead><tr style="background:#f1f5f9;"><th style="padding:10px 14px;text-align:left;font-size:13px;font-weight:600;color:#475569;">Description</th><th style="padding:10px 14px;text-align:right;font-size:13px;font-weight:600;color:#475569;">Amount</th></tr></thead>
-    <tbody>
-      <tr><td style="padding:8px 14px;border-bottom:1px solid #e2e8f0;font-size:14px;">Base Salary</td><td style="padding:8px 14px;border-bottom:1px solid #e2e8f0;font-size:14px;text-align:right;font-variant-numeric:tabular-nums;">${fmt(payroll.baseSalary)}</td></tr>
-      ${allowances.map((a) => `<tr><td style="padding:8px 14px;border-bottom:1px solid #e2e8f0;font-size:14px;">${a.name}</td><td style="padding:8px 14px;border-bottom:1px solid #e2e8f0;font-size:14px;text-align:right;font-variant-numeric:tabular-nums;">${fmt(a.amount)}</td></tr>`).join("")}
-      ${payroll.commission > 0 ? `<tr><td style="padding:8px 14px;border-bottom:1px solid #e2e8f0;font-size:14px;">Commission</td><td style="padding:8px 14px;border-bottom:1px solid #e2e8f0;font-size:14px;text-align:right;">${fmt(payroll.commission)}</td></tr>` : ""}
-      ${payroll.overtime > 0 ? `<tr><td style="padding:8px 14px;border-bottom:1px solid #e2e8f0;font-size:14px;">Overtime</td><td style="padding:8px 14px;border-bottom:1px solid #e2e8f0;font-size:14px;text-align:right;">${fmt(payroll.overtime)}</td></tr>` : ""}
-      ${payroll.bonus > 0 ? `<tr><td style="padding:8px 14px;border-bottom:1px solid #e2e8f0;font-size:14px;">Bonus</td><td style="padding:8px 14px;border-bottom:1px solid #e2e8f0;font-size:14px;text-align:right;">${fmt(payroll.bonus)}</td></tr>` : ""}
-      <tr style="border-top:2px solid #1e40af;"><td style="padding:10px 14px;font-size:15px;font-weight:700;">Gross Pay</td><td style="padding:10px 14px;font-size:15px;font-weight:700;text-align:right;">${fmt(payroll.grossPay)}</td></tr>
-    </tbody>
-  </table>
+  <div style="padding:16px 24px 0;">
+    <div style="font-size:11px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;background:#f0fdf4;color:#166534;padding:8px 14px;border-radius:8px 8px 0 0;border:1px solid #e5e7eb;border-bottom:none;">Earnings</div>
+    <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e5e7eb;border-radius:0 0 8px 8px;">
+      <tr><td style="${td}">Basic Salary</td><td style="${tdR}">${fmt(payroll.baseSalary)}</td></tr>
+      ${allowances.length > 0
+        ? allowances.map((a) => `<tr><td style="${td}">${a.name}</td><td style="${tdR}">${fmt(a.amount)}</td></tr>`).join("")
+        : `<tr><td style="${td}">Allowances</td><td style="${tdR}">${fmt(0)}</td></tr>`}
+      <tr><td style="${td}">Additional Pay (Bonus/PH/Rest)</td><td style="${tdR}">${fmt(additionalPay)}</td></tr>
+      <tr><td style="${td}">Overtime</td><td style="${tdR}">${fmt(payroll.overtime || 0)}</td></tr>
+      <tr><td style="padding:8px 14px;font-weight:700;font-size:14px;border-top:1.5px solid #d1d5db;color:#166534;background:#f9fafb;">Gross Pay</td><td style="padding:8px 14px;font-weight:700;font-size:14px;text-align:right;border-top:1.5px solid #d1d5db;color:#166534;background:#f9fafb;">${fmt(payroll.grossPay)}</td></tr>
+    </table>
+  </div>
 
   <!-- Deductions -->
-  <div style="font-size:16px;font-weight:700;color:#1e40af;margin-bottom:10px;">Deductions</div>
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:white;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;margin-bottom:20px;">
-    <thead><tr style="background:#f1f5f9;"><th style="padding:10px 14px;text-align:left;font-size:13px;font-weight:600;color:#475569;">Description</th><th style="padding:10px 14px;text-align:right;font-size:13px;font-weight:600;color:#475569;">Amount</th></tr></thead>
-    <tbody>
+  <div style="padding:12px 24px 0;">
+    <div style="font-size:11px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;background:#fff7ed;color:#9a3412;padding:8px 14px;border-radius:8px 8px 0 0;border:1px solid #e5e7eb;border-bottom:none;">Deductions</div>
+    <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e5e7eb;border-radius:0 0 8px 8px;">
       ${statutoryEmployeeRows}
       ${taxRow}
-      ${payroll.unpaidLeave > 0 ? `<tr><td style="padding:8px 14px;border-bottom:1px solid #e2e8f0;font-size:14px;">Unpaid Leave (${payroll.unpaidLeaveDays} days)</td><td style="padding:8px 14px;border-bottom:1px solid #e2e8f0;font-size:14px;text-align:right;">${fmt(payroll.unpaidLeave)}</td></tr>` : ""}
-      ${deductions.map((d) => `<tr><td style="padding:8px 14px;border-bottom:1px solid #e2e8f0;font-size:14px;">${d.name}</td><td style="padding:8px 14px;border-bottom:1px solid #e2e8f0;font-size:14px;text-align:right;">${fmt(d.amount)}</td></tr>`).join("")}
-      <tr style="border-top:2px solid #1e40af;"><td style="padding:10px 14px;font-size:15px;font-weight:700;">Total Deductions</td><td style="padding:10px 14px;font-size:15px;font-weight:700;text-align:right;">${fmt(payroll.totalDeductions)}</td></tr>
-    </tbody>
-  </table>
-
-  <!-- Employer Contributions -->
-  <div style="margin-bottom:20px;padding:14px;background:#f0fdf4;border-radius:6px;border:1px solid #bbf7d0;">
-    <strong style="font-size:14px;color:#166534;">Employer Statutory Contributions</strong>
-    <span style="color:#94a3b8;margin-left:8px;font-size:12px;">(not deducted from salary)</span>
-    <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:8px;">
-      ${employerRows}
-      <tr style="border-top:1px solid #166534;"><td style="padding:6px 14px;font-size:13px;font-weight:700;">Total Employer Cost</td><td style="padding:6px 14px;font-size:13px;font-weight:700;text-align:right;">${fmt(totalEmployerCost)}</td></tr>
+      ${payroll.unpaidLeave > 0 ? `<tr><td style="${td}">Unpaid Leave (${payroll.unpaidLeaveDays} days)</td><td style="${tdR}">${fmt(payroll.unpaidLeave)}</td></tr>` : ""}
+      ${deductions.map((d) => `<tr><td style="${td}">${d.name}</td><td style="${tdR}">${fmt(d.amount)}</td></tr>`).join("")}
+      <tr><td style="padding:8px 14px;font-weight:700;font-size:14px;border-top:1.5px solid #d1d5db;color:#9a3412;background:#f9fafb;">Total Deductions</td><td style="padding:8px 14px;font-weight:700;font-size:14px;text-align:right;border-top:1.5px solid #d1d5db;color:#9a3412;background:#f9fafb;">${fmt(payroll.totalDeductions)}</td></tr>
     </table>
   </div>
 
   <!-- Net Pay -->
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#1e40af;border-radius:8px;margin-bottom:24px;">
-    <tr>
-      <td style="padding:18px 24px;font-size:18px;font-weight:600;color:white;">Net Pay</td>
-      <td style="padding:18px 24px;font-size:24px;font-weight:700;color:white;text-align:right;">${fmt(payroll.netPay)}</td>
-    </tr>
-  </table>
+  <div style="padding:12px 24px;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9fafb;border:1.5px solid #d1d5db;border-radius:8px;">
+      <tr>
+        <td style="padding:12px 18px;font-size:16px;font-weight:600;color:#1f2937;">NET PAY</td>
+        <td style="padding:12px 18px;font-size:24px;font-weight:800;color:#1f2937;text-align:right;letter-spacing:0.5px;">${fmt(payroll.netPay)}</td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- Employer Contributions -->
+  <div style="padding:0 24px 12px;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;">
+      <tr><td colspan="2" style="padding:10px 14px;font-size:11px;font-weight:700;color:#4b5563;text-transform:uppercase;letter-spacing:0.5px;">Employer Contributions (not deducted)</td></tr>
+      ${employerRows}
+      <tr style="border-top:1px solid #d1d5db;"><td style="padding:6px 14px;font-size:12px;font-weight:700;color:#374151;">Total Employer Cost</td><td style="padding:6px 14px;font-size:12px;font-weight:800;text-align:right;color:#374151;">${fmt(totalEmployerCost)}</td></tr>
+    </table>
+  </div>
 
   <!-- Footer -->
-  <div style="text-align:center;padding:16px 0;font-size:12px;color:#94a3b8;border-top:1px solid #e2e8f0;">
-    This is a computer-generated payslip from ${clinicName}.<br/>
-    Generated on ${new Date().toLocaleDateString("en-SG")} | Confidential
+  <div style="text-align:center;padding:12px 24px;font-size:10px;color:#9ca3af;border-top:1px solid #e5e7eb;background:#fafafa;border-radius:0 0 12px 12px;">
+    Computer-generated payslip &mdash; ${clinicName} &mdash; ${new Date().toLocaleDateString("en-SG")} | Confidential
   </div>
 
 </div>

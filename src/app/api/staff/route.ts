@@ -64,6 +64,7 @@ export async function GET(request: NextRequest) {
         avatar: true,
         staffIdNumber: true,
         gender: true,
+        ethnicity: true,
         specialization: true,
         department: true,
         consultationFee: true,
@@ -105,7 +106,7 @@ export async function POST(request: NextRequest) {
     const db = clinicId ? getTenantPrisma(clinicId) : prisma;
 
     const body = await request.json();
-    const { name, email, phone, role, gender, specialization, department, consultationFee, schedule, slotDuration, status, sendInvite } = body;
+    const { name, email, phone, role, gender, ethnicity, specialization, department, consultationFee, schedule, slotDuration, status, sendInvite } = body;
 
     if (!name || !email) {
       return NextResponse.json({ error: "Name and email are required" }, { status: 400 });
@@ -153,6 +154,7 @@ export async function POST(request: NextRequest) {
         role: role || "staff",
         staffIdNumber,
         gender: gender || null,
+        ethnicity: ethnicity || null,
         specialization: isClinical ? (specialization || null) : null,
         department: isClinical ? (department || null) : null,
         consultationFee: isClinical && consultationFee !== undefined ? Number(consultationFee) : null,
