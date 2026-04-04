@@ -35,14 +35,16 @@ export async function GET(
     // Get clinic info
     let clinicName = "AYUR GATE";
     let clinicAddress = "";
+    let clinicLogo = "";
     if (clinicId) {
       const clinic = await prisma.clinic.findUnique({
         where: { id: clinicId },
-        select: { name: true, address: true, city: true, country: true },
+        select: { name: true, address: true, city: true, country: true, logoUrl: true },
       });
       if (clinic) {
         clinicName = clinic.name;
         clinicAddress = [clinic.address, clinic.city, clinic.country].filter(Boolean).join(", ");
+        clinicLogo = clinic.logoUrl || "";
       }
     }
 
@@ -147,8 +149,22 @@ export async function GET(
 </style>
 </head>
 <body>
+  <!-- Action Buttons (hidden on print) -->
+  <div class="no-print" style="display:flex;gap:12px;margin-bottom:20px;justify-content:flex-end;">
+    <button onclick="window.print()" style="padding:10px 24px;background:#1e40af;color:white;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;">
+      Print / Save PDF
+    </button>
+    <button onclick="emailPayslip()" id="emailBtn" style="padding:10px 24px;background:#059669;color:white;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;">
+      Email to Staff
+    </button>
+    <button onclick="window.close()" style="padding:10px 24px;background:#e2e8f0;color:#475569;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;">
+      Close
+    </button>
+  </div>
+
   <div class="header">
     <div>
+      ${clinicLogo ? `<img src="${clinicLogo}" alt="${clinicName}" style="max-height:50px;max-width:200px;margin-bottom:8px;display:block;" />` : ""}
       <div class="company-name">${clinicName}</div>
       ${clinicAddress ? `<div class="company-address">${clinicAddress}</div>` : ""}
     </div>
@@ -238,6 +254,47 @@ export async function GET(
   <div class="footer">
     This is a computer-generated payslip. | ${clinicName} | Generated on ${new Date().toLocaleDateString("en-SG")}
   </div>
+
+  <!-- Email notification banner -->
+  <div id="emailStatus" style="display:none;position:fixed;top:20px;left:50%;transform:translateX(-50%);padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600;z-index:1000;"></div>
+
+  <script>
+    async function emailPayslip() {
+      const btn = document.getElementById('emailBtn');
+      const status = document.getElementById('emailStatus');
+      btn.disabled = true;
+      btn.textContent = 'Sending...';
+      btn.style.opacity = '0.6';
+      try {
+        const res = await fetch('/api/admin/payroll/${id}/email-payslip', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({}),
+        });
+        const data = await res.json();
+        if (res.ok) {
+          status.style.display = 'block';
+          status.style.background = '#d1fae5';
+          status.style.color = '#065f46';
+          status.textContent = 'Payslip emailed to ' + data.sentTo;
+          btn.textContent = 'Sent!';
+          btn.style.background = '#d1fae5';
+          btn.style.color = '#065f46';
+        } else {
+          throw new Error(data.error || 'Failed');
+        }
+      } catch (err) {
+        status.style.display = 'block';
+        status.style.background = '#fef2f2';
+        status.style.color = '#dc2626';
+        status.textContent = 'Failed to send: ' + err.message;
+        btn.textContent = 'Retry Email';
+        btn.style.opacity = '1';
+        btn.disabled = false;
+      }
+      setTimeout(() => { status.style.display = 'none'; }, 5000);
+    }
+  </script>
 </body>
 </html>`;
 

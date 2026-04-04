@@ -231,6 +231,8 @@ function PayrollTab({ showToast }: { showToast: (m: string, t: "ok" | "err") => 
   const [editOvertime, setEditOvertime] = useState("");
   const [editBonus, setEditBonus] = useState("");
   const [bulkLoading, setBulkLoading] = useState(false);
+  const [emailingId, setEmailingId] = useState<string | null>(null);
+  const [bulkEmailing, setBulkEmailing] = useState(false);
 
   const fetchPayrolls = useCallback(async () => {
     setLoading(true);
@@ -312,6 +314,53 @@ function PayrollTab({ showToast }: { showToast: (m: string, t: "ok" | "err") => 
       showToast("Bulk action failed", "err");
     } finally {
       setBulkLoading(false);
+    }
+  };
+
+  const handleEmailPayslip = async (payrollId: string) => {
+    setEmailingId(payrollId);
+    try {
+      const res = await fetch(`/api/admin/payroll/${payrollId}/email-payslip`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showToast(`Payslip emailed to ${data.sentTo}`, "ok");
+      } else {
+        showToast(data.error || "Failed to email payslip", "err");
+      }
+    } catch {
+      showToast("Failed to email payslip", "err");
+    } finally {
+      setEmailingId(null);
+    }
+  };
+
+  const handleBulkEmail = async () => {
+    if (!payrolls.length) {
+      showToast("No payroll records to email", "err");
+      return;
+    }
+    if (!confirm(`Email payslips to all ${payrolls.length} staff for ${formatPeriodLabel(period)}?`)) return;
+    setBulkEmailing(true);
+    try {
+      const res = await fetch("/api/admin/payroll/bulk-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ period }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showToast(`Emailed ${data.sent} payslips (${data.failed} failed, ${data.noEmail} no email)`, data.failed > 0 ? "err" : "ok");
+      } else {
+        showToast(data.error || "Bulk email failed", "err");
+      }
+    } catch {
+      showToast("Bulk email failed", "err");
+    } finally {
+      setBulkEmailing(false);
     }
   };
 
@@ -398,6 +447,14 @@ function PayrollTab({ showToast }: { showToast: (m: string, t: "ok" | "err") => 
             style={{ background: "#d1fae5", color: "#065f46", border: "1px solid #a7f3d0" }}
           >
             Mark All Paid
+          </button>
+          <button
+            onClick={handleBulkEmail}
+            disabled={bulkEmailing || !payrolls.length}
+            className="px-4 py-2.5 font-semibold text-[14px] rounded-lg"
+            style={{ background: "#fef3c7", color: "#92400e", border: "1px solid #fde68a", opacity: bulkEmailing ? 0.6 : 1 }}
+          >
+            {bulkEmailing ? "Emailing..." : "📧 Email All Payslips"}
           </button>
         </div>
       </div>
@@ -558,8 +615,18 @@ function PayrollTab({ showToast }: { showToast: (m: string, t: "ok" | "err") => 
                               onClick={() => window.open(`/api/admin/payroll/${p.id}/payslip`, "_blank")}
                               className="px-2 py-1 text-[12px] font-semibold rounded"
                               style={{ background: "#fef3c7", color: "#92400e" }}
+                              title="View & Print Payslip"
                             >
                               Payslip
+                            </button>
+                            <button
+                              onClick={() => handleEmailPayslip(p.id)}
+                              disabled={emailingId === p.id}
+                              className="px-2 py-1 text-[12px] font-semibold rounded"
+                              style={{ background: "#dbeafe", color: "#1e40af", opacity: emailingId === p.id ? 0.6 : 1 }}
+                              title="Email payslip to staff"
+                            >
+                              {emailingId === p.id ? "..." : "📧"}
                             </button>
                           </>
                         )}
