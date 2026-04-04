@@ -860,7 +860,7 @@ function SalarySetupTab({ showToast }: { showToast: (m: string, t: "ok" | "err")
                 Statutory Contributions ({COUNTRY_LABEL[formCountry] || "Singapore"})
               </div>
               <div className="text-[12px]" style={{ color: "#0369a1" }}>
-                {formCountry === "SG" && "CPF Employee + Employer (OW ceiling S$8,000), SDL (0.25%), SHG Fund (by ethnicity). No monthly tax withholding."}
+                {formCountry === "SG" && "CPF rates by residency: Singaporean (full), PR (graduated 1st/2nd/3rd yr), Foreigner (no CPF). OW ceiling S$8,000, SDL (0.25%), SHG Fund (by ethnicity). Age & residency auto-read from Staff profile."}
                 {formCountry === "IN" && "EPF 12%+12% (on basic up to \u20B915,000), ESI (if salary \u2264\u20B921,000), Professional Tax, TDS (New Regime)."}
                 {formCountry === "MY" && "EPF 11%+12/13%, SOCSO (up to RM4,000), EIS (up to RM4,000), PCB monthly tax."}
               </div>

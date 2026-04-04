@@ -66,7 +66,10 @@ export async function PUT(
     if (body.phone !== undefined) updateData.phone = body.phone || null;
     if (body.role !== undefined) updateData.role = body.role;
     if (body.gender !== undefined) updateData.gender = body.gender || null;
+    if (body.dateOfBirth !== undefined) updateData.dateOfBirth = body.dateOfBirth ? new Date(body.dateOfBirth) : null;
     if (body.ethnicity !== undefined) updateData.ethnicity = body.ethnicity || null;
+    if (body.residencyStatus !== undefined) updateData.residencyStatus = body.residencyStatus || null;
+    if (body.prStartDate !== undefined) updateData.prStartDate = body.prStartDate ? new Date(body.prStartDate) : null;
     if (body.specialization !== undefined) updateData.specialization = body.specialization || null;
     if (body.department !== undefined) updateData.department = body.department || null;
     if (body.consultationFee !== undefined) updateData.consultationFee = body.consultationFee !== null ? Number(body.consultationFee) : null;
@@ -74,6 +77,10 @@ export async function PUT(
     if (body.slotDuration !== undefined) updateData.slotDuration = Number(body.slotDuration);
     if (body.status !== undefined) updateData.status = body.status;
     if (body.isActive !== undefined) updateData.isActive = body.isActive;
+    if (body.dateOfJoining !== undefined) updateData.dateOfJoining = body.dateOfJoining ? new Date(body.dateOfJoining) : null;
+    if (body.lastWorkingDate !== undefined) updateData.lastWorkingDate = body.lastWorkingDate ? new Date(body.lastWorkingDate) : null;
+    if (body.resignationDate !== undefined) updateData.resignationDate = body.resignationDate ? new Date(body.resignationDate) : null;
+    if (body.resignationReason !== undefined) updateData.resignationReason = body.resignationReason || null;
     if (body.password && typeof body.password === "string" && body.password.length >= 6) {
       updateData.password = await bcrypt.hash(body.password, 12);
     }

@@ -108,10 +108,10 @@ export async function POST(request: NextRequest) {
       // Gross pay (before deductions)
       const grossPay = config.baseSalary + totalAllowances + commission;
 
-      // Get user ethnicity for SHG calculation
+      // Get user details for statutory calculation
       const staffUser = await db.user.findFirst({
         where: { id: config.userId },
-        select: { ethnicity: true },
+        select: { ethnicity: true, dateOfBirth: true, residencyStatus: true, prStartDate: true },
       });
 
       // Country-specific statutory calculations
@@ -120,15 +120,18 @@ export async function POST(request: NextRequest) {
         age: config.age || undefined,
         annualIncome: grossPay * 12,
         ethnicity: staffUser?.ethnicity || undefined,
+        residencyStatus: staffUser?.residencyStatus || undefined,
+        prStartDate: staffUser?.prStartDate || undefined,
+        dateOfBirth: staffUser?.dateOfBirth || undefined,
       });
 
       // For backward compatibility, still populate cpfEmployee/cpfEmployer fields
       // For SG: use CPF amounts; for other countries: use the primary employee/employer fund
       const cpfEmployeeAmt = country === "SG"
-        ? (statutory.employeeContributions.find(c => c.name === "CPF Employee")?.amount || 0)
+        ? (statutory.employeeContributions.find(c => c.name.startsWith("CPF Employee"))?.amount || 0)
         : statutory.employeeContributions[0]?.amount || 0;
       const cpfEmployerAmt = country === "SG"
-        ? (statutory.employerContributions.find(c => c.name === "CPF Employer")?.amount || 0)
+        ? (statutory.employerContributions.find(c => c.name.startsWith("CPF Employer"))?.amount || 0)
         : statutory.employerContributions[0]?.amount || 0;
 
       // Total deductions = all employee statutory + tax + unpaid leave + custom deductions

@@ -15,6 +15,13 @@ interface Staff {
   staffIdNumber: string | null;
   gender: string | null;
   ethnicity: string | null;
+  dateOfBirth: string | null;
+  residencyStatus: string | null;
+  prStartDate: string | null;
+  dateOfJoining: string | null;
+  lastWorkingDate: string | null;
+  resignationDate: string | null;
+  resignationReason: string | null;
   specialization: string | null;
   department: string | null;
   consultationFee: number | null;
@@ -37,6 +44,13 @@ interface StaffForm {
   role: string;
   gender: string;
   ethnicity: string;
+  dateOfBirth: string;
+  residencyStatus: string;
+  prStartDate: string;
+  dateOfJoining: string;
+  lastWorkingDate: string;
+  resignationDate: string;
+  resignationReason: string;
   specialization: string;
   department: string;
   consultationFee: string;
@@ -72,6 +86,7 @@ const THERAPIST_SPECIALIZATIONS = [
 const DEPARTMENTS = [
   "Panchakarma", "General Ayurveda", "Kayachikitsa",
   "Yoga & Naturopathy", "Marma Therapy",
+  "Admin", "Operations", "Front Desk", "Pharmacy", "Accounts", "General",
 ];
 
 const SLOT_DURATIONS = [15, 20, 30, 45, 60];
@@ -87,6 +102,7 @@ const DAYS = [
 
 const EMPTY_FORM: StaffForm = {
   name: "", email: "", phone: "", role: "doctor", gender: "", ethnicity: "",
+  dateOfBirth: "", residencyStatus: "", prStartDate: "", dateOfJoining: "", lastWorkingDate: "", resignationDate: "", resignationReason: "",
   specialization: "", department: "", consultationFee: "", slotDuration: "30",
   schedule: {}, sendInvite: false,
 };
@@ -190,6 +206,13 @@ export default function StaffPage() {
       role: s.role,
       gender: s.gender || "",
       ethnicity: s.ethnicity || "",
+      dateOfBirth: s.dateOfBirth ? s.dateOfBirth.split("T")[0] : "",
+      residencyStatus: s.residencyStatus || "",
+      prStartDate: s.prStartDate ? s.prStartDate.split("T")[0] : "",
+      dateOfJoining: s.dateOfJoining ? s.dateOfJoining.split("T")[0] : "",
+      lastWorkingDate: s.lastWorkingDate ? s.lastWorkingDate.split("T")[0] : "",
+      resignationDate: s.resignationDate ? s.resignationDate.split("T")[0] : "",
+      resignationReason: s.resignationReason || "",
       specialization: s.specialization || "",
       department: s.department || "",
       consultationFee: s.consultationFee !== null ? String(s.consultationFee) : "",
@@ -227,8 +250,15 @@ export default function StaffPage() {
       role: form.role,
       gender: form.gender || null,
       ethnicity: form.ethnicity || null,
+      dateOfBirth: form.dateOfBirth || null,
+      residencyStatus: form.residencyStatus || null,
+      prStartDate: form.prStartDate || null,
+      dateOfJoining: form.dateOfJoining || null,
+      lastWorkingDate: form.lastWorkingDate || null,
+      resignationDate: form.resignationDate || null,
+      resignationReason: form.resignationReason || null,
       specialization: isClinical ? form.specialization : null,
-      department: isClinical ? form.department : null,
+      department: form.department || null,
       consultationFee: isClinical && form.consultationFee ? Number(form.consultationFee) : null,
       slotDuration: isClinical ? Number(form.slotDuration) : 30,
       schedule: isClinical ? JSON.stringify(form.schedule) : "{}",
@@ -771,6 +801,71 @@ export default function StaffPage() {
                 </select>
               </div>
 
+              {/* Date of Birth + Residency Status */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Date of Birth</label>
+                  <input type="date" value={form.dateOfBirth} onChange={(e) => setForm({ ...form, dateOfBirth: e.target.value })} className="w-full px-3 py-2 text-[15px]" style={inputStyle} />
+                </div>
+                <div>
+                  <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Residency Status <span className="font-normal text-[12px]" style={{ color: "var(--grey-400)" }}>(for CPF)</span></label>
+                  <select value={form.residencyStatus} onChange={(e) => setForm({ ...form, residencyStatus: e.target.value })} className="w-full px-3 py-2 text-[15px]" style={inputStyle}>
+                    <option value="">-- Select --</option>
+                    <option value="singaporean">Singaporean</option>
+                    <option value="pr">Permanent Resident (PR)</option>
+                    <option value="foreigner">Foreigner</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* PR Start Date (shown only if PR) */}
+              {form.residencyStatus === "pr" && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>PR Effective Date <span className="font-normal text-[12px]" style={{ color: "var(--grey-400)" }}>(for graduated CPF rates)</span></label>
+                    <input type="date" value={form.prStartDate} onChange={(e) => setForm({ ...form, prStartDate: e.target.value })} className="w-full px-3 py-2 text-[15px]" style={inputStyle} />
+                  </div>
+                </div>
+              )}
+
+              {/* Department + Date of Joining */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Department</label>
+                  <select value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })} className="w-full px-3 py-2 text-[15px]" style={inputStyle}>
+                    <option value="">-- Select --</option>
+                    {DEPARTMENTS.map((d) => <option key={d} value={d}>{d}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Date of Joining</label>
+                  <input type="date" value={form.dateOfJoining} onChange={(e) => setForm({ ...form, dateOfJoining: e.target.value })} className="w-full px-3 py-2 text-[15px]" style={inputStyle} />
+                </div>
+              </div>
+
+              {/* Resignation details — only show when editing and status is inactive */}
+              {editingId && (
+                <>
+                  <div className="pt-2 pb-1">
+                    <p className="text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-500)" }}>Separation Details</p>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Resignation Date</label>
+                      <input type="date" value={form.resignationDate} onChange={(e) => setForm({ ...form, resignationDate: e.target.value })} className="w-full px-3 py-2 text-[15px]" style={inputStyle} />
+                    </div>
+                    <div>
+                      <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Last Working Date</label>
+                      <input type="date" value={form.lastWorkingDate} onChange={(e) => setForm({ ...form, lastWorkingDate: e.target.value })} className="w-full px-3 py-2 text-[15px]" style={inputStyle} />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Reason for Leaving</label>
+                    <input type="text" value={form.resignationReason} onChange={(e) => setForm({ ...form, resignationReason: e.target.value })} className="w-full px-3 py-2 text-[15px]" style={inputStyle} placeholder="e.g., Personal reasons, Career change..." />
+                  </div>
+                </>
+              )}
+
               {/* Clinical fields */}
               {isClinical && (
                 <>
@@ -778,21 +873,12 @@ export default function StaffPage() {
                     <p className="text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-500)" }}>Clinical Details</p>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Specialization *</label>
-                      <select value={form.specialization} onChange={(e) => setForm({ ...form, specialization: e.target.value })} className="w-full px-3 py-2 text-[15px]" style={inputStyle}>
-                        <option value="">-- Select --</option>
-                        {specializations.map((s) => <option key={s} value={s}>{s}</option>)}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Department *</label>
-                      <select value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })} className="w-full px-3 py-2 text-[15px]" style={inputStyle}>
-                        <option value="">-- Select --</option>
-                        {DEPARTMENTS.map((d) => <option key={d} value={d}>{d}</option>)}
-                      </select>
-                    </div>
+                  <div>
+                    <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Specialization *</label>
+                    <select value={form.specialization} onChange={(e) => setForm({ ...form, specialization: e.target.value })} className="w-full px-3 py-2 text-[15px]" style={inputStyle}>
+                      <option value="">-- Select --</option>
+                      {specializations.map((s) => <option key={s} value={s}>{s}</option>)}
+                    </select>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

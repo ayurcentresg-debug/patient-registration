@@ -64,13 +64,20 @@ export async function GET(request: NextRequest) {
         avatar: true,
         staffIdNumber: true,
         gender: true,
+        dateOfBirth: true,
         ethnicity: true,
+        residencyStatus: true,
+        prStartDate: true,
         specialization: true,
         department: true,
         consultationFee: true,
         schedule: true,
         slotDuration: true,
         status: true,
+        dateOfJoining: true,
+        lastWorkingDate: true,
+        resignationDate: true,
+        resignationReason: true,
         inviteToken: true,
         inviteExpiresAt: true,
         lastLogin: true,
@@ -106,7 +113,7 @@ export async function POST(request: NextRequest) {
     const db = clinicId ? getTenantPrisma(clinicId) : prisma;
 
     const body = await request.json();
-    const { name, email, phone, role, gender, ethnicity, specialization, department, consultationFee, schedule, slotDuration, status, sendInvite } = body;
+    const { name, email, phone, role, gender, dateOfBirth, ethnicity, residencyStatus, prStartDate, specialization, department, consultationFee, schedule, slotDuration, status, dateOfJoining, sendInvite } = body;
 
     if (!name || !email) {
       return NextResponse.json({ error: "Name and email are required" }, { status: 400 });
@@ -154,13 +161,17 @@ export async function POST(request: NextRequest) {
         role: role || "staff",
         staffIdNumber,
         gender: gender || null,
+        dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
         ethnicity: ethnicity || null,
+        residencyStatus: residencyStatus || null,
+        prStartDate: prStartDate ? new Date(prStartDate) : null,
         specialization: isClinical ? (specialization || null) : null,
-        department: isClinical ? (department || null) : null,
+        department: department || null,
         consultationFee: isClinical && consultationFee !== undefined ? Number(consultationFee) : null,
         schedule: isClinical ? (schedule || "{}") : "{}",
         slotDuration: isClinical && slotDuration ? Number(slotDuration) : 30,
         status: status || "active",
+        dateOfJoining: dateOfJoining ? new Date(dateOfJoining) : null,
         isActive: true,
         inviteToken,
         inviteExpiresAt,

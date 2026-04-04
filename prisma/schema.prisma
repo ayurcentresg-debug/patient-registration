@@ -776,13 +776,22 @@ model User {
 
   // Demographics
   gender          String?   // "male" | "female"
+  dateOfBirth     DateTime? // for CPF age-based rates
   ethnicity       String?   // "chinese" | "malay" | "indian" | "eurasian" | "other" — for SHG fund calculation
+  residencyStatus String?   // "singaporean" | "pr" | "foreigner" — for CPF/levy logic
+  prStartDate     DateTime? // PR effective date — to determine 1st/2nd/3rd year graduated rates
   specialization  String?
   department      String?
   consultationFee Float?
   schedule        String    @default("{}") // weekly schedule JSON
   slotDuration    Int       @default(30)   // minutes per slot
   status          String    @default("active") // active | inactive
+
+  // Employment dates
+  dateOfJoining   DateTime? // first day of work
+  lastWorkingDate DateTime? // last day if resigned/terminated
+  resignationDate DateTime? // date resignation was submitted
+  resignationReason String? // reason for leaving
 
   // Email invite
   inviteToken     String?   @unique // keep globally unique for invite links

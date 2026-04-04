@@ -101,8 +101,15 @@ export async function POST(request: NextRequest) {
         const phone = (record.phone || "").trim() || null;
         const gender = (record.gender || "").trim().toLowerCase() || null;
         const ethnicity = (record.ethnicity || "").trim().toLowerCase() || null;
+        const dateOfBirthRaw = (record.dateOfBirth || "").trim();
+        const dateOfBirth = dateOfBirthRaw ? new Date(dateOfBirthRaw) : null;
+        const residencyStatus = (record.residencyStatus || "").trim().toLowerCase() || null;
+        const prStartDateRaw = (record.prStartDate || "").trim();
+        const prStartDate = prStartDateRaw ? new Date(prStartDateRaw) : null;
+        const dateOfJoiningRaw = (record.dateOfJoining || "").trim();
+        const dateOfJoining = dateOfJoiningRaw ? new Date(dateOfJoiningRaw) : null;
         const specialization = isClinical ? ((record.specialization || "").trim() || null) : null;
-        const department = isClinical ? ((record.department || "").trim() || null) : null;
+        const department = (record.department || "").trim() || null;
         const consultationFee = isClinical && record.consultationFee
           ? Number(record.consultationFee)
           : null;
@@ -120,6 +127,10 @@ export async function POST(request: NextRequest) {
             staffIdNumber,
             gender,
             ethnicity,
+            dateOfBirth: dateOfBirth && !isNaN(dateOfBirth.getTime()) ? dateOfBirth : null,
+            residencyStatus,
+            prStartDate: prStartDate && !isNaN(prStartDate.getTime()) ? prStartDate : null,
+            dateOfJoining: dateOfJoining && !isNaN(dateOfJoining.getTime()) ? dateOfJoining : null,
             specialization,
             department,
             consultationFee: consultationFee !== null && !isNaN(consultationFee) ? consultationFee : null,

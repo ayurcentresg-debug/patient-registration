@@ -127,54 +127,130 @@ export function calculateSHG(monthlyWage: number, ethnicity?: string): { fundNam
   return { fundName: fund.fundName, amount: tier?.amount || 0 };
 }
 
+// ─── Singapore CPF Rate Tables ─────────────────────────────────────────────
+// Source: https://www.cpf.gov.sg/employer/employer-obligations/how-much-cpf-contributions-to-pay
+
+// Full rates — Singaporean & PR 3rd year+
+function getCPFRatesFull(age: number): { employee: number; employer: number } {
+  if (age <= 55) return { employee: 0.20, employer: 0.17 };
+  if (age <= 60) return { employee: 0.18, employer: 0.16 };
+  if (age <= 65) return { employee: 0.125, employer: 0.125 };
+  if (age <= 70) return { employee: 0.075, employer: 0.09 };
+  return { employee: 0.05, employer: 0.075 };
+}
+
+// PR 1st year graduated rates
+function getCPFRatesPR1(age: number): { employee: number; employer: number } {
+  if (age <= 55) return { employee: 0.05, employer: 0.04 };
+  if (age <= 60) return { employee: 0.05, employer: 0.04 };
+  if (age <= 65) return { employee: 0.05, employer: 0.04 };
+  if (age <= 70) return { employee: 0.05, employer: 0.04 };
+  return { employee: 0.05, employer: 0.04 };
+}
+
+// PR 2nd year graduated rates
+function getCPFRatesPR2(age: number): { employee: number; employer: number } {
+  if (age <= 55) return { employee: 0.15, employer: 0.09 };
+  if (age <= 60) return { employee: 0.125, employer: 0.09 };
+  if (age <= 65) return { employee: 0.05, employer: 0.06 };
+  if (age <= 70) return { employee: 0.05, employer: 0.06 };
+  return { employee: 0.05, employer: 0.06 };
+}
+
+// Determine PR year from prStartDate
+function getPRYear(prStartDate?: string | Date | null): number {
+  if (!prStartDate) return 3; // default to full rates if unknown
+  const start = new Date(prStartDate);
+  const now = new Date();
+  const yearsDiff = (now.getTime() - start.getTime()) / (365.25 * 24 * 60 * 60 * 1000);
+  if (yearsDiff < 1) return 1;
+  if (yearsDiff < 2) return 2;
+  return 3;
+}
+
 // ─── Singapore (SG) ────────────────────────────────────────────────────────
 
-function calculateSingapore(grossSalary: number, options?: { age?: number; annualIncome?: number; ethnicity?: string }): StatutoryResult {
-  const age = options?.age || 30;
-  const OW_CEILING = 8000; // Ordinary Wage ceiling per month (updated 1 Jan 2026)
-  const AW_CEILING = 102000; // Annual ceiling
-  const CPF_ANNUAL_LIMIT = 37740; // Annual CPF contribution limit
+function calculateSingapore(grossSalary: number, options?: {
+  age?: number;
+  annualIncome?: number;
+  ethnicity?: string;
+  residencyStatus?: string;
+  prStartDate?: string | Date | null;
+  dateOfBirth?: string | Date | null;
+}): StatutoryResult {
+  // Calculate age from DOB if available, otherwise use provided age
+  let age = options?.age || 30;
+  if (options?.dateOfBirth) {
+    const dob = new Date(options.dateOfBirth);
+    const today = new Date();
+    age = today.getFullYear() - dob.getFullYear();
+    const monthDiff = today.getMonth() - dob.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+      age--;
+    }
+  }
 
-  // CPF rates by age group (effective 1 Jan 2026)
-  let cpfEmployeeRate: number;
-  let cpfEmployerRate: number;
-  if (age <= 55) {
-    cpfEmployeeRate = 0.20;
-    cpfEmployerRate = 0.17;
-  } else if (age <= 60) {
-    cpfEmployeeRate = 0.18;
-    cpfEmployerRate = 0.16;
-  } else if (age <= 65) {
-    cpfEmployeeRate = 0.125;
-    cpfEmployerRate = 0.125;
-  } else if (age <= 70) {
-    cpfEmployeeRate = 0.075;
-    cpfEmployerRate = 0.09;
+  const residency = (options?.residencyStatus || "singaporean").toLowerCase();
+  const OW_CEILING = 8000; // Ordinary Wage ceiling per month (updated 1 Jan 2026)
+
+  // ── Foreigner: No CPF, no SHG — only SDL ──
+  if (residency === "foreigner") {
+    let sdl = grossSalary * 0.0025;
+    sdl = Math.max(2, Math.min(11.25, sdl));
+    sdl = Math.round(sdl * 100) / 100;
+
+    return {
+      employeeContributions: [],
+      employerContributions: [
+        { name: "SDL", amount: sdl, rate: 0.25 },
+      ],
+      taxWithholding: 0,
+      taxDetails: "Foreigner — No CPF. Employer pays levy separately. Tax filed via IRAS.",
+      totalEmployeeDeductions: 0,
+      totalEmployerCost: sdl,
+    };
+  }
+
+  // ── Singaporean / PR — CPF rates by residency & age ──
+  let cpfRates: { employee: number; employer: number };
+  let rateLabel = "";
+
+  if (residency === "pr") {
+    const prYear = getPRYear(options?.prStartDate);
+    if (prYear === 1) {
+      cpfRates = getCPFRatesPR1(age);
+      rateLabel = " (PR 1st yr)";
+    } else if (prYear === 2) {
+      cpfRates = getCPFRatesPR2(age);
+      rateLabel = " (PR 2nd yr)";
+    } else {
+      cpfRates = getCPFRatesFull(age);
+      rateLabel = " (PR 3rd yr+)";
+    }
   } else {
-    cpfEmployeeRate = 0.05;
-    cpfEmployerRate = 0.075;
+    cpfRates = getCPFRatesFull(age);
   }
 
   // CPF is calculated on capped ordinary wages
   const cpfBase = Math.min(grossSalary, OW_CEILING);
-  const cpfEmployee = Math.round(cpfBase * cpfEmployeeRate * 100) / 100;
-  const cpfEmployer = Math.round(cpfBase * cpfEmployerRate * 100) / 100;
+  const cpfEmployee = Math.round(cpfBase * cpfRates.employee * 100) / 100;
+  const cpfEmployer = Math.round(cpfBase * cpfRates.employer * 100) / 100;
 
   // SDL: 0.25% of monthly remuneration, min S$2, max S$11.25
   let sdl = grossSalary * 0.0025;
   sdl = Math.max(2, Math.min(11.25, sdl));
   sdl = Math.round(sdl * 100) / 100;
 
-  // SHG Fund: based on ethnicity and salary tier
+  // SHG Fund: based on ethnicity and salary tier (Singaporean & PR only)
   const shgResult = calculateSHG(grossSalary, options?.ethnicity);
 
   const employeeContributions: StatutoryItem[] = [
-    { name: "CPF Employee", amount: cpfEmployee, rate: cpfEmployeeRate * 100 },
+    { name: `CPF Employee${rateLabel}`, amount: cpfEmployee, rate: cpfRates.employee * 100 },
     { name: `SHG Fund (${shgResult.fundName})`, amount: shgResult.amount },
   ];
 
   const employerContributions: StatutoryItem[] = [
-    { name: "CPF Employer", amount: cpfEmployer, rate: cpfEmployerRate * 100 },
+    { name: `CPF Employer${rateLabel}`, amount: cpfEmployer, rate: cpfRates.employer * 100 },
     { name: "SDL", amount: sdl, rate: 0.25 },
   ];
 
@@ -342,7 +418,7 @@ function calculateMalaysia(grossSalary: number, options?: { age?: number; annual
 export function calculateStatutory(
   country: string,
   grossSalary: number,
-  options?: { age?: number; annualIncome?: number; ethnicity?: string }
+  options?: { age?: number; annualIncome?: number; ethnicity?: string; residencyStatus?: string; prStartDate?: string | Date | null; dateOfBirth?: string | Date | null }
 ): StatutoryResult {
   switch (country) {
     case "IN":
