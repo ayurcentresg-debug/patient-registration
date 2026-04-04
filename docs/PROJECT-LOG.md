@@ -448,6 +448,28 @@
   - `src/app/api/admin/payroll/bulk-email/route.ts`, `src/app/api/public/sample-payslip/route.ts`
 - **Status:** ✅ Complete
 
+#### 31. MOM Key Employment Terms (KET) Module
+- **Requested by:** User — separate module for MOM-mandated KET document
+- **What:** Full KET generation system matching official MOM template (Annex B)
+- **Implementation:**
+  - New `KeyEmploymentTerms` model with all 5 MOM sections (A-E)
+  - User model: added `nricFin`, `jobTitle`, `mainDuties`, `employmentType` fields
+  - KET admin page (`/admin/ket`) with list view + full-page 5-section form
+  - Auto-prefill from staff profile + salary config via `/api/admin/ket/prefill`
+  - HTML template matching MOM KET layout with print/PDF support
+  - Supports both full-time and part-time employment (pro-rated leave in hours)
+  - Draft → Issued → Superseded status workflow
+  - KET tab added to AdminTabs navigation
+- **Files:**
+  - `prisma/schema.prisma` (KET model + User fields)
+  - `src/app/admin/ket/page.tsx` (new)
+  - `src/app/api/admin/ket/route.ts` (new — GET/POST)
+  - `src/app/api/admin/ket/[id]/route.ts` (new — GET/PUT/DELETE)
+  - `src/app/api/admin/ket/[id]/html/route.ts` (new — MOM template HTML)
+  - `src/app/api/admin/ket/prefill/route.ts` (new — auto-fill from staff data)
+  - `src/components/AdminTabs.tsx`, `src/app/admin/staff/page.tsx`, staff APIs
+- **Status:** ✅ Complete
+
 ---
 
 ## Pending / Upcoming
