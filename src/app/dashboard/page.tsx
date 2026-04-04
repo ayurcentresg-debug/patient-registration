@@ -15,6 +15,21 @@ import { DashboardSkeleton } from "@/components/Skeleton";
 import { cardStyle } from "@/lib/styles";
 import { formatCurrency, timeAgo } from "@/lib/formatters";
 
+interface SetupStep {
+  key: string;
+  title: string;
+  description: string;
+  link: string;
+  completed: boolean;
+}
+
+interface SetupChecklist {
+  steps: SetupStep[];
+  completedCount: number;
+  totalCount: number;
+  allComplete: boolean;
+}
+
 interface TodayAppointment {
   id: string;
   time: string;
@@ -138,6 +153,20 @@ export default function Dashboard() {
     isClinicHoliday: boolean;
   } | null>(null);
 
+  const [setupChecklist, setSetupChecklist] = useState<SetupChecklist | null>(null);
+  const [checklistDismissed, setChecklistDismissed] = useState(false);
+
+  // Fetch setup checklist
+  useEffect(() => {
+    if (typeof window !== "undefined" && localStorage.getItem("setup-checklist-dismissed") === "true") {
+      setChecklistDismissed(true);
+    }
+    fetch("/api/dashboard/setup-checklist")
+      .then((r) => r.ok ? r.json() : null)
+      .then(setSetupChecklist)
+      .catch(() => {});
+  }, []);
+
   // Fetch staff summary
   useEffect(() => {
     fetch("/api/dashboard/staff-summary")
@@ -245,6 +274,62 @@ export default function Dashboard() {
           { icon: "📊", title: "Track Revenue", description: "This dashboard shows today's revenue, appointment stats, and trends. Data updates in real-time." },
         ]}
       />
+
+      {/* ═══════ Setup Checklist ═══════ */}
+      {setupChecklist && !setupChecklist.allComplete && !checklistDismissed && (
+        <div className="mb-6 p-5 rounded-xl" style={{ background: "#fff", border: "1.5px solid #d1fae5", boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}>
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <h3 className="text-[16px] font-bold" style={{ color: "#14532d" }}>Setup Your Clinic</h3>
+              <p className="text-[13px] mt-0.5" style={{ color: "#6b7280" }}>
+                {setupChecklist.completedCount} of {setupChecklist.totalCount} steps complete
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-32 h-2 rounded-full" style={{ background: "#e5e7eb" }}>
+                <div className="h-2 rounded-full transition-all duration-500" style={{ background: "#14532d", width: `${(setupChecklist.completedCount / setupChecklist.totalCount) * 100}%` }} />
+              </div>
+              <button
+                onClick={() => { setChecklistDismissed(true); localStorage.setItem("setup-checklist-dismissed", "true"); }}
+                className="text-[12px] px-2 py-1 rounded hover:bg-gray-100"
+                style={{ color: "#9ca3af" }}
+                title="Dismiss checklist"
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
+            {setupChecklist.steps.map((step) => (
+              <Link
+                key={step.key}
+                href={step.link}
+                className="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all hover:shadow-sm"
+                style={{
+                  background: step.completed ? "#f0fdf4" : "#fafafa",
+                  border: `1px solid ${step.completed ? "#bbf7d0" : "#e5e7eb"}`,
+                }}
+              >
+                <div
+                  className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
+                  style={{
+                    background: step.completed ? "#14532d" : "#e5e7eb",
+                    color: step.completed ? "#fff" : "#9ca3af",
+                    fontSize: "11px",
+                    fontWeight: 700,
+                  }}
+                >
+                  {step.completed ? "\u2713" : ""}
+                </div>
+                <div className="min-w-0">
+                  <div className="text-[13px] font-semibold truncate" style={{ color: step.completed ? "#166534" : "#374151" }}>{step.title}</div>
+                  <div className="text-[11px] truncate" style={{ color: step.completed ? "#4ade80" : "#9ca3af" }}>{step.description}</div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* ═══════ Row 1: Key Metrics ═══════ */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
