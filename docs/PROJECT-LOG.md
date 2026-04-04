@@ -392,6 +392,62 @@
   - `src/components/LayoutShell.tsx`
 - **Status:** ✅ Complete
 
+### Session 4 — 5 Apr 2026
+
+#### 26. Staff HR Fields (DOB, Residency, Joining/Resignation)
+- **Requested by:** User — need DOB, residency status, PR start date, date of joining, resignation details
+- **What:** Added 7 new HR fields to User model and staff management UI
+- **Implementation:**
+  - Schema: `dateOfBirth`, `residencyStatus`, `prStartDate`, `dateOfJoining`, `lastWorkingDate`, `resignationDate`, `resignationReason`
+  - Staff form: DOB + residency row, conditional PR date, department for all roles, separation details
+  - CSV import/export updated with new columns
+- **Files:**
+  - `prisma/schema.prisma`, `src/app/admin/staff/page.tsx`, `src/app/api/staff/route.ts`, `src/app/api/staff/[id]/route.ts`, `src/app/api/staff/import/route.ts`, `src/app/api/staff/template/route.ts`
+- **Status:** ✅ Complete
+
+#### 27. Residency-Based CPF for Singapore Payroll
+- **Requested by:** User — Singaporean full CPF, PR graduated rates, Foreigner zero CPF
+- **What:** Three-path CPF calculation based on residency status
+- **Implementation:**
+  - Singaporean: full CPF rates (employee 20%, employer 17% for ≤55)
+  - PR: graduated rates — 1st yr (5%/4%), 2nd yr (15%/9%), 3rd yr+ (same as Singaporean)
+  - Foreigner: zero CPF, zero SHG, only SDL
+  - Auto-calculates PR year from prStartDate
+- **Files:**
+  - `src/lib/payroll-rules.ts`, `src/app/api/admin/payroll/generate/route.ts`
+- **Status:** ✅ Complete
+
+#### 28. Expanded Departments for All Roles
+- **Requested by:** User — department should be available for all staff, not just clinical
+- **What:** Added Admin, Operations, Front Desk, Pharmacy, Accounts, General departments
+- **Files:**
+  - `src/app/admin/staff/page.tsx`
+- **Status:** ✅ Complete
+
+#### 29. Post-Onboarding Setup Checklist
+- **Requested by:** User — guide new tenants after registration
+- **What:** Auto-detected 7-step checklist on dashboard with progress bar
+- **Implementation:**
+  - Steps: Add Staff, Setup Salary, Add Treatments, Online Booking, Run Payroll, Register Patient, Book Appointment
+  - Auto-detects completion via parallel DB count queries
+  - Dismissable, auto-hides when all complete
+- **Files:**
+  - `src/app/api/dashboard/setup-checklist/route.ts` (new), `src/app/dashboard/page.tsx`
+- **Status:** ✅ Complete
+
+#### 30. MOM Payslip — Mode of Payment, OT Hours, OT Payment Period
+- **Requested by:** User — compared against official MOM template PDF
+- **What:** Added 3 missing MOM-required items to all payslip templates
+- **Implementation:**
+  - Schema: `overtimeHours Float`, `paymentMode String` on Payroll model
+  - Admin UI: OT Hours input, Payment Mode dropdown (Bank/Cash/Cheque)
+  - All 4 payslip templates updated with Mode of Payment, OT Hours in earnings row, OT Payment Period
+- **Files:**
+  - `prisma/schema.prisma`, `src/app/admin/payroll/page.tsx`, `src/app/api/admin/payroll/[id]/route.ts`
+  - `src/app/api/admin/payroll/[id]/payslip/route.ts`, `src/app/api/admin/payroll/[id]/email-payslip/route.ts`
+  - `src/app/api/admin/payroll/bulk-email/route.ts`, `src/app/api/public/sample-payslip/route.ts`
+- **Status:** ✅ Complete
+
 ---
 
 ## Pending / Upcoming
@@ -455,4 +511,4 @@ www.ayurgate.com (Railway)
 
 ---
 
-*Last updated: 4 April 2026*
+*Last updated: 5 April 2026*
