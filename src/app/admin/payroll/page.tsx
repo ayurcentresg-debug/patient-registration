@@ -53,6 +53,8 @@ interface PayrollRecord {
   workingDays: number;
   leaveDays: number;
   unpaidLeaveDays: number;
+  overtimeHours: number;
+  paymentMode: string;
   status: string;
   paidAt: string | null;
   notes: string | null;
@@ -230,6 +232,8 @@ function PayrollTab({ showToast }: { showToast: (m: string, t: "ok" | "err") => 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editOvertime, setEditOvertime] = useState("");
   const [editBonus, setEditBonus] = useState("");
+  const [editOvertimeHours, setEditOvertimeHours] = useState("");
+  const [editPaymentMode, setEditPaymentMode] = useState("bank_transfer");
   const [bulkLoading, setBulkLoading] = useState(false);
   const [emailingId, setEmailingId] = useState<string | null>(null);
   const [bulkEmailing, setBulkEmailing] = useState(false);
@@ -368,6 +372,8 @@ function PayrollTab({ showToast }: { showToast: (m: string, t: "ok" | "err") => 
     setEditingId(p.id);
     setEditOvertime(String(p.overtime));
     setEditBonus(String(p.bonus));
+    setEditOvertimeHours(String(p.overtimeHours || 0));
+    setEditPaymentMode(p.paymentMode || "bank_transfer");
   };
 
   const saveEdit = async () => {
@@ -375,6 +381,8 @@ function PayrollTab({ showToast }: { showToast: (m: string, t: "ok" | "err") => 
     await handleUpdatePayroll(editingId, {
       overtime: parseFloat(editOvertime) || 0,
       bonus: parseFloat(editBonus) || 0,
+      overtimeHours: parseFloat(editOvertimeHours) || 0,
+      paymentMode: editPaymentMode,
     });
     setEditingId(null);
   };
@@ -494,8 +502,10 @@ function PayrollTab({ showToast }: { showToast: (m: string, t: "ok" | "err") => 
                 <th className="text-right px-4 py-3 font-semibold" style={{ color: "var(--grey-600)" }}>Base</th>
                 <th className="text-right px-4 py-3 font-semibold" style={{ color: "var(--grey-600)" }}>Allow.</th>
                 <th className="text-right px-4 py-3 font-semibold" style={{ color: "var(--grey-600)" }}>Comm.</th>
-                <th className="text-right px-4 py-3 font-semibold" style={{ color: "var(--grey-600)" }}>OT</th>
+                <th className="text-right px-4 py-3 font-semibold" style={{ color: "var(--grey-600)" }}>OT $</th>
+                <th className="text-right px-4 py-3 font-semibold" style={{ color: "var(--grey-600)", fontSize: "11px" }}>OT Hrs</th>
                 <th className="text-right px-4 py-3 font-semibold" style={{ color: "var(--grey-600)" }}>Bonus</th>
+                <th className="text-center px-4 py-3 font-semibold" style={{ color: "var(--grey-600)", fontSize: "11px" }}>Pay Mode</th>
                 <th className="text-right px-4 py-3 font-semibold" style={{ color: "var(--grey-600)" }}>Gross</th>
                 <th className="text-right px-4 py-3 font-semibold" style={{ color: "var(--grey-600)" }}>Statutory</th>
                 <th className="text-right px-4 py-3 font-semibold" style={{ color: "var(--grey-600)", fontSize: "11px" }}>Tax</th>
@@ -551,6 +561,20 @@ function PayrollTab({ showToast }: { showToast: (m: string, t: "ok" | "err") => 
                       {isEditing ? (
                         <input
                           type="number"
+                          value={editOvertimeHours}
+                          onChange={(e) => setEditOvertimeHours(e.target.value)}
+                          className="w-16 px-2 py-1 text-right"
+                          style={{ ...inputStyle, fontSize: "13px" }}
+                          step="0.5"
+                        />
+                      ) : (
+                        <span style={{ fontSize: "12px", color: "var(--grey-500)" }}>{p.overtimeHours || 0}h</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-right tabular-nums">
+                      {isEditing ? (
+                        <input
+                          type="number"
                           value={editBonus}
                           onChange={(e) => setEditBonus(e.target.value)}
                           className="w-20 px-2 py-1 text-right"
@@ -559,6 +583,24 @@ function PayrollTab({ showToast }: { showToast: (m: string, t: "ok" | "err") => 
                         />
                       ) : (
                         formatCurrencyForCountry(p.bonus, p.country || "SG")
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      {isEditing ? (
+                        <select
+                          value={editPaymentMode}
+                          onChange={(e) => setEditPaymentMode(e.target.value)}
+                          className="px-1 py-1 text-[12px] rounded"
+                          style={{ ...inputStyle }}
+                        >
+                          <option value="bank_transfer">Bank</option>
+                          <option value="cash">Cash</option>
+                          <option value="cheque">Cheque</option>
+                        </select>
+                      ) : (
+                        <span className="inline-flex px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide rounded" style={{ color: "#4338ca", background: "#e0e7ff" }}>
+                          {(p.paymentMode || "bank_transfer").replace("_", " ")}
+                        </span>
                       )}
                     </td>
                     <td className="px-4 py-3 text-right tabular-nums font-semibold">{formatCurrencyForCountry(p.grossPay, p.country || "SG")}</td>

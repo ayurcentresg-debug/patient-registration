@@ -1186,6 +1186,7 @@ model Payroll {
   totalAllowances Float    @default(0)
   commission      Float    @default(0)
   overtime        Float    @default(0)
+  overtimeHours   Float    @default(0)  // MOM: Overtime Hours Worked
   bonus           Float    @default(0)
   grossPay        Float
 
@@ -1207,6 +1208,7 @@ model Payroll {
   leaveDays       Int      @default(0)
   unpaidLeaveDays Int      @default(0)
 
+  paymentMode     String   @default("bank_transfer") // MOM: "bank_transfer" | "cash" | "cheque"
   status          String   @default("draft") // "draft" | "confirmed" | "paid"
   paidAt          DateTime?
   notes           String?

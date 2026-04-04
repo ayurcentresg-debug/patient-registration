@@ -293,9 +293,10 @@ export async function GET() {
         <div class="info-card pay-card">
           <div class="title">Payment Details</div>
           <div class="detail">
-            <strong>Mode:</strong> Bank Transfer<br/>
+            <strong>Mode of Payment:</strong> Bank Transfer<br/>
             <strong>Bank:</strong> ${bankInfo}<br/>
             <strong>Date:</strong> ${payDate}<br/>
+            <strong>OT Payment Period:</strong> ${periodStart} – ${periodEnd}<br/>
             <strong>Status:</strong> <span style="color:#065f46;font-weight:700;">Paid</span>
           </div>
         </div>

@@ -140,7 +140,7 @@ export async function POST(request: NextRequest) {
         ? allowances.map((a) => `<tr><td style="padding:6px 14px;border-bottom:1px solid #f3f4f6;font-size:13px;">${a.name}</td><td style="padding:6px 14px;border-bottom:1px solid #f3f4f6;font-size:13px;text-align:right;">${fmt(a.amount)}</td></tr>`).join("")
         : `<tr><td style="padding:6px 14px;border-bottom:1px solid #f3f4f6;font-size:13px;">Allowances</td><td style="padding:6px 14px;border-bottom:1px solid #f3f4f6;font-size:13px;text-align:right;">${fmt(0)}</td></tr>`}
       <tr><td style="padding:6px 14px;border-bottom:1px solid #f3f4f6;font-size:13px;">Additional Pay (Bonus/PH/Rest)</td><td style="padding:6px 14px;border-bottom:1px solid #f3f4f6;font-size:13px;text-align:right;">${fmt(additionalPay)}</td></tr>
-      <tr><td style="padding:6px 14px;border-bottom:1px solid #f3f4f6;font-size:13px;">Overtime</td><td style="padding:6px 14px;border-bottom:1px solid #f3f4f6;font-size:13px;text-align:right;">${fmt(payroll.overtime || 0)}</td></tr>
+      <tr><td style="padding:6px 14px;border-bottom:1px solid #f3f4f6;font-size:13px;">Overtime (${payroll.overtimeHours || 0} hrs)</td><td style="padding:6px 14px;border-bottom:1px solid #f3f4f6;font-size:13px;text-align:right;">${fmt(payroll.overtime || 0)}</td></tr>
       <tr><td style="padding:8px 14px;font-weight:700;font-size:14px;border-top:1.5px solid #d1d5db;color:#166534;background:#f9fafb;">Gross Pay</td><td style="padding:8px 14px;font-weight:700;font-size:14px;text-align:right;border-top:1.5px solid #d1d5db;color:#166534;background:#f9fafb;">${fmt(payroll.grossPay)}</td></tr>
     </table>
   </div>
@@ -164,6 +164,16 @@ export async function POST(request: NextRequest) {
         <td style="padding:12px 18px;font-size:16px;font-weight:600;color:#1f2937;">NET PAY</td>
         <td style="padding:12px 18px;font-size:24px;font-weight:800;color:#1f2937;text-align:right;">${fmt(payroll.netPay)}</td>
       </tr>
+    </table>
+  </div>
+
+  <!-- Payment Details -->
+  <div style="padding:0 24px 12px;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;">
+      <tr><td colspan="2" style="padding:10px 14px;font-size:11px;font-weight:700;color:#4b5563;text-transform:uppercase;letter-spacing:0.5px;">Payment Details</td></tr>
+      <tr><td style="padding:4px 14px;font-size:12px;color:#374151;">Mode of Payment</td><td style="padding:4px 14px;font-size:12px;text-align:right;font-weight:600;color:#374151;">${(payroll.paymentMode || "bank_transfer").replace(/_/g, " ").split(" ").map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")}</td></tr>
+      <tr><td style="padding:4px 14px;font-size:12px;color:#374151;">OT Payment Period</td><td style="padding:4px 14px;font-size:12px;text-align:right;font-weight:600;color:#374151;">${pStart} – ${pEnd}</td></tr>
+      <tr><td style="padding:4px 14px 10px;font-size:12px;color:#374151;">Status</td><td style="padding:4px 14px 10px;font-size:12px;text-align:right;font-weight:700;color:${payroll.status === "paid" ? "#065f46" : "#92400e"};">${payroll.status.charAt(0).toUpperCase() + payroll.status.slice(1)}</td></tr>
     </table>
   </div>
 

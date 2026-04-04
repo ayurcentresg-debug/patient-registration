@@ -82,7 +82,7 @@ export async function GET(
       ...allowances.map((a) => `<tr><td>${a.name}</td><td>${fmt(a.amount)}</td></tr>`),
       allowances.length === 0 ? `<tr><td>Allowances</td><td>${fmt(0)}</td></tr>` : "",
       `<tr><td>Additional Pay (Bonus/PH/Rest)</td><td>${fmt(additionalPay)}</td></tr>`,
-      `<tr><td>Overtime</td><td>${fmt(payroll.overtime || 0)}</td></tr>`,
+      `<tr><td>Overtime (${payroll.overtimeHours || 0} hrs)</td><td>${fmt(payroll.overtime || 0)}</td></tr>`,
     ].filter(Boolean).join("");
 
     // Build deduction rows
@@ -250,8 +250,10 @@ export async function GET(
         <div class="info-card pay-card">
           <div class="title">Payment Details</div>
           <div class="detail">
+            <strong>Mode of Payment:</strong> ${(payroll.paymentMode || "bank_transfer").replace(/_/g, " ").split(" ").map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")}<br/>
             <strong>Date:</strong> ${paidDate}<br/>
-            <strong>Status:</strong> <span style="color:${payroll.status === "paid" ? "#065f46" : "#92400e"};font-weight:700;">${payroll.status.charAt(0).toUpperCase() + payroll.status.slice(1)}</span>
+            <strong>Status:</strong> <span style="color:${payroll.status === "paid" ? "#065f46" : "#92400e"};font-weight:700;">${payroll.status.charAt(0).toUpperCase() + payroll.status.slice(1)}</span><br/>
+            <strong>OT Payment Period:</strong> ${periodStartStr} – ${periodEndStr}
             ${payroll.notes ? `<br/><strong>Note:</strong> ${payroll.notes}` : ""}
           </div>
         </div>

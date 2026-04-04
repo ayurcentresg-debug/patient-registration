@@ -21,7 +21,7 @@ export async function PUT(
     if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
     const body = await request.json();
-    const { overtime, bonus, notes, status } = body;
+    const { overtime, bonus, notes, status, overtimeHours, paymentMode } = body;
 
     // Validate status transitions
     if (status) {
@@ -39,7 +39,7 @@ export async function PUT(
     }
 
     // Only allow editing amounts if draft
-    if ((overtime !== undefined || bonus !== undefined) && existing.status !== "draft") {
+    if ((overtime !== undefined || bonus !== undefined || overtimeHours !== undefined || paymentMode !== undefined) && existing.status !== "draft") {
       return NextResponse.json(
         { error: "Can only edit amounts on draft payroll records" },
         { status: 400 }
@@ -54,6 +54,12 @@ export async function PUT(
     }
     if (bonus !== undefined) {
       data.bonus = parseFloat(bonus);
+    }
+    if (overtimeHours !== undefined) {
+      data.overtimeHours = parseFloat(overtimeHours);
+    }
+    if (paymentMode !== undefined) {
+      data.paymentMode = paymentMode;
     }
     if (notes !== undefined) {
       data.notes = notes;
