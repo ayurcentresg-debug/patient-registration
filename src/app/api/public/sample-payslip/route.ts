@@ -235,10 +235,6 @@ export async function GET() {
         <div class="val">${staffId}</div>
       </div>
       <div class="emp-item">
-        <div class="lbl">Designation</div>
-        <div class="val">${role}</div>
-      </div>
-      <div class="emp-item">
         <div class="lbl">Pay Date</div>
         <div class="val">${payDate}</div>
       </div>

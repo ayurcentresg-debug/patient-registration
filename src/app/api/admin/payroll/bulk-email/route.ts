@@ -125,7 +125,6 @@ export async function POST(request: NextRequest) {
     <tr>
       <td style="padding:14px 24px;"><div style="font-size:10px;color:#9ca3af;text-transform:uppercase;letter-spacing:0.8px;font-weight:600;">Employee</div><div style="font-size:15px;font-weight:700;color:#1f2937;margin-top:2px;">${user.name}</div></td>
       <td style="padding:14px 24px;"><div style="font-size:10px;color:#9ca3af;text-transform:uppercase;letter-spacing:0.8px;font-weight:600;">Staff ID</div><div style="font-size:15px;font-weight:700;color:#1f2937;margin-top:2px;">${user.staffIdNumber || "N/A"}</div></td>
-      <td style="padding:14px 24px;"><div style="font-size:10px;color:#9ca3af;text-transform:uppercase;letter-spacing:0.8px;font-weight:600;">Designation</div><div style="font-size:15px;font-weight:700;color:#1f2937;margin-top:2px;">${(user.role || "staff").charAt(0).toUpperCase() + (user.role || "staff").slice(1)}</div></td>
     </tr>
     <tr>
       <td style="padding:0 24px 14px;"><div style="font-size:10px;color:#9ca3af;text-transform:uppercase;letter-spacing:0.8px;font-weight:600;">Pay Date</div><div style="font-size:15px;font-weight:700;color:#1f2937;margin-top:2px;">${payroll.paidAt ? new Date(payroll.paidAt).toLocaleDateString("en-SG", { day: "2-digit", month: "short", year: "numeric" }) : "Pending"}</div></td>

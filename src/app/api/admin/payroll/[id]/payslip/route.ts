@@ -209,7 +209,6 @@ export async function GET(
     <div class="emp-row">
       <div class="emp-item"><div class="lbl">Employee</div><div class="val">${user?.name || "N/A"}</div></div>
       <div class="emp-item"><div class="lbl">Staff ID</div><div class="val">${user?.staffIdNumber || "N/A"}</div></div>
-      <div class="emp-item"><div class="lbl">Designation</div><div class="val">${(user?.role || "staff").charAt(0).toUpperCase() + (user?.role || "staff").slice(1)}</div></div>
       <div class="emp-item"><div class="lbl">Pay Date</div><div class="val">${paidDate}</div></div>
       <div class="emp-item"><div class="lbl">Salary Period</div><div class="val">${periodStartStr} – ${periodEndStr}</div></div>
     </div>

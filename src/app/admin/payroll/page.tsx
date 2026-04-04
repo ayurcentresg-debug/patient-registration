@@ -839,9 +839,10 @@ function SalarySetupTab({ showToast }: { showToast: (m: string, t: "ok" | "err")
                   if (e.target.value === "SG") {
                     const age = parseInt(formAge) || 30;
                     if (age <= 55) { setFormCpfEmployee("20"); setFormCpfEmployer("17"); }
-                    else if (age <= 60) { setFormCpfEmployee("17"); setFormCpfEmployer("14.5"); }
-                    else if (age <= 65) { setFormCpfEmployee("13"); setFormCpfEmployer("11"); }
-                    else { setFormCpfEmployee("7.5"); setFormCpfEmployer("7.5"); }
+                    else if (age <= 60) { setFormCpfEmployee("18"); setFormCpfEmployer("16"); }
+                    else if (age <= 65) { setFormCpfEmployee("12.5"); setFormCpfEmployer("12.5"); }
+                    else if (age <= 70) { setFormCpfEmployee("7.5"); setFormCpfEmployer("9"); }
+                    else { setFormCpfEmployee("5"); setFormCpfEmployer("7.5"); }
                   }
                 }}
                 className="w-full px-3 py-2"
@@ -859,7 +860,7 @@ function SalarySetupTab({ showToast }: { showToast: (m: string, t: "ok" | "err")
                 Statutory Contributions ({COUNTRY_LABEL[formCountry] || "Singapore"})
               </div>
               <div className="text-[12px]" style={{ color: "#0369a1" }}>
-                {formCountry === "SG" && "CPF Employee + Employer, SDL (0.25%), SHG Fund. No monthly tax withholding."}
+                {formCountry === "SG" && "CPF Employee + Employer (OW ceiling S$8,000), SDL (0.25%), SHG Fund (by ethnicity). No monthly tax withholding."}
                 {formCountry === "IN" && "EPF 12%+12% (on basic up to \u20B915,000), ESI (if salary \u2264\u20B921,000), Professional Tax, TDS (New Regime)."}
                 {formCountry === "MY" && "EPF 11%+12/13%, SOCSO (up to RM4,000), EIS (up to RM4,000), PCB monthly tax."}
               </div>
@@ -927,9 +928,10 @@ function SalarySetupTab({ showToast }: { showToast: (m: string, t: "ok" | "err")
                     if (formCountry === "SG" && e.target.value) {
                       const age = parseInt(e.target.value);
                       if (age <= 55) { setFormCpfEmployee("20"); setFormCpfEmployer("17"); }
-                      else if (age <= 60) { setFormCpfEmployee("17"); setFormCpfEmployer("14.5"); }
-                      else if (age <= 65) { setFormCpfEmployee("13"); setFormCpfEmployer("11"); }
-                      else { setFormCpfEmployee("7.5"); setFormCpfEmployer("7.5"); }
+                      else if (age <= 60) { setFormCpfEmployee("18"); setFormCpfEmployer("16"); }
+                      else if (age <= 65) { setFormCpfEmployee("12.5"); setFormCpfEmployer("12.5"); }
+                      else if (age <= 70) { setFormCpfEmployee("7.5"); setFormCpfEmployer("9"); }
+                      else { setFormCpfEmployee("5"); setFormCpfEmployer("7.5"); }
                     }
                   }}
                   className="w-full px-3 py-2"
@@ -939,34 +941,38 @@ function SalarySetupTab({ showToast }: { showToast: (m: string, t: "ok" | "err")
               </div>
             </div>
 
-            {/* CPF/Contribution Rates (SG override) */}
+            {/* CPF Rates (auto-calculated from age, shown as reference) */}
             {formCountry === "SG" && (
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div>
                   <label className="block text-[13px] font-semibold mb-1" style={{ color: "var(--grey-600)" }}>
-                    CPF Employee Rate (%) — Override
+                    CPF Employee Rate (%)
                   </label>
                   <input
                     type="number"
                     value={formCpfEmployee}
                     onChange={(e) => setFormCpfEmployee(e.target.value)}
                     className="w-full px-3 py-2"
-                    style={inputStyle}
+                    style={{ ...inputStyle, background: "#f9fafb" }}
                     step="0.1"
+                    readOnly
                   />
+                  <p className="text-[11px] mt-1" style={{ color: "#9ca3af" }}>Auto-set by age. Actual calc uses payroll engine.</p>
                 </div>
                 <div>
                   <label className="block text-[13px] font-semibold mb-1" style={{ color: "var(--grey-600)" }}>
-                    CPF Employer Rate (%) — Override
+                    CPF Employer Rate (%)
                   </label>
                   <input
                     type="number"
                     value={formCpfEmployer}
                     onChange={(e) => setFormCpfEmployer(e.target.value)}
                     className="w-full px-3 py-2"
-                    style={inputStyle}
+                    style={{ ...inputStyle, background: "#f9fafb" }}
                     step="0.1"
+                    readOnly
                   />
+                  <p className="text-[11px] mt-1" style={{ color: "#9ca3af" }}>Auto-set by age. Actual calc uses payroll engine.</p>
                 </div>
               </div>
             )}
