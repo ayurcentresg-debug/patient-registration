@@ -202,7 +202,6 @@ export async function GET(
       </div>
       <div class="payslip-badge">
         <h2>PAYSLIP</h2>
-        <div class="period-text">${formatPeriodLabel(payroll.period)}</div>
       </div>
     </div>
 

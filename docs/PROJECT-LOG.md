@@ -297,6 +297,103 @@
 
 ---
 
+### Session 3 — 4 Apr 2026 (continued)
+
+#### 19. MOM-Compliant Payslips (Singapore)
+- **Requested by:** User — "Check Requirements and items to be included"
+- **What:** Audited payslips against MOM Employment Act requirements (12 mandatory items)
+- **Implementation:**
+  - Added salary period start/end dates (e.g., "1 Apr 2026 – 30 Apr 2026")
+  - Added Allowances row (always shown, even if S$0)
+  - Added Additional Pay row (Bonus/PH/Rest)
+  - Added Overtime row (always shown)
+  - All 12 MOM-required fields now present across all 4 payslip templates
+- **Files:**
+  - `src/app/api/public/sample-payslip/route.ts`
+  - `src/app/api/admin/payroll/[id]/payslip/route.ts`
+  - `src/app/api/admin/payroll/[id]/email-payslip/route.ts`
+  - `src/app/api/admin/payroll/bulk-email/route.ts`
+- **Status:** ✅ Complete
+
+#### 20. CPF 2026 Contribution Rates
+- **Requested by:** User — linked CPF.gov.sg announcements page
+- **What:** Updated CPF rates to 2026 values
+- **Implementation:**
+  - OW ceiling raised from S$6,800 to S$8,000
+  - Updated 5 age tiers: ≤55, 55–60, 60–65, 65–70, >70
+  - New rates: 55–60 (17%/15%), 60–65 (11.5%/11.5%), 65–70 (9%/7.5%), >70 (7.5%/5%)
+  - Updated Salary Setup UI auto-fill in 2 places (country change + age change handlers)
+  - Made CPF rate inputs read-only with helper text
+- **Files:**
+  - `src/lib/payroll-rules.ts` (OW_CEILING, CPF_RATES)
+  - `src/app/admin/payroll/page.tsx` (Salary Setup UI)
+- **Status:** ✅ Complete
+
+#### 21. SHG Fund by Ethnicity
+- **Requested by:** User — linked CPF SHG contribution page
+- **What:** Replaced flat S$2 SHG with ethnicity-based fund calculation (CDAC/SINDA/MBMF/ECF)
+- **Implementation:**
+  - 4 funds: CDAC (Chinese), MBMF (Malay/Muslim), SINDA (Indian), ECF (Eurasian)
+  - Each fund has salary-tiered contribution amounts from CPF.gov.sg
+  - Added `calculateSHG()` function to payroll engine
+  - Added `ethnicity` field to User model (Prisma schema)
+  - Ethnicity dropdown in Staff management (with fund name labels)
+  - CSV import/export supports ethnicity column
+  - Payroll generation passes ethnicity to statutory calculation
+- **Files:**
+  - `src/lib/payroll-rules.ts` (SHG_RATES, calculateSHG)
+  - `prisma/schema.prisma` (ethnicity field on User)
+  - `src/app/admin/staff/page.tsx` (ethnicity dropdown)
+  - `src/app/api/staff/route.ts`, `src/app/api/staff/[id]/route.ts`
+  - `src/app/api/staff/import/route.ts`, `src/app/api/staff/import/template/route.ts`
+  - `src/app/api/admin/payroll/generate/route.ts`
+- **Status:** ✅ Complete
+
+#### 22. Light Professional Payslip Design
+- **Requested by:** User — applied to all templates
+- **What:** Replaced dark gradient design with light, professional theme
+- **Implementation:**
+  - White header, soft green (#f0fdf4) earnings, soft orange (#fff7ed) deductions
+  - 720px width, #f9fafb gray backgrounds, clean borders
+  - Consistent design across sample, real, individual email, and bulk email payslips
+  - Removed Designation field from all templates
+  - Removed period text from below PAYSLIP header
+- **Files:**
+  - All 4 payslip route files (sample, real, email, bulk-email)
+- **Status:** ✅ Complete
+
+#### 23. Receptionist & Staff Admin Access
+- **Requested by:** User — "we need to workout in the roles: admin, receptionist, staff"
+- **What:** Expanded admin panel access to receptionist and staff roles
+- **Implementation:**
+  - Changed `ADMIN_ROLES` from `["admin"]` to `["admin", "receptionist", "staff"]`
+  - Affects all 24+ API routes using `requireRole(ADMIN_ROLES)`
+- **Files:**
+  - `src/lib/get-clinic-id.ts`
+- **Status:** ✅ Complete
+
+#### 24. Sample Payslip Button
+- **Requested by:** User — "at least the sample one"
+- **What:** Added Sample Payslip button to payroll admin page
+- **Implementation:**
+  - Button in action bar opens `/api/public/sample-payslip` in new tab
+  - Also shown in empty state when no payroll records exist
+- **Files:**
+  - `src/app/admin/payroll/page.tsx`
+- **Status:** ✅ Complete
+
+#### 25. Booking Page Layout Fix
+- **Requested by:** User — booking page not loading
+- **What:** Fixed `/book/[slug]` being wrapped in auth-protected layout
+- **Implementation:**
+  - Added `isBookingPage` check to LayoutShell public paths
+  - Booking page now renders without sidebar/auth like login/register
+- **Files:**
+  - `src/components/LayoutShell.tsx`
+- **Status:** ✅ Complete
+
+---
+
 ## Pending / Upcoming
 
 | # | Feature | Priority | Notes |

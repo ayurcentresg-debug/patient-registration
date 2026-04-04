@@ -220,7 +220,6 @@ export async function GET() {
       </div>
       <div class="payslip-badge">
         <h2>PAYSLIP</h2>
-        <div class="period-text">${period}</div>
       </div>
     </div>
 

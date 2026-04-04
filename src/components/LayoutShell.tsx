@@ -23,6 +23,7 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
   const isRegisterPage = pathname === "/register";
   const isPricingPage = pathname === "/pricing";
   const isOnboardingPage = pathname?.startsWith("/onboarding");
+  const isBookingPage = pathname?.startsWith("/book");
   const isDoctorPortal = pathname?.startsWith("/doctor");
   const isSuperAdmin = pathname?.startsWith("/super-admin");
 
@@ -32,7 +33,7 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
   }
 
   // Public pages render without sidebar or auth check
-  if (isLandingPage || isLoginPage || isInvitePage || isRegisterPage || isPricingPage || isOnboardingPage) {
+  if (isLandingPage || isLoginPage || isInvitePage || isRegisterPage || isPricingPage || isOnboardingPage || isBookingPage) {
     return <ThemeProvider>{children}</ThemeProvider>;
   }
 

@@ -133,7 +133,6 @@ export async function POST(
       </td>
       <td style="text-align:right;padding:20px 24px;">
         <div style="font-size:22px;font-weight:800;color:#374151;letter-spacing:2px;">PAYSLIP</div>
-        <div style="font-size:13px;color:#6b7280;margin-top:3px;">${formatPeriodLabel(payroll.period)}</div>
       </td>
     </tr>
   </table>
