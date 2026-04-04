@@ -78,6 +78,10 @@ export async function GET(request: NextRequest) {
         lastWorkingDate: true,
         resignationDate: true,
         resignationReason: true,
+        nricFin: true,
+        jobTitle: true,
+        mainDuties: true,
+        employmentType: true,
         inviteToken: true,
         inviteExpiresAt: true,
         lastLogin: true,
@@ -113,7 +117,7 @@ export async function POST(request: NextRequest) {
     const db = clinicId ? getTenantPrisma(clinicId) : prisma;
 
     const body = await request.json();
-    const { name, email, phone, role, gender, dateOfBirth, ethnicity, residencyStatus, prStartDate, specialization, department, consultationFee, schedule, slotDuration, status, dateOfJoining, sendInvite } = body;
+    const { name, email, phone, role, gender, dateOfBirth, ethnicity, residencyStatus, prStartDate, specialization, department, consultationFee, schedule, slotDuration, status, dateOfJoining, nricFin, jobTitle, mainDuties, employmentType, sendInvite } = body;
 
     if (!name || !email) {
       return NextResponse.json({ error: "Name and email are required" }, { status: 400 });
@@ -172,6 +176,10 @@ export async function POST(request: NextRequest) {
         slotDuration: isClinical && slotDuration ? Number(slotDuration) : 30,
         status: status || "active",
         dateOfJoining: dateOfJoining ? new Date(dateOfJoining) : null,
+        nricFin: nricFin || null,
+        jobTitle: jobTitle || null,
+        mainDuties: mainDuties || null,
+        employmentType: employmentType || "full_time",
         isActive: true,
         inviteToken,
         inviteExpiresAt,

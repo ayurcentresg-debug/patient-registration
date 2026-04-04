@@ -22,6 +22,10 @@ interface Staff {
   lastWorkingDate: string | null;
   resignationDate: string | null;
   resignationReason: string | null;
+  nricFin: string | null;
+  jobTitle: string | null;
+  mainDuties: string | null;
+  employmentType: string;
   specialization: string | null;
   department: string | null;
   consultationFee: number | null;
@@ -51,6 +55,10 @@ interface StaffForm {
   lastWorkingDate: string;
   resignationDate: string;
   resignationReason: string;
+  nricFin: string;
+  jobTitle: string;
+  mainDuties: string;
+  employmentType: string;
   specialization: string;
   department: string;
   consultationFee: string;
@@ -103,6 +111,7 @@ const DAYS = [
 const EMPTY_FORM: StaffForm = {
   name: "", email: "", phone: "", role: "doctor", gender: "", ethnicity: "",
   dateOfBirth: "", residencyStatus: "", prStartDate: "", dateOfJoining: "", lastWorkingDate: "", resignationDate: "", resignationReason: "",
+  nricFin: "", jobTitle: "", mainDuties: "", employmentType: "full_time",
   specialization: "", department: "", consultationFee: "", slotDuration: "30",
   schedule: {}, sendInvite: false,
 };
@@ -213,6 +222,10 @@ export default function StaffPage() {
       lastWorkingDate: s.lastWorkingDate ? s.lastWorkingDate.split("T")[0] : "",
       resignationDate: s.resignationDate ? s.resignationDate.split("T")[0] : "",
       resignationReason: s.resignationReason || "",
+      nricFin: s.nricFin || "",
+      jobTitle: s.jobTitle || "",
+      mainDuties: s.mainDuties || "",
+      employmentType: s.employmentType || "full_time",
       specialization: s.specialization || "",
       department: s.department || "",
       consultationFee: s.consultationFee !== null ? String(s.consultationFee) : "",
@@ -257,6 +270,10 @@ export default function StaffPage() {
       lastWorkingDate: form.lastWorkingDate || null,
       resignationDate: form.resignationDate || null,
       resignationReason: form.resignationReason || null,
+      nricFin: form.nricFin.trim() || null,
+      jobTitle: form.jobTitle.trim() || null,
+      mainDuties: form.mainDuties.trim() || null,
+      employmentType: form.employmentType || "full_time",
       specialization: isClinical ? form.specialization : null,
       department: form.department || null,
       consultationFee: isClinical && form.consultationFee ? Number(form.consultationFee) : null,
@@ -799,6 +816,33 @@ export default function StaffPage() {
                   <option value="eurasian">Eurasian (ECF)</option>
                   <option value="other">Other</option>
                 </select>
+              </div>
+
+              {/* NRIC/FIN + Employment Type */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>NRIC/FIN <span className="font-normal text-[12px]" style={{ color: "var(--grey-400)" }}>(for KET)</span></label>
+                  <input value={form.nricFin} onChange={(e) => setForm({ ...form, nricFin: e.target.value })} placeholder="e.g. S9576543F" className="w-full px-3 py-2 text-[15px]" style={inputStyle} />
+                </div>
+                <div>
+                  <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Employment Type</label>
+                  <select value={form.employmentType} onChange={(e) => setForm({ ...form, employmentType: e.target.value })} className="w-full px-3 py-2 text-[15px]" style={inputStyle}>
+                    <option value="full_time">Full-Time</option>
+                    <option value="part_time">Part-Time</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Job Title + Main Duties */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Job Title <span className="font-normal text-[12px]" style={{ color: "var(--grey-400)" }}>(for KET)</span></label>
+                  <input value={form.jobTitle} onChange={(e) => setForm({ ...form, jobTitle: e.target.value })} placeholder="e.g. Administrative Assistant" className="w-full px-3 py-2 text-[15px]" style={inputStyle} />
+                </div>
+                <div>
+                  <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Main Duties <span className="font-normal text-[12px]" style={{ color: "var(--grey-400)" }}>(for KET)</span></label>
+                  <input value={form.mainDuties} onChange={(e) => setForm({ ...form, mainDuties: e.target.value })} placeholder="e.g. Administrative duties, filing" className="w-full px-3 py-2 text-[15px]" style={inputStyle} />
+                </div>
               </div>
 
               {/* Date of Birth + Residency Status */}

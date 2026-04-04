@@ -10,6 +10,7 @@ const TABS = [
   { href: "/admin/branches", label: "Branches" },
   { href: "/admin/commission", label: "Commission" },
   { href: "/admin/payroll", label: "Payroll" },
+  { href: "/admin/ket", label: "KET" },
   { href: "/admin/merge", label: "Merge Duplicates" },
   { href: "/admin/audit-log", label: "Audit Log" },
 ];

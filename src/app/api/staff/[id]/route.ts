@@ -81,6 +81,10 @@ export async function PUT(
     if (body.lastWorkingDate !== undefined) updateData.lastWorkingDate = body.lastWorkingDate ? new Date(body.lastWorkingDate) : null;
     if (body.resignationDate !== undefined) updateData.resignationDate = body.resignationDate ? new Date(body.resignationDate) : null;
     if (body.resignationReason !== undefined) updateData.resignationReason = body.resignationReason || null;
+    if (body.nricFin !== undefined) updateData.nricFin = body.nricFin || null;
+    if (body.jobTitle !== undefined) updateData.jobTitle = body.jobTitle || null;
+    if (body.mainDuties !== undefined) updateData.mainDuties = body.mainDuties || null;
+    if (body.employmentType !== undefined) updateData.employmentType = body.employmentType || "full_time";
     if (body.password && typeof body.password === "string" && body.password.length >= 6) {
       updateData.password = await bcrypt.hash(body.password, 12);
     }

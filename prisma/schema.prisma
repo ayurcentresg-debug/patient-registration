@@ -773,6 +773,10 @@ model User {
 
   // Staff identification
   staffIdNumber   String?   // D10001, T10001, P10001, R10001, A10001, S10001
+  nricFin         String?   // NRIC or FIN number (for KET)
+  jobTitle        String?   // e.g. "Administrative Assistant" (for KET, separate from role)
+  mainDuties      String?   // job duties description (for KET)
+  employmentType  String    @default("full_time") // "full_time" | "part_time"
 
   // Demographics
   gender          String?   // "male" | "female"
@@ -1222,6 +1226,68 @@ model Payroll {
   @@index([userId])
   @@index([period])
   @@unique([clinicId, userId, period])
+}
+
+// ─── Key Employment Terms (KET) — MOM Singapore ─────────────────────────
+
+model KeyEmploymentTerms {
+  id              String   @id @default(cuid())
+  clinicId        String?
+  userId          String
+  issuedDate      DateTime @default(now())
+  status          String   @default("draft") // "draft" | "issued" | "superseded"
+
+  // Section A — Employment Details
+  companyName     String
+  placeOfWork     String?
+  employeeName    String
+  nricFin         String?
+  jobTitle        String
+  employmentType  String   @default("full_time") // "full_time" | "part_time"
+  mainDuties      String?
+  employmentStartDate DateTime?
+  employmentEndDate   DateTime? // only for fixed-term contracts
+
+  // Section B — Working Hours and Rest Day
+  dailyWorkingHours   String?  // e.g. "8" or "5"
+  workStartEndTime    String?  // e.g. "Mon-Fri: 9am-6pm, Sat: 9am-1pm"
+  breakDuration       String?  // e.g. "1 hour"
+  workingDaysPerWeek  String?  // e.g. "5.5" or "4"
+  restDays            String?  // e.g. "Sunday" or "Sunday, Saturday"
+
+  // Section C — Salary
+  salaryPeriod        String?  // "1st to last day of the month"
+  salaryFrequency     String   @default("monthly") // "hourly" | "daily" | "weekly" | "fortnightly" | "monthly"
+  overtimePaymentPeriod String? // if different from salary period
+  overtimeFrequency   String?  // "hourly" | "daily" | "weekly" | "fortnightly" | "monthly"
+  salaryPaymentDate   String?  // e.g. "2nd of every calendar month"
+  overtimePaymentDate String?  // e.g. "2nd of every calendar month"
+  basicRate           String?  // e.g. "$2,000.00 per month" or "$6/hr"
+  grossRate           String?  // e.g. "$2,100.00 per month"
+  overtimeRate        String?  // e.g. "1.5x hourly basic rate ($15.80)"
+  fixedAllowances     String   @default("[]") // JSON: [{ item: "Uniform", amount: 50 }]
+  fixedDeductions     String   @default("[]") // JSON: [{ item: "CDAC", amount: 1 }]
+  otherSalaryComponents String? // e.g. "Productivity incentive"
+  cpfApplicable       Boolean  @default(true)
+
+  // Section D — Leave and Medical Benefits
+  annualLeaveDays     String?  // e.g. "14" (days or hours for part-time)
+  sickLeaveDays       String?  // e.g. "14"
+  hospitalisationLeaveDays String? // e.g. "60"
+  otherLeave          String?  // e.g. "16 weeks Maternity Leave"
+  medicalBenefits     String?  // e.g. "Full reimbursement for medical examination fee"
+
+  // Section E — Others
+  probationLength     String?  // e.g. "1 month" or "N.A."
+  probationStartDate  DateTime?
+  probationEndDate    DateTime?
+  noticePeriod        String?  // e.g. "1 month notice or 1 month salary in lieu of notice"
+
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([clinicId])
+  @@index([userId])
 }
 
 // ─── Audit Log ───────────────────────────────────────────────────────────
