@@ -84,8 +84,9 @@ export async function POST(req: NextRequest) {
           lastName,
           phone: patientPhone,
           email: patientEmail || null,
+          gender: "Not Specified",
           status: "active",
-          source: "online-booking",
+          medicalNotes: "Source: Online Booking",
         },
       });
     }
