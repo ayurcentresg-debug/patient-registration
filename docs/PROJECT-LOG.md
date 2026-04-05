@@ -633,6 +633,85 @@
 - **Files:** `scripts/generate-features-pdf.py`, `docs/AYURGATE-Payroll-Features.pdf`
 - **Status:** ✅ Complete
 
+### Session 5 (Continued) — 6 Apr 2026
+
+#### 44. Super Admin: System Settings
+- **Requested by:** User — trial duration, plan pricing, feature flags
+- **What:** Full platform settings management page at `/super-admin/settings`
+- **Implementation:**
+  - 5 independent sections each with own Save button:
+    1. Trial Configuration — duration days, max users, max patients
+    2. Plan Limits — starter/professional/enterprise max users & patients
+    3. Plan Pricing — monthly/annual prices (stored in cents to avoid float issues)
+    4. Feature Flags — 10 toggles (online booking, payroll, inventory, packages, reports, multi-branch, WhatsApp, SMS, API access, maintenance mode)
+    5. Platform Branding — platform name, support email, support phone
+  - PlatformSettings singleton model in Prisma (fixed ID `platform_settings`)
+  - Section-based PUT API with per-section validation
+  - All updates audit-logged
+  - Settings nav item added to sidebar (gear icon)
+  - Registration endpoint now uses `getTrialDuration()` and `getPlanLimits()` instead of hardcoded values
+  - Plan change endpoint uses dynamic limits from settings
+- **Files:**
+  - `prisma/schema.prisma` (PlatformSettings model)
+  - `src/lib/platform-settings.ts`
+  - `src/app/api/super-admin/settings/route.ts`
+  - `src/app/super-admin/settings/page.tsx`
+  - `src/app/api/clinic/register/route.ts` (wired to dynamic settings)
+  - `src/app/api/super-admin/clinics/[id]/route.ts` (wired to dynamic settings)
+  - `src/components/SuperAdminSidebar.tsx` (added Settings nav)
+- **Status:** ✅ Complete
+
+#### 45. Super Admin: Bulk Operations & CSV Export
+- **Requested by:** User — bulk actions on multiple clinics
+- **What:** Multi-select clinics for bulk trial extensions, plan changes, and data export
+- **Implementation:**
+  - Plan filter chips: All, Trial, Expired, Starter, Professional, Enterprise, No Plan (with counts)
+  - Column headers row for better table readability
+  - Bulk Mode toggle with checkboxes, Select All / Deselect All
+  - Bulk actions: Extend Trial (7/14/30/60/90d), Change Plan, Activate, Deactivate
+  - Per-clinic results panel showing success/failure after bulk operation
+  - CSV Export downloads all clinic data (name, email, plan, usage stats, dates)
+  - All bulk actions audit-logged with operation counts
+  - Uses dynamic plan limits from platform settings
+- **Files:**
+  - `src/app/api/super-admin/bulk/route.ts`
+  - `src/app/super-admin/clinics/page.tsx` (full rewrite with bulk UI)
+- **Status:** ✅ Complete
+
+#### 46. Platform Settings Enforcement on Tenant Side
+- **Requested by:** Identified as critical gap — settings existed but weren't enforced
+- **What:** Wire all platform settings to actually enforce on tenant-facing code
+- **Implementation:**
+  - **Plan limits enforcement:**
+    - `checkUserLimit()` blocks user/staff creation when maxUsers reached (403)
+    - `checkPatientLimit()` blocks patient creation when maxPatients reached (403)
+  - **Trial expiration API enforcement:**
+    - `checkTenantAccess()` blocks all write operations for expired trials
+  - **Maintenance mode:**
+    - Middleware blocks ALL tenant pages (shows HTML maintenance page) and APIs (503)
+    - Super admin routes remain accessible during maintenance
+  - **Feature flag enforcement:**
+    - Middleware blocks disabled module routes: inventory, payroll, reports, packages, branches, online booking
+    - 60-second in-memory cache for middleware flag checks (avoids DB on every request)
+  - **WhatsApp flag:**
+    - `enableWhatsApp` checked before sending WhatsApp messages in patient registration
+  - **Dynamic pricing page:**
+    - Pricing page fetches real prices from `/api/public/platform`
+    - Trial duration, plan limits, and prices all dynamic
+  - **Dynamic branding:**
+    - `platformName` and `supportEmail` used on pricing page and patient welcome emails
+  - **Public platform API:**
+    - New `/api/public/platform` endpoint serves pricing, limits, branding, feature flags (no auth)
+- **Files:**
+  - `src/lib/plan-enforcement.ts` (new — reusable guards)
+  - `src/app/api/public/platform/route.ts` (new — public platform info)
+  - `src/middleware.ts` (maintenance mode + feature flag checks)
+  - `src/app/api/users/route.ts` (user limit enforcement)
+  - `src/app/api/patients/route.ts` (patient limit + WhatsApp flag + branding)
+  - `src/app/api/staff/route.ts` (user limit enforcement)
+  - `src/app/pricing/page.tsx` (dynamic pricing, branding, trial days)
+- **Status:** ✅ Complete
+
 ---
 
 ## Pending / Upcoming
@@ -673,9 +752,14 @@ www.ayurgate.com (Railway)
 ├── /help ...................... Help & Support / FAQ
 ├── /doctor .................... Doctor portal
 ├── /super-admin ............... Platform admin console
-│   ├── /clinics ............... Manage clinics
+│   ├── /clinics ............... Manage clinics (bulk ops, CSV export)
+│   ├── /clinics/[id] .......... Clinic detail & plan management
 │   ├── /marketing ............. B2B email campaigns
-│   └── /daily-report .......... Activity report config
+│   ├── /daily-report .......... Activity report config
+│   ├── /notifications ......... Push notifications to clinics
+│   ├── /health ................ Clinic health monitoring (scores)
+│   ├── /audit-log ............. Super admin action audit trail
+│   └── /settings .............. Trial, pricing, features, branding
 └── /api ....................... REST APIs
     ├── /api/public ............ Public endpoints (no auth)
     ├── /api/super-admin ....... Platform admin APIs
