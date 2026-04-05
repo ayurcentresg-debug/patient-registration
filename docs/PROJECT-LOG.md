@@ -545,6 +545,94 @@
   - `src/app/admin/payroll/page.tsx`
 - **Status:** ✅ Complete
 
+#### 37. Global Search — Patients + Staff
+- **Requested by:** User — top bar search not working, make it global
+- **What:** Search bar now queries both patients and staff APIs in parallel
+- **Implementation:**
+  - Parallel fetch to `/api/patients` and `/api/staff` with debounce
+  - Results tagged with `_type: "patient"` or `"staff"` for routing
+  - Type badges (green = Patient, blue = Staff) with role and ID numbers
+  - Updated all 3 dropdowns (desktop, mobile, sidebar expanded)
+  - Placeholder: "Search patients, staff..."
+  - Click navigates to correct page (`/patients/[id]` or `/admin/staff`)
+- **Files:** `src/components/Sidebar.tsx`
+- **Status:** ✅ Complete
+
+#### 38. Enhanced Notification Bell
+- **Requested by:** User — notifications bell not useful
+- **What:** Added today's upcoming appointments as a notification category
+- **Implementation:**
+  - Fetches `/api/appointments/today` alongside existing alert sources
+  - Filters to show only future (not yet passed) appointments
+  - Shows patient name, time, doctor, status
+  - "+X more appointments" overflow indicator
+  - Included in total notification badge count
+- **Files:** `src/components/Sidebar.tsx`
+- **Status:** ✅ Complete
+
+#### 39. My Account / Profile Page
+- **Requested by:** User — need account management for tenants
+- **What:** Full account management page at `/account`
+- **Implementation:**
+  - Profile tab: avatar with initials, name/email/phone editing, role badge
+  - Account info: active status, last login, member since, 2FA status
+  - Security tab: change password (current → new → confirm)
+  - 2FA status card with link to `/security`
+  - Session info card
+  - Sidebar bottom: "My Account" link
+- **Files:** `src/app/account/page.tsx`, `src/components/Sidebar.tsx`, `src/app/api/users/[id]/route.ts`
+- **Status:** ✅ Complete
+
+#### 40. Subscription & Billing Page
+- **Requested by:** User — need subscription visibility for tenants
+- **What:** Subscription status and plan management at `/subscription`
+- **Implementation:**
+  - Current plan card with gradient header, plan name, price, status badge
+  - Trial countdown with days remaining and upgrade CTA
+  - Usage stats: staff limit, patient limit
+  - Plan features checklist
+  - Compare Plans / Upgrade link to `/pricing`
+  - Billing support contact
+  - Sidebar bottom: "Subscription" link
+- **Files:** `src/app/subscription/page.tsx`, `src/components/Sidebar.tsx`
+- **Status:** ✅ Complete
+
+#### 41. Help & Support Page
+- **Requested by:** User — need help/FAQ section for tenants
+- **What:** Help center with FAQ and contact info at `/help`
+- **Implementation:**
+  - 3 contact cards: Email, WhatsApp, Documentation
+  - FAQ accordion with 8 common questions
+  - Quick links grid to key admin pages
+  - Sidebar bottom: "Help" link
+- **Files:** `src/app/help/page.tsx`, `src/components/Sidebar.tsx`
+- **Status:** ✅ Complete
+
+#### 42. Super Admin Login Fix
+- **Requested by:** User — "Invalid credentials" on super admin login
+- **What:** Railway had wrong SUPER_ADMIN_EMAIL/PASSWORD env vars overriding defaults
+- **Implementation:**
+  - Hardcoded credentials: `ayurgate@gmail.com` / `Veda@2026`
+  - Removed dependency on env vars for super admin auth
+  - Fixed middleware to allow `super_admin_token` holders to access all API routes
+  - `/super-admin/clinics` now loads properly (was blocked by middleware)
+- **Files:** `src/lib/super-admin-auth.ts`, `src/middleware.ts`
+- **Status:** ✅ Complete
+
+#### 43. Payroll Feature Sheet PDF
+- **Requested by:** User — create shareable feature list for tenants
+- **What:** Professional PDF document listing all Payroll, Payslip & KET features
+- **Implementation:**
+  - 5-page Navy + Gold themed PDF with tables
+  - Page 1: Payroll features + MOM OT compliance
+  - Page 2: CPF age-band rates + multi-country statutory deductions
+  - Page 3: Payslip module sections
+  - Page 4: KET 5-section MOM template + features
+  - Page 5: Part-time support + feature matrix + contact
+  - Generated via ReportLab Python script
+- **Files:** `scripts/generate-features-pdf.py`, `docs/AYURGATE-Payroll-Features.pdf`
+- **Status:** ✅ Complete
+
 ---
 
 ## Pending / Upcoming
@@ -580,6 +668,9 @@ www.ayurgate.com (Railway)
 ├── /admin/commission .......... Commission tracking
 ├── /admin/payroll ............. Country-specific payroll
 ├── /reports ................... Analytics & exports
+├── /account ................... My Account / Profile
+├── /subscription .............. Subscription & Billing
+├── /help ...................... Help & Support / FAQ
 ├── /doctor .................... Doctor portal
 ├── /super-admin ............... Platform admin console
 │   ├── /clinics ............... Manage clinics
