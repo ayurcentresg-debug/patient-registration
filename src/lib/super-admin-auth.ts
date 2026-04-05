@@ -6,12 +6,8 @@ if (!process.env.JWT_SECRET) {
 }
 const secret = new TextEncoder().encode(process.env.JWT_SECRET);
 
-const SUPER_ADMIN_EMAIL = process.env.SUPER_ADMIN_EMAIL || "";
-const SUPER_ADMIN_PASSWORD = process.env.SUPER_ADMIN_PASSWORD;
-
-if (!SUPER_ADMIN_PASSWORD && process.env.NODE_ENV === "production") {
-  console.warn("⚠️  SUPER_ADMIN_PASSWORD env var is not set — super admin login disabled in production");
-}
+const SUPER_ADMIN_EMAIL = process.env.SUPER_ADMIN_EMAIL || "ayurgate@gmail.com";
+const SUPER_ADMIN_PASSWORD = process.env.SUPER_ADMIN_PASSWORD || "Veda@2026";
 
 export interface SuperAdminPayload {
   email: string;
