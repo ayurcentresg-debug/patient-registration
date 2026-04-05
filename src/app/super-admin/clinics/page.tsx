@@ -315,6 +315,23 @@ export default function SuperAdminClinicsPage() {
                             </div>
                           </div>
                         </div>
+                        <div style={{ gridColumn: "1 / -1", paddingTop: 12, borderTop: "1px solid #e5e7eb", display: "flex", justifyContent: "flex-end" }}>
+                          <a
+                            href={`/super-admin/clinics/${clinic.id}`}
+                            style={{
+                              padding: "8px 20px",
+                              borderRadius: 8,
+                              fontSize: 13,
+                              fontWeight: 600,
+                              background: "#14532d",
+                              color: "#fff",
+                              textDecoration: "none",
+                              transition: "opacity 0.2s",
+                            }}
+                          >
+                            View Details & Manage
+                          </a>
+                        </div>
                       </div>
                     )}
                   </div>
