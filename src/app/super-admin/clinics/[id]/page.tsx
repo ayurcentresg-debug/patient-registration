@@ -276,99 +276,136 @@ export default function ClinicDetailPage() {
           {/* ── Overview Tab ─────────────────────────────────────── */}
           {tab === "overview" && (
             <div>
-              {/* Stats Cards */}
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 16, marginBottom: 24 }}>
+              {/* Stats Cards Row */}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 12, marginBottom: 24 }}>
                 {[
-                  { label: "Total Users", value: stats.totalUsers, color: "#2563eb" },
-                  { label: "Active Users", value: stats.activeUsers, color: "#059669" },
-                  { label: "Total Patients", value: stats.totalPatients, color: "#7c3aed" },
-                  { label: "Appointments", value: stats.totalAppointments, color: "#ea580c" },
-                  { label: "Today", value: stats.todayAppointments, color: "#0891b2" },
-                  { label: "Revenue", value: stats.totalRevenue, color: "#16a34a", prefix: clinic.currency + " " },
+                  { label: "Users", value: stats.totalUsers, sub: `${stats.activeUsers} active`, color: "#2563eb", icon: "M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" },
+                  { label: "Patients", value: stats.totalPatients, color: "#7c3aed", icon: "M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" },
+                  { label: "Appointments", value: stats.totalAppointments, color: "#ea580c", icon: "M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" },
+                  { label: "Today", value: stats.todayAppointments, color: "#0891b2", icon: "M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" },
+                  { label: "Completed", value: stats.completedAppointments, color: "#059669", icon: "M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" },
+                  { label: "Revenue", value: stats.totalRevenue, color: "#16a34a", prefix: clinic.currency + " ", icon: "M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" },
                 ].map((s) => (
                   <div key={s.label} style={{
-                    background: "#fff", borderRadius: 14, padding: "20px", border: "1px solid #f3f4f6",
-                    boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+                    background: "#fff", borderRadius: 12, padding: "16px", border: "1px solid #e5e7eb",
                   }}>
-                    <div style={{ fontSize: 12, color: "#6b7280", fontWeight: 500, marginBottom: 8 }}>{s.label}</div>
-                    <div style={{ fontSize: 26, fontWeight: 700, color: "#111827" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                      <div style={{ width: 32, height: 32, borderRadius: 8, background: s.color + "10", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={s.color} strokeWidth={1.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d={s.icon} />
+                        </svg>
+                      </div>
+                      <span style={{ fontSize: 12, color: "#6b7280", fontWeight: 500 }}>{s.label}</span>
+                    </div>
+                    <div style={{ fontSize: 24, fontWeight: 700, color: "#111827", lineHeight: 1 }}>
                       {s.prefix || ""}{typeof s.value === "number" ? s.value.toLocaleString() : s.value}
                     </div>
+                    {s.sub && <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 4 }}>{s.sub}</div>}
                   </div>
                 ))}
               </div>
 
-              {/* Clinic Info + Subscription side by side */}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 24 }}>
-                {/* Clinic Info */}
-                <div style={{ background: "#fff", borderRadius: 14, padding: "24px", border: "1px solid #f3f4f6" }}>
-                  <h3 style={{ fontSize: 16, fontWeight: 700, color: "#111827", margin: "0 0 16px" }}>Clinic Details</h3>
-                  {[
-                    ["Slug", clinic.slug],
-                    ["Email", clinic.email],
-                    ["Phone", clinic.phone || "-"],
-                    ["Address", [clinic.address, clinic.city, clinic.state, clinic.zipCode].filter(Boolean).join(", ") || "-"],
-                    ["Country", clinic.country],
-                    ["Currency", clinic.currency],
-                    ["Timezone", clinic.timezone],
-                    ["Website", clinic.website || "-"],
-                    ["Email Verified", clinic.emailVerified ? "Yes" : "No"],
-                    ["Onboarding", clinic.onboardingComplete ? "Complete" : "Pending"],
-                    ["Registered", new Date(clinic.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })],
-                  ].map(([label, value]) => (
-                    <div key={label} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid #f9fafb" }}>
-                      <span style={{ fontSize: 13, color: "#6b7280" }}>{label}</span>
-                      <span style={{ fontSize: 13, color: "#111827", fontWeight: 500, textAlign: "right", maxWidth: "60%", wordBreak: "break-all" }}>{value}</span>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Subscription Info */}
-                <div style={{ background: "#fff", borderRadius: 14, padding: "24px", border: "1px solid #f3f4f6" }}>
-                  <h3 style={{ fontSize: 16, fontWeight: 700, color: "#111827", margin: "0 0 16px" }}>Subscription</h3>
-                  {subscription ? (
-                    <>
-                      {[
+              {/* Combined Info Table */}
+              <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e5e7eb", overflow: "hidden", marginBottom: 24 }}>
+                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+                  <thead>
+                    <tr>
+                      <th colSpan={2} style={{ padding: "14px 20px", textAlign: "left", fontWeight: 700, fontSize: 14, color: "#111827", background: "#f9fafb", borderBottom: "1px solid #e5e7eb" }}>
+                        Clinic Information
+                      </th>
+                      <th colSpan={2} style={{ padding: "14px 20px", textAlign: "left", fontWeight: 700, fontSize: 14, color: "#111827", background: "#f9fafb", borderBottom: "1px solid #e5e7eb", borderLeft: "1px solid #e5e7eb" }}>
+                        Subscription & Billing
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(() => {
+                      const clinicRows: [string, string][] = [
+                        ["Slug", clinic.slug],
+                        ["Email", clinic.email],
+                        ["Phone", clinic.phone || "-"],
+                        ["Address", [clinic.address, clinic.city, clinic.state, clinic.zipCode].filter(Boolean).join(", ") || "-"],
+                        ["Country", clinic.country],
+                        ["Currency", clinic.currency],
+                        ["Timezone", clinic.timezone],
+                        ["Website", clinic.website || "-"],
+                        ["Email Verified", clinic.emailVerified ? "Yes" : "No"],
+                        ["Onboarding", clinic.onboardingComplete ? "Complete" : "Pending"],
+                        ["Registered", new Date(clinic.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })],
+                      ];
+                      const subRows: [string, string][] = subscription ? [
                         ["Plan", subscription.plan.charAt(0).toUpperCase() + subscription.plan.slice(1)],
-                        ["Status", subscription.status],
-                        ["Max Users", subscription.maxUsers.toString()],
-                        ["Max Patients", subscription.maxPatients >= 999999 ? "Unlimited" : subscription.maxPatients.toString()],
-                        ["Trial Ends", subscription.trialEndsAt ? new Date(subscription.trialEndsAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "-"],
-                        ["Stripe Customer", subscription.stripeCustomerId || "None"],
-                        ["Payment Method", subscription.paymentMethod || "None"],
-                        ["Created", new Date(subscription.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })],
-                      ].map(([label, value]) => (
-                        <div key={label} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "1px solid #f9fafb" }}>
-                          <span style={{ fontSize: 13, color: "#6b7280" }}>{label}</span>
-                          <span style={{ fontSize: 13, color: "#111827", fontWeight: 500 }}>{value}</span>
-                        </div>
-                      ))}
-                      {subscription.notes && (
-                        <div style={{ marginTop: 12, padding: "12px", background: "#f9fafb", borderRadius: 8, fontSize: 12, color: "#6b7280", lineHeight: 1.6 }}>
-                          <strong>Notes:</strong> {subscription.notes}
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    <div style={{ color: "#9ca3af", fontSize: 14, padding: 20, textAlign: "center" }}>No subscription found</div>
-                  )}
-                </div>
+                        ["Status", subscription.status.charAt(0).toUpperCase() + subscription.status.slice(1)],
+                        ["Max Users", `${stats.totalUsers} / ${subscription.maxUsers}`],
+                        ["Max Patients", `${stats.totalPatients} / ${subscription.maxPatients >= 999999 ? "Unlimited" : subscription.maxPatients}`],
+                        ["Trial Ends", subscription.trialEndsAt ? new Date(subscription.trialEndsAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }) : "-"],
+                        ["Days Remaining", trialDays !== null ? (trialDays <= 0 ? "Expired" : `${trialDays} days`) : "-"],
+                        ["Stripe ID", subscription.stripeCustomerId || "Not connected"],
+                        ["Payment", subscription.paymentMethod || "None"],
+                        ["Sub Created", new Date(subscription.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })],
+                        ["", ""],
+                        ["", ""],
+                      ] : [
+                        ["Plan", "No subscription"],
+                        ["", ""], ["", ""], ["", ""], ["", ""], ["", ""], ["", ""], ["", ""], ["", ""], ["", ""], ["", ""],
+                      ];
+                      const maxRows = Math.max(clinicRows.length, subRows.length);
+                      const rows = [];
+                      for (let i = 0; i < maxRows; i++) {
+                        const cl = clinicRows[i] || ["", ""];
+                        const sl = subRows[i] || ["", ""];
+                        rows.push(
+                          <tr key={i} style={{ borderBottom: i < maxRows - 1 ? "1px solid #f3f4f6" : "none" }}>
+                            <td style={{ padding: "10px 20px", color: "#6b7280", fontWeight: 500, width: "12%", whiteSpace: "nowrap" }}>{cl[0]}</td>
+                            <td style={{ padding: "10px 20px", color: "#111827", fontWeight: 500, width: "38%", wordBreak: "break-word" }}>{cl[1]}</td>
+                            <td style={{ padding: "10px 20px", color: "#6b7280", fontWeight: 500, width: "12%", whiteSpace: "nowrap", borderLeft: "1px solid #f3f4f6" }}>{sl[0]}</td>
+                            <td style={{ padding: "10px 20px", color: "#111827", fontWeight: 500, width: "38%" }}>
+                              {sl[0] === "Plan" && subscription ? (
+                                <span style={{ padding: "3px 10px", borderRadius: 20, fontSize: 12, fontWeight: 600, background: planColor.bg, color: planColor.color }}>{sl[1]}</span>
+                              ) : sl[0] === "Status" && subscription ? (
+                                <span style={{ padding: "3px 10px", borderRadius: 20, fontSize: 12, fontWeight: 600, background: statusColor.bg, color: statusColor.color }}>{sl[1]}</span>
+                              ) : sl[0] === "Days Remaining" && trialDays !== null ? (
+                                <span style={{ padding: "3px 10px", borderRadius: 20, fontSize: 12, fontWeight: 600, background: trialDays <= 0 ? "#fef2f2" : trialDays <= 3 ? "#fff7ed" : "#ecfdf5", color: trialDays <= 0 ? "#dc2626" : trialDays <= 3 ? "#ea580c" : "#059669" }}>{sl[1]}</span>
+                              ) : sl[1]}
+                            </td>
+                          </tr>
+                        );
+                      }
+                      return rows;
+                    })()}
+                  </tbody>
+                </table>
               </div>
+
+              {/* Notes section if exists */}
+              {subscription?.notes && (
+                <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e5e7eb", padding: "16px 20px", marginBottom: 24 }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 8 }}>Admin Notes</div>
+                  <div style={{ fontSize: 13, color: "#374151", lineHeight: 1.7 }}>{subscription.notes}</div>
+                </div>
+              )}
 
               {/* Appointment Status Breakdown */}
               {stats.appointmentsByStatus.length > 0 && (
-                <div style={{ background: "#fff", borderRadius: 14, padding: "24px", border: "1px solid #f3f4f6" }}>
-                  <h3 style={{ fontSize: 16, fontWeight: 700, color: "#111827", margin: "0 0 16px" }}>Appointments by Status (Last 6 Months)</h3>
-                  <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
-                    {stats.appointmentsByStatus.map((s) => (
-                      <div key={s.status} style={{
-                        padding: "12px 20px", borderRadius: 10, background: "#f9fafb",
-                        border: "1px solid #f3f4f6", minWidth: 120,
-                      }}>
-                        <div style={{ fontSize: 22, fontWeight: 700, color: "#111827" }}>{s.count}</div>
-                        <div style={{ fontSize: 12, color: "#6b7280", textTransform: "capitalize" }}>{s.status}</div>
-                      </div>
-                    ))}
+                <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e5e7eb", overflow: "hidden" }}>
+                  <div style={{ padding: "14px 20px", background: "#f9fafb", borderBottom: "1px solid #e5e7eb" }}>
+                    <h3 style={{ fontSize: 14, fontWeight: 700, color: "#111827", margin: 0 }}>Appointments by Status (Last 6 Months)</h3>
+                  </div>
+                  <div style={{ padding: "16px 20px", display: "flex", gap: 12, flexWrap: "wrap" }}>
+                    {stats.appointmentsByStatus.map((s) => {
+                      const statusColors: Record<string, string> = { completed: "#059669", scheduled: "#2563eb", confirmed: "#7c3aed", cancelled: "#dc2626", "no-show": "#ea580c", "in-progress": "#0891b2" };
+                      const c = statusColors[s.status] || "#6b7280";
+                      return (
+                        <div key={s.status} style={{
+                          padding: "10px 20px", borderRadius: 8, border: "1px solid #e5e7eb",
+                          display: "flex", alignItems: "center", gap: 10, minWidth: 140,
+                        }}>
+                          <span style={{ width: 8, height: 8, borderRadius: "50%", background: c, flexShrink: 0 }} />
+                          <span style={{ fontSize: 13, color: "#374151", textTransform: "capitalize" }}>{s.status}</span>
+                          <span style={{ fontSize: 15, fontWeight: 700, color: "#111827", marginLeft: "auto" }}>{s.count}</span>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}
