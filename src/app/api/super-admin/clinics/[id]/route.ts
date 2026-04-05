@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { isSuperAdmin } from "@/lib/super-admin-auth";
+import { logSuperAdminAction } from "@/lib/super-admin-audit";
 
 /**
  * GET /api/super-admin/clinics/[id]
@@ -217,6 +218,8 @@ export async function PUT(
         },
       });
 
+      await logSuperAdminAction({ action: "extend_trial", entity: "subscription", entityId: id, entityName: clinic.name, details: { days, newEnd: newEnd.toISOString() } });
+
       return NextResponse.json({
         success: true,
         message: `Trial extended by ${days} days until ${newEnd.toLocaleDateString()}`,
@@ -272,6 +275,8 @@ export async function PUT(
         });
       }
 
+      await logSuperAdminAction({ action: "change_plan", entity: "subscription", entityId: id, entityName: clinic.name, details: { from: clinic.subscription?.plan, to: plan } });
+
       return NextResponse.json({
         success: true,
         message: `Plan changed to ${plan}`,
@@ -295,6 +300,8 @@ export async function PUT(
           },
         });
       }
+
+      await logSuperAdminAction({ action: "toggle_active", entity: "clinic", entityId: id, entityName: clinic.name, details: { isActive: newStatus } });
 
       return NextResponse.json({
         success: true,
@@ -340,6 +347,8 @@ export async function PUT(
         data: { password: hashed },
       });
 
+      await logSuperAdminAction({ action: "reset_password", entity: "user", entityId: userId, entityName: `${user.name} (${clinic.name})`, details: { userEmail: user.email, clinicId: id } });
+
       return NextResponse.json({
         success: true,
         message: `Password reset for ${user.name}`,
@@ -358,6 +367,8 @@ export async function PUT(
           data: { notes: notes || null },
         });
       }
+      await logSuperAdminAction({ action: "update_notes", entity: "clinic", entityId: id, entityName: clinic.name });
+
       return NextResponse.json({
         success: true,
         message: "Notes updated",

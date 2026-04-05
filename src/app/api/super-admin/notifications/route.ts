@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { sendEmail } from "@/lib/email";
 import { jwtVerify } from "jose";
 import fs from "fs";
+import { logSuperAdminAction } from "@/lib/super-admin-audit";
 import path from "path";
 
 const secret = new TextEncoder().encode(process.env.JWT_SECRET || "");
@@ -148,6 +149,8 @@ export async function POST(req: NextRequest) {
       clinicNames: targetClinics.map((c) => c.name),
     });
     saveHistory(history);
+
+    await logSuperAdminAction({ action: "send_notification", entity: "notification", details: { subject, audience, type, sent, failed, total: targetClinics.length } });
 
     return NextResponse.json({
       success: true,

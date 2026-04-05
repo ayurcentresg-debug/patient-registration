@@ -1307,3 +1307,19 @@ model AuditLog {
   ipAddress String?
   createdAt DateTime @default(now())
 }
+
+// ─── Super Admin Audit Log ──────────────────────────────────────────────
+
+model SuperAdminAuditLog {
+  id         String   @id @default(cuid())
+  action     String   // login | extend_trial | change_plan | toggle_active | reset_password | update_notes | send_notification | send_marketing | view_clinic
+  entity     String   // clinic | subscription | user | notification | marketing | system
+  entityId   String?  // clinicId or userId affected
+  entityName String?  // clinic name or user name for display
+  details    String?  // JSON with extra context
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+
+  @@index([action])
+  @@index([createdAt])
+}

@@ -4,6 +4,7 @@ import {
   createSuperAdminToken,
 } from "@/lib/super-admin-auth";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { logSuperAdminAction } from "@/lib/super-admin-audit";
 
 export async function POST(req: NextRequest) {
   try {
@@ -29,6 +30,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (!validateSuperAdminCredentials(email, password)) {
+      await logSuperAdminAction({ action: "login_failed", entity: "system", details: { email, ip } });
       return NextResponse.json(
         { error: "Invalid credentials" },
         { status: 401 }
@@ -36,6 +38,8 @@ export async function POST(req: NextRequest) {
     }
 
     const token = await createSuperAdminToken();
+
+    await logSuperAdminAction({ action: "login", entity: "system", details: { ip } });
 
     const response = NextResponse.json({ success: true });
     response.cookies.set("super_admin_token", token, {

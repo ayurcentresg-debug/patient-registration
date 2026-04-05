@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isSuperAdmin } from "@/lib/super-admin-auth";
 import { sendEmail, sendMarketingEmail } from "@/lib/email";
+import { logSuperAdminAction } from "@/lib/super-admin-audit";
 
 /**
  * POST /api/super-admin/marketing/send
@@ -66,6 +67,8 @@ export async function POST(req: NextRequest) {
         );
       }
     }
+
+    await logSuperAdminAction({ action: "send_marketing", entity: "marketing", details: { subject, successCount, failCount, total: to.length } });
 
     return NextResponse.json({
       success: true,
