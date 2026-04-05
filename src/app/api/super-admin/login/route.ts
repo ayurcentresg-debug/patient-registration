@@ -28,7 +28,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (!validateSuperAdminCredentials(email, password)) {
+    const isValid = validateSuperAdminCredentials(email, password);
+    console.log("[super-admin-login] email:", email, "valid:", isValid);
+    if (!isValid) {
       return NextResponse.json(
         { error: "Invalid credentials" },
         { status: 401 }

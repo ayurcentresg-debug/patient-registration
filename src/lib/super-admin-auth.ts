@@ -6,9 +6,6 @@ if (!process.env.JWT_SECRET) {
 }
 const secret = new TextEncoder().encode(process.env.JWT_SECRET);
 
-const SUPER_ADMIN_EMAIL = process.env.SUPER_ADMIN_EMAIL || "ayurgate@gmail.com";
-const SUPER_ADMIN_PASSWORD = process.env.SUPER_ADMIN_PASSWORD || "Veda@2026";
-
 export interface SuperAdminPayload {
   email: string;
   role: "super_admin";
@@ -19,13 +16,16 @@ export function validateSuperAdminCredentials(
   email: string,
   password: string
 ): boolean {
-  if (!SUPER_ADMIN_PASSWORD) return false;
-  return email === SUPER_ADMIN_EMAIL && password === SUPER_ADMIN_PASSWORD;
+  const adminEmail = process.env.SUPER_ADMIN_EMAIL || "ayurgate@gmail.com";
+  const adminPassword = process.env.SUPER_ADMIN_PASSWORD || "Veda@2026";
+  console.log("[super-admin-auth] Checking credentials for:", email, "against:", adminEmail, "| password match:", password === adminPassword);
+  return email === adminEmail && password === adminPassword;
 }
 
 /** Create a signed JWT for the super admin (expires in 12h) */
 export async function createSuperAdminToken(): Promise<string> {
-  return new SignJWT({ email: SUPER_ADMIN_EMAIL, role: "super_admin" })
+  const adminEmail = process.env.SUPER_ADMIN_EMAIL || "ayurgate@gmail.com";
+  return new SignJWT({ email: adminEmail, role: "super_admin" })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime("12h")
