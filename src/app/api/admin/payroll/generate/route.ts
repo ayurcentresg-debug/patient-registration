@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 import { getClinicId, requireRole, ADMIN_ROLES } from "@/lib/get-clinic-id";
 import { getTenantPrisma } from "@/lib/tenant-db";
 import { logAudit } from "@/lib/audit";
-import { calculateStatutory } from "@/lib/payroll-rules";
+import { calculateStatutory, calculateOTPay, momHourlyBasicRate, momDailyBasicRate, momDailyGrossRate, momOvertimeRate, getMOMSalaryBreakdown } from "@/lib/payroll-rules";
 
 const PAID_LEAVE_THRESHOLD = 2; // paid leave days per month
 
@@ -108,10 +108,13 @@ export async function POST(request: NextRequest) {
       // Gross pay (before deductions)
       const grossPay = config.baseSalary + totalAllowances + commission;
 
-      // Get user details for statutory calculation
+      // Get user details for statutory + MOM calculation
       const staffUser = await db.user.findFirst({
         where: { id: config.userId },
-        select: { ethnicity: true, dateOfBirth: true, residencyStatus: true, prStartDate: true },
+        select: {
+          ethnicity: true, dateOfBirth: true, residencyStatus: true, prStartDate: true,
+          isWorkman: true, weeklyContractedHours: true, workingDaysPerWeek: true, employmentType: true,
+        },
       });
 
       // Country-specific statutory calculations
@@ -125,8 +128,36 @@ export async function POST(request: NextRequest) {
         dateOfBirth: staffUser?.dateOfBirth || undefined,
       });
 
+      // Check if payroll record already exists for this user+period
+      const existingPayroll = await db.payroll.findFirst({
+        where: { userId: config.userId, period },
+      });
+
+      // ── MOM OT auto-calculation (SG only) ──
+      // If employee has OT hours recorded, calculate OT pay using MOM formula
+      const existingOTHours = existingPayroll?.overtimeHours || 0;
+      let autoOTPay = existingPayroll?.overtime || 0;
+      let otWarning: string | undefined;
+
+      if (country === "SG" && existingOTHours > 0) {
+        const isWorkman = staffUser?.isWorkman || false;
+        const otResult = calculateOTPay(config.baseSalary, existingOTHours, isWorkman);
+        autoOTPay = otResult.otPay;
+        otWarning = otResult.warning;
+      }
+
+      // ── MOM salary breakdown for payslip reference ──
+      const workingDaysPerWeekStaff = staffUser?.workingDaysPerWeek || 5.5;
+      const momBreakdown = country === "SG" ? getMOMSalaryBreakdown({
+        monthlyBasic: config.baseSalary,
+        monthlyGross: grossPay,
+        workingDaysPerWeek: workingDaysPerWeekStaff,
+        isWorkman: staffUser?.isWorkman || false,
+        employmentType: staffUser?.employmentType || "full_time",
+        weeklyContractedHours: staffUser?.weeklyContractedHours || 44,
+      }) : null;
+
       // For backward compatibility, still populate cpfEmployee/cpfEmployer fields
-      // For SG: use CPF amounts; for other countries: use the primary employee/employer fund
       const cpfEmployeeAmt = country === "SG"
         ? (statutory.employeeContributions.find(c => c.name.startsWith("CPF Employee"))?.amount || 0)
         : statutory.employeeContributions[0]?.amount || 0;
@@ -140,33 +171,24 @@ export async function POST(request: NextRequest) {
       // Net pay
       const netPay = grossPay - totalDeductions;
 
-      // Build statutory breakdown JSON
-      const statutoryBreakdown = JSON.stringify({
-        employeeContributions: statutory.employeeContributions,
-        employerContributions: statutory.employerContributions,
-        taxWithholding: statutory.taxWithholding,
-        taxDetails: statutory.taxDetails,
-      });
-
-      // Check if payroll record already exists for this user+period
-      const existingPayroll = await db.payroll.findFirst({
-        where: { userId: config.userId, period },
-      });
-
       let payroll;
+      const effectiveOT = autoOTPay;
+      const effectiveBonus = existingPayroll?.bonus || 0;
+
       const payrollData = {
         baseSalary: config.baseSalary,
         totalAllowances,
         commission,
-        overtime: existingPayroll?.overtime || 0,
-        bonus: existingPayroll?.bonus || 0,
-        grossPay: grossPay + (existingPayroll?.overtime || 0) + (existingPayroll?.bonus || 0),
+        overtime: effectiveOT,
+        overtimeHours: existingOTHours,
+        bonus: effectiveBonus,
+        grossPay: grossPay + effectiveOT + effectiveBonus,
         cpfEmployee: cpfEmployeeAmt,
         cpfEmployer: cpfEmployerAmt,
         unpaidLeave: unpaidLeaveDeduction,
         otherDeductions: totalConfigDeductions,
         totalDeductions,
-        netPay: netPay + (existingPayroll?.overtime || 0) + (existingPayroll?.bonus || 0),
+        netPay: netPay + effectiveOT + effectiveBonus,
         workingDays,
         leaveDays,
         unpaidLeaveDays,
@@ -175,7 +197,14 @@ export async function POST(request: NextRequest) {
         country,
         employerContributions: statutory.totalEmployerCost,
         taxWithholding: statutory.taxWithholding,
-        statutoryBreakdown,
+        statutoryBreakdown: JSON.stringify({
+          employeeContributions: statutory.employeeContributions,
+          employerContributions: statutory.employerContributions,
+          taxWithholding: statutory.taxWithholding,
+          taxDetails: statutory.taxDetails,
+          ...(momBreakdown ? { momSalaryBreakdown: momBreakdown } : {}),
+          ...(otWarning ? { otWarning } : {}),
+        }),
       };
 
       if (existingPayroll) {

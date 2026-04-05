@@ -430,3 +430,233 @@ export function calculateStatutory(
       return calculateSingapore(grossSalary, options);
   }
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MOM Employment Act — Salary Conversion & OT Calculation (Singapore)
+// Source: Employment Act Part IV, MOM.gov.sg
+// ═══════════════════════════════════════════════════════════════════════════
+
+// Part IV coverage thresholds
+export const MOM_PART4_CAP_NON_WORKMAN = 2600;
+export const MOM_PART4_CAP_WORKMAN = 4500;
+export const MOM_MAX_OT_HOURS_PER_MONTH = 72;
+export const MOM_MAX_DAILY_HOURS = 12; // including OT
+export const MOM_NORMAL_WEEKLY_HOURS = 44;
+export const MOM_PART_TIME_THRESHOLD = 35; // hours per week
+
+/**
+ * Check if employee is covered by Part IV (Hours of Work / OT).
+ */
+export function isPartIVCovered(monthlyBasic: number, isWorkman: boolean): boolean {
+  if (isWorkman) return monthlyBasic <= MOM_PART4_CAP_WORKMAN;
+  return monthlyBasic <= MOM_PART4_CAP_NON_WORKMAN;
+}
+
+/**
+ * MOM hourly basic rate of pay.
+ * Formula: (12 × Monthly basic) / (52 × 44)
+ * The 44 is always statutory max normal weekly hours, regardless of actual hours.
+ */
+export function momHourlyBasicRate(monthlyBasic: number): number {
+  return (12 * monthlyBasic) / (52 * 44);
+}
+
+/**
+ * MOM daily basic rate of pay (for OT / rest day work).
+ * Formula: (12 × Monthly basic) / (52 × working days per week)
+ */
+export function momDailyBasicRate(monthlyBasic: number, workingDaysPerWeek: number): number {
+  if (workingDaysPerWeek <= 0) return 0;
+  return (12 * monthlyBasic) / (52 * workingDaysPerWeek);
+}
+
+/**
+ * MOM gross daily rate of pay (for PH / paid leave).
+ * Formula: (12 × Monthly gross) / (52 × working days per week)
+ */
+export function momDailyGrossRate(monthlyGross: number, workingDaysPerWeek: number): number {
+  if (workingDaysPerWeek <= 0) return 0;
+  return (12 * monthlyGross) / (52 * workingDaysPerWeek);
+}
+
+/**
+ * MOM overtime rate of pay (1.5× hourly basic rate).
+ * For non-workmen above $2,600, OT is capped at $2,600 basic for calculation.
+ */
+export function momOvertimeRate(monthlyBasic: number, isWorkman: boolean): number {
+  // Cap non-workman basic at $2,600 for OT calculation
+  const cappedBasic = isWorkman ? monthlyBasic : Math.min(monthlyBasic, MOM_PART4_CAP_NON_WORKMAN);
+  return momHourlyBasicRate(cappedBasic) * 1.5;
+}
+
+/**
+ * Calculate OT pay for given hours.
+ */
+export function calculateOTPay(
+  monthlyBasic: number,
+  otHours: number,
+  isWorkman: boolean
+): { otRate: number; otPay: number; covered: boolean; warning?: string } {
+  const covered = isPartIVCovered(monthlyBasic, isWorkman);
+  if (!covered) {
+    // Not covered by Part IV — no statutory OT entitlement
+    // Still calculate at 1.5x for reference if employer wants to pay
+    const otRate = momOvertimeRate(monthlyBasic, isWorkman);
+    return {
+      otRate,
+      otPay: Math.round(otRate * otHours * 100) / 100,
+      covered: false,
+      warning: `Employee salary exceeds Part IV cap (${isWorkman ? "S$4,500 workman" : "S$2,600 non-workman"}). OT is calculated but not statutory.`,
+    };
+  }
+
+  const otRate = momOvertimeRate(monthlyBasic, isWorkman);
+  let warning: string | undefined;
+  if (otHours > MOM_MAX_OT_HOURS_PER_MONTH) {
+    warning = `OT hours (${otHours}) exceed MOM monthly limit of ${MOM_MAX_OT_HOURS_PER_MONTH} hours.`;
+  }
+
+  return {
+    otRate,
+    otPay: Math.round(otRate * otHours * 100) / 100,
+    covered: true,
+    warning,
+  };
+}
+
+/**
+ * MOM incomplete month salary calculation.
+ * Formula: Monthly salary × (calendar days employed / total calendar days in month)
+ */
+export function momIncompleteMonthSalary(
+  monthlySalary: number,
+  daysEmployed: number,
+  totalDaysInMonth: number
+): number {
+  if (totalDaysInMonth <= 0) return 0;
+  return Math.round((monthlySalary * daysEmployed / totalDaysInMonth) * 100) / 100;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MOM Part-Time Employment — Pro-Ration
+// Source: Employment of Part-Time Employees Regulations
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * Pro-ration factor for part-time employees.
+ * Factor = PT weekly hours / FT weekly hours (default 44).
+ */
+export function partTimeProRationFactor(ptWeeklyHours: number, ftWeeklyHours: number = 44): number {
+  if (ftWeeklyHours <= 0) return 0;
+  return ptWeeklyHours / ftWeeklyHours;
+}
+
+/**
+ * Round to nearest half day (MOM part-time rounding rule).
+ * < 0.25 → ignore, ≥ 0.25 → round up to 0.5
+ */
+function roundToHalfDay(days: number): number {
+  const whole = Math.floor(days);
+  const fraction = days - whole;
+  if (fraction < 0.25) return whole;
+  if (fraction < 0.75) return whole + 0.5;
+  return whole + 1;
+}
+
+/**
+ * Pro-rate annual leave for part-time employee.
+ */
+export function partTimeAnnualLeave(
+  ftEntitlementDays: number,
+  ptWeeklyHours: number,
+  ftWeeklyHours: number = 44
+): number {
+  const raw = ftEntitlementDays * partTimeProRationFactor(ptWeeklyHours, ftWeeklyHours);
+  return roundToHalfDay(raw);
+}
+
+/**
+ * Pro-rate sick leave for part-time employee.
+ */
+export function partTimeSickLeave(
+  ftOutpatientDays: number,
+  ftHospitalisationDays: number,
+  ptWeeklyHours: number,
+  ftWeeklyHours: number = 44
+): { outpatient: number; hospitalisation: number } {
+  const factor = partTimeProRationFactor(ptWeeklyHours, ftWeeklyHours);
+  return {
+    outpatient: roundToHalfDay(ftOutpatientDays * factor),
+    hospitalisation: roundToHalfDay(ftHospitalisationDays * factor),
+  };
+}
+
+/**
+ * Pro-rate public holiday entitlement for part-time employee.
+ * Singapore has 11 gazetted public holidays per year.
+ */
+export function partTimePublicHolidays(
+  ptWeeklyHours: number,
+  ftWeeklyHours: number = 44,
+  totalPH: number = 11
+): number {
+  const raw = totalPH * partTimeProRationFactor(ptWeeklyHours, ftWeeklyHours);
+  return roundToHalfDay(raw);
+}
+
+/**
+ * Full-time annual leave entitlement by years of service (MOM minimum).
+ * 7 days for 1st year, +1 per year up to 14 days.
+ */
+export function ftAnnualLeaveEntitlement(yearsOfService: number): number {
+  if (yearsOfService < 1) return 0; // entitled after 3 months, full after 1 year
+  return Math.min(7 + (yearsOfService - 1), 14);
+}
+
+/**
+ * Full-time sick leave entitlement by months of service (MOM minimum).
+ */
+export function ftSickLeaveEntitlement(monthsOfService: number): { outpatient: number; hospitalisation: number } {
+  if (monthsOfService < 3) return { outpatient: 0, hospitalisation: 0 };
+  if (monthsOfService < 4) return { outpatient: 5, hospitalisation: 15 };
+  if (monthsOfService < 5) return { outpatient: 8, hospitalisation: 30 };
+  if (monthsOfService < 6) return { outpatient: 11, hospitalisation: 45 };
+  return { outpatient: 14, hospitalisation: 60 };
+}
+
+export interface MOMSalaryBreakdown {
+  hourlyBasicRate: number;
+  dailyBasicRate: number;
+  dailyGrossRate: number;
+  overtimeRate: number;
+  isPartIVCovered: boolean;
+  isPartTime: boolean;
+  proRationFactor: number | null;
+}
+
+/**
+ * Get full MOM salary breakdown for display / payslip.
+ */
+export function getMOMSalaryBreakdown(opts: {
+  monthlyBasic: number;
+  monthlyGross: number;
+  workingDaysPerWeek: number;
+  isWorkman: boolean;
+  employmentType: string;
+  weeklyContractedHours?: number;
+}): MOMSalaryBreakdown {
+  const isPartTime = opts.employmentType === "part_time";
+  const proRationFactor = isPartTime && opts.weeklyContractedHours
+    ? partTimeProRationFactor(opts.weeklyContractedHours)
+    : null;
+
+  return {
+    hourlyBasicRate: Math.round(momHourlyBasicRate(opts.monthlyBasic) * 100) / 100,
+    dailyBasicRate: Math.round(momDailyBasicRate(opts.monthlyBasic, opts.workingDaysPerWeek) * 100) / 100,
+    dailyGrossRate: Math.round(momDailyGrossRate(opts.monthlyGross, opts.workingDaysPerWeek) * 100) / 100,
+    overtimeRate: Math.round(momOvertimeRate(opts.monthlyBasic, opts.isWorkman) * 100) / 100,
+    isPartIVCovered: isPartIVCovered(opts.monthlyBasic, opts.isWorkman),
+    isPartTime,
+    proRationFactor,
+  };
+}

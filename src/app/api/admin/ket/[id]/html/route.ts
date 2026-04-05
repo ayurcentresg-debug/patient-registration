@@ -64,9 +64,9 @@ export async function GET(
   .ket-header { padding: 20px 28px 12px; display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #e5e7eb; }
   .ket-header h1 { font-size: 24px; font-weight: 800; color: #1a1a1a; }
   .ket-header .subtitle { font-size: 12px; color: #6b7280; margin-top: 2px; }
-  .issued-box { border: 2px solid #c0392b; padding: 10px 16px; text-align: center; border-radius: 6px; }
+  .issued-box { border: 2px solid #a16207; padding: 10px 16px; text-align: center; border-radius: 6px; }
   .issued-box .label { font-size: 16px; font-weight: 700; color: #1a1a1a; }
-  .issued-box .date { font-size: 15px; font-weight: 700; color: #c0392b; margin-top: 2px; }
+  .issued-box .date { font-size: 15px; font-weight: 700; color: #a16207; margin-top: 2px; }
   .issued-box .note { font-size: 9px; color: #6b7280; margin-top: 2px; }
 
   .ket-body { padding: 16px 28px; display: flex; gap: 16px; }
@@ -75,11 +75,11 @@ export async function GET(
 
   .section { margin-bottom: 14px; }
   .section-title { font-size: 12px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: #fff; padding: 6px 10px; border-radius: 4px; margin-bottom: 6px; }
-  .section-title.a { background: #c0392b; }
-  .section-title.b { background: #c0392b; }
-  .section-title.c { background: #c0392b; }
-  .section-title.d { background: #c0392b; }
-  .section-title.e { background: #c0392b; }
+  .section-title.a { background: #a16207; }
+  .section-title.b { background: #a16207; }
+  .section-title.c { background: #a16207; }
+  .section-title.d { background: #a16207; }
+  .section-title.e { background: #a16207; }
 
   .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid #bbb; border-radius: 4px; overflow: hidden; }
   .field-grid.cols-1 { grid-template-columns: 1fr; }
@@ -98,7 +98,7 @@ export async function GET(
   .allowance-table .total td { font-weight: 700; background: #f9fafb; }
 
   .ket-footer { border-top: 1px solid #e5e7eb; padding: 8px 28px; text-align: center; font-size: 9px; color: #9ca3af; background: #fafafa; }
-  .ket-footer a { color: #c0392b; text-decoration: none; }
+  .ket-footer a { color: #a16207; text-decoration: none; }
 
   .action-bar { display: flex; gap: 12px; justify-content: center; margin: 16px auto 0; width: 780px; }
   .action-bar button { padding: 10px 24px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
@@ -293,7 +293,7 @@ export async function GET(
 </div>
 
 <div class="action-bar no-print">
-  <button onclick="window.print()" style="background:#c0392b;color:white;">Print / Save PDF</button>
+  <button onclick="window.print()" style="background:#a16207;color:white;">Print / Save PDF</button>
   <button onclick="window.close()" style="background:#e2e8f0;color:#475569;">Close</button>
 </div>
 

@@ -61,6 +61,8 @@ export async function GET(
       employerContributions?: { name: string; amount: number; rate?: number }[];
       taxWithholding?: number;
       taxDetails?: string;
+      momSalaryBreakdown?: { hourlyBasicRate: number; dailyBasicRate: number; dailyGrossRate: number; overtimeRate: number; isPartIVCovered: boolean };
+      otWarning?: string;
     } = {};
     try {
       const raw = payroll.statutoryBreakdown || "[]";
@@ -69,6 +71,7 @@ export async function GET(
     } catch {
       statutoryData = {};
     }
+    const momBreakdown = statutoryData.momSalaryBreakdown;
 
     const employeeContribs = statutoryData.employeeContributions || [];
     const employerContribs = statutoryData.employerContributions || [];
@@ -254,6 +257,9 @@ export async function GET(
             <strong>Date:</strong> ${paidDate}<br/>
             <strong>Status:</strong> <span style="color:${payroll.status === "paid" ? "#065f46" : "#92400e"};font-weight:700;">${payroll.status.charAt(0).toUpperCase() + payroll.status.slice(1)}</span><br/>
             <strong>OT Payment Period:</strong> ${periodStartStr} – ${periodEndStr}
+            ${momBreakdown ? `<br/><strong>Hourly Basic Rate:</strong> ${fmt(momBreakdown.hourlyBasicRate)} &nbsp; <strong>OT Rate (1.5x):</strong> ${fmt(momBreakdown.overtimeRate)}` : ""}
+            ${momBreakdown ? `<br/><strong>Daily Basic Rate:</strong> ${fmt(momBreakdown.dailyBasicRate)} &nbsp; <strong>Daily Gross Rate:</strong> ${fmt(momBreakdown.dailyGrossRate)}` : ""}
+            ${statutoryData.otWarning ? `<br/><span style="color:#dc2626;font-weight:600;font-size:10px;">${statutoryData.otWarning}</span>` : ""}
             ${payroll.notes ? `<br/><strong>Note:</strong> ${payroll.notes}` : ""}
           </div>
         </div>

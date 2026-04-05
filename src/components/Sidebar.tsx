@@ -28,6 +28,10 @@ interface SearchResult {
   name?: string;
   firstName?: string;
   lastName?: string;
+  role?: string;
+  staffIdNumber?: string;
+  patientIdNumber?: string;
+  _type?: string;
 }
 
 interface AlertItem {
@@ -91,6 +95,8 @@ export default function Sidebar() {
   const [lowStockAlerts, setLowStockAlerts] = useState<AlertItem[]>([]);
   const [pendingReminders, setPendingReminders] = useState<ReminderItem[]>([]);
   const [transferNotifications, setTransferNotifications] = useState<NotificationItem[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [todayAppointments, setTodayAppointments] = useState<any[]>([]);
   const [notifLoading, setNotifLoading] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
 
@@ -98,7 +104,17 @@ export default function Sidebar() {
   const [clinicName, setClinicName] = useState("AYUR GATE");
   const clinicInitials = clinicName.split(/\s+/).map(w => w[0]).join("").slice(0, 2).toUpperCase();
 
-  const totalNotifCount = lowStockAlerts.length + pendingReminders.length + transferNotifications.length;
+  // Filter upcoming appointments (not yet passed)
+  const upcomingAppointments = todayAppointments.filter((a) => {
+    if (!a.time) return true;
+    const now = new Date();
+    const [h, m] = (a.time as string).split(":").map(Number);
+    const apptTime = new Date();
+    apptTime.setHours(h, m, 0, 0);
+    return apptTime >= now;
+  });
+
+  const totalNotifCount = lowStockAlerts.length + pendingReminders.length + transferNotifications.length + upcomingAppointments.length;
 
   useEffect(() => {
     setMounted(true);
@@ -112,10 +128,11 @@ export default function Sidebar() {
   const fetchNotifications = useCallback(async () => {
     setNotifLoading(true);
     try {
-      const [alertsRes, remindersRes, notificationsRes] = await Promise.allSettled([
+      const [alertsRes, remindersRes, notificationsRes, appointmentsRes] = await Promise.allSettled([
         fetch("/api/inventory/alerts"),
         fetch("/api/reminders?status=pending"),
         fetch("/api/notifications"),
+        fetch("/api/appointments/today"),
       ]);
 
       if (alertsRes.status === "fulfilled" && alertsRes.value.ok) {
@@ -131,6 +148,11 @@ export default function Sidebar() {
       if (notificationsRes.status === "fulfilled" && notificationsRes.value.ok) {
         const data = await notificationsRes.value.json();
         setTransferNotifications(Array.isArray(data) ? data : data.notifications || []);
+      }
+
+      if (appointmentsRes.status === "fulfilled" && appointmentsRes.value.ok) {
+        const data = await appointmentsRes.value.json();
+        setTodayAppointments(Array.isArray(data) ? data : []);
       }
     } catch {
       // Silently fail - notifications are non-critical
@@ -160,13 +182,32 @@ export default function Sidebar() {
     searchTimerRef.current = setTimeout(async () => {
       setSearchLoading(true);
       try {
-        const res = await fetch(`/api/patients?search=${encodeURIComponent(searchTerm.trim())}&limit=5`);
-        if (res.ok) {
-          const data = await res.json();
-          const results = Array.isArray(data) ? data : data.patients || data.items || [];
-          setSearchResults(results);
-          setSearchOpen(true);
+        // Global search: patients + staff + appointments
+        const [patientsRes, staffRes] = await Promise.allSettled([
+          fetch(`/api/patients?search=${encodeURIComponent(searchTerm.trim())}&limit=5`),
+          fetch(`/api/staff?search=${encodeURIComponent(searchTerm.trim())}`),
+        ]);
+
+        const allResults: SearchResult[] = [];
+
+        if (patientsRes.status === "fulfilled" && patientsRes.value.ok) {
+          const data = await patientsRes.value.json();
+          const patients = Array.isArray(data) ? data : data.patients || data.items || [];
+          patients.slice(0, 5).forEach((p: SearchResult & { patientIdNumber?: string }) => {
+            allResults.push({ ...p, _type: "patient" as string } as SearchResult);
+          });
         }
+
+        if (staffRes.status === "fulfilled" && staffRes.value.ok) {
+          const data = await staffRes.value.json();
+          const staffList = Array.isArray(data) ? data : data.staff || [];
+          staffList.slice(0, 3).forEach((s: SearchResult & { role?: string }) => {
+            allResults.push({ ...s, _type: "staff" as string } as SearchResult);
+          });
+        }
+
+        setSearchResults(allResults);
+        setSearchOpen(true);
       } catch {
         // Silently fail
       } finally {
@@ -220,13 +261,17 @@ export default function Sidebar() {
     return date.toLocaleDateString();
   }
 
-  function handleSearchResultClick(patientId: string) {
+  function handleSearchResultClick(result: SearchResult) {
     setSearchTerm("");
     setMobileSearchTerm("");
     setSearchOpen(false);
     setMobileSearchOpen(false);
     setMobileMenuOpen(false);
-    router.push(`/patients/${patientId}`);
+    if (result._type === "staff") {
+      router.push(`/admin/staff`);
+    } else {
+      router.push(`/patients/${result.id}`);
+    }
   }
 
   // Close mobile menu on route change
@@ -392,7 +437,7 @@ export default function Sidebar() {
               </svg>
               <input
                 type="text"
-                placeholder="Search patients..."
+                placeholder="Search patients, staff..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onFocus={() => { if (searchResults.length > 0) setSearchOpen(true); }}
@@ -417,27 +462,43 @@ export default function Sidebar() {
             {/* Desktop search results dropdown */}
             {searchOpen && searchResults.length > 0 && (
               <div style={{ position: "absolute", top: "calc(100% + 6px)", left: 0, right: 0, backgroundColor: "#fff", borderRadius: 10, boxShadow: "0 8px 32px rgba(0,0,0,0.18)", border: "1px solid #e5e7eb", zIndex: 100, overflow: "hidden" }}>
-                {searchResults.map((patient, idx) => (
+                {searchResults.map((patient, idx) => {
+                  const isStaff = (patient as SearchResult & { _type?: string })._type === "staff";
+                  return (
                   <button
                     key={patient.id || idx}
-                    onClick={() => handleSearchResultClick(patient.id)}
+                    onClick={() => handleSearchResultClick(patient)}
                     style={{ display: "flex", alignItems: "center", gap: 10, width: "100%", padding: "10px 14px", border: "none", backgroundColor: "transparent", cursor: "pointer", textAlign: "left", borderBottom: idx < searchResults.length - 1 ? "1px solid #f3f4f6" : "none" }}
                     onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#f9fafb"; }}
                     onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}
                   >
-                    <div style={{ width: 28, height: 28, borderRadius: "50%", backgroundColor: "#d1f2e0", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                      <svg style={{ width: 14, height: 14 }} fill="none" stroke="#14532d" viewBox="0 0 24 24">
+                    <div style={{ width: 28, height: 28, borderRadius: "50%", backgroundColor: isStaff ? "#dbeafe" : "#d1f2e0", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <svg style={{ width: 14, height: 14 }} fill="none" stroke={isStaff ? "#1e40af" : "#14532d"} viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                       </svg>
                     </div>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: "#111" }}>{getPatientDisplayName(patient)}</span>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 2, flex: 1, minWidth: 0 }}>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: "#111" }}>{getPatientDisplayName(patient)}</span>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        <span style={{ fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px", padding: "1px 6px", borderRadius: 4, backgroundColor: isStaff ? "#dbeafe" : "#d1f2e0", color: isStaff ? "#1e40af" : "#14532d" }}>
+                          {isStaff ? ((patient as SearchResult & { role?: string }).role || "Staff") : "Patient"}
+                        </span>
+                        {isStaff && (patient as SearchResult & { staffIdNumber?: string }).staffIdNumber && (
+                          <span style={{ fontSize: 11, color: "#6b7280" }}>{(patient as SearchResult & { staffIdNumber?: string }).staffIdNumber}</span>
+                        )}
+                        {!isStaff && (patient as SearchResult & { patientIdNumber?: string }).patientIdNumber && (
+                          <span style={{ fontSize: 11, color: "#6b7280" }}>{(patient as SearchResult & { patientIdNumber?: string }).patientIdNumber}</span>
+                        )}
+                      </div>
+                    </div>
                   </button>
-                ))}
+                  );
+                })}
               </div>
             )}
             {searchOpen && searchResults.length === 0 && searchTerm.trim() && !searchLoading && (
               <div style={{ position: "absolute", top: "calc(100% + 6px)", left: 0, right: 0, backgroundColor: "#fff", borderRadius: 10, boxShadow: "0 8px 32px rgba(0,0,0,0.18)", border: "1px solid #e5e7eb", zIndex: 100, padding: 16, textAlign: "center", fontSize: 13, color: "#6b7280" }}>
-                No patients found
+                No results found
               </div>
             )}
           </div>
@@ -545,6 +606,34 @@ export default function Sidebar() {
                       ))}
                     </>
                   )}
+                  {upcomingAppointments.length > 0 && (
+                    <>
+                      <div style={{ padding: "8px 16px 4px", fontSize: 10, fontWeight: 700, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em" }}>Today&apos;s Appointments</div>
+                      {upcomingAppointments.slice(0, 5).map((appt, idx) => (
+                        <Link key={appt.id || idx} href="/appointments" onClick={() => setNotifOpen(false)}
+                          style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 16px", textDecoration: "none", borderBottom: "1px solid #f3f4f6" }}
+                          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#f9fafb"; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}>
+                          <div style={{ width: 28, height: 28, borderRadius: 6, backgroundColor: "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                            <svg style={{ width: 14, height: 14 }} fill="none" stroke="#16a34a" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                          </div>
+                          <div style={{ minWidth: 0, flex: 1 }}>
+                            <div style={{ fontSize: 12, fontWeight: 600, color: "#111" }}>
+                              {appt.patient ? `${appt.patient.firstName || ""} ${appt.patient.lastName || ""}`.trim() : "Patient"}
+                            </div>
+                            <div style={{ fontSize: 11, color: "#6b7280" }}>
+                              {appt.time ? appt.time.slice(0, 5) : ""}{appt.doctorRef ? ` - Dr. ${appt.doctorRef.name || ""}` : ""}{appt.status ? ` (${appt.status})` : ""}
+                            </div>
+                          </div>
+                        </Link>
+                      ))}
+                      {upcomingAppointments.length > 5 && (
+                        <div style={{ padding: "6px 16px", fontSize: 11, color: "#6b7280", textAlign: "center" }}>
+                          +{upcomingAppointments.length - 5} more appointments
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
                 {totalNotifCount > 0 && (
                   <div style={{ borderTop: "1px solid #e5e7eb", padding: "8px 16px", display: "flex", justifyContent: "space-between" }}>
@@ -572,8 +661,8 @@ export default function Sidebar() {
             <input
               ref={mobileSearchRef}
               type="text"
-              placeholder="Search patients..."
-              aria-label="Search patients"
+              placeholder="Search patients, staff..."
+              aria-label="Search patients and staff"
               value={mobileSearchTerm}
               onChange={(e) => setMobileSearchTerm(e.target.value)}
               onFocus={() => { if (searchResults.length > 0) setSearchOpen(true); }}
@@ -590,24 +679,32 @@ export default function Sidebar() {
           {/* Mobile search results */}
           {searchOpen && searchResults.length > 0 && (
             <div style={{ marginTop: 8, backgroundColor: "#fff", borderRadius: 8, border: "1px solid var(--grey-200)", overflow: "hidden", maxHeight: 280, overflowY: "auto" }}>
-              {searchResults.map((patient, idx) => (
+              {searchResults.map((patient, idx) => {
+                const isStaff = (patient as SearchResult & { _type?: string })._type === "staff";
+                return (
                 <button
                   key={patient.id || idx}
-                  onClick={() => handleSearchResultClick(patient.id)}
+                  onClick={() => handleSearchResultClick(patient)}
                   style={{ display: "flex", alignItems: "center", gap: 10, width: "100%", padding: "12px", border: "none", backgroundColor: "transparent", cursor: "pointer", textAlign: "left", borderBottom: idx < searchResults.length - 1 ? "1px solid var(--grey-100)" : "none" }}
                 >
-                  <div style={{ width: 32, height: 32, borderRadius: "50%", backgroundColor: "var(--blue-50)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                    <svg style={{ width: 16, height: 16 }} fill="none" stroke="var(--blue-500)" viewBox="0 0 24 24">
+                  <div style={{ width: 32, height: 32, borderRadius: "50%", backgroundColor: isStaff ? "#dbeafe" : "var(--blue-50)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <svg style={{ width: 16, height: 16 }} fill="none" stroke={isStaff ? "#1e40af" : "var(--blue-500)"} viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
                   </div>
-                  <span style={{ fontSize: 14, fontWeight: 600, color: "var(--grey-900)" }}>{getPatientDisplayName(patient)}</span>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 2, flex: 1, minWidth: 0 }}>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: "var(--grey-900)" }}>{getPatientDisplayName(patient)}</span>
+                    <span style={{ fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px", padding: "1px 6px", borderRadius: 4, backgroundColor: isStaff ? "#dbeafe" : "#d1f2e0", color: isStaff ? "#1e40af" : "#14532d", alignSelf: "flex-start" }}>
+                      {isStaff ? ((patient as SearchResult & { role?: string }).role || "Staff") : "Patient"}
+                    </span>
+                  </div>
                 </button>
-              ))}
+                );
+              })}
             </div>
           )}
           {searchOpen && searchResults.length === 0 && mobileSearchTerm.trim() && !searchLoading && (
-            <div style={{ marginTop: 8, padding: 16, textAlign: "center", fontSize: 13, color: "var(--grey-500)" }}>No patients found</div>
+            <div style={{ marginTop: 8, padding: 16, textAlign: "center", fontSize: 13, color: "var(--grey-500)" }}>No results found</div>
           )}
         </div>
       )}
@@ -732,6 +829,81 @@ export default function Sidebar() {
                   />
                 </div>
               </button>
+
+              {/* My Account */}
+              <Link
+                href="/account"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 14,
+                  padding: "12px 14px",
+                  borderRadius: 8,
+                  color: pathname === "/account" ? "#fff" : "rgba(255,255,255,0.6)",
+                  backgroundColor: pathname === "/account" ? "rgba(255,255,255,0.12)" : "transparent",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  width: "100%",
+                  fontSize: 15,
+                  fontWeight: 600,
+                  textDecoration: "none",
+                  textAlign: "left",
+                }}
+              >
+                <svg style={{ width: 22, height: 22, flexShrink: 0 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                My Account
+              </Link>
+
+              {/* Subscription */}
+              <Link
+                href="/subscription"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 14,
+                  padding: "12px 14px",
+                  borderRadius: 8,
+                  color: pathname === "/subscription" ? "#fff" : "rgba(255,255,255,0.6)",
+                  backgroundColor: pathname === "/subscription" ? "rgba(255,255,255,0.12)" : "transparent",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  width: "100%",
+                  fontSize: 15,
+                  fontWeight: 600,
+                  textDecoration: "none",
+                  textAlign: "left",
+                }}
+              >
+                <svg style={{ width: 22, height: 22, flexShrink: 0 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                </svg>
+                Subscription
+              </Link>
+
+              {/* Help */}
+              <Link
+                href="/help"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 14,
+                  padding: "12px 14px",
+                  borderRadius: 8,
+                  color: pathname === "/help" ? "#fff" : "rgba(255,255,255,0.6)",
+                  backgroundColor: pathname === "/help" ? "rgba(255,255,255,0.12)" : "transparent",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  width: "100%",
+                  fontSize: 15,
+                  fontWeight: 600,
+                  textDecoration: "none",
+                  textAlign: "left",
+                }}
+              >
+                <svg style={{ width: 22, height: 22, flexShrink: 0 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Help
+              </Link>
 
               {/* Logout */}
               <button
@@ -894,8 +1066,8 @@ export default function Sidebar() {
             </svg>
             <input
               type="text"
-              placeholder="Search patients..."
-              aria-label="Search patients"
+              placeholder="Search patients, staff..."
+              aria-label="Search patients and staff"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               onFocus={() => {
@@ -948,10 +1120,12 @@ export default function Sidebar() {
                 marginTop: 4,
               }}
             >
-              {searchResults.map((patient, idx) => (
+              {searchResults.map((patient, idx) => {
+                const isStaff = (patient as SearchResult & { _type?: string })._type === "staff";
+                return (
                 <button
                   key={patient.id || idx}
-                  onClick={() => handleSearchResultClick(patient.id)}
+                  onClick={() => handleSearchResultClick(patient)}
                   style={{
                     display: "flex",
                     alignItems: "center",
@@ -976,22 +1150,28 @@ export default function Sidebar() {
                       width: 28,
                       height: 28,
                       borderRadius: "50%",
-                      backgroundColor: "var(--blue-50)",
+                      backgroundColor: isStaff ? "#dbeafe" : "var(--blue-50)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
                       flexShrink: 0,
                     }}
                   >
-                    <svg style={{ width: 14, height: 14 }} fill="none" stroke="var(--blue-500)" viewBox="0 0 24 24">
+                    <svg style={{ width: 14, height: 14 }} fill="none" stroke={isStaff ? "#1e40af" : "var(--blue-500)"} viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
                   </div>
-                  <span style={{ fontSize: 12, fontWeight: 600, color: "var(--grey-900, #111)" }}>
-                    {getPatientDisplayName(patient)}
-                  </span>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 1, flex: 1, minWidth: 0 }}>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: "var(--grey-900, #111)" }}>
+                      {getPatientDisplayName(patient)}
+                    </span>
+                    <span style={{ fontSize: 9, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px", padding: "1px 5px", borderRadius: 3, backgroundColor: isStaff ? "#dbeafe" : "#d1f2e0", color: isStaff ? "#1e40af" : "#14532d", alignSelf: "flex-start" }}>
+                      {isStaff ? ((patient as SearchResult & { role?: string }).role || "Staff") : "Patient"}
+                    </span>
+                  </div>
                 </button>
-              ))}
+                );
+              })}
             </div>
           )}
 
@@ -1014,7 +1194,7 @@ export default function Sidebar() {
               }}
             >
               <span style={{ fontSize: 12, color: "var(--grey-500, #6b7280)" }}>
-                No patients found
+                No results found
               </span>
             </div>
           )}

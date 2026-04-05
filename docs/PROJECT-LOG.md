@@ -470,6 +470,81 @@
   - `src/components/AdminTabs.tsx`, `src/app/admin/staff/page.tsx`, staff APIs
 - **Status:** ✅ Complete
 
+#### 32. KET Golden Yellow Theme
+- **Requested by:** User — red (#c0392b) is "very bright", prefers golden yellow
+- **What:** Changed KET section headers, buttons, and HTML template from red to dark goldenrod (#a16207)
+- **Files:**
+  - `src/app/admin/ket/page.tsx`, `src/app/api/admin/ket/[id]/html/route.ts`
+- **Status:** ✅ Complete
+
+---
+
+### Session 5 — 6 Apr 2026
+
+#### 33. MOM Salary Calculation Engine
+- **Requested by:** User — implement MOM Employment Act salary computation rules
+- **What:** Complete MOM-compliant salary calculation library with hourly/daily/OT rate formulas
+- **Implementation:**
+  - `momHourlyBasicRate`: (12 × monthly) / (52 × 44)
+  - `momDailyBasicRate`: (12 × monthly) / (52 × working days per week)
+  - `momDailyGrossRate`: same formula with gross salary (for PH/leave pay)
+  - `momOvertimeRate`: 1.5× hourly basic (capped at $2,600 for non-workmen)
+  - `calculateOTPay`: auto-calculates OT pay from hours with Part IV coverage check
+  - `momIncompleteMonthSalary`: calendar-day pro-ration for mid-month join/leave
+  - `getMOMSalaryBreakdown`: full breakdown for payslip display
+  - Part IV coverage check: $2,600 non-workman / $4,500 workman thresholds
+  - Constants: MAX_OT_HOURS (72/month), MAX_DAILY_HOURS (12), NORMAL_WEEKLY (44)
+- **Files:**
+  - `src/lib/payroll-rules.ts` (250+ lines added)
+- **Status:** ✅ Complete
+
+#### 34. MOM Part-Time Employment Pro-Ration
+- **Requested by:** User — implement part-time leave/PH entitlement rules
+- **What:** Pro-ration functions for part-time employees per MOM Employment of Part-Time Employees Regulations
+- **Implementation:**
+  - `partTimeProRationFactor`: PT weekly hours / FT weekly hours (default 44)
+  - `partTimeAnnualLeave`: pro-rated with MOM half-day rounding
+  - `partTimeSickLeave`: outpatient + hospitalisation pro-rated
+  - `partTimePublicHolidays`: 11 PH × pro-ration factor, rounded to 0.5
+  - `ftAnnualLeaveEntitlement`: 7 days 1st year, +1/year up to 14
+  - `ftSickLeaveEntitlement`: graduated by months of service (5→8→11→14 outpatient)
+  - MOM rounding: <0.25 → ignore, ≥0.25 → round up to 0.5
+- **Files:**
+  - `src/lib/payroll-rules.ts`
+- **Status:** ✅ Complete
+
+#### 35. Staff Work Hours & Workman Classification
+- **Requested by:** User — need fields for MOM salary calculation
+- **What:** Added 3 new fields to User model for MOM compliance
+- **Implementation:**
+  - `isWorkman` (Boolean): MOM workman flag — higher Part IV threshold ($4,500 vs $2,600)
+  - `weeklyContractedHours` (Float, default 44): for part-time detection (<35 hrs)
+  - `workingDaysPerWeek` (Float, default 5.5): for daily rate calculation
+  - Staff form: weekly hours input, working days input, workman checkbox
+  - Auto-detects part-time when <35 hrs/week
+  - All staff APIs (GET/POST/PUT) updated
+- **Files:**
+  - `prisma/schema.prisma`, `src/app/admin/staff/page.tsx`
+  - `src/app/api/staff/route.ts`, `src/app/api/staff/[id]/route.ts`
+- **Status:** ✅ Complete
+
+#### 36. Auto OT Calculation in Payroll
+- **Requested by:** User — auto-calculate OT pay from OT hours
+- **What:** Payroll generation and editing auto-calculates OT pay using MOM formula
+- **Implementation:**
+  - Payroll generate: when OT hours exist, auto-calculates OT pay using `calculateOTPay()`
+  - Payroll edit PUT: when OT hours change (SG), recalculates OT amount server-side
+  - OT warning if >72 hours/month (red indicator in payroll table)
+  - Part IV coverage check: warns if salary exceeds threshold
+  - MOM salary breakdown stored in `statutoryBreakdown` JSON for payslip reference
+  - Payslip displays: Hourly Basic Rate, OT Rate (1.5x), Daily Basic/Gross Rates
+- **Files:**
+  - `src/app/api/admin/payroll/generate/route.ts`
+  - `src/app/api/admin/payroll/[id]/route.ts`
+  - `src/app/api/admin/payroll/[id]/payslip/route.ts`
+  - `src/app/admin/payroll/page.tsx`
+- **Status:** ✅ Complete
+
 ---
 
 ## Pending / Upcoming
@@ -533,4 +608,4 @@ www.ayurgate.com (Railway)
 
 ---
 
-*Last updated: 5 April 2026*
+*Last updated: 6 April 2026*

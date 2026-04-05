@@ -378,8 +378,11 @@ function PayrollTab({ showToast }: { showToast: (m: string, t: "ok" | "err") => 
 
   const saveEdit = async () => {
     if (!editingId) return;
+    const record = payrolls.find(p => p.id === editingId);
+    const isSG = record?.country === "SG";
     await handleUpdatePayroll(editingId, {
-      overtime: parseFloat(editOvertime) || 0,
+      // For SG: server auto-calculates OT from hours; for others: manual amount
+      ...(isSG ? {} : { overtime: parseFloat(editOvertime) || 0 }),
       bonus: parseFloat(editBonus) || 0,
       overtimeHours: parseFloat(editOvertimeHours) || 0,
       paymentMode: editPaymentMode,
@@ -568,7 +571,10 @@ function PayrollTab({ showToast }: { showToast: (m: string, t: "ok" | "err") => 
                           step="0.5"
                         />
                       ) : (
-                        <span style={{ fontSize: "12px", color: "var(--grey-500)" }}>{p.overtimeHours || 0}h</span>
+                        <span style={{ fontSize: "12px", color: (p.overtimeHours || 0) > 72 ? "#dc2626" : "var(--grey-500)" }}>
+                          {p.overtimeHours || 0}h
+                          {(p.overtimeHours || 0) > 72 && <span title="Exceeds MOM 72hr/month limit" style={{ fontSize: "10px", color: "#dc2626" }}> !</span>}
+                        </span>
                       )}
                     </td>
                     <td className="px-4 py-3 text-right tabular-nums">

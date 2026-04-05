@@ -777,6 +777,9 @@ model User {
   jobTitle        String?   // e.g. "Administrative Assistant" (for KET, separate from role)
   mainDuties      String?   // job duties description (for KET)
   employmentType  String    @default("full_time") // "full_time" | "part_time"
+  isWorkman       Boolean   @default(false) // MOM: manual labour worker (higher Part IV cap $4,500 vs $2,600)
+  weeklyContractedHours Float @default(44) // MOM: contracted hours per week (PT < 35, FT typically 44)
+  workingDaysPerWeek Float  @default(5.5) // for daily rate calculation
 
   // Demographics
   gender          String?   // "male" | "female"

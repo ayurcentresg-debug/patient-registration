@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { getClinicId, requireRole, ADMIN_ROLES } from "@/lib/get-clinic-id";
 import { getTenantPrisma } from "@/lib/tenant-db";
 import { logAudit } from "@/lib/audit";
+import { calculateOTPay } from "@/lib/payroll-rules";
 
 // PUT /api/admin/payroll/[id] — update payroll record
 export async function PUT(
@@ -71,9 +72,25 @@ export async function PUT(
       }
     }
 
+    // Auto-calculate OT pay from OT hours using MOM formula (SG only)
+    if (overtimeHours !== undefined && existing.country === "SG") {
+      const otHrs = parseFloat(overtimeHours);
+      if (otHrs > 0) {
+        // Get staff workman flag
+        const staffUser = await db.user.findFirst({
+          where: { id: existing.userId },
+          select: { isWorkman: true },
+        });
+        const otResult = calculateOTPay(existing.baseSalary, otHrs, staffUser?.isWorkman || false);
+        data.overtime = otResult.otPay;
+      } else {
+        data.overtime = 0;
+      }
+    }
+
     // Recalculate gross and net if overtime or bonus changed
-    if (overtime !== undefined || bonus !== undefined) {
-      const newOvertime = overtime !== undefined ? parseFloat(overtime) : existing.overtime;
+    if (overtime !== undefined || bonus !== undefined || overtimeHours !== undefined) {
+      const newOvertime = data.overtime !== undefined ? data.overtime : (overtime !== undefined ? parseFloat(overtime) : existing.overtime);
       const newBonus = bonus !== undefined ? parseFloat(bonus) : existing.bonus;
       const grossPay =
         existing.baseSalary + existing.totalAllowances + existing.commission + newOvertime + newBonus;

@@ -106,7 +106,7 @@ const inputStyle: React.CSSProperties = {
 const sectionHead: React.CSSProperties = {
   fontSize: "13px", fontWeight: 700, letterSpacing: "0.5px",
   textTransform: "uppercase" as const, color: "#fff", padding: "8px 14px",
-  borderRadius: "6px", marginBottom: "10px", background: "#c0392b",
+  borderRadius: "6px", marginBottom: "10px", background: "#a16207",
 };
 
 const STATUS_BADGE: Record<string, { label: string; color: string; bg: string }> = {
@@ -265,7 +265,7 @@ export default function KETPage() {
             <button onClick={() => setShowForm(false)} className="px-4 py-2 text-[14px] font-semibold rounded-lg"
               style={{ background: "var(--grey-100)", color: "var(--grey-600)" }}>Cancel</button>
             <button onClick={handleSave} disabled={saving} className="px-5 py-2 text-[14px] font-semibold rounded-lg"
-              style={{ background: "#c0392b", color: "#fff", opacity: saving ? 0.6 : 1 }}>
+              style={{ background: "#a16207", color: "#fff", opacity: saving ? 0.6 : 1 }}>
               {saving ? "Saving..." : "Save KET"}
             </button>
           </div>
@@ -457,7 +457,7 @@ export default function KETPage() {
           <button onClick={() => setShowForm(false)} className="px-4 py-2 text-[14px] font-semibold rounded-lg"
             style={{ background: "var(--grey-100)", color: "var(--grey-600)" }}>Cancel</button>
           <button onClick={handleSave} disabled={saving} className="px-6 py-2 text-[14px] font-semibold rounded-lg"
-            style={{ background: "#c0392b", color: "#fff", opacity: saving ? 0.6 : 1 }}>
+            style={{ background: "#a16207", color: "#fff", opacity: saving ? 0.6 : 1 }}>
             {saving ? "Saving..." : "Save KET"}
           </button>
         </div>
@@ -485,7 +485,7 @@ export default function KETPage() {
           </p>
         </div>
         <button onClick={openNew} className="px-5 py-2.5 text-[14px] font-semibold rounded-lg"
-          style={{ background: "#c0392b", color: "#fff" }}>
+          style={{ background: "#a16207", color: "#fff" }}>
           + Generate KET
         </button>
       </div>

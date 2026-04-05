@@ -85,6 +85,9 @@ export async function PUT(
     if (body.jobTitle !== undefined) updateData.jobTitle = body.jobTitle || null;
     if (body.mainDuties !== undefined) updateData.mainDuties = body.mainDuties || null;
     if (body.employmentType !== undefined) updateData.employmentType = body.employmentType || "full_time";
+    if (body.isWorkman !== undefined) updateData.isWorkman = body.isWorkman;
+    if (body.weeklyContractedHours !== undefined) updateData.weeklyContractedHours = parseFloat(body.weeklyContractedHours) || 44;
+    if (body.workingDaysPerWeek !== undefined) updateData.workingDaysPerWeek = parseFloat(body.workingDaysPerWeek) || 5.5;
     if (body.password && typeof body.password === "string" && body.password.length >= 6) {
       updateData.password = await bcrypt.hash(body.password, 12);
     }

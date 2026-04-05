@@ -82,6 +82,9 @@ export async function GET(request: NextRequest) {
         jobTitle: true,
         mainDuties: true,
         employmentType: true,
+        isWorkman: true,
+        weeklyContractedHours: true,
+        workingDaysPerWeek: true,
         inviteToken: true,
         inviteExpiresAt: true,
         lastLogin: true,
@@ -117,7 +120,7 @@ export async function POST(request: NextRequest) {
     const db = clinicId ? getTenantPrisma(clinicId) : prisma;
 
     const body = await request.json();
-    const { name, email, phone, role, gender, dateOfBirth, ethnicity, residencyStatus, prStartDate, specialization, department, consultationFee, schedule, slotDuration, status, dateOfJoining, nricFin, jobTitle, mainDuties, employmentType, sendInvite } = body;
+    const { name, email, phone, role, gender, dateOfBirth, ethnicity, residencyStatus, prStartDate, specialization, department, consultationFee, schedule, slotDuration, status, dateOfJoining, nricFin, jobTitle, mainDuties, employmentType, isWorkman, weeklyContractedHours, workingDaysPerWeek, sendInvite } = body;
 
     if (!name || !email) {
       return NextResponse.json({ error: "Name and email are required" }, { status: 400 });
@@ -180,6 +183,9 @@ export async function POST(request: NextRequest) {
         jobTitle: jobTitle || null,
         mainDuties: mainDuties || null,
         employmentType: employmentType || "full_time",
+        isWorkman: isWorkman || false,
+        weeklyContractedHours: weeklyContractedHours ? parseFloat(weeklyContractedHours) : 44,
+        workingDaysPerWeek: workingDaysPerWeek ? parseFloat(workingDaysPerWeek) : 5.5,
         isActive: true,
         inviteToken,
         inviteExpiresAt,

@@ -26,6 +26,9 @@ interface Staff {
   jobTitle: string | null;
   mainDuties: string | null;
   employmentType: string;
+  isWorkman: boolean;
+  weeklyContractedHours: number;
+  workingDaysPerWeek: number;
   specialization: string | null;
   department: string | null;
   consultationFee: number | null;
@@ -59,6 +62,9 @@ interface StaffForm {
   jobTitle: string;
   mainDuties: string;
   employmentType: string;
+  isWorkman: boolean;
+  weeklyContractedHours: string;
+  workingDaysPerWeek: string;
   specialization: string;
   department: string;
   consultationFee: string;
@@ -111,7 +117,7 @@ const DAYS = [
 const EMPTY_FORM: StaffForm = {
   name: "", email: "", phone: "", role: "doctor", gender: "", ethnicity: "",
   dateOfBirth: "", residencyStatus: "", prStartDate: "", dateOfJoining: "", lastWorkingDate: "", resignationDate: "", resignationReason: "",
-  nricFin: "", jobTitle: "", mainDuties: "", employmentType: "full_time",
+  nricFin: "", jobTitle: "", mainDuties: "", employmentType: "full_time", isWorkman: false, weeklyContractedHours: "44", workingDaysPerWeek: "5.5",
   specialization: "", department: "", consultationFee: "", slotDuration: "30",
   schedule: {}, sendInvite: false,
 };
@@ -226,6 +232,9 @@ export default function StaffPage() {
       jobTitle: s.jobTitle || "",
       mainDuties: s.mainDuties || "",
       employmentType: s.employmentType || "full_time",
+      isWorkman: s.isWorkman || false,
+      weeklyContractedHours: String(s.weeklyContractedHours || 44),
+      workingDaysPerWeek: String(s.workingDaysPerWeek || 5.5),
       specialization: s.specialization || "",
       department: s.department || "",
       consultationFee: s.consultationFee !== null ? String(s.consultationFee) : "",
@@ -274,6 +283,9 @@ export default function StaffPage() {
       jobTitle: form.jobTitle.trim() || null,
       mainDuties: form.mainDuties.trim() || null,
       employmentType: form.employmentType || "full_time",
+      isWorkman: form.isWorkman,
+      weeklyContractedHours: parseFloat(form.weeklyContractedHours) || 44,
+      workingDaysPerWeek: parseFloat(form.workingDaysPerWeek) || 5.5,
       specialization: isClinical ? form.specialization : null,
       department: form.department || null,
       consultationFee: isClinical && form.consultationFee ? Number(form.consultationFee) : null,
@@ -830,6 +842,23 @@ export default function StaffPage() {
                     <option value="full_time">Full-Time</option>
                     <option value="part_time">Part-Time</option>
                   </select>
+                </div>
+              </div>
+
+              {/* MOM Work Hours */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Weekly Hours <span className="font-normal text-[12px]" style={{ color: "var(--grey-400)" }}>(contracted)</span></label>
+                  <input type="number" value={form.weeklyContractedHours} onChange={(e) => setForm({ ...form, weeklyContractedHours: e.target.value })} step="0.5" placeholder="44" className="w-full px-3 py-2 text-[15px]" style={inputStyle} />
+                  {parseFloat(form.weeklyContractedHours) < 35 && <p className="text-[11px] mt-1" style={{ color: "#7c3aed" }}>Part-time (&lt;35 hrs/wk)</p>}
+                </div>
+                <div>
+                  <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Working Days/Week</label>
+                  <input type="number" value={form.workingDaysPerWeek} onChange={(e) => setForm({ ...form, workingDaysPerWeek: e.target.value })} step="0.5" placeholder="5.5" className="w-full px-3 py-2 text-[15px]" style={inputStyle} />
+                </div>
+                <div className="flex items-center gap-2 mt-6">
+                  <input type="checkbox" id="isWorkman" checked={form.isWorkman} onChange={(e) => setForm({ ...form, isWorkman: e.target.checked })} />
+                  <label htmlFor="isWorkman" className="text-[13px] font-semibold" style={{ color: "var(--grey-700)" }}>Workman <span className="font-normal text-[11px]" style={{ color: "var(--grey-400)" }}>(manual labour)</span></label>
                 </div>
               </div>
 

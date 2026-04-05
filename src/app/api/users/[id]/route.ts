@@ -27,6 +27,9 @@ export async function GET(
         lastLogin: true,
         createdAt: true,
         updatedAt: true,
+        staffIdNumber: true,
+        jobTitle: true,
+        totpEnabled: true,
       },
     });
 
