@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import SuperAdminSidebar from "@/components/SuperAdminSidebar";
 
 interface AudienceStats {
   total: number;
@@ -163,24 +163,24 @@ export default function NotificationsPage() {
     stats?.[audience as keyof AudienceStats] || 0;
 
   return (
-    <div className="min-h-screen" style={{ background: "#fefbf6" }}>
-      {/* Header */}
-      <header className="flex items-center justify-between px-6 py-4" style={{ borderBottom: "1px solid #e5e7eb", background: "white" }}>
-        <div className="flex items-center gap-3">
-          <Link href="/super-admin" className="text-[14px] font-medium px-3 py-1.5 rounded-lg hover:bg-gray-100" style={{ color: "#6b7280" }}>
-            ← Back
-          </Link>
-          <h1 className="text-[18px] font-bold" style={{ color: "#111827" }}>Notifications</h1>
-        </div>
-        {stats && (
-          <div className="flex items-center gap-4 text-[12px]" style={{ color: "#6b7280" }}>
-            <span><strong>{stats.total}</strong> clinics</span>
-            <span><strong>{stats.trial}</strong> trial</span>
-            <span><strong>{stats.starter}</strong> starter</span>
-            <span><strong>{stats.professional}</strong> pro</span>
+    <div style={{ display: "flex", minHeight: "100vh" }}>
+      <SuperAdminSidebar />
+      <div style={{ flex: 1, background: "#f9fafb", overflow: "auto" }}>
+        {/* Header */}
+        <div style={{ padding: "24px 32px", borderBottom: "1px solid #e5e7eb", background: "#fff", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div>
+            <h1 style={{ fontSize: 24, fontWeight: 700, color: "#111827", margin: 0 }}>Notifications</h1>
+            <p style={{ fontSize: 14, color: "#6b7280", margin: "4px 0 0" }}>Send notifications to clinics</p>
           </div>
-        )}
-      </header>
+          {stats && (
+            <div className="flex items-center gap-4 text-[12px]" style={{ color: "#6b7280" }}>
+              <span><strong>{stats.total}</strong> clinics</span>
+              <span><strong>{stats.trial}</strong> trial</span>
+              <span><strong>{stats.starter}</strong> starter</span>
+              <span><strong>{stats.professional}</strong> pro</span>
+            </div>
+          )}
+        </div>
 
       <div className="max-w-3xl mx-auto px-6 py-8">
         {/* Tabs */}
@@ -405,6 +405,7 @@ export default function NotificationsPage() {
             )}
           </div>
         )}
+      </div>
       </div>
     </div>
   );

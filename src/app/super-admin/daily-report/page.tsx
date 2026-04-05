@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import SuperAdminSidebar from "@/components/SuperAdminSidebar";
 
 export default function DailyReportPage() {
   const [loading, setLoading] = useState(false);
@@ -22,16 +22,14 @@ export default function DailyReportPage() {
   }
 
   return (
-    <div className="min-h-screen" style={{ background: "#fefbf6" }}>
-      {/* Header */}
-      <header className="flex items-center justify-between px-6 py-4" style={{ borderBottom: "1px solid #e5e7eb", background: "white" }}>
-        <div className="flex items-center gap-3">
-          <Link href="/super-admin" className="text-[14px] font-medium px-3 py-1.5 rounded-lg hover:bg-gray-100" style={{ color: "#6b7280" }}>
-            &larr; Back
-          </Link>
-          <h1 className="text-[18px] font-bold" style={{ color: "#111827" }}>Daily Activity Report</h1>
+    <div style={{ display: "flex", minHeight: "100vh" }}>
+      <SuperAdminSidebar />
+      <div style={{ flex: 1, background: "#f9fafb", overflow: "auto" }}>
+        {/* Header */}
+        <div style={{ padding: "24px 32px", borderBottom: "1px solid #e5e7eb", background: "#fff" }}>
+          <h1 style={{ fontSize: 24, fontWeight: 700, color: "#111827", margin: 0 }}>Daily Report</h1>
+          <p style={{ fontSize: 14, color: "#6b7280", margin: "4px 0 0" }}>Daily Activity Report Configuration</p>
         </div>
-      </header>
 
       <div className="max-w-2xl mx-auto px-6 py-10">
         {/* Info */}
@@ -118,6 +116,7 @@ export default function DailyReportPage() {
             </div>
           )}
         </div>
+      </div>
       </div>
     </div>
   );
