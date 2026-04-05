@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { isSuperAdmin } from "@/lib/super-admin-auth";
 import { logSuperAdminAction } from "@/lib/super-admin-audit";
+import { getPlanLimits, getTrialDuration } from "@/lib/platform-settings";
 
 /**
  * GET /api/super-admin/clinics/[id]
@@ -230,14 +231,16 @@ export async function PUT(
     // ── Action: Change Plan ───────────────────────────────────────────
     if (action === "change_plan") {
       const { plan } = data;
+      const allLimits = await getPlanLimits();
+      const trialDays = await getTrialDuration();
       const PLAN_LIMITS: Record<
         string,
         { maxUsers: number; maxPatients: number }
       > = {
-        trial: { maxUsers: 5, maxPatients: 100 },
-        starter: { maxUsers: 10, maxPatients: 500 },
-        professional: { maxUsers: 25, maxPatients: 999999 },
-        enterprise: { maxUsers: 100, maxPatients: 999999 },
+        trial: allLimits.trial,
+        starter: allLimits.starter,
+        professional: allLimits.professional,
+        enterprise: allLimits.enterprise,
       };
 
       if (!PLAN_LIMITS[plan]) {
@@ -257,7 +260,7 @@ export async function PUT(
             maxPatients: limits.maxPatients,
             trialEndsAt:
               plan === "trial"
-                ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+                ? new Date(Date.now() + trialDays * 24 * 60 * 60 * 1000)
                 : null,
             notes: `Plan set to ${plan} by super admin on ${new Date().toISOString().split("T")[0]}`,
           },

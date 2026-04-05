@@ -1323,3 +1323,49 @@ model SuperAdminAuditLog {
   @@index([action])
   @@index([createdAt])
 }
+
+// ─── Platform Settings (singleton) ──────────────────────────────────────
+
+model PlatformSettings {
+  id                  String   @id @default("platform_settings")
+
+  // Trial settings
+  trialDurationDays   Int      @default(7)
+  trialMaxUsers       Int      @default(5)
+  trialMaxPatients    Int      @default(100)
+
+  // Plan limits
+  starterMaxUsers     Int      @default(10)
+  starterMaxPatients  Int      @default(500)
+  proMaxUsers         Int      @default(25)
+  proMaxPatients      Int      @default(999999)
+  enterpriseMaxUsers  Int      @default(100)
+  enterpriseMaxPatients Int    @default(999999)
+
+  // Plan pricing (monthly in cents)
+  starterMonthlyPrice   Int    @default(399900)  // 3999.00 INR
+  starterAnnualPrice    Int    @default(3839040)  // 38390.40 INR
+  proMonthlyPrice       Int    @default(799900)   // 7999.00 INR
+  proAnnualPrice        Int    @default(7679040)  // 76790.40 INR
+  enterpriseMonthlyPrice Int   @default(0)        // custom
+  enterpriseAnnualPrice  Int   @default(0)        // custom
+
+  // Feature flags
+  enableOnlineBooking   Boolean @default(true)
+  enablePayroll         Boolean @default(true)
+  enableInventory       Boolean @default(true)
+  enablePackages        Boolean @default(true)
+  enableReports         Boolean @default(true)
+  enableMultiBranch     Boolean @default(false)
+  enableWhatsApp        Boolean @default(false)
+  enableSMS             Boolean @default(false)
+  enableApiAccess       Boolean @default(false)
+  maintenanceMode       Boolean @default(false)
+
+  // Branding
+  platformName          String  @default("AYUR GATE")
+  supportEmail          String  @default("info@ayurgate.com")
+  supportPhone          String  @default("")
+
+  updatedAt             DateTime @updatedAt
+}

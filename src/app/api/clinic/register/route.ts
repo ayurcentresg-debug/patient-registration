@@ -4,6 +4,7 @@ import { hashPassword, createToken } from "@/lib/auth";
 import { serialize } from "cookie";
 import { sendEmail } from "@/lib/email";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { getTrialDuration, getPlanLimits } from "@/lib/platform-settings";
 
 /**
  * POST /api/clinic/register
@@ -80,9 +81,11 @@ export async function POST(request: NextRequest) {
     // Hash password
     const hashedPassword = await hashPassword(password);
 
-    // Calculate trial end date (7 days from now)
+    // Calculate trial end date from platform settings
+    const trialDays = await getTrialDuration();
+    const trialLimits = (await getPlanLimits()).trial;
     const trialEndsAt = new Date();
-    trialEndsAt.setDate(trialEndsAt.getDate() + 7);
+    trialEndsAt.setDate(trialEndsAt.getDate() + trialDays);
 
     // Create clinic, subscription, admin user, and settings in a transaction
     const result = await prisma.$transaction(async (tx) => {
@@ -105,8 +108,8 @@ export async function POST(request: NextRequest) {
           plan: "trial",
           status: "active",
           trialEndsAt,
-          maxUsers: 5,
-          maxPatients: 100,
+          maxUsers: trialLimits.maxUsers,
+          maxPatients: trialLimits.maxPatients,
         },
       });
 
@@ -177,7 +180,7 @@ export async function POST(request: NextRequest) {
                 <tr><td style="padding: 8px 0; color: #6b7280;">Phone</td><td style="padding: 8px 0;">${phone || "—"}</td></tr>
                 <tr><td style="padding: 8px 0; color: #6b7280;">Country</td><td style="padding: 8px 0;">${country || "Singapore"}</td></tr>
                 <tr><td style="padding: 8px 0; color: #6b7280;">City</td><td style="padding: 8px 0;">${city || "—"}</td></tr>
-                <tr><td style="padding: 8px 0; color: #6b7280;">Plan</td><td style="padding: 8px 0;"><span style="background: #ecfdf5; color: #065f46; padding: 2px 10px; border-radius: 100px; font-weight: 600;">7-Day Trial</span></td></tr>
+                <tr><td style="padding: 8px 0; color: #6b7280;">Plan</td><td style="padding: 8px 0;"><span style="background: #ecfdf5; color: #065f46; padding: 2px 10px; border-radius: 100px; font-weight: 600;">${trialDays}-Day Trial</span></td></tr>
                 <tr><td style="padding: 8px 0; color: #6b7280;">Trial Ends</td><td style="padding: 8px 0;">${trialEndsAt.toLocaleDateString("en-SG", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</td></tr>
                 <tr><td style="padding: 8px 0; color: #6b7280;">Registered At</td><td style="padding: 8px 0;">${new Date().toLocaleString("en-SG", { timeZone: "Asia/Singapore" })}</td></tr>
               </table>
@@ -207,7 +210,7 @@ export async function POST(request: NextRequest) {
       },
       trial: {
         endsAt: trialEndsAt.toISOString(),
-        daysRemaining: 7,
+        daysRemaining: trialDays,
       },
     });
 
