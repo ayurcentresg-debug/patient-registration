@@ -100,6 +100,21 @@ export async function middleware(req: NextRequest) {
 
   const token = req.cookies.get("auth_token")?.value;
 
+  // Allow super admins to access any API route (they use super_admin_token)
+  if (!token && pathname.startsWith("/api/")) {
+    const saToken = req.cookies.get("super_admin_token")?.value;
+    if (saToken) {
+      try {
+        const { payload } = await jwtVerify(saToken, secret);
+        if (payload.role === "super_admin") {
+          return NextResponse.next();
+        }
+      } catch {
+        // Invalid super admin token, fall through to normal auth
+      }
+    }
+  }
+
   if (!token) {
     return NextResponse.redirect(new URL("/login", req.url));
   }
