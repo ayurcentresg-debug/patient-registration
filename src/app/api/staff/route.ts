@@ -6,6 +6,7 @@ import { sendEmail } from "@/lib/email";
 import { staffInviteEmail } from "@/lib/email-templates";
 import crypto from "crypto";
 import { logAudit } from "@/lib/audit";
+import { checkUserLimit, checkTenantAccess } from "@/lib/plan-enforcement";
 
 const VALID_ROLES = ["admin", "doctor", "therapist", "pharmacist", "receptionist", "staff"];
 const ROLE_PREFIXES: Record<string, string> = {
@@ -118,6 +119,15 @@ export async function POST(request: NextRequest) {
 
     const clinicId = await getClinicId();
     const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
+    // Enforce plan limits
+    if (clinicId) {
+      const access = await checkTenantAccess(clinicId);
+      if (access) return NextResponse.json({ error: access.error }, { status: access.status });
+
+      const limit = await checkUserLimit(clinicId);
+      if (!limit.allowed) return NextResponse.json({ error: limit.message }, { status: 403 });
+    }
 
     const body = await request.json();
     const { name, email, phone, role, gender, dateOfBirth, ethnicity, residencyStatus, prStartDate, specialization, department, consultationFee, schedule, slotDuration, status, dateOfJoining, nricFin, jobTitle, mainDuties, employmentType, isWorkman, weeklyContractedHours, workingDaysPerWeek, sendInvite } = body;

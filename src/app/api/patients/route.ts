@@ -6,6 +6,7 @@ import { sendEmail } from "@/lib/email";
 import { sendWhatsApp } from "@/lib/whatsapp";
 import { validateName } from "@/lib/validation";
 import { logAudit } from "@/lib/audit";
+import { checkPatientLimit, checkTenantAccess, isFeatureEnabled, getBranding } from "@/lib/plan-enforcement";
 
 /**
  * Normalize phone number for consistent storage.
@@ -126,6 +127,15 @@ export async function POST(request: NextRequest) {
     const clinicId = await getClinicId();
     const db = clinicId ? getTenantPrisma(clinicId) : prisma;
 
+    // Enforce plan limits
+    if (clinicId) {
+      const access = await checkTenantAccess(clinicId);
+      if (access) return NextResponse.json({ error: access.error }, { status: access.status });
+
+      const limit = await checkPatientLimit(clinicId);
+      if (!limit.allowed) return NextResponse.json({ error: limit.message }, { status: 403 });
+    }
+
     const body = await request.json();
 
     // Validate required fields
@@ -233,13 +243,14 @@ export async function POST(request: NextRequest) {
     });
 
     // Send welcome notifications
+    const branding = await getBranding();
     const welcomeMessage = `Welcome ${patient.firstName}! You have been successfully registered at our clinic. Your Patient ID is ${patient.patientIdNumber}. For any queries, please contact us.`;
 
     try {
       if (patient.email) {
         await sendEmail({
           to: patient.email,
-          subject: "Welcome — AYUR GATE",
+          subject: `Welcome — ${branding.platformName}`,
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
               <h2 style="color: #0d9488;">Registration Confirmed</h2>
@@ -264,7 +275,8 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      if (patient.whatsapp) {
+      const whatsAppEnabled = await isFeatureEnabled("enableWhatsApp");
+      if (whatsAppEnabled && patient.whatsapp) {
         await sendWhatsApp({ to: patient.whatsapp, message: welcomeMessage });
         await db.communication.create({
           data: { patientId: patient.id, type: "whatsapp", message: welcomeMessage, status: "sent" },

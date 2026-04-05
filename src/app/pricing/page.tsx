@@ -1,94 +1,65 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-const plans = [
-  {
-    name: "Trial",
-    key: "trial",
-    price: "Free",
-    period: "7 days",
-    description: "Try everything before you commit",
-    features: [
-      "Up to 5 staff members",
-      "Up to 100 patients",
-      "Full feature access",
-      "Email support",
+interface PlatformData {
+  branding: { platformName: string; supportEmail: string };
+  trial: { durationDays: number; maxUsers: number; maxPatients: number };
+  plans: {
+    starter: { maxUsers: number; maxPatients: number; monthlyPrice: number; annualPrice: number };
+    professional: { maxUsers: number; maxPatients: number; monthlyPrice: number; annualPrice: number };
+    enterprise: { maxUsers: number; maxPatients: number; monthlyPrice: number; annualPrice: number };
+  };
+}
+
+function formatPrice(num: number): string {
+  if (num <= 0) return "Custom";
+  return `₹${num.toLocaleString("en-IN")}`;
+}
+
+function buildPlans(p?: PlatformData) {
+  const t = p?.trial || { durationDays: 7, maxUsers: 5, maxPatients: 100 };
+  const s = p?.plans?.starter || { maxUsers: 10, maxPatients: 500, monthlyPrice: 3999, annualPrice: 3199 };
+  const pr = p?.plans?.professional || { maxUsers: 25, maxPatients: 999999, monthlyPrice: 7999, annualPrice: 6399 };
+  const supportEmail = p?.branding?.supportEmail || "ayurcentresg@gmail.com";
+  const platformName = p?.branding?.platformName || "AYUR GATE";
+
+  return {
+    platformName,
+    supportEmail,
+    plans: [
+      {
+        name: "Trial", key: "trial", price: "Free", period: `${t.durationDays} days`,
+        description: "Try everything before you commit",
+        features: [`Up to ${t.maxUsers} staff members`, `Up to ${t.maxPatients} patients`, "Full feature access", "Email support"],
+        cta: "Start Free Trial", href: "/register", popular: false, color: "#6b7280", hasCheckout: false, monthlyNum: 0,
+      },
+      {
+        name: "Starter", key: "starter", price: formatPrice(s.monthlyPrice), period: "/month",
+        monthlyNum: s.monthlyPrice,
+        description: "Perfect for small clinics",
+        features: [`Up to ${s.maxUsers} staff members`, `Up to ${s.maxPatients >= 999999 ? "Unlimited" : s.maxPatients} patients`, "All features included", "WhatsApp templates", "Inventory management", "Email + chat support"],
+        cta: "Get Started", href: "/register?plan=starter", popular: false, color: "#2d6a4f", hasCheckout: true,
+      },
+      {
+        name: "Professional", key: "professional", price: formatPrice(pr.monthlyPrice), period: "/month",
+        monthlyNum: pr.monthlyPrice,
+        description: "For growing multi-doctor clinics",
+        features: [`Up to ${pr.maxUsers} staff members`, `${pr.maxPatients >= 999999 ? "Unlimited" : `Up to ${pr.maxPatients}`} patients`, "Multi-branch support", "Advanced reports & analytics", "Insurance claims management", "Treatment packages & plans", "Priority support"],
+        cta: "Start Professional", href: "/register?plan=professional", popular: true, color: "#14532d", hasCheckout: true,
+      },
+      {
+        name: "Enterprise", key: "enterprise", price: "Custom", period: "",
+        monthlyNum: 0,
+        description: "For clinic chains & franchises",
+        features: ["Unlimited staff", "Unlimited patients", "Unlimited branches", "Custom integrations", "Dedicated account manager", "SLA guarantee", "On-premise option", "White-label branding"],
+        cta: "Contact Sales", href: `mailto:${supportEmail}?subject=${platformName} Enterprise Inquiry`, popular: false, color: "#1e3a5f", hasCheckout: false,
+      },
     ],
-    cta: "Start Free Trial",
-    href: "/register",
-    popular: false,
-    color: "#6b7280",
-    hasCheckout: false,
-  },
-  {
-    name: "Starter",
-    key: "starter",
-    price: "₹3,999",
-    monthlyNum: 3999,
-    period: "/month",
-    description: "Perfect for small clinics",
-    features: [
-      "Up to 10 staff members",
-      "Up to 500 patients",
-      "All features included",
-      "WhatsApp templates",
-      "Inventory management",
-      "Email + chat support",
-    ],
-    cta: "Get Started",
-    href: "/register?plan=starter",
-    popular: false,
-    color: "#2d6a4f",
-    hasCheckout: true,
-  },
-  {
-    name: "Professional",
-    key: "professional",
-    price: "₹7,999",
-    monthlyNum: 7999,
-    period: "/month",
-    description: "For growing multi-doctor clinics",
-    features: [
-      "Up to 25 staff members",
-      "Unlimited patients",
-      "Multi-branch support",
-      "Advanced reports & analytics",
-      "Insurance claims management",
-      "Treatment packages & plans",
-      "Priority support",
-    ],
-    cta: "Start Professional",
-    href: "/register?plan=professional",
-    popular: true,
-    color: "#14532d",
-    hasCheckout: true,
-  },
-  {
-    name: "Enterprise",
-    key: "enterprise",
-    price: "Custom",
-    period: "",
-    description: "For clinic chains & franchises",
-    features: [
-      "Unlimited staff",
-      "Unlimited patients",
-      "Unlimited branches",
-      "Custom integrations",
-      "Dedicated account manager",
-      "SLA guarantee",
-      "On-premise option",
-      "White-label branding",
-    ],
-    cta: "Contact Sales",
-    href: "mailto:ayurcentresg@gmail.com?subject=AYUR GATE Enterprise Inquiry",
-    popular: false,
-    color: "#1e3a5f",
-    hasCheckout: false,
-  },
-];
+  };
+}
 
 const features = [
   { icon: "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z", title: "Patient Management", desc: "Complete records, medical history, vitals tracking, and family linkage" },
@@ -103,7 +74,18 @@ export default function PricingPage() {
   const [annual, setAnnual] = useState(false);
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [platformData, setPlatformData] = useState<PlatformData | undefined>();
   const router = useRouter();
+
+  useEffect(() => {
+    fetch("/api/public/platform")
+      .then((r) => r.json())
+      .then((d) => setPlatformData(d))
+      .catch(() => {});
+  }, []);
+
+  const { plans, platformName, supportEmail } = buildPlans(platformData);
+  const trialDays = platformData?.trial?.durationDays || 7;
 
   async function handleCheckout(planKey: string) {
     setLoading(planKey);
@@ -148,7 +130,7 @@ export default function PricingPage() {
             <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "#14532d" }}>
               <span className="text-white text-sm font-black">AG</span>
             </div>
-            <span className="text-lg font-bold tracking-wider" style={{ color: "#14532d" }}>AYUR GATE</span>
+            <span className="text-lg font-bold tracking-wider" style={{ color: "#14532d" }}>{platformName}</span>
           </Link>
           <div className="flex items-center gap-4">
             <Link href="/login" className="text-[14px] font-medium px-4 py-2 rounded-lg transition-colors hover:bg-gray-50" style={{ color: "#374151" }}>
@@ -167,7 +149,7 @@ export default function PricingPage() {
           Simple pricing for every clinic
         </h1>
         <p className="text-lg max-w-2xl mx-auto mb-8" style={{ color: "#6b7280" }}>
-          Start with a 7-day free trial. No credit card required. Upgrade anytime as your clinic grows.
+          Start with a {trialDays}-day free trial. No credit card required. Upgrade anytime as your clinic grows.
         </p>
 
         {/* Annual toggle */}
@@ -194,7 +176,7 @@ export default function PricingPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {plans.map((plan) => {
             const displayPrice = plan.monthlyNum && annual
-              ? `₹${Math.round(plan.monthlyNum * 0.8).toLocaleString("en-IN")}`
+              ? formatPrice(Math.round(plan.monthlyNum * 0.8))
               : plan.price;
 
             return (
@@ -318,14 +300,14 @@ export default function PricingPage() {
           Ready to modernize your clinic?
         </h2>
         <p className="text-[15px] text-white/80 mb-8 max-w-lg mx-auto">
-          Join Ayurveda clinics across Asia already using AYUR GATE to manage their practice efficiently.
+          Join Ayurveda clinics across Asia already using {platformName} to manage their practice efficiently.
         </p>
         <Link
           href="/register"
           className="inline-block px-8 py-3.5 rounded-xl text-[15px] font-bold transition-transform hover:scale-105"
           style={{ background: "white", color: "#14532d" }}
         >
-          Start Your Free 7-Day Trial
+          Start Your Free {trialDays}-Day Trial
         </Link>
       </section>
 
@@ -335,13 +317,13 @@ export default function PricingPage() {
           <div className="w-7 h-7 rounded-md flex items-center justify-center" style={{ background: "#14532d" }}>
             <span className="text-white text-[10px] font-black">AG</span>
           </div>
-          <span className="text-[14px] font-bold tracking-wider" style={{ color: "#14532d" }}>AYUR GATE</span>
+          <span className="text-[14px] font-bold tracking-wider" style={{ color: "#14532d" }}>{platformName}</span>
         </div>
         <p className="text-[12px]" style={{ color: "#9ca3af" }}>
           Complete Ayurveda Clinic Management Software
         </p>
         <p className="text-[11px] mt-2" style={{ color: "#d1d5db" }}>
-          Contact: ayurcentresg@gmail.com
+          Contact: {supportEmail}
         </p>
       </footer>
     </div>

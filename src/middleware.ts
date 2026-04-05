@@ -5,6 +5,37 @@ const secret = new TextEncoder().encode(
   process.env.JWT_SECRET || ""
 );
 
+// Feature flag → protected route prefixes mapping
+const FEATURE_ROUTE_MAP: [string, string[]][] = [
+  ["enableInventory", ["/inventory", "/api/inventory"]],
+  ["enablePayroll", ["/payroll", "/api/payroll"]],
+  ["enablePackages", ["/packages", "/api/packages"]],
+  ["enableReports", ["/reports", "/api/reports"]],
+  ["enableMultiBranch", ["/branches", "/api/branches"]],
+  ["enableOnlineBooking", ["/book"]],
+];
+
+// In-memory cache for platform settings (refreshed every 60s)
+let cachedFlags: Record<string, boolean> | null = null;
+let cacheTime = 0;
+const CACHE_TTL = 60_000; // 60 seconds
+
+async function getFeatureFlags(baseUrl: string): Promise<Record<string, boolean>> {
+  if (cachedFlags && Date.now() - cacheTime < CACHE_TTL) return cachedFlags;
+  try {
+    const res = await fetch(`${baseUrl}/api/public/platform`, { cache: "no-store" });
+    if (res.ok) {
+      const data = await res.json();
+      cachedFlags = { ...data.features, maintenanceMode: data.maintenanceMode } as Record<string, boolean>;
+      cacheTime = Date.now();
+      return cachedFlags!;
+    }
+  } catch {
+    // If fetch fails, allow access (fail open)
+  }
+  return cachedFlags || {};
+}
+
 const PUBLIC_PATHS = [
   "/login",
   "/api/auth/login",
@@ -96,6 +127,38 @@ export async function middleware(req: NextRequest) {
       }
     }
     return NextResponse.next();
+  }
+
+  // ── Maintenance mode & Feature flag check ────────────────────────
+  const baseUrl = req.nextUrl.origin;
+  const flags = await getFeatureFlags(baseUrl);
+
+  // Maintenance mode: block all tenant pages/APIs (except login, super-admin, public)
+  if (flags.maintenanceMode) {
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json({ error: "Platform is under maintenance. Please try again later." }, { status: 503 });
+    }
+    // Return a simple maintenance page for browser requests
+    return new NextResponse(
+      `<!DOCTYPE html><html><head><title>Maintenance</title></head><body style="font-family:system-ui;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#f9fafb;">
+        <div style="text-align:center;max-width:440px;padding:40px;">
+          <div style="font-size:48px;margin-bottom:16px;">&#128679;</div>
+          <h1 style="font-size:24px;color:#111827;margin:0 0 8px;">Under Maintenance</h1>
+          <p style="color:#6b7280;font-size:15px;">We're performing scheduled maintenance. Please check back shortly.</p>
+        </div>
+      </body></html>`,
+      { status: 503, headers: { "Content-Type": "text/html" } }
+    );
+  }
+
+  // Feature flag enforcement: block disabled module routes
+  for (const [flag, routes] of FEATURE_ROUTE_MAP) {
+    if (flags[flag] === false && routes.some((r) => pathname.startsWith(r))) {
+      if (pathname.startsWith("/api/")) {
+        return NextResponse.json({ error: "This feature is not enabled on your plan." }, { status: 403 });
+      }
+      return NextResponse.redirect(new URL("/dashboard", req.url));
+    }
   }
 
   const token = req.cookies.get("auth_token")?.value;

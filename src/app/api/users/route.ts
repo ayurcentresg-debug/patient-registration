@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getClinicId } from "@/lib/get-clinic-id";
 import { getTenantPrisma } from "@/lib/tenant-db";
+import { checkUserLimit, checkTenantAccess } from "@/lib/plan-enforcement";
 
 // GET /api/users - List users with filters and pagination
 export async function GET(request: NextRequest) {
@@ -82,6 +83,15 @@ export async function POST(request: NextRequest) {
   try {
     const clinicId = await getClinicId();
     const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+
+    // Enforce plan limits
+    if (clinicId) {
+      const access = await checkTenantAccess(clinicId);
+      if (access) return NextResponse.json({ error: access.error }, { status: access.status });
+
+      const limit = await checkUserLimit(clinicId);
+      if (!limit.allowed) return NextResponse.json({ error: limit.message }, { status: 403 });
+    }
 
     const body = await request.json();
 
