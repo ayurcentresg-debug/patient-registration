@@ -991,14 +991,46 @@
 - **Commits:** `81b0da9`, `542c572`
 - **Status:** ✅ Deployed (auto-refreshes hourly)
 
+### Session 9 — 7 Apr 2026
+
+#### 60. Mobile Responsiveness — Full App
+- **What:** Comprehensive mobile responsiveness overhaul across 15 files
+- **Commit:** `021454c`
+- **Status:** ✅ Deployed
+
+#### 61. Register & Onboarding Redesign
+- **What:** Smart country-aware fields (India states/pincode, Malaysia states, UAE emirates), pre-populate onboarding from registration, clinic type cards, practitioner count, new country-data.ts module
+- **Commits:** `c10efeb`
+- **Status:** ✅ Deployed
+
+#### 62. Strong Password Policy
+- **What:** 12+ chars, uppercase, lowercase, number, symbol required. Show/hide toggle + live checklist on all password fields. Updated 13 files (6 APIs + 7 pages)
+- **Commit:** `51a6d96`
+- **Status:** ✅ Deployed
+
+#### 63. Sign Up Flow with Role Selection
+- **What:** 2-path sign up: "Set Up My Clinic" (owner) / "Join My Team" (invite). Renamed Register → Sign Up across app.
+- **Commit:** `27c4ecb`
+- **Status:** ✅ Deployed
+
+#### 64. Terms of Use & Privacy Policy Pages
+- **What:** `/terms` (14 sections) and `/privacy` (13 sections) — healthcare SaaS legal content with PDPA compliance, Singapore governing law
+- **Commit:** `27c4ecb`
+- **Status:** ✅ Deployed
+
+#### 65. Super Admin — New Registration Fields
+- **What:** Clinic Type, Team Size, Referral Source, Terms Accepted shown in clinic detail, clinics list, dashboard, and registration notification emails
+- **Commit:** `978a712`
+- **Status:** ✅ Deployed
+
 ---
 
 ## Pending / Upcoming
 
 | # | Feature | Priority | Notes |
 |---|---------|----------|-------|
-| 1 | Google Workspace Setup | Medium | SPF/DKIM/DMARC on GoDaddy for email deliverability |
-| 2 | Mobile Responsiveness | Medium | UI fixes for phones/tablets across all pages |
+| 1 | Unified Staff Management | High | Merge Doctor model into User, single Staff tab, email invites |
+| 2 | Google Workspace Setup | Medium | SPF/DKIM/DMARC on GoDaddy for email deliverability |
 | 3 | WhatsApp API Integration | Low | Beyond templates — actual WhatsApp Business API |
 | 4 | Daily Report Cron | Medium | Set up external cron to auto-trigger daily report |
 
@@ -1010,7 +1042,9 @@
 www.ayurgate.com (Railway)
 ├── / .......................... Landing page (marketing)
 ├── /pricing ................... Pricing plans
-├── /register .................. Clinic registration (7-day trial)
+├── /register .................. Sign Up (role selection → clinic setup)
+├── /terms ..................... Terms of Use (NEW)
+├── /privacy ................... Privacy Policy (NEW)
 ├── /login ..................... Tenant login
 ├── /book/[slug] ............... Public patient booking (NEW)
 ├── /dashboard ................. Admin dashboard
@@ -1102,4 +1136,4 @@ www.ayurgate.com (Railway)
 
 ---
 
-*Last updated: 6 April 2026 (Session 8 continued)*
+*Last updated: 7 April 2026 (Session 9)*
