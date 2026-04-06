@@ -26,6 +26,12 @@ model Clinic {
   timezone        String   @default("Asia/Singapore")
   isActive        Boolean  @default(true)
 
+  // Registration extras
+  clinicType        String?  // ayurveda | panchakarma | wellness | multi | yoga | general
+  practitionerCount String?  // "1-5" | "5-10" | "10-20" | "20+"
+  referralSource    String?  // google | social | referral | conference | blog | other
+  termsAcceptedAt   DateTime?
+
   // Onboarding & verification
   onboardingComplete Boolean @default(false)
   emailVerified      Boolean @default(false)

@@ -25,9 +25,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Clinic not found" }, { status: 404 });
     }
 
-    const settings = await prisma.clinicSettings.findUnique({
-      where: { clinicId: payload.clinicId },
-    });
+    const [settings, progress] = await Promise.all([
+      prisma.clinicSettings.findUnique({
+        where: { clinicId: payload.clinicId },
+      }),
+      prisma.onboardingProgress.findUnique({
+        where: { clinicId: payload.clinicId },
+      }),
+    ]);
 
     return NextResponse.json({
       onboardingComplete: clinic.onboardingComplete,
@@ -44,6 +49,8 @@ export async function GET(request: NextRequest) {
         website: clinic.website,
         currency: clinic.currency,
         timezone: clinic.timezone,
+        clinicType: clinic.clinicType || progress?.clinicType || null,
+        practitionerCount: clinic.practitionerCount || null,
       },
       settings: settings
         ? {

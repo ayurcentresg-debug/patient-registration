@@ -5,6 +5,7 @@ import { serialize } from "cookie";
 import { sendEmail } from "@/lib/email";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { getTrialDuration, getPlanLimits } from "@/lib/platform-settings";
+import { CURRENCY_MAP, TIMEZONE_MAP } from "@/lib/country-data";
 
 /**
  * POST /api/clinic/register
@@ -37,7 +38,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { clinicName, email, phone, ownerName, password, country, city } = body;
+    const { clinicName, email, phone, ownerName, password, country, city, clinicType, practitionerCount, referralSource, state, termsAccepted } = body;
 
     // Validate required fields
     if (!clinicName || !email || !ownerName || !password) {
@@ -98,6 +99,13 @@ export async function POST(request: NextRequest) {
           phone: phone || null,
           country: country || "Singapore",
           city: city || null,
+          clinicType: clinicType || null,
+          practitionerCount: practitionerCount || null,
+          referralSource: referralSource || null,
+          state: state || null,
+          termsAcceptedAt: termsAccepted ? new Date() : null,
+          currency: CURRENCY_MAP[country] || "SGD",
+          timezone: TIMEZONE_MAP[country] || "Asia/Singapore",
         },
       });
 
@@ -135,9 +143,17 @@ export async function POST(request: NextRequest) {
           email,
           phone: phone || "",
           city: city || "Singapore",
-          state: country || "Singapore",
+          state: state || country || "Singapore",
+          currency: CURRENCY_MAP[country] || "SGD",
         },
       });
+
+      // 5. Create OnboardingProgress if clinicType provided
+      if (clinicType) {
+        await tx.onboardingProgress.create({
+          data: { clinicId: clinic.id, clinicType },
+        });
+      }
 
       return { clinic, user };
     });

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { getAddressConfig, getCountryDefaults, CURRENCY_MAP } from "@/lib/country-data";
 
 /* ─── Constants ────────────────────────────────────────────────────────── */
 
@@ -55,15 +56,15 @@ const SECTIONS = [
 
 /* Helpful tips shown per screen */
 const TIPS: Record<string, { emoji: string; text: string }> = {
-  welcome: { emoji: "🌿", text: "Welcome aboard! This setup takes about 5 minutes. You can always update everything later." },
-  "clinic-type": { emoji: "🏥", text: "Choosing your clinic type helps us pre-configure the right templates and settings for you." },
-  "clinic-address": { emoji: "📍", text: "Your address appears on invoices, prescriptions, and helps patients find your clinic." },
-  "clinic-contact": { emoji: "📱", text: "Patients will use these details to reach you. This also shows on printed documents." },
-  "hours-schedule": { emoji: "🕐", text: "Set your regular working hours. You can configure individual doctor schedules later." },
-  "hours-prefs": { emoji: "⚙️", text: "These defaults apply to new appointments. You can override per appointment anytime." },
-  practitioners: { emoji: "👨‍⚕️", text: "Add your team now or skip and invite them later. Each person gets a login invite via email." },
-  services: { emoji: "📋", text: "Add the treatments you offer. Patients will see these when booking appointments online." },
-  medicines: { emoji: "🧪", text: "This is optional — add commonly prescribed medicines to speed up prescription writing later." },
+  welcome: { emoji: "🌿", text: "Welcome aboard! This setup takes about 5 minutes. Your data is saved automatically as you go." },
+  "clinic-type": { emoji: "🏥", text: "Select the type that best describes your primary practice. This helps us pre-configure treatments, terminology, and billing defaults for you." },
+  "clinic-address": { emoji: "📍", text: "Enter your clinic's physical address. This appears on invoices, prescriptions, and patient communications. For India-based clinics, select your state and pincode for auto-formatting." },
+  "clinic-contact": { emoji: "📱", text: "This contact info is shown to patients on booking pages and appointment reminders. Use your clinic's main number, not personal." },
+  "hours-schedule": { emoji: "🕐", text: "Set your regular working days and hours. Patients can only book during these times. You can adjust per-doctor later." },
+  "hours-prefs": { emoji: "⚙️", text: "Set your default appointment slot duration and billing currency. These can be changed anytime from Admin Settings." },
+  practitioners: { emoji: "👨‍⚕️", text: "Add your doctors and therapists. They'll receive an email invitation to join your clinic on AyurGate. You can add more later." },
+  services: { emoji: "📋", text: "Add your main treatments and therapies. Include the consultation fee and session duration. Patients see these on the booking page." },
+  medicines: { emoji: "🧪", text: "Optional: Add your commonly dispensed medicines and herbs. This helps with prescription and inventory tracking." },
 };
 
 interface StaffEntry { name: string; email: string; role: string; specialization: string; fee: string; }
@@ -77,7 +78,7 @@ type ScreenId =
   | "hours-schedule" | "hours-prefs"
   | "practitioners" | "services" | "medicines";
 
-const ALL_SCREENS: ScreenId[] = [
+const BASE_SCREENS: ScreenId[] = [
   "welcome", "clinic-type",
   "clinic-address", "clinic-contact",
   "hours-schedule", "hours-prefs",
@@ -95,9 +96,9 @@ function sectionOf(screen: ScreenId): string {
 }
 
 /* Sub-step dots: screens within the same section */
-function subScreens(screen: ScreenId): ScreenId[] {
+function subScreens(screen: ScreenId, allScreens: ScreenId[]): ScreenId[] {
   const section = sectionOf(screen);
-  return ALL_SCREENS.filter((s) => sectionOf(s) === section);
+  return allScreens.filter((s) => sectionOf(s) === section);
 }
 
 /* ─── Floating Label Input ──────────────────────────────────────────── */
@@ -206,6 +207,19 @@ export default function OnboardingPage() {
   const [loading, setLoading] = useState(true);
   const [clinicName, setClinicName] = useState("");
 
+  // Registration data for pre-population
+  const [registrationData, setRegistrationData] = useState<{
+    country?: string; clinicType?: string; practitionerCount?: string;
+  }>({});
+
+  // Dynamic screen list — skip clinic-type if already set at registration
+  const ALL_SCREENS = useMemo(() => {
+    if (registrationData.clinicType) {
+      return BASE_SCREENS.filter((s) => s !== "clinic-type");
+    }
+    return BASE_SCREENS;
+  }, [registrationData.clinicType]);
+
   // Welcome
   const [clinicType, setClinicType] = useState("");
 
@@ -251,15 +265,32 @@ export default function OnboardingPage() {
         if (data.onboardingComplete) { router.push("/dashboard"); return; }
         if (data.clinic) {
           setClinicName(data.clinic.name || "");
+          // Track registration data for pre-population and screen skipping
+          setRegistrationData({
+            country: data.clinic.country || undefined,
+            clinicType: data.clinic.clinicType || undefined,
+            practitionerCount: data.clinic.practitionerCount || undefined,
+          });
+          // Pre-fill clinic type if set during registration
+          if (data.clinic.clinicType) {
+            setClinicType(data.clinic.clinicType);
+          }
           setClinicProfile((prev) => ({
             ...prev, address: data.clinic.address || "", city: data.clinic.city || "",
             state: data.clinic.state || "", zipCode: data.clinic.zipCode || "",
             clinicEmail: data.clinic.email || "", clinicPhone: data.clinic.phone || "",
             website: data.clinic.website || "",
           }));
-          const cMap: Record<string, string> = { Singapore: "SGD", India: "INR", Malaysia: "MYR", "Sri Lanka": "LKR", UAE: "AED" };
-          if (data.clinic.country && cMap[data.clinic.country]) {
-            setPreferences((prev) => ({ ...prev, currency: cMap[data.clinic.country] }));
+          // Pre-fill currency and working days from country
+          const country = data.clinic.country;
+          if (country) {
+            const countryCurrency = CURRENCY_MAP[country];
+            const countryDefaults = getCountryDefaults(country);
+            setPreferences((prev) => ({
+              ...prev,
+              ...(countryCurrency ? { currency: countryCurrency } : {}),
+              workingDays: countryDefaults.workingDays,
+            }));
           }
         }
         if (data.settings) {
@@ -382,6 +413,10 @@ export default function OnboardingPage() {
     setError("");
 
     // Save current screen data
+    if (screen === "welcome" && registrationData.clinicType) {
+      // Clinic type was already set during registration, mark welcome section complete
+      setCompletedSections((s) => new Set(s).add("welcome"));
+    }
     if (screen === "clinic-type") {
       await saveClinicType();
       setCompletedSections((s) => new Set(s).add("welcome"));
@@ -585,9 +620,9 @@ export default function OnboardingPage() {
           <div className="w-full max-w-lg">
 
             {/* Sub-step dots (within section) */}
-            {subScreens(screen).length > 1 && (
+            {subScreens(screen, ALL_SCREENS).length > 1 && (
               <div className="flex items-center justify-center gap-3 mb-8">
-                {subScreens(screen).map((sub) => {
+                {subScreens(screen, ALL_SCREENS).map((sub) => {
                   const subIdx = ALL_SCREENS.indexOf(sub);
                   const isDone = subIdx < screenIdx;
                   const isCur = sub === screen;
@@ -606,7 +641,7 @@ export default function OnboardingPage() {
                           </svg>
                         )}
                       </div>
-                      {sub !== subScreens(screen)[subScreens(screen).length - 1] && (
+                      {sub !== subScreens(screen, ALL_SCREENS)[subScreens(screen, ALL_SCREENS).length - 1] && (
                         <div className="w-12 h-0.5 rounded" style={{ background: isDone ? "#2d6a4f" : "#e5e7eb" }} />
                       )}
                     </div>
@@ -698,14 +733,32 @@ export default function OnboardingPage() {
                   This appears on invoices and helps patients find you.
                 </p>
 
-                <div className="space-y-4">
-                  <FloatingInput label="Street Address" icon="🏢" value={clinicProfile.address} onChange={(v) => setClinicProfile({ ...clinicProfile, address: v })} placeholder="123 Clinic Street" />
-                  <FloatingInput label="City / Suburb" icon="🏙️" value={clinicProfile.city} onChange={(v) => setClinicProfile({ ...clinicProfile, city: v })} placeholder="e.g. Chennai" />
-                  <div className="grid grid-cols-2 gap-4">
-                    <FloatingInput label="State" icon="📋" value={clinicProfile.state} onChange={(v) => setClinicProfile({ ...clinicProfile, state: v })} placeholder="e.g. Tamil Nadu" />
-                    <FloatingInput label="Postal Code" icon="📮" value={clinicProfile.zipCode} onChange={(v) => setClinicProfile({ ...clinicProfile, zipCode: v })} placeholder="600001" />
-                  </div>
-                </div>
+                {(() => {
+                  const addrConfig = getAddressConfig(registrationData.country || "Other");
+                  return (
+                    <div className="space-y-4">
+                      <FloatingInput label="Street Address" icon="🏢" value={clinicProfile.address} onChange={(v) => setClinicProfile({ ...clinicProfile, address: v })} placeholder="123 Clinic Street" />
+                      <FloatingInput label="City / Suburb" icon="🏙️" value={clinicProfile.city} onChange={(v) => setClinicProfile({ ...clinicProfile, city: v })} placeholder="e.g. Chennai" />
+                      <div className="grid grid-cols-2 gap-4">
+                        {addrConfig.showState && (
+                          addrConfig.stateOptions ? (
+                            <FloatingSelect
+                              label={addrConfig.stateLabel}
+                              value={clinicProfile.state}
+                              onChange={(v) => setClinicProfile({ ...clinicProfile, state: v })}
+                              options={[{ value: "", label: `Select ${addrConfig.stateLabel}` }, ...addrConfig.stateOptions]}
+                            />
+                          ) : (
+                            <FloatingInput label={addrConfig.stateLabel} icon="📋" value={clinicProfile.state} onChange={(v) => setClinicProfile({ ...clinicProfile, state: v })} placeholder={`e.g. ${addrConfig.stateLabel}`} />
+                          )
+                        )}
+                        {addrConfig.showZip && (
+                          <FloatingInput label={addrConfig.zipLabel} icon="📮" value={clinicProfile.zipCode} onChange={(v) => setClinicProfile({ ...clinicProfile, zipCode: v.slice(0, addrConfig.zipLength || 10) })} placeholder={addrConfig.zipPlaceholder} />
+                        )}
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 <TipBox screen="clinic-address" />
               </div>
