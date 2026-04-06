@@ -107,6 +107,12 @@ model Patient {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
+  // Patient Portal Auth
+  portalPin       String?          // hashed 6-digit PIN (optional)
+  otpCode         String?          // temporary OTP for login
+  otpExpiresAt    DateTime?        // OTP expiry (5 min)
+  lastPortalLogin DateTime?        // last portal access
+
   communications Communication[]
   appointments   Appointment[]
   clinicalNotes  ClinicalNote[]
@@ -120,6 +126,7 @@ model Patient {
 
   @@unique([clinicId, patientIdNumber])
   @@index([clinicId])
+  @@index([phone, clinicId])
 }
 
 model FamilyMember {

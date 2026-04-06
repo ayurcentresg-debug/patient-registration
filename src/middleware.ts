@@ -52,6 +52,8 @@ const PUBLIC_PATHS = [
   "/api/cron",
   "/book",
   "/trial-expired",
+  "/portal/login",
+  "/api/portal/auth",
 ];
 
 // Paths that require auth but are allowed during onboarding
@@ -128,6 +130,33 @@ export async function middleware(req: NextRequest) {
       }
     }
     return NextResponse.next();
+  }
+
+  // ── Patient Portal routes ───────────────────────────────────────
+  if (pathname.startsWith("/portal") || pathname.startsWith("/api/portal")) {
+    // Public: login page and auth APIs are already in PUBLIC_PATHS
+    if (pathname === "/portal/login" || pathname.startsWith("/api/portal/auth")) {
+      return NextResponse.next();
+    }
+
+    const patientToken = req.cookies.get("patient_token")?.value;
+    if (!patientToken) {
+      if (pathname.startsWith("/api/portal")) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+      return NextResponse.redirect(new URL("/portal/login", req.url));
+    }
+
+    try {
+      await jwtVerify(patientToken, secret);
+      return NextResponse.next();
+    } catch {
+      const response = pathname.startsWith("/api/portal")
+        ? NextResponse.json({ error: "Session expired" }, { status: 401 })
+        : NextResponse.redirect(new URL("/portal/login", req.url));
+      response.cookies.delete("patient_token");
+      return response;
+    }
   }
 
   // ── Maintenance mode & Feature flag check ────────────────────────
