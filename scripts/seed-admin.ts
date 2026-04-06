@@ -145,6 +145,48 @@ async function main() {
     }
   }
 
+  // ─── Pharmacist ───────────────────────────────────────────────────────
+  const pharmacist = {
+    name: "Priya Nair",
+    email: "pharmacist@clinic.com",
+    staffIdNumber: "P10001",
+    department: "Pharmacy",
+  };
+  const existingPharmacist = await prisma.user.findFirst({ where: { email: pharmacist.email } });
+  if (existingPharmacist) {
+    await prisma.user.update({ where: { id: existingPharmacist.id }, data: { isActive: true, status: "active" } });
+    console.log(`⏭️  Pharmacist already exists: ${pharmacist.name} (password unchanged)`);
+  } else {
+    const pharmacistPass = process.env.SEED_STAFF_PASSWORD || rawAdminPass;
+    await prisma.user.create({ data: {
+      name: pharmacist.name, email: pharmacist.email, password: await bcrypt.hash(pharmacistPass, 12),
+      role: "pharmacist", department: pharmacist.department, staffIdNumber: pharmacist.staffIdNumber,
+      isActive: true, status: "active",
+    }});
+    console.log(`✅ Pharmacist created: ${pharmacist.name} (${pharmacist.email})`);
+  }
+
+  // ─── Receptionist ────────────────────────────────────────────────────
+  const receptionist = {
+    name: "Meera Sundaram",
+    email: "reception@clinic.com",
+    staffIdNumber: "R10001",
+    department: "Front Desk",
+  };
+  const existingReceptionist = await prisma.user.findFirst({ where: { email: receptionist.email } });
+  if (existingReceptionist) {
+    await prisma.user.update({ where: { id: existingReceptionist.id }, data: { isActive: true, status: "active" } });
+    console.log(`⏭️  Receptionist already exists: ${receptionist.name} (password unchanged)`);
+  } else {
+    const receptionistPass = process.env.SEED_STAFF_PASSWORD || rawAdminPass;
+    await prisma.user.create({ data: {
+      name: receptionist.name, email: receptionist.email, password: await bcrypt.hash(receptionistPass, 12),
+      role: "receptionist", department: receptionist.department, staffIdNumber: receptionist.staffIdNumber,
+      isActive: true, status: "active",
+    }});
+    console.log(`✅ Receptionist created: ${receptionist.name} (${receptionist.email})`);
+  }
+
   // ─── Patients ─────────────────────────────────────────────────────────
   const patients = [
     {
