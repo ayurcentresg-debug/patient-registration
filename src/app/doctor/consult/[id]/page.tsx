@@ -60,6 +60,10 @@ export default function ConsultPage() {
   // Completion notes
   const [completionNotes, setCompletionNotes] = useState("");
 
+  // Invoice state (after completion)
+  const [generatedInvoice, setGeneratedInvoice] = useState<{ id: string; invoiceNumber: string } | null>(null);
+  const [emailingInvoice, setEmailingInvoice] = useState(false);
+
   const fetchData = useCallback(async () => {
     try {
       const r = await fetch(`/api/doctor/consult/${id}`);
@@ -142,11 +146,38 @@ export default function ConsultPage() {
         body: JSON.stringify({ action: "complete", notes: completionNotes }),
       });
       if (r.ok) {
-        showToast("Appointment completed!");
-        setTimeout(() => router.push("/doctor"), 1000);
+        const result = await r.json();
+        if (result.invoice) {
+          setGeneratedInvoice(result.invoice);
+          showToast(`Completed! Invoice ${result.invoice.invoiceNumber} generated.`);
+          // Refresh data to show updated status
+          fetchData();
+        } else {
+          showToast("Appointment completed!");
+          setTimeout(() => router.push("/doctor"), 1000);
+        }
       } else { showToast("Failed to complete", "error"); }
     } catch { showToast("Error", "error"); }
     finally { setSaving(false); }
+  }
+
+  async function emailInvoice() {
+    if (!generatedInvoice) return;
+    setEmailingInvoice(true);
+    try {
+      const r = await fetch(`/api/invoices/${generatedInvoice.id}/email`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      if (r.ok) {
+        showToast("Invoice emailed to patient!");
+      } else {
+        const err = await r.json();
+        showToast(err.error || "Failed to email", "error");
+      }
+    } catch { showToast("Email failed", "error"); }
+    finally { setEmailingInvoice(false); }
   }
 
   function addMedItem() {
@@ -646,6 +677,35 @@ export default function ConsultPage() {
                 </svg>
                 <p style={{ fontSize: 15, fontWeight: 700, color: "#059669" }}>Consultation Completed</p>
                 {appt.notes && <p style={{ fontSize: 13, color: "#6b7280", marginTop: 4 }}>{appt.notes}</p>}
+              </div>
+            )}
+
+            {/* Invoice generated panel */}
+            {generatedInvoice && (
+              <div style={{ ...card, padding: 16, border: "1.5px solid #bfdbfe", background: "#eff6ff" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2 6.75h5.25M8.25 15h7.5M12 18h3.75m-8.25 1.5h.008v.008H7.5v-.008zm0-3h.008v.008H7.5v-.008zm0-3h.008v.008H7.5V13.5z" />
+                  </svg>
+                  <h4 style={{ fontSize: 14, fontWeight: 700, color: "#1e40af", margin: 0 }}>Invoice Generated</h4>
+                </div>
+                <p style={{ fontSize: 13, color: "#3b82f6", fontWeight: 600, margin: "0 0 12px" }}>{generatedInvoice.invoiceNumber}</p>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <Link href={`/billing/${generatedInvoice.id}`}
+                    style={{ flex: 1, display: "block", padding: "8px 0", fontSize: 13, fontWeight: 600, borderRadius: 8, border: "1.5px solid #2563eb", color: "#2563eb", background: "#fff", textAlign: "center", textDecoration: "none", cursor: "pointer" }}>
+                    View Invoice
+                  </Link>
+                  {data?.patient?.email && (
+                    <button onClick={emailInvoice} disabled={emailingInvoice}
+                      style={{ flex: 1, padding: "8px 0", fontSize: 13, fontWeight: 600, borderRadius: 8, border: "none", color: "#fff", background: "#2563eb", cursor: "pointer", opacity: emailingInvoice ? 0.6 : 1 }}>
+                      {emailingInvoice ? "Sending..." : "Email Invoice"}
+                    </button>
+                  )}
+                </div>
+                <button onClick={() => { setGeneratedInvoice(null); router.push("/doctor"); }}
+                  style={{ width: "100%", marginTop: 8, padding: "8px 0", fontSize: 13, fontWeight: 600, borderRadius: 8, border: "1px solid #e5e7eb", color: "#6b7280", background: "#fff", cursor: "pointer" }}>
+                  Back to Dashboard
+                </button>
               </div>
             )}
           </div>

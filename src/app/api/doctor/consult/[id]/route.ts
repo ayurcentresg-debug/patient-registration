@@ -270,9 +270,9 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       return NextResponse.json({ success: true, prescription: rx });
     }
 
-    // ── Complete Appointment ─────────────────────────────────────────
+    // ── Complete Appointment + Auto-Generate Invoice ────────────────
     if (action === "complete") {
-      const { notes } = body;
+      const { notes, skipInvoice } = body;
 
       await db.appointment.update({
         where: { id: appointmentId },
@@ -282,7 +282,87 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         },
       });
 
-      return NextResponse.json({ success: true, message: "Appointment completed" });
+      // Auto-generate invoice if there's a session price
+      let invoice = null;
+      if (!skipInvoice && appointment.sessionPrice && appointment.sessionPrice > 0) {
+        // Check if invoice already exists
+        const existing = await db.invoice.findFirst({
+          where: { appointmentId },
+        });
+
+        if (!existing) {
+          const patientName = appointment.patient
+            ? `${appointment.patient.firstName} ${appointment.patient.lastName}`
+            : appointment.walkinName || "Walk-in Patient";
+          const patientPhone = appointment.patient?.phone || appointment.walkinPhone || null;
+
+          // Determine item type
+          const isTherapy = appointment.type === "procedure" || appointment.type === "therapy" ||
+            ["panchakarma", "abhyanga", "shirodhara", "pizhichil", "njavarakizhi", "nasyam", "vasthi", "udvarthanam"].includes(appointment.type);
+          const itemType = isTherapy ? "therapy" : "consultation";
+          const doctorName = appointment.doctor || payload.name as string || "Doctor";
+          const treatmentLabel = appointment.treatmentName ||
+            (isTherapy ? `${appointment.type.charAt(0).toUpperCase() + appointment.type.slice(1)}` : "Consultation");
+          const itemDescription = `${treatmentLabel} - ${doctorName}${appointment.packageName ? ` (${appointment.packageName})` : ""}`;
+
+          const unitPrice = appointment.sessionPrice;
+
+          // Auto-generate invoice number
+          const now = new Date();
+          const yearMonth = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}`;
+          const prefix = `INV-${yearMonth}-`;
+          const lastInvoice = await db.invoice.findFirst({
+            where: { invoiceNumber: { startsWith: prefix } },
+            orderBy: { invoiceNumber: "desc" },
+          });
+          let seq = 1;
+          if (lastInvoice) {
+            const lastSeq = parseInt(lastInvoice.invoiceNumber.split("-").pop() || "0", 10);
+            seq = lastSeq + 1;
+          }
+          const invoiceNumber = `${prefix}${String(seq).padStart(4, "0")}`;
+
+          invoice = await db.invoice.create({
+            data: {
+              invoiceNumber,
+              patientId: appointment.patientId || null,
+              appointmentId,
+              patientName,
+              patientPhone,
+              subtotal: unitPrice,
+              discountPercent: 0,
+              discountAmount: 0,
+              taxableAmount: unitPrice,
+              gstAmount: 0,
+              totalAmount: unitPrice,
+              paidAmount: 0,
+              balanceAmount: unitPrice,
+              status: "pending",
+              items: {
+                create: [{
+                  type: itemType,
+                  description: itemDescription,
+                  quantity: 1,
+                  unitPrice,
+                  discount: 0,
+                  gstPercent: 0,
+                  gstAmount: 0,
+                  amount: unitPrice,
+                }],
+              },
+            },
+            include: { items: true },
+          });
+        } else {
+          invoice = existing;
+        }
+      }
+
+      return NextResponse.json({
+        success: true,
+        message: "Appointment completed",
+        invoice: invoice ? { id: invoice.id, invoiceNumber: (invoice as { invoiceNumber: string }).invoiceNumber } : null,
+      });
     }
 
     // ── Update Appointment Status ────────────────────────────────────
