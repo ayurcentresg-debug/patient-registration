@@ -171,14 +171,14 @@ export default function RegisterPage() {
             </span>
           </div>
 
-          <h2 className="text-2xl font-bold mb-1" style={{ color: "#111827" }}>
+          <h2 className="text-[28px] sm:text-3xl font-bold mb-2" style={{ color: "#111827" }}>
             Get Started with AyurGate
           </h2>
-          <p className="text-[14px] mb-8" style={{ color: "#6b7280" }}>
+          <p className="text-[15px] mb-10" style={{ color: "#6b7280" }}>
             Choose how you&apos;d like to join
           </p>
 
-          <div className="space-y-4 px-2">
+          <div className="space-y-5 px-2">
             {/* Card 1: Set Up My Clinic */}
             <button
               type="button"
@@ -252,9 +252,9 @@ export default function RegisterPage() {
             </button>
           </div>
 
-          <p className="text-center text-[13px] mt-8" style={{ color: "#6b7280" }}>
+          <p className="text-center text-[15px] mt-10" style={{ color: "#6b7280" }}>
             Already have an account?{" "}
-            <Link href="/login" className="font-medium hover:underline" style={{ color: "#2d6a4f" }}>
+            <Link href="/login" className="font-semibold hover:underline" style={{ color: "#2d6a4f" }}>
               Sign in
             </Link>
           </p>
@@ -371,9 +371,9 @@ export default function RegisterPage() {
             </div>
           </div>
 
-          <p className="text-center text-[13px] mt-8" style={{ color: "#6b7280" }}>
+          <p className="text-center text-[15px] mt-10" style={{ color: "#6b7280" }}>
             Already have an account?{" "}
-            <Link href="/login" className="font-medium hover:underline" style={{ color: "#2d6a4f" }}>
+            <Link href="/login" className="font-semibold hover:underline" style={{ color: "#2d6a4f" }}>
               Sign in
             </Link>
           </p>
