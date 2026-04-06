@@ -51,7 +51,7 @@ const FEATURES = [
 const STEPS = [
   {
     num: "1",
-    title: "Register your clinic",
+    title: "Sign up your clinic",
     desc: "Sign up in 2 minutes. Add your clinic name, country, and basic details. No credit card needed.",
   },
   {
@@ -94,7 +94,7 @@ const FAQS = [
   },
   {
     q: "How long does it take to set up?",
-    a: "Most clinics are fully operational within 30 minutes. Register, add your doctors and their schedules, and you're ready to book your first appointment. You can import existing patient data via CSV.",
+    a: "Most clinics are fully operational within 30 minutes. Sign up, add your doctors and their schedules, and you're ready to book your first appointment. You can import existing patient data via CSV.",
   },
   {
     q: "Can I manage multiple branches?",
