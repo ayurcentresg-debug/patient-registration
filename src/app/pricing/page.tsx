@@ -125,26 +125,26 @@ export default function PricingPage() {
       )}
       {/* Header */}
       <header className="border-b" style={{ borderColor: "#e5e7eb", background: "white" }}>
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between gap-3">
+          <Link href="/" className="flex items-center gap-2 flex-shrink-0">
             <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "#14532d" }}>
               <span className="text-white text-sm font-black">AG</span>
             </div>
-            <span className="text-lg font-bold tracking-wider" style={{ color: "#14532d" }}>{platformName}</span>
+            <span className="text-lg font-bold tracking-wider hidden sm:inline" style={{ color: "#14532d" }}>{platformName}</span>
           </Link>
-          <div className="flex items-center gap-4">
-            <Link href="/login" className="text-[14px] font-medium px-4 py-2 rounded-lg transition-colors hover:bg-gray-50" style={{ color: "#374151" }}>
+          <div className="flex items-center gap-2 sm:gap-4">
+            <Link href="/login" className="text-[13px] sm:text-[14px] font-medium px-3 sm:px-4 py-2 rounded-lg transition-colors hover:bg-gray-50" style={{ color: "#374151" }}>
               Sign In
             </Link>
-            <Link href="/register" className="text-[14px] font-medium px-5 py-2.5 rounded-lg text-white transition-opacity hover:opacity-90" style={{ background: "#14532d" }}>
-              Start Free Trial
+            <Link href="/register" className="text-[13px] sm:text-[14px] font-medium px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg text-white transition-opacity hover:opacity-90" style={{ background: "#14532d" }}>
+              Free Trial
             </Link>
           </div>
         </div>
       </header>
 
       {/* Hero */}
-      <section className="pt-16 pb-12 text-center px-6">
+      <section className="pt-10 sm:pt-16 pb-10 sm:pb-12 text-center px-4 sm:px-6">
         <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4" style={{ color: "#111827" }}>
           Simple pricing for every clinic
         </h1>
@@ -172,7 +172,7 @@ export default function PricingPage() {
       </section>
 
       {/* Pricing Cards */}
-      <section className="max-w-7xl mx-auto px-6 pb-20">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 pb-16 sm:pb-20">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {plans.map((plan) => {
             const displayPrice = plan.monthlyNum && annual

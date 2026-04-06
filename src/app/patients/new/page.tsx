@@ -115,20 +115,17 @@ const MEDICAL_CONDITIONS = [
 const PATIENT_GROUPS = ["Diabetes", "Hypertension", "Senior Citizen", "Pediatric", "Prenatal", "VIP", "Insurance"];
 
 /* YODA shared styles */
-const fieldMaxWidth = "350px";
 const inputStyle = {
   border: "1px solid var(--grey-400)",
   borderRadius: "var(--radius-sm)",
   color: "var(--grey-900)",
   background: "var(--white)",
   fontSize: "15px",
-  maxWidth: fieldMaxWidth,
 };
 const inputErrorStyle = {
   ...inputStyle,
   border: "1px solid var(--red)",
   background: "#fff5f5",
-  maxWidth: fieldMaxWidth,
 };
 const labelStyle = { color: "var(--grey-700)", fontSize: "14px", fontWeight: 600 as const };
 const sectionTitle = { color: "var(--grey-900)", fontSize: "17px", fontWeight: 700 as const };
@@ -888,7 +885,7 @@ export default function NewPatientPage() {
                   </div>
                   <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
                     <label className="w-full md:w-40 md:text-right flex-shrink-0" style={labelStyle}>Occupation :</label>
-                    <div className="flex-1 flex items-center gap-1" style={{ maxWidth: fieldMaxWidth }}>
+                    <div className="flex-1 flex items-center gap-1">
                       {showNewOccupation ? (
                         <input name="occupation" placeholder="Enter occupation" className="flex-1 px-3 py-2" style={inputStyle} />
                       ) : (
@@ -1098,10 +1095,10 @@ export default function NewPatientPage() {
         </div>
 
         {/* Action Buttons */}
-        <div className="mt-6 flex items-center gap-3 sticky bottom-0 py-4 print:hidden" style={{ background: "var(--background)" }}>
+        <div className="mt-6 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sticky bottom-0 py-4 print:hidden" style={{ background: "var(--background)" }}>
           <button
             type="submit" disabled={saving}
-            className="inline-flex items-center gap-2 text-white px-6 py-2.5 text-[15px] font-semibold transition-colors duration-150 disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-2 text-white px-6 py-2.5 text-[15px] font-semibold transition-colors duration-150 disabled:opacity-50"
             style={{ background: "var(--blue-500)", borderRadius: "var(--radius-sm)" }}
             onMouseEnter={(e) => { if (!saving) e.currentTarget.style.background = "var(--blue-700)"; }}
             onMouseLeave={(e) => { e.currentTarget.style.background = "var(--blue-500)"; }}

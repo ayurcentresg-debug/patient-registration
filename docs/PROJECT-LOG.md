@@ -956,6 +956,41 @@
 - **Commit:** `34e8ed0`
 - **Status:** ✅ Deployed
 
+#### 58. Test Accounts for All Roles (Pharmacist & Receptionist)
+- **Requested by:** User — "how to test all the works u had done"
+- **What:** Added pharmacist and receptionist seed accounts so all 5 roles can be tested
+- **Implementation:**
+  - Added Pharmacist: Priya Nair (pharmacist@clinic.com, P10001, role: pharmacist)
+  - Added Receptionist: Meera Sundaram (reception@clinic.com, R10001, role: receptionist)
+  - Uses `SEED_STAFF_PASSWORD` env var, falls back to admin password
+  - Existing accounts are never overwritten (password-safe upsert)
+- **Files:**
+  - `scripts/seed-admin.ts` (modified — added pharmacist + receptionist blocks)
+- **Commit:** `ce5473f`
+- **Status:** ✅ Deployed
+
+#### 59. Features API & Auto-Updating Google Sheet
+- **Requested by:** User — "create google sheet to my email and automatically update when we develop new features"
+- **What:** Built end-to-end auto-syncing feature tracker: API endpoint → Google Apps Script → 4-sheet Google Spreadsheet
+- **Implementation:**
+  - Created `/api/admin/features` endpoint that parses PROJECT-LOG.md and 05-features.md
+  - Supports `?view=dev|modules|all` query parameter
+  - Returns dev session features (57+), module capabilities, and combined view
+  - Built Google Apps Script that fetches from API and populates 4 formatted sheets:
+    - **Dev Log**: All development session features with green headers, alternating rows
+    - **All Capabilities**: Every sub-feature from 05-features.md grouped by module
+    - **Marketing Summary**: Big numbers dashboard (total modules/capabilities/updates), module & session breakdowns
+    - **Share-Ready List**: One-page formatted feature list ready for client sharing
+  - Configured hourly time trigger for auto-refresh
+  - Added `/api/admin/features` to PUBLIC_PATHS in middleware
+- **Files:**
+  - `src/app/api/admin/features/route.ts` (NEW)
+  - `src/middleware.ts` (modified — added public path)
+  - Google Apps Script: `Code.gs` (external)
+- **Google Sheet:** [AyurGate — Feature Tracker](https://docs.google.com/spreadsheets/d/1gFsIb_ofmtavcA1Ycu8W1a0DuH9lbZBb9kW7_MFZF0I)
+- **Commits:** `81b0da9`, `542c572`
+- **Status:** ✅ Deployed (auto-refreshes hourly)
+
 ---
 
 ## Pending / Upcoming
@@ -1030,6 +1065,41 @@ www.ayurgate.com (Railway)
 | Hosting | Railway (with persistent volume for DB) |
 | Source | GitHub (ayurcentresg-debug/ayurgate) |
 
+#### 60. Mobile Responsiveness — Full App
+- **Requested by:** User — "Mobile Responsiveness — UI fixes for phones/tablets"
+- **What:** Comprehensive mobile responsiveness overhaul across all major pages
+- **Implementation:**
+  - **Critical fix:** Added viewport meta tag (`width=device-width, initialScale=1`) to root layout
+  - **Layout fix:** Removed `w-0` from main content area in LayoutShell
+  - **Dashboard:** Header stacks on mobile, charts prevent overflow, grids start at 1-column
+  - **Appointments:** Toolbar scrolls horizontally, buttons compact on mobile, walk-in text shortened, QuickBook modal responsive width
+  - **Appointments Calendar:** Layout stacks vertically on mobile, week view scrolls horizontally
+  - **Patients List:** Already had mobile cards — no changes needed
+  - **Patient Detail:** Profile/edit rows stack vertically on mobile, 3-column layout becomes single column, extra bottom padding for mobile tab bar
+  - **Patient Registration:** Removed 350px max-width on inputs, submit buttons stack on mobile
+  - **Billing:** Stats cards start at 1-column, filters wrap, date inputs full-width on mobile
+  - **Prescriptions:** Search full-width on mobile, actions wrap
+  - **Admin Tabs:** Smaller padding/font on mobile, smooth iOS scrolling
+  - **Public Booking:** Compact step indicators, time slots 3-column on mobile, form fields stack
+  - **Pricing:** Header compact on mobile, reduced padding
+  - **Landing/Login:** CTA buttons responsive, form padding improved
+- **Files Modified:**
+  - `src/app/layout.tsx` (viewport meta)
+  - `src/components/LayoutShell.tsx` (layout fix)
+  - `src/components/AdminTabs.tsx` (responsive tabs)
+  - `src/app/dashboard/page.tsx`
+  - `src/app/appointments/page.tsx`
+  - `src/app/appointments/calendar/page.tsx`
+  - `src/app/patients/[id]/page.tsx`
+  - `src/app/patients/new/page.tsx`
+  - `src/app/billing/page.tsx`
+  - `src/app/prescriptions/page.tsx`
+  - `src/app/book/[slug]/page.tsx`
+  - `src/app/pricing/page.tsx`
+  - `src/app/page.tsx`
+  - `src/app/login/page.tsx`
+- **Status:** ✅ Complete
+
 ---
 
-*Last updated: 6 April 2026 (Session 7)*
+*Last updated: 6 April 2026 (Session 8 continued)*

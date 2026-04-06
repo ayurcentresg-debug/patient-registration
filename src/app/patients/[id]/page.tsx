@@ -80,9 +80,9 @@ const DOC_CATEGORIES = [
 function ProfileRow({ label, value, href, always }: { label: string; value: string | null | undefined; href?: string; always?: boolean }) {
   if (!value && !always) return null;
   return (
-    <tr>
-      <td className="py-[8px] pr-4 text-[15px] font-normal text-right whitespace-nowrap align-top" style={{ color: "var(--grey-600)", width: 180 }}>{label} :</td>
-      <td className="py-[8px] pl-2 text-[15px] font-medium align-top" style={{ color: value ? "var(--grey-900)" : "var(--grey-400)" }}>
+    <tr className="flex flex-col sm:table-row">
+      <td className="py-[4px] sm:py-[8px] pr-4 text-[14px] sm:text-[15px] font-normal sm:text-right whitespace-nowrap align-top" style={{ color: "var(--grey-600)" }}>{label} :</td>
+      <td className="py-[4px] sm:py-[8px] pl-0 sm:pl-2 text-[15px] font-medium align-top pb-2 sm:pb-0" style={{ color: value ? "var(--grey-900)" : "var(--grey-400)" }}>
         {href && value ? <a href={href} className="hover:underline" style={{ color: "#2d6a4f" }}>{value}</a> : (value || "—")}
       </td>
     </tr>
@@ -92,9 +92,9 @@ function ProfileRow({ label, value, href, always }: { label: string; value: stri
 /* ─── Edit Row — Practo style ─── */
 function EditRow({ label, name, value, type = "text", onChange }: { label: string; name: string; value: string; type?: string; onChange: (n: string, v: string) => void }) {
   return (
-    <tr>
-      <td className="py-[8px] pr-4 text-[15px] font-normal text-right whitespace-nowrap align-middle" style={{ color: "var(--grey-600)", width: 180 }}>{label} :</td>
-      <td className="py-[8px] pl-2"><input type={type} value={value} onChange={(e) => onChange(name, e.target.value)} className="w-full max-w-sm px-2.5 py-1.5 text-[15px]" style={inputStyle} /></td>
+    <tr className="flex flex-col sm:table-row">
+      <td className="py-[4px] sm:py-[8px] pr-4 text-[14px] sm:text-[15px] font-normal sm:text-right whitespace-nowrap align-middle" style={{ color: "var(--grey-600)" }}>{label} :</td>
+      <td className="py-[4px] sm:py-[8px] pl-0 sm:pl-2 pb-2 sm:pb-0"><input type={type} value={value} onChange={(e) => onChange(name, e.target.value)} className="w-full max-w-full sm:max-w-sm px-2.5 py-1.5 text-[15px]" style={inputStyle} /></td>
     </tr>
   );
 }
@@ -1585,7 +1585,7 @@ export default function PatientDetailPage() {
               {patient.bloodGroup ? <> &middot; {patient.bloodGroup}</> : ""}
             </p>
             {/* Quick contact actions */}
-            <div className="flex items-center gap-2 mt-2">
+            <div className="flex flex-wrap items-center gap-2 mt-2">
               <a href={`tel:${patient.phone}`} className="inline-flex items-center gap-1 px-2.5 py-1 text-[12px] font-semibold transition-colors hover:opacity-80" style={{ background: "var(--grey-50)", border: "1px solid var(--grey-200)", borderRadius: "var(--radius-pill)", color: "var(--grey-700)" }}>
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
                 {patient.phone}
@@ -1607,7 +1607,7 @@ export default function PatientDetailPage() {
       </div>
 
       {/* ══════════ 3-COLUMN BODY ══════════ */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-col lg:flex-row flex-1 overflow-hidden">
 
         {/* ─── LEFT SIDEBAR ─── */}
         <aside className="hidden lg:flex lg:flex-col flex-shrink-0 overflow-y-auto" style={{ width: 210, background: "var(--white)", borderRight: "1px solid var(--grey-200)" }}>
@@ -1645,7 +1645,7 @@ export default function PatientDetailPage() {
         </div>
 
         {/* ─── CENTER CONTENT ─── */}
-        <main className="flex-1 overflow-y-auto p-5 md:p-6" style={{ background: "var(--background)" }}>
+        <main className="flex-1 overflow-y-auto p-3 sm:p-5 md:p-6 pb-20 lg:pb-6" style={{ background: "var(--background)" }}>
 
           {/* ═══ PROFILE ═══ */}
           {activeSection === "profile" && (
@@ -1655,7 +1655,7 @@ export default function PatientDetailPage() {
               {(pendingBalance.total > 0 || familyBalances.length > 0) && (
                 <div className="mb-4 p-4" style={{ background: "#faf3e6", border: "1px solid #d4a84b", borderRadius: "var(--radius)" }}>
                   {pendingBalance.total > 0 && (
-                    <div className="flex items-center justify-between mb-2">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
                       <div className="flex items-center gap-2">
                         <svg className="w-5 h-5" style={{ color: "#b68d40" }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                         <div>

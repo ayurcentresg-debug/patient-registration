@@ -305,7 +305,7 @@ export default function PrescriptionsPage() {
         <input
           type="text" placeholder="Search patient, Rx no, doctor, diagnosis..."
           value={search} onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
-          className="px-3 py-2 min-w-[260px]" style={inputStyle}
+          className="px-3 py-2 w-full sm:min-w-[260px] sm:w-auto" style={inputStyle}
         />
         <select value={filterStatus} onChange={e => { setFilterStatus(e.target.value); setCurrentPage(1); }} className="px-3 py-2" style={inputStyle}>
           <option value="all">All Status</option>
@@ -485,7 +485,7 @@ export default function PrescriptionsPage() {
                     )}
 
                     {/* Actions */}
-                    <div className="flex items-center gap-2 mt-3 pt-3" style={{ borderTop: "1px solid var(--grey-200)" }}>
+                    <div className="flex flex-wrap items-center gap-2 mt-3 pt-3" style={{ borderTop: "1px solid var(--grey-200)" }}>
                       <button
                         onClick={e => { e.stopPropagation(); printPrescription(rx); }}
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[14px] font-semibold transition-colors"

@@ -366,16 +366,16 @@ export default function PublicBookingPage() {
         </div>
       </header>
 
-      <div className="max-w-2xl mx-auto px-6 py-8">
-        <h1 className="text-[24px] font-bold mb-1" style={{ color: "#111827" }}>Book an Appointment</h1>
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        <h1 className="text-[22px] sm:text-[24px] font-bold mb-1" style={{ color: "#111827" }}>Book an Appointment</h1>
         <p className="text-[14px] mb-8" style={{ color: "#6b7280" }}>Select your doctor, date, and time to schedule your visit.</p>
 
         {/* Progress */}
-        <div className="flex items-center gap-2 mb-8">
+        <div className="flex items-center gap-1 sm:gap-2 mb-8">
           {[1, 2, 3, 4].map((s) => (
-            <div key={s} className="flex items-center gap-2 flex-1">
+            <div key={s} className="flex items-center gap-1 sm:gap-2 flex-1">
               <div
-                className="w-8 h-8 rounded-full flex items-center justify-center text-[13px] font-bold flex-shrink-0"
+                className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-[12px] sm:text-[13px] font-bold flex-shrink-0"
                 style={{
                   background: step >= s ? "#14532d" : "#e5e7eb",
                   color: step >= s ? "white" : "#9ca3af",
@@ -507,7 +507,7 @@ export default function PublicBookingPage() {
                 ) : slots.length === 0 ? (
                   <p className="text-[14px] py-4" style={{ color: "#6b7280" }}>No slots available for this date.</p>
                 ) : (
-                  <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
+                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
                     {slots.map((slot) => (
                       <button
                         key={slot.time}
@@ -565,7 +565,7 @@ export default function PublicBookingPage() {
                   style={{ border: "1.5px solid #e5e7eb", background: "white" }}
                 />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[13px] font-medium mb-1" style={{ color: "#374151" }}>Phone *</label>
                   <input

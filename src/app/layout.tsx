@@ -1,6 +1,14 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import LayoutShell from "@/components/LayoutShell";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  themeColor: "#14532d",
+};
 
 export const metadata: Metadata = {
   title: {
@@ -9,7 +17,6 @@ export const metadata: Metadata = {
   },
   description: "AYUR GATE — Modern clinic management software for Ayurveda, wellness & healthcare practices. Appointments, billing, inventory, multi-branch & more.",
   manifest: "/manifest.json",
-  themeColor: "#14532d",
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://www.ayurgate.com"),
   openGraph: {
     title: "AYUR GATE — Ayurveda Clinic Management Software",

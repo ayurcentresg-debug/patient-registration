@@ -146,20 +146,21 @@ export default function LandingPage() {
           <Link href="/pricing" className="text-[14px] font-medium hover:opacity-70 transition-opacity" style={{ color: "#374151" }}>Pricing</Link>
           <a href="#faq" className="text-[14px] font-medium hover:opacity-70 transition-opacity" style={{ color: "#374151" }}>FAQ</a>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <Link
             href="/login"
-            className="px-4 py-2 text-[14px] font-semibold rounded-lg transition-all hover:bg-gray-100"
+            className="px-3 sm:px-4 py-2 text-[13px] sm:text-[14px] font-semibold rounded-lg transition-all hover:bg-gray-100"
             style={{ color: "#14532d" }}
           >
             Sign In
           </Link>
           <Link
             href="/register"
-            className="px-4 py-2 text-[14px] font-semibold text-white rounded-lg transition-all hover:opacity-90"
+            className="px-3 sm:px-4 py-2 text-[13px] sm:text-[14px] font-semibold text-white rounded-lg transition-all hover:opacity-90 whitespace-nowrap"
             style={{ background: "#14532d" }}
           >
-            Start Free Trial
+            <span className="hidden sm:inline">Start Free Trial</span>
+            <span className="sm:hidden">Free Trial</span>
           </Link>
         </div>
       </nav>

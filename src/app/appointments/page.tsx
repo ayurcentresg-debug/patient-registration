@@ -437,7 +437,7 @@ function QuickBookModal({
           top: "50%",
           left: "50%",
           transform: "translate(-50%, -50%)",
-          width: 480,
+          width: "min(480px, calc(100vw - 32px))",
           maxHeight: "90vh",
           overflow: "auto",
           background: "var(--white)",
@@ -1162,7 +1162,7 @@ export default function AppointmentsPage() {
       </div>
 
       {/* ─── Toolbar Row 1: Date + Today + View Toggles + Nav + Schedule Title ─── */}
-      <div className="flex items-center gap-0 border-b" style={{ background: "#f8f8f8", borderColor: "var(--grey-300)", height: 52 }}>
+      <div className="flex items-center gap-0 border-b overflow-x-auto" style={{ background: "#f8f8f8", borderColor: "var(--grey-300)", height: 52 }}>
         {/* Left nav arrow */}
         <button onClick={() => navigate(-1)} className="h-full px-3 flex items-center justify-center transition-colors hover:bg-gray-200" style={{ borderRight: "1px solid var(--grey-300)" }}>
           <svg className="w-4 h-4" fill="none" stroke="var(--grey-600)" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
@@ -1194,7 +1194,7 @@ export default function AppointmentsPage() {
             <button
               key={mode}
               onClick={() => setViewMode(mode)}
-              className="h-full px-4 text-[15px] font-semibold transition-colors"
+              className="h-full px-2 sm:px-4 text-[13px] sm:text-[15px] font-semibold transition-colors whitespace-nowrap"
               style={{
                 background: viewMode === mode ? "var(--white)" : "transparent",
                 color: viewMode === mode ? "#2d6a4f" : "var(--grey-600)",
@@ -1262,9 +1262,9 @@ export default function AppointmentsPage() {
       </div>
 
       {/* ─── Toolbar Row 2: Search + Doctor filter + Walk-in button ─── */}
-      <div className="flex items-center gap-3 px-4 py-2.5 border-b" style={{ background: "var(--white)", borderColor: "var(--grey-300)" }}>
+      <div className="flex flex-wrap items-center gap-3 px-4 py-2.5 border-b" style={{ background: "var(--white)", borderColor: "var(--grey-300)" }}>
         {/* Search */}
-        <div className="relative flex-1" style={{ maxWidth: 400 }}>
+        <div className="relative flex-1 min-w-0" style={{ maxWidth: 400 }}>
           <div className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "var(--grey-400)" }}>
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
           </div>
@@ -1333,16 +1333,17 @@ export default function AppointmentsPage() {
         {/* + add walk in appointment button */}
         <button
           onClick={() => setBookModal({ date: new Date(), time: minutesToTime(Math.ceil((new Date().getHours() * 60 + new Date().getMinutes()) / 15) * 15) })}
-          className="flex items-center gap-2 px-4 py-2 text-[15px] font-semibold transition-colors hover:opacity-90"
+          className="flex items-center gap-2 px-4 py-2 text-[13px] sm:text-[15px] font-semibold transition-colors hover:opacity-90 whitespace-nowrap"
           style={{ background: "#2d6a4f", color: "#fff", borderRadius: 6 }}
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-          + add walk in appointment
+          <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+          <span className="hidden sm:inline">+ add walk in appointment</span>
+          <span className="sm:hidden">+ Walk-in</span>
         </button>
       </div>
 
       {/* ─── Main Layout: 3 columns ─── */}
-      <div className="flex flex-1">
+      <div className="flex flex-1 overflow-hidden">
 
         {/* ─── Left Sidebar ─── */}
         <div className="hidden lg:flex flex-col w-[250px] border-r overflow-y-auto flex-shrink-0" style={{ background: "var(--white)", borderColor: "var(--grey-200)" }}>
@@ -1406,7 +1407,7 @@ export default function AppointmentsPage() {
         </div>
 
         {/* ─── Center: Calendar Grid ─── */}
-        <div className="flex-1 overflow-auto relative" style={{ background: "var(--white)" }}>
+        <div className="flex-1 min-w-0 overflow-auto relative" style={{ background: "var(--white)" }}>
           {loading && (
             <div className="absolute inset-0 flex items-center justify-center z-10" style={{ background: "rgba(255,255,255,0.7)" }}>
               <div className="w-6 h-6 border-2 rounded-full animate-spin" style={{ borderColor: "var(--grey-300)", borderTopColor: "var(--blue-500)" }} />

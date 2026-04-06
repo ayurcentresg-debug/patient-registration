@@ -481,7 +481,7 @@ export default function CalendarPage() {
   };
 
   return (
-    <div className="flex h-[calc(100vh-60px)]">
+    <div className="flex flex-col md:flex-row h-[calc(100vh-60px)]">
       {/* ═══ Left Sidebar ═══ */}
       <div className="hidden xl:flex xl:w-[260px] flex-col border-r p-4 space-y-5 overflow-y-auto" style={{ borderColor: "#f3f4f6", background: "white" }}>
         {/* Mini Calendar */}
@@ -541,8 +541,8 @@ export default function CalendarPage() {
       {/* ═══ Main Calendar Area ═══ */}
       <div className="flex-1 flex flex-col overflow-hidden" style={{ background: "white" }}>
         {/* ── Top Bar ── */}
-        <div className="flex items-center justify-between px-4 lg:px-6 py-3" style={{ borderBottom: "1px solid #f3f4f6" }}>
-          <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-2 px-3 sm:px-4 lg:px-6 py-3" style={{ borderBottom: "1px solid #f3f4f6" }}>
+          <div className="flex items-center gap-2 sm:gap-3">
             {/* Nav arrows */}
             <div className="flex items-center gap-1">
               <button onClick={goPrev} className="p-1.5 rounded-lg hover:bg-gray-100 transition-all">
@@ -655,7 +655,7 @@ export default function CalendarPage() {
 
             {/* ═══ WEEK VIEW ═══ */}
             {view === "week" && (
-              <div>
+              <div className="min-w-[600px]">
                 {/* Day headers */}
                 <div className="flex sticky top-0 z-20" style={{ background: "white", borderBottom: "1px solid #e5e7eb" }}>
                   <div className="w-16 flex-shrink-0" style={{ borderRight: "1px solid #f3f4f6" }} />

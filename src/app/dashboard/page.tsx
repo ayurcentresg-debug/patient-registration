@@ -293,7 +293,7 @@ export default function Dashboard() {
   return (
     <div className="p-6 md:p-8 yoda-fade-in">
       {/* Header */}
-      <div className="mb-8 flex items-center justify-between">
+      <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div>
           <h1 className="text-[24px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>
             {user?.name ? `Hi, ${user.name.split(" ")[0]}` : ROLE_GREETINGS[role] || "Dashboard"}
@@ -639,13 +639,13 @@ export default function Dashboard() {
       {/* ═══════ Row 2: Charts (Admin only) ═══════ */}
       {showRevenue && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-6">
-          <WeeklyRevenueChart data={weeklyRevenue} />
-          <AppointmentStatusChart data={statusBreakdown} total={totalStatusCount} />
+          <div className="min-w-0 overflow-hidden"><WeeklyRevenueChart data={weeklyRevenue} /></div>
+          <div className="min-w-0 overflow-hidden"><AppointmentStatusChart data={statusBreakdown} total={totalStatusCount} /></div>
         </div>
       )}
 
       {/* ═══════ Row 3: Three Columns (Admin only) ═══════ */}
-      {showRevenue && (<div className="grid lg:grid-cols-3 gap-5 mb-6">
+      {showRevenue && (<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-6">
         {/* Today's Appointments (existing) */}
         <div className="p-5" style={cardStyle}>
           <div className="flex items-center justify-between mb-4">
@@ -706,7 +706,7 @@ export default function Dashboard() {
       </div>)}
 
       {/* ═══════ Row 4: Monthly Trend + Quick Actions (Admin only) ═══════ */}
-      {showRevenue && (<div className="grid lg:grid-cols-3 gap-5 mb-6">
+      {showRevenue && (<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-6">
         {/* Monthly Appointment Trend (spans 2 cols) */}
         <MonthlyTrendChart data={monthlyTrend} />
 
@@ -767,7 +767,7 @@ export default function Dashboard() {
       </div>)}
 
       {/* ═══════ Row 5: Recent Patients + Communications ═══════ */}
-      {isAdmin && (<div className="grid lg:grid-cols-2 gap-5">
+      {isAdmin && (<div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* Recent Patients */}
         <div className="p-5" style={cardStyle}>
           <div className="flex items-center justify-between mb-4">

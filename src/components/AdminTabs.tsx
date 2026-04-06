@@ -24,9 +24,10 @@ export default function AdminTabs() {
 
   return (
     <div
-      className="flex gap-0 mb-6 overflow-x-auto hide-scrollbar"
+      className="flex gap-0 mb-6 overflow-x-auto hide-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0"
       style={{
         borderBottom: "2px solid var(--grey-200)",
+        WebkitOverflowScrolling: "touch",
       }}
     >
       {TABS.map((tab) => {
@@ -35,7 +36,7 @@ export default function AdminTabs() {
           <Link
             key={tab.href}
             href={tab.href}
-            className="px-5 py-2.5 text-[15px] font-semibold whitespace-nowrap transition-colors duration-150"
+            className="px-3 sm:px-5 py-2 sm:py-2.5 text-[13px] sm:text-[15px] font-semibold whitespace-nowrap transition-colors duration-150"
             style={{
               color: active ? "var(--blue-500)" : "var(--grey-600)",
               borderBottom: active ? "2px solid var(--blue-500)" : "2px solid transparent",
