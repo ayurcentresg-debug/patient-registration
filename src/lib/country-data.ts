@@ -247,21 +247,29 @@ export const REFERRAL_SOURCES = [
   { value: "other", label: "Other" },
 ];
 
-// ─── Password Strength ─────────────────────────────────────
+// ─── Password Rules & Validation ────────────────────────────
+
+export const PASSWORD_RULES = [
+  { test: (p: string) => p.length >= 12, label: "At least 12 characters" },
+  { test: (p: string) => /[a-z]/.test(p), label: "Contains a lowercase letter" },
+  { test: (p: string) => /[A-Z]/.test(p), label: "Contains an uppercase letter" },
+  { test: (p: string) => /[0-9]/.test(p), label: "Contains a number" },
+  { test: (p: string) => /[#?!@$%^&*\-]/.test(p), label: "Contains a symbol (#?!@$%^&*-)" },
+];
+
+export function validatePassword(password: string): { valid: boolean; errors: string[] } {
+  const errors = PASSWORD_RULES.filter(r => !r.test(password)).map(r => r.label);
+  return { valid: errors.length === 0, errors };
+}
 
 export function getPasswordStrength(password: string): { score: number; label: string; color: string } {
-  let score = 0;
-  if (password.length >= 6) score++;
-  if (password.length >= 10) score++;
-  if (/[A-Z]/.test(password)) score++;
-  if (/[0-9]/.test(password)) score++;
-  if (/[^A-Za-z0-9]/.test(password)) score++;
-
-  if (score <= 1) return { score, label: "Weak", color: "#ef4444" };
-  if (score === 2) return { score, label: "Fair", color: "#f59e0b" };
-  if (score === 3) return { score, label: "Good", color: "#eab308" };
-  if (score === 4) return { score, label: "Strong", color: "#22c55e" };
-  return { score, label: "Very Strong", color: "#059669" };
+  if (!password) return { score: 0, label: "", color: "#e5e7eb" };
+  const passed = PASSWORD_RULES.filter(r => r.test(password)).length;
+  if (passed <= 1) return { score: passed, label: "Weak", color: "#ef4444" };
+  if (passed === 2) return { score: passed, label: "Fair", color: "#f59e0b" };
+  if (passed === 3) return { score: passed, label: "Good", color: "#eab308" };
+  if (passed === 4) return { score: passed, label: "Strong", color: "#22c55e" };
+  return { score: passed, label: "Very Strong", color: "#059669" };
 }
 
 // ─── Country-specific defaults ──────────────────────────────

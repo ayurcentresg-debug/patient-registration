@@ -30,8 +30,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Password is required" }, { status: 400 });
     }
 
-    if (defaultPassword.length < 6) {
-      return NextResponse.json({ error: "Password must be at least 6 characters" }, { status: 400 });
+    if (defaultPassword.length < 12) {
+      return NextResponse.json({ error: "Password must be at least 12 characters" }, { status: 400 });
     }
 
     // Find all doctors/therapists without passwords

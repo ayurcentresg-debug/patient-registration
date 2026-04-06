@@ -23,8 +23,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Current and new passwords are required" }, { status: 400 });
     }
 
-    if (newPassword.length < 6) {
-      return NextResponse.json({ error: "New password must be at least 6 characters" }, { status: 400 });
+    if (newPassword.length < 12) {
+      return NextResponse.json({ error: "Password must be at least 12 characters" }, { status: 400 });
+    }
+    if (!/[a-z]/.test(newPassword)) {
+      return NextResponse.json({ error: "Password must contain a lowercase letter" }, { status: 400 });
+    }
+    if (!/[A-Z]/.test(newPassword)) {
+      return NextResponse.json({ error: "Password must contain an uppercase letter" }, { status: 400 });
+    }
+    if (!/[0-9]/.test(newPassword)) {
+      return NextResponse.json({ error: "Password must contain a number" }, { status: 400 });
+    }
+    if (!/[#?!@$%^&*\-]/.test(newPassword)) {
+      return NextResponse.json({ error: "Password must contain a symbol (#?!@$%^&*-)" }, { status: 400 });
     }
 
     if (currentPassword === newPassword) {

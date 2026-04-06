@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import AdminTabs from "@/components/AdminTabs";
 import { PageGuide } from "@/components/HelpTip";
+import { validatePassword, PASSWORD_RULES } from "@/lib/country-data";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface Staff {
@@ -160,6 +161,8 @@ export default function StaffPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordSaving, setPasswordSaving] = useState(false);
   const [passwordError, setPasswordError] = useState("");
+  const [showNewPw, setShowNewPw] = useState(false);
+  const [showConfirmPw, setShowConfirmPw] = useState(false);
   const [onLeaveIds, setOnLeaveIds] = useState<Set<string>>(new Set());
   const [showImport, setShowImport] = useState(false);
 
@@ -336,11 +339,14 @@ export default function StaffPage() {
     setNewPassword("");
     setConfirmPassword("");
     setPasswordError("");
+    setShowNewPw(false);
+    setShowConfirmPw(false);
   };
 
   const handleSetPassword = async () => {
     if (!passwordModal) return;
-    if (newPassword.length < 6) { setPasswordError("Password must be at least 6 characters"); return; }
+    const pwResult = validatePassword(newPassword);
+    if (!pwResult.valid) { setPasswordError("Password requirements not met: " + pwResult.errors.join(", ")); return; }
     if (newPassword !== confirmPassword) { setPasswordError("Passwords do not match"); return; }
     setPasswordSaving(true);
     setPasswordError("");
@@ -706,27 +712,71 @@ export default function StaffPage() {
               )}
               <div>
                 <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>New Password</label>
-                <input
-                  type="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full px-3 py-2 text-[15px]"
-                  style={inputStyle}
-                  placeholder="Min 6 characters"
-                  autoFocus
-                />
+                <div style={{ position: "relative" }}>
+                  <input
+                    type={showNewPw ? "text" : "password"}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="w-full px-3 py-2 text-[15px]"
+                    style={{ ...inputStyle, paddingRight: 40 }}
+                    placeholder="Min 12 characters"
+                    autoFocus
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPw(!showNewPw)}
+                    style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", padding: 4, color: "#9ca3af" }}
+                    tabIndex={-1}
+                    aria-label={showNewPw ? "Hide password" : "Show password"}
+                  >
+                    {showNewPw ? (
+                      <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path d="M3.98 8.223A10.477 10.477 0 001.934 12c1.292 4.338 5.31 7.5 10.066 7.5.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    ) : (
+                      <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" strokeLinecap="round" strokeLinejoin="round"/><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    )}
+                  </button>
+                </div>
+                {newPassword && (
+                  <div style={{ marginTop: 8 }}>
+                    {PASSWORD_RULES.map((rule, i) => (
+                      <div key={i} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: rule.test(newPassword) ? "#059669" : "#9ca3af", marginBottom: 2 }}>
+                        {rule.test(newPassword) ? (
+                          <svg width="14" height="14" fill="none" stroke="#059669" strokeWidth="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                        ) : (
+                          <svg width="14" height="14" fill="none" stroke="#d1d5db" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/></svg>
+                        )}
+                        <span>{rule.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
               <div>
                 <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Confirm Password</label>
-                <input
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full px-3 py-2 text-[15px]"
-                  style={inputStyle}
-                  placeholder="Re-enter password"
-                  onKeyDown={(e) => { if (e.key === "Enter") handleSetPassword(); }}
-                />
+                <div style={{ position: "relative" }}>
+                  <input
+                    type={showConfirmPw ? "text" : "password"}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="w-full px-3 py-2 text-[15px]"
+                    style={{ ...inputStyle, paddingRight: 40 }}
+                    placeholder="Re-enter password"
+                    onKeyDown={(e) => { if (e.key === "Enter") handleSetPassword(); }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPw(!showConfirmPw)}
+                    style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", padding: 4, color: "#9ca3af" }}
+                    tabIndex={-1}
+                    aria-label={showConfirmPw ? "Hide password" : "Show password"}
+                  >
+                    {showConfirmPw ? (
+                      <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path d="M3.98 8.223A10.477 10.477 0 001.934 12c1.292 4.338 5.31 7.5 10.066 7.5.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    ) : (
+                      <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24"><path d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" strokeLinecap="round" strokeLinejoin="round"/><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
 

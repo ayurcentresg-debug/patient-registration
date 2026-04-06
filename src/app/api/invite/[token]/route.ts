@@ -52,8 +52,20 @@ export async function POST(
     const { token } = await params;
     const { password } = await request.json();
 
-    if (!password || password.length < 6) {
-      return NextResponse.json({ error: "Password must be at least 6 characters" }, { status: 400 });
+    if (!password || password.length < 12) {
+      return NextResponse.json({ error: "Password must be at least 12 characters" }, { status: 400 });
+    }
+    if (!/[a-z]/.test(password)) {
+      return NextResponse.json({ error: "Password must contain a lowercase letter" }, { status: 400 });
+    }
+    if (!/[A-Z]/.test(password)) {
+      return NextResponse.json({ error: "Password must contain an uppercase letter" }, { status: 400 });
+    }
+    if (!/[0-9]/.test(password)) {
+      return NextResponse.json({ error: "Password must contain a number" }, { status: 400 });
+    }
+    if (!/[#?!@$%^&*\-]/.test(password)) {
+      return NextResponse.json({ error: "Password must contain a symbol (#?!@$%^&*-)" }, { status: 400 });
     }
 
     const user = await prisma.user.findFirst({
