@@ -869,6 +869,70 @@
 - **Commit:** `f33573a`
 - **Status:** ✅ Complete
 
+### Session 7 — 6 Apr 2026
+
+#### 54. Onboarding Wizard Redesign (Zanda-Inspired)
+- **Requested by:** User — shared Zanda competitor screenshots as UX reference
+- **What:** Complete redesign of `/onboarding` setup wizard with professional multi-step UX
+- **Implementation:**
+  - **6 major sections**: Welcome, Clinic Information, Working Hours, Practitioners, Services, Medicines
+  - **Vertical sidebar** with connected dots and lines (Zanda pattern)
+  - **Sub-step dot indicators** within sections (e.g., Clinic Info has 2 sub-steps: Address → Contact)
+  - **Welcome screen** with branded hero, clinic type selection (6 types)
+  - **Material-style floating label inputs** with emoji icons
+  - **Contextual tip callouts** on every screen (green helper boxes)
+  - **SKIP FOR NOW** on optional sections (Practitioners, Services, Medicines)
+  - **Bottom navigation**: ← BACK / SKIP FOR NOW / NEXT →
+  - **Setup summary card** on final screen before "Launch My Clinic"
+  - **Mini month calendar** in sidebar for date navigation
+  - Each staff/treatment/medicine entry saves individually with ✓ Saved state
+  - Footer: "Only clinic information is required. You can always update the rest later."
+- **Files:**
+  - `src/app/onboarding/page.tsx` (complete rewrite — 850+ lines)
+- **Commit:** `cfc58a6`
+- **Status:** ✅ Deployed
+
+#### 55. Appointment Calendar View
+- **Requested by:** User — shared Halaxy calendar screenshots as reference
+- **What:** Professional day/week calendar view for appointments
+- **Implementation:**
+  - New page at `/appointments/calendar` with time-grid calendar
+  - **Left sidebar**: Mini month calendar, doctor filter dropdown, status filter, summary stats (total/upcoming/completed/cancelled)
+  - **Day view**: Full-height time grid (7AM-9PM, 72px/hour) with positioned appointment blocks
+  - **Week view**: 7-day grid with column headers showing appointment counts per day
+  - **Appointment blocks**: Color-coded by status (scheduled=blue, confirmed=green, in-progress=yellow, completed=gray, cancelled=red, no-show=purple)
+  - **Overlap detection**: Side-by-side stacking when appointments overlap
+  - **Current time indicator**: Red line with dot on today's column
+  - **Detail popup**: Click any appointment for patient info, time, doctor, treatment, links to full view
+  - **Navigation**: Today button, prev/next arrows, Day/Week toggle, link back to list view
+  - Calendar nav item added to sidebar
+- **Files:**
+  - `src/app/appointments/calendar/page.tsx` (NEW — 740 lines)
+  - `src/components/Sidebar.tsx` (Calendar nav item)
+- **Commit:** `14d64d2`
+- **Status:** ✅ Deployed
+
+#### 56. Data Import Center (CSV)
+- **Requested by:** User — from feature CSV: "Import patients, services, staff, inventory from CSV/Excel"
+- **What:** Unified data import hub for patients, treatments, medicines, and staff
+- **Implementation:**
+  - New page at `/admin/import` with 4 import type cards
+  - **Patient Import** (`/api/patients/import`): Auto-generates P00001 IDs, duplicate detection by phone, 19 fields supported
+  - **Treatment Import** (`/api/treatments/import`): Duplicate detection by name, 7 valid categories, auto-30min duration default
+  - **Inventory Import** (existing `/api/inventory/import`): Added template endpoint, auto-SKU generation
+  - **Staff Import**: Redirects to existing `/admin/staff` page with built-in CSV import
+  - **CSV drag-and-drop** upload with client-side parsing and preview table (first 5 rows)
+  - **Download template** for each import type with sample data
+  - **Results dashboard**: Imported/Skipped/Errors breakdown with detailed stats
+  - Import nav item added to sidebar
+- **Files:**
+  - `src/app/admin/import/page.tsx` (NEW)
+  - `src/app/api/patients/import/route.ts` (NEW)
+  - `src/app/api/treatments/import/route.ts` (NEW)
+  - `src/components/Sidebar.tsx` (Import nav item)
+- **Commit:** `7e6c0a1`
+- **Status:** ✅ Deployed
+
 ---
 
 ## Pending / Upcoming
@@ -893,12 +957,14 @@ www.ayurgate.com (Railway)
 ├── /book/[slug] ............... Public patient booking (NEW)
 ├── /dashboard ................. Admin dashboard
 ├── /appointments .............. Appointment management
+│   └── /calendar .............. Day/week calendar view (NEW)
 ├── /patients .................. Patient records
 ├── /prescriptions ............. Digital prescriptions
 ├── /inventory ................. Stock management
 ├── /billing ................... Invoices & payments
 ├── /communications ............ WhatsApp/Email/SMS
 ├── /admin/staff ............... Staff management
+├── /admin/import .............. CSV data import center (NEW)
 ├── /admin/commission .......... Commission tracking
 ├── /admin/payroll ............. Country-specific payroll
 ├── /feedback .................. Patient feedback & reviews
@@ -943,4 +1009,4 @@ www.ayurgate.com (Railway)
 
 ---
 
-*Last updated: 6 April 2026 (Session 6 continued)*
+*Last updated: 6 April 2026 (Session 7)*
