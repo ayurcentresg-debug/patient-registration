@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getClinicId, getAuthPayload } from "@/lib/get-clinic-id";
 import { getTenantPrisma } from "@/lib/tenant-db";
+import { sendEmail } from "@/lib/email";
+import { getBranding } from "@/lib/plan-enforcement";
+import crypto from "crypto";
 
 /**
  * GET /api/doctor/consult/[id]
@@ -355,6 +358,51 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
           });
         } else {
           invoice = existing;
+        }
+      }
+
+      // Auto-create feedback request and email it
+      if (appointment.patient?.email && appointment.patientId) {
+        try {
+          const feedbackToken = crypto.randomBytes(32).toString("hex");
+          await db.feedback.create({
+            data: {
+              appointmentId,
+              patientId: appointment.patientId,
+              patientName: `${appointment.patient.firstName} ${appointment.patient.lastName}`,
+              doctorId: appointment.doctorId || null,
+              doctorName: appointment.doctor || payload.name as string || "Doctor",
+              rating: 0, // Pending — will be filled when patient submits
+              token: feedbackToken,
+              tokenExpiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+              source: "email",
+            },
+          });
+
+          const branding = await getBranding();
+          const feedbackUrl = `${process.env.NEXT_PUBLIC_APP_URL || "https://www.ayurgate.com"}/review?token=${feedbackToken}`;
+
+          await sendEmail({
+            to: appointment.patient.email,
+            subject: `How was your visit? | ${branding.platformName}`,
+            html: `
+              <div style="font-family: system-ui, sans-serif; max-width: 480px; margin: 0 auto;">
+                <div style="background: #14532d; padding: 20px 24px; border-radius: 12px 12px 0 0;">
+                  <h1 style="color: #fff; font-size: 18px; margin: 0;">${branding.platformName}</h1>
+                </div>
+                <div style="padding: 24px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px;">
+                  <p style="color: #374151; font-size: 15px;">Hi ${appointment.patient.firstName},</p>
+                  <p style="color: #374151; font-size: 15px;">Thank you for your visit! We'd love to hear about your experience.</p>
+                  <div style="text-align: center; margin: 24px 0;">
+                    <a href="${feedbackUrl}" style="display: inline-block; padding: 14px 32px; background: #14532d; color: #fff; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 15px;">Rate Your Visit ⭐</a>
+                  </div>
+                  <p style="color: #9ca3af; font-size: 12px;">This link expires in 7 days.</p>
+                </div>
+              </div>
+            `,
+          });
+        } catch (fbErr) {
+          console.error("Feedback email error (non-blocking):", fbErr);
         }
       }
 

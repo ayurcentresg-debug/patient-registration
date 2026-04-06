@@ -204,6 +204,33 @@ model Communication {
   @@index([patientId])
 }
 
+model Feedback {
+  id              String   @id @default(cuid())
+  clinicId        String?
+  appointmentId   String?
+  patientId       String?
+  patientName     String
+  doctorId        String?
+  doctorName      String?
+  rating          Int              // 1-5 stars
+  category        String   @default("general") // general | consultation | treatment | staff | facility | billing
+  comment         String?
+  tags            String   @default("[]") // JSON array of tags
+  response        String?          // clinic's reply
+  respondedAt     DateTime?
+  respondedBy     String?
+  status          String   @default("active") // active | flagged | hidden
+  source          String   @default("portal") // portal | email | sms | manual
+  token           String?  @unique  // for unauthenticated feedback links
+  tokenExpiresAt  DateTime?
+  createdAt       DateTime @default(now())
+
+  @@index([clinicId])
+  @@index([doctorId])
+  @@index([appointmentId])
+  @@index([rating])
+}
+
 model ClinicalNote {
   id              String   @id @default(cuid())
   clinicId        String?

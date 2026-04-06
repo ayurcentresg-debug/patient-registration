@@ -54,6 +54,8 @@ const PUBLIC_PATHS = [
   "/trial-expired",
   "/portal/login",
   "/api/portal/auth",
+  "/review",
+  "/api/public/feedback",
 ];
 
 // Paths that require auth but are allowed during onboarding

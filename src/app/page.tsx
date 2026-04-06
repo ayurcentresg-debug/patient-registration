@@ -115,18 +115,18 @@ const FAQS = [
 ];
 
 const MORE_FEATURES = [
+  "Patient Portal",
+  "Online Booking & Payments",
   "Treatment Packages",
   "Doctor Portal",
+  "Patient Reviews & Feedback",
   "Role-Based Access",
   "Stock Transfers",
   "Audit Logs",
   "CSV Import/Export",
   "2FA Security",
-  "PWA / Mobile Ready",
   "Commission Tracking",
   "Leave Management",
-  "Duplicate Detection",
-  "Email Templates",
 ];
 
 export default function LandingPage() {

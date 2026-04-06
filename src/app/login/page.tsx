@@ -323,6 +323,12 @@ export default function LoginPage() {
                   Start free trial
                 </Link>
               </p>
+
+              <div className="text-center pt-2" style={{ borderTop: "1px solid #f3f4f6" }}>
+                <Link href="/portal/login" className="text-[12px] font-medium hover:underline" style={{ color: "#6b7280" }}>
+                  Patient? View your appointments & prescriptions →
+                </Link>
+              </div>
             </form>
           )}
 

@@ -36,7 +36,17 @@ interface Invoice {
   items: Array<{ description: string; amount: number }>;
 }
 
-type Tab = "home" | "appointments" | "prescriptions" | "invoices";
+type Tab = "home" | "appointments" | "prescriptions" | "invoices" | "feedback";
+
+interface FeedbackItem {
+  id: string; rating: number; category: string; comment: string | null;
+  response: string | null; doctorName: string | null; createdAt: string;
+}
+
+interface PendingReview {
+  id: string; date: string; time: string; doctor: string; doctorId: string | null;
+  treatmentName: string | null; type: string;
+}
 
 const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
   scheduled: { bg: "#dbeafe", color: "#2563eb" },
@@ -67,27 +77,32 @@ export default function PatientPortal() {
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
   const [invoices, setInvoices] = useState<{ invoices: Invoice[]; summary: { totalBilled: number; totalPaid: number; totalOutstanding: number } }>({ invoices: [], summary: { totalBilled: 0, totalPaid: 0, totalOutstanding: 0 } });
   const [tab, setTab] = useState<Tab>("home");
+  const [feedbackData, setFeedbackData] = useState<{ feedbacks: FeedbackItem[]; pendingReview: PendingReview[] }>({ feedbacks: [], pendingReview: [] });
+  const [reviewForm, setReviewForm] = useState<{ appointmentId: string; rating: number; comment: string } | null>(null);
+  const [submittingReview, setSubmittingReview] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const fetchAll = useCallback(async () => {
     try {
-      const [pRes, aRes, rxRes, invRes] = await Promise.all([
+      const [pRes, aRes, rxRes, invRes, fbRes] = await Promise.all([
         fetch("/api/portal/me"),
         fetch("/api/portal/appointments"),
         fetch("/api/portal/prescriptions"),
         fetch("/api/portal/invoices"),
+        fetch("/api/portal/feedback"),
       ]);
 
       if (!pRes.ok) { router.push("/portal/login"); return; }
 
-      const [pData, aData, rxData, invData] = await Promise.all([
-        pRes.json(), aRes.json(), rxRes.json(), invRes.json(),
+      const [pData, aData, rxData, invData, fbData] = await Promise.all([
+        pRes.json(), aRes.json(), rxRes.json(), invRes.json(), fbRes.json(),
       ]);
 
       setProfile(pData);
       setAppointments(aData);
       setPrescriptions(rxData);
       setInvoices(invData);
+      if (fbRes.ok) setFeedbackData(fbData);
     } catch { router.push("/portal/login"); }
     finally { setLoading(false); }
   }, [router]);
@@ -118,6 +133,7 @@ export default function PatientPortal() {
     { key: "appointments", label: "Appointments", icon: "📅", count: profile.stats.appointments },
     { key: "prescriptions", label: "Prescriptions", icon: "💊", count: profile.stats.prescriptions },
     { key: "invoices", label: "Invoices", icon: "🧾", count: profile.stats.invoices },
+    { key: "feedback", label: "Reviews", icon: "⭐", count: feedbackData.pendingReview.length },
   ];
 
   return (
@@ -404,6 +420,101 @@ export default function PatientPortal() {
                     </div>
                     <span style={{ fontSize: 16, fontWeight: 800, color: "#111" }}>{fmtCurrency(inv.totalAmount)}</span>
                   </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+        {/* ═══ FEEDBACK TAB ═══ */}
+        {tab === "feedback" && (
+          <div>
+            {/* Pending Reviews */}
+            {feedbackData.pendingReview.length > 0 && (
+              <>
+                <h2 style={{ fontSize: 15, fontWeight: 700, color: "#111", margin: "0 0 12px" }}>Rate Your Visit</h2>
+                {feedbackData.pendingReview.map(appt => (
+                  <div key={appt.id} style={{ ...card, padding: 16, marginBottom: 10 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                      <div>
+                        <p style={{ fontSize: 13, fontWeight: 600, color: "#374151", margin: 0 }}>{fmtDate(appt.date)} at {fmtTime(appt.time)}</p>
+                        <p style={{ fontSize: 12, color: "#6b7280", margin: "2px 0 0" }}>{appt.treatmentName || appt.type} • Dr. {appt.doctor}</p>
+                      </div>
+                    </div>
+                    {reviewForm?.appointmentId === appt.id ? (
+                      <div style={{ marginTop: 8 }}>
+                        <div style={{ display: "flex", gap: 4, marginBottom: 10 }}>
+                          {[1, 2, 3, 4, 5].map(s => (
+                            <button key={s} onClick={() => setReviewForm({ ...reviewForm, rating: s })}
+                              style={{ background: "none", border: "none", cursor: "pointer", padding: 2 }}>
+                              <svg width={28} height={28} viewBox="0 0 24 24" fill={s <= reviewForm.rating ? "#f59e0b" : "#e5e7eb"}>
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                              </svg>
+                            </button>
+                          ))}
+                        </div>
+                        <textarea rows={3} placeholder="Tell us about your experience (optional)..."
+                          value={reviewForm.comment} onChange={e => setReviewForm({ ...reviewForm, comment: e.target.value })}
+                          style={{ width: "100%", padding: "8px 12px", fontSize: 13, borderRadius: 8, border: "1.5px solid #e5e7eb", outline: "none", background: "#fafafa", boxSizing: "border-box" as const, resize: "vertical" as const, marginBottom: 10 }} />
+                        <div style={{ display: "flex", gap: 8 }}>
+                          <button disabled={submittingReview || reviewForm.rating === 0}
+                            onClick={async () => {
+                              setSubmittingReview(true);
+                              try {
+                                const r = await fetch("/api/portal/feedback", {
+                                  method: "POST", headers: { "Content-Type": "application/json" },
+                                  body: JSON.stringify({ appointmentId: appt.id, rating: reviewForm.rating, comment: reviewForm.comment || undefined }),
+                                });
+                                if (r.ok) { setReviewForm(null); fetchAll(); }
+                              } catch { /* */ }
+                              finally { setSubmittingReview(false); }
+                            }}
+                            style={{ flex: 1, padding: "8px 0", fontSize: 13, fontWeight: 700, borderRadius: 8, border: "none", background: "#14532d", color: "#fff", cursor: "pointer", opacity: submittingReview || reviewForm.rating === 0 ? 0.5 : 1 }}>
+                            {submittingReview ? "Submitting..." : "Submit Review"}
+                          </button>
+                          <button onClick={() => setReviewForm(null)}
+                            style={{ padding: "8px 16px", fontSize: 13, borderRadius: 8, border: "1px solid #e5e7eb", background: "#fff", color: "#6b7280", cursor: "pointer" }}>
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button onClick={() => setReviewForm({ appointmentId: appt.id, rating: 0, comment: "" })}
+                        style={{ padding: "6px 16px", fontSize: 12, fontWeight: 600, borderRadius: 8, border: "1.5px solid #f59e0b", background: "#fffbeb", color: "#92400e", cursor: "pointer" }}>
+                        ⭐ Rate This Visit
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </>
+            )}
+
+            {/* Past Reviews */}
+            <h2 style={{ fontSize: 15, fontWeight: 700, color: "#111", margin: "20px 0 12px" }}>My Reviews</h2>
+            {feedbackData.feedbacks.length === 0 ? (
+              <div style={{ ...card, padding: 24, textAlign: "center" }}>
+                <p style={{ color: "#9ca3af", fontSize: 14 }}>No reviews yet</p>
+              </div>
+            ) : (
+              feedbackData.feedbacks.map(fb => (
+                <div key={fb.id} style={{ ...card, padding: 16, marginBottom: 10 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                    <div style={{ display: "flex", gap: 2 }}>
+                      {[1, 2, 3, 4, 5].map(s => (
+                        <svg key={s} width={16} height={16} viewBox="0 0 24 24" fill={s <= fb.rating ? "#f59e0b" : "#e5e7eb"}>
+                          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                        </svg>
+                      ))}
+                    </div>
+                    <span style={{ fontSize: 11, color: "#9ca3af" }}>{fmtDate(fb.createdAt)}</span>
+                  </div>
+                  {fb.doctorName && <p style={{ fontSize: 12, color: "#6b7280", margin: "0 0 4px" }}>Dr. {fb.doctorName}</p>}
+                  {fb.comment && <p style={{ fontSize: 13, color: "#374151", margin: "4px 0 0" }}>{fb.comment}</p>}
+                  {fb.response && (
+                    <div style={{ background: "#f0fdf4", borderRadius: 8, padding: 10, marginTop: 8, borderLeft: "3px solid #16a34a" }}>
+                      <p style={{ fontSize: 11, fontWeight: 700, color: "#166534", margin: "0 0 2px" }}>Clinic Response</p>
+                      <p style={{ fontSize: 12, color: "#374151", margin: 0 }}>{fb.response}</p>
+                    </div>
+                  )}
                 </div>
               ))
             )}
