@@ -203,6 +203,8 @@ export async function GET() {
       email: c.email,
       country: c.country,
       city: c.city,
+      clinicType: c.clinicType,
+      practitionerCount: c.practitionerCount,
       createdAt: c.createdAt,
       plan: c.subscription?.plan || "none",
       status: c.subscription?.status || "unknown",

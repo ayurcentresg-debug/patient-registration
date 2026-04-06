@@ -132,26 +132,25 @@ export function clinicRegistrationNotification(params: {
   ownerName: string;
   email: string;
   country: string;
+  clinicType?: string;
+  practitionerCount?: string;
+  referralSource?: string;
+  termsAccepted?: boolean;
 }): string {
+  const row = (label: string, value: string, isLast = false) =>
+    `<tr><td style="padding:8px 12px;${isLast ? "" : "border-bottom:1px solid #f3f4f6;"}color:#6b7280;font-size:13px;width:120px;">${label}</td><td style="padding:8px 12px;${isLast ? "" : "border-bottom:1px solid #f3f4f6;"}color:#111827;font-size:14px;font-weight:600;">${value}</td></tr>`;
+
   return layout("New Clinic Registration", `
     <p style="color:#374151;font-size:14px;line-height:1.6;margin:0 0 16px 0;">A new clinic has registered on AYUR GATE:</p>
     <table style="width:100%;border-collapse:collapse;margin:0 0 20px 0;">
-      <tr>
-        <td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;color:#6b7280;font-size:13px;width:100px;">Clinic</td>
-        <td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;color:#111827;font-size:14px;font-weight:600;">${params.clinicName}</td>
-      </tr>
-      <tr>
-        <td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;color:#6b7280;font-size:13px;">Owner</td>
-        <td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;color:#111827;font-size:14px;font-weight:600;">${params.ownerName}</td>
-      </tr>
-      <tr>
-        <td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;color:#6b7280;font-size:13px;">Email</td>
-        <td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;color:#111827;font-size:14px;">${params.email}</td>
-      </tr>
-      <tr>
-        <td style="padding:8px 12px;color:#6b7280;font-size:13px;">Country</td>
-        <td style="padding:8px 12px;color:#111827;font-size:14px;">${params.country}</td>
-      </tr>
+      ${row("Clinic", params.clinicName)}
+      ${row("Owner", params.ownerName)}
+      ${row("Email", params.email)}
+      ${row("Country", params.country)}
+      ${params.clinicType ? row("Clinic Type", params.clinicType) : ""}
+      ${params.practitionerCount ? row("Team Size", params.practitionerCount) : ""}
+      ${params.referralSource ? row("Referral", params.referralSource) : ""}
+      ${row("Terms Accepted", params.termsAccepted ? "Yes" : '<span style="color:#dc2626;">No</span>', true)}
     </table>
   `);
 }

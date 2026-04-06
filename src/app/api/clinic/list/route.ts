@@ -42,6 +42,7 @@ export async function GET() {
           phone: clinic.phone,
           country: clinic.country,
           city: clinic.city,
+          clinicType: clinic.clinicType,
           createdAt: clinic.createdAt,
           subscription: clinic.subscription
             ? {

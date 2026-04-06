@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import SuperAdminSidebar from "@/components/SuperAdminSidebar";
+import { CLINIC_TYPES, REFERRAL_SOURCES } from "@/lib/country-data";
 
 interface ClinicDetail {
   id: string;
@@ -21,6 +22,10 @@ interface ClinicDetail {
   isActive: boolean;
   onboardingComplete: boolean;
   emailVerified: boolean;
+  clinicType: string | null;
+  practitionerCount: string | null;
+  referralSource: string | null;
+  termsAcceptedAt: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -320,12 +325,19 @@ export default function ClinicDetailPage() {
                   </thead>
                   <tbody>
                     {(() => {
+                      const clinicTypeLabel = clinic.clinicType ? (CLINIC_TYPES.find(t => t.value === clinic.clinicType)?.label || clinic.clinicType) : "-";
+                      const referralLabel = clinic.referralSource ? (REFERRAL_SOURCES.find(r => r.value === clinic.referralSource)?.label || clinic.referralSource) : "-";
+                      const termsLabel = clinic.termsAcceptedAt ? new Date(clinic.termsAcceptedAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "Not accepted";
                       const clinicRows: [string, string][] = [
                         ["Slug", clinic.slug],
                         ["Email", clinic.email],
                         ["Phone", clinic.phone || "-"],
                         ["Address", [clinic.address, clinic.city, clinic.state, clinic.zipCode].filter(Boolean).join(", ") || "-"],
                         ["Country", clinic.country],
+                        ["Clinic Type", clinicTypeLabel],
+                        ["Team Size", clinic.practitionerCount || "-"],
+                        ["Referral", referralLabel],
+                        ["Terms Accepted", termsLabel],
                         ["Currency", clinic.currency],
                         ["Timezone", clinic.timezone],
                         ["Website", clinic.website || "-"],
@@ -345,9 +357,13 @@ export default function ClinicDetailPage() {
                         ["Sub Created", new Date(subscription.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })],
                         ["", ""],
                         ["", ""],
+                        ["", ""],
+                        ["", ""],
+                        ["", ""],
+                        ["", ""],
                       ] : [
                         ["Plan", "No subscription"],
-                        ["", ""], ["", ""], ["", ""], ["", ""], ["", ""], ["", ""], ["", ""], ["", ""], ["", ""], ["", ""],
+                        ["", ""], ["", ""], ["", ""], ["", ""], ["", ""], ["", ""], ["", ""], ["", ""], ["", ""], ["", ""], ["", ""], ["", ""], ["", ""],
                       ];
                       const maxRows = Math.max(clinicRows.length, subRows.length);
                       const rows = [];
@@ -357,7 +373,7 @@ export default function ClinicDetailPage() {
                         rows.push(
                           <tr key={i} style={{ borderBottom: i < maxRows - 1 ? "1px solid #f3f4f6" : "none" }}>
                             <td style={{ padding: "10px 20px", color: "#6b7280", fontWeight: 500, width: "12%", whiteSpace: "nowrap" }}>{cl[0]}</td>
-                            <td style={{ padding: "10px 20px", color: "#111827", fontWeight: 500, width: "38%", wordBreak: "break-word" }}>{cl[1]}</td>
+                            <td style={{ padding: "10px 20px", color: cl[0] === "Terms Accepted" && !clinic.termsAcceptedAt ? "#dc2626" : "#111827", fontWeight: 500, width: "38%", wordBreak: "break-word" }}>{cl[1]}</td>
                             <td style={{ padding: "10px 20px", color: "#6b7280", fontWeight: 500, width: "12%", whiteSpace: "nowrap", borderLeft: "1px solid #f3f4f6" }}>{sl[0]}</td>
                             <td style={{ padding: "10px 20px", color: "#111827", fontWeight: 500, width: "38%" }}>
                               {sl[0] === "Plan" && subscription ? (

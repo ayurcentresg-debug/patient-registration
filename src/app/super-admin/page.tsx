@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import SuperAdminSidebar from "@/components/SuperAdminSidebar";
+import { CLINIC_TYPES } from "@/lib/country-data";
 
 interface DashboardData {
   stats: {
@@ -45,6 +46,8 @@ interface DashboardData {
     email: string;
     country: string;
     city: string | null;
+    clinicType: string | null;
+    practitionerCount: string | null;
     createdAt: string;
     plan: string;
     status: string;
@@ -331,6 +334,15 @@ export default function SuperAdminDashboard() {
                         <tr key={c.id} style={{ borderBottom: i < recentRegistrations.length - 1 ? "1px solid #f3f4f6" : "none" }}>
                           <td style={{ padding: "11px 16px" }}>
                             <a href={`/super-admin/clinics/${c.id}`} style={{ fontWeight: 600, color: "#111827", textDecoration: "none" }}>{c.name}</a>
+                            {c.clinicType && (
+                              <span style={{
+                                display: "inline-block", marginLeft: 6, padding: "1px 7px", borderRadius: 10,
+                                fontSize: 10, fontWeight: 600, background: "#f0fdf4", color: "#14532d",
+                                verticalAlign: "middle",
+                              }}>
+                                {CLINIC_TYPES.find(t => t.value === c.clinicType)?.label?.replace(" Clinic", "").replace(" Centre", "").replace(" Therapy", "") || c.clinicType}
+                              </span>
+                            )}
                           </td>
                           <td style={{ padding: "11px 16px", color: "#6b7280" }}>{c.email}</td>
                           <td style={{ padding: "11px 16px", color: "#6b7280" }}>{[c.city, c.country].filter(Boolean).join(", ") || "-"}</td>

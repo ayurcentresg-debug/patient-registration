@@ -220,6 +220,10 @@ export async function POST(request: NextRequest) {
                 <tr><td style="padding: 8px 0; color: #6b7280;">Phone</td><td style="padding: 8px 0;">${phone || "—"}</td></tr>
                 <tr><td style="padding: 8px 0; color: #6b7280;">Country</td><td style="padding: 8px 0;">${country || "Singapore"}</td></tr>
                 <tr><td style="padding: 8px 0; color: #6b7280;">City</td><td style="padding: 8px 0;">${city || "—"}</td></tr>
+                ${clinicType ? `<tr><td style="padding: 8px 0; color: #6b7280;">Clinic Type</td><td style="padding: 8px 0; font-weight: 600;">${clinicType}</td></tr>` : ""}
+                ${practitionerCount ? `<tr><td style="padding: 8px 0; color: #6b7280;">Team Size</td><td style="padding: 8px 0;">${practitionerCount}</td></tr>` : ""}
+                ${referralSource ? `<tr><td style="padding: 8px 0; color: #6b7280;">Referral</td><td style="padding: 8px 0;">${referralSource}</td></tr>` : ""}
+                <tr><td style="padding: 8px 0; color: #6b7280;">Terms Accepted</td><td style="padding: 8px 0;">${termsAccepted ? "Yes" : '<span style="color: #dc2626;">No</span>'}</td></tr>
                 <tr><td style="padding: 8px 0; color: #6b7280;">Plan</td><td style="padding: 8px 0;"><span style="background: #ecfdf5; color: #065f46; padding: 2px 10px; border-radius: 100px; font-weight: 600;">${trialDays}-Day Trial</span></td></tr>
                 <tr><td style="padding: 8px 0; color: #6b7280;">Trial Ends</td><td style="padding: 8px 0;">${trialEndsAt.toLocaleDateString("en-SG", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</td></tr>
                 <tr><td style="padding: 8px 0; color: #6b7280;">Registered At</td><td style="padding: 8px 0;">${new Date().toLocaleString("en-SG", { timeZone: "Asia/Singapore" })}</td></tr>

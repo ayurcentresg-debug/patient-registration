@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import SuperAdminSidebar from "@/components/SuperAdminSidebar";
+import { CLINIC_TYPES } from "@/lib/country-data";
 
 interface ClinicData {
   id: string;
@@ -11,6 +12,7 @@ interface ClinicData {
   phone: string | null;
   country: string;
   city: string | null;
+  clinicType: string | null;
   createdAt: string;
   subscription: {
     plan: string;
@@ -373,11 +375,12 @@ export default function SuperAdminClinicsPage() {
               {/* Column Headers */}
               <div style={{
                 display: "grid",
-                gridTemplateColumns: bulkMode ? "36px 2fr 1.5fr 1fr 1fr 1fr 0.8fr 40px" : "2fr 1.5fr 1fr 1fr 1fr 0.8fr 40px",
+                gridTemplateColumns: bulkMode ? "36px 2fr 1fr 1.5fr 1fr 1fr 1fr 0.8fr 40px" : "2fr 1fr 1.5fr 1fr 1fr 1fr 0.8fr 40px",
                 gap: 16, padding: "0 24px", fontSize: 11, fontWeight: 700, color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.5px",
               }}>
                 {bulkMode && <div />}
                 <div>Clinic</div>
+                <div>Type</div>
                 <div>Contact</div>
                 <div>Plan</div>
                 <div>Usage</div>
@@ -408,7 +411,7 @@ export default function SuperAdminClinicsPage() {
                       style={{
                         padding: "18px 24px",
                         display: "grid",
-                        gridTemplateColumns: bulkMode ? "36px 2fr 1.5fr 1fr 1fr 1fr 0.8fr 40px" : "2fr 1.5fr 1fr 1fr 1fr 0.8fr 40px",
+                        gridTemplateColumns: bulkMode ? "36px 2fr 1fr 1.5fr 1fr 1fr 1fr 0.8fr 40px" : "2fr 1fr 1.5fr 1fr 1fr 1fr 0.8fr 40px",
                         alignItems: "center",
                         gap: 16,
                         cursor: "pointer",
@@ -444,6 +447,20 @@ export default function SuperAdminClinicsPage() {
                       <div>
                         <div style={{ fontWeight: 600, fontSize: 14, color: "#111827" }}>{clinic.name}</div>
                         <div style={{ fontSize: 12, color: "#6b7280", marginTop: 2 }}>{clinic.email}</div>
+                      </div>
+
+                      {/* Type */}
+                      <div>
+                        {clinic.clinicType ? (
+                          <span style={{
+                            display: "inline-block", padding: "3px 10px", borderRadius: 20,
+                            fontSize: 11, fontWeight: 600, background: "#f0fdf4", color: "#14532d",
+                          }}>
+                            {CLINIC_TYPES.find(t => t.value === clinic.clinicType)?.label?.replace(" Clinic", "").replace(" Centre", "").replace(" Therapy", "") || clinic.clinicType}
+                          </span>
+                        ) : (
+                          <span style={{ fontSize: 12, color: "#d1d5db" }}>-</span>
+                        )}
                       </div>
 
                       {/* Phone + Location */}
