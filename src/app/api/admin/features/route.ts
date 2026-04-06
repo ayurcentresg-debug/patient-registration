@@ -2,109 +2,159 @@ import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 
-export async function GET() {
+// ═══════════════════════════════════════════════════════════════════
+// Parse PROJECT-LOG.md for development session features (57+)
+// ═══════════════════════════════════════════════════════════════════
+function parseProjectLog(content: string) {
+  const lines = content.split("\n");
+  const features: {
+    number: number;
+    title: string;
+    session: string;
+    date: string;
+    description: string;
+    commit: string;
+    status: string;
+  }[] = [];
+
+  let currentSession = "";
+  let currentDate = "";
+  let currentFeature: (typeof features)[number] | null = null;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const sessionMatch = line.match(/^### (Session \d+(?:\s*\([^)]*\))?)\s*—\s*(.+)$/);
+    if (sessionMatch) {
+      currentSession = sessionMatch[1].trim();
+      currentDate = sessionMatch[2].trim();
+      continue;
+    }
+
+    const featureMatch = line.match(/^#### (\d+)\.\s+(.+)$/);
+    if (featureMatch) {
+      if (currentFeature) features.push(currentFeature);
+      currentFeature = {
+        number: parseInt(featureMatch[1], 10),
+        title: featureMatch[2].trim(),
+        session: currentSession,
+        date: currentDate,
+        description: "",
+        commit: "",
+        status: "\u2705 Deployed",
+      };
+      continue;
+    }
+
+    if (!currentFeature) continue;
+
+    const whatMatch = line.match(/^-\s+\*\*What:\*\*\s*(.+)$/);
+    if (whatMatch) { currentFeature.description = whatMatch[1].trim(); continue; }
+
+    const commitMatch = line.match(/^-\s+\*\*Commit:\*\*\s*`?([a-f0-9]+)`?/);
+    if (commitMatch) { currentFeature.commit = commitMatch[1].trim(); continue; }
+
+    const statusMatch = line.match(/^-\s+\*\*Status:\*\*\s*(.+)$/);
+    if (statusMatch) { currentFeature.status = statusMatch[1].trim(); continue; }
+  }
+
+  if (currentFeature) features.push(currentFeature);
+  return features;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// Parse 05-features.md for complete module/capability breakdown
+// ═══════════════════════════════════════════════════════════════════
+function parseFeaturesDoc(content: string) {
+  const lines = content.split("\n");
+  const modules: {
+    module: string;
+    capabilities: { name: string; description: string }[];
+  }[] = [];
+
+  let currentModule = "";
+  let currentCaps: { name: string; description: string }[] = [];
+
+  for (const line of lines) {
+    const moduleMatch = line.match(/^## (.+)$/);
+    if (moduleMatch) {
+      if (currentModule && currentCaps.length > 0) {
+        modules.push({ module: currentModule, capabilities: [...currentCaps] });
+      }
+      currentModule = moduleMatch[1].trim();
+      currentCaps = [];
+      continue;
+    }
+
+    const capMatch = line.match(/^- \*\*(.+?)\*\*:\s*(.+)$/);
+    if (capMatch && currentModule) {
+      currentCaps.push({
+        name: capMatch[1].trim(),
+        description: capMatch[2].trim(),
+      });
+    }
+  }
+
+  if (currentModule && currentCaps.length > 0) {
+    modules.push({ module: currentModule, capabilities: [...currentCaps] });
+  }
+
+  return modules;
+}
+
+export async function GET(request: Request) {
   try {
-    const filePath = path.join(process.cwd(), "docs", "PROJECT-LOG.md");
+    const url = new URL(request.url);
+    const view = url.searchParams.get("view") || "all"; // "dev", "modules", "all"
 
-    if (!fs.existsSync(filePath)) {
-      return NextResponse.json(
-        { error: "PROJECT-LOG.md not found", features: [], total: 0 },
-        { status: 404 }
-      );
+    const logPath = path.join(process.cwd(), "docs", "PROJECT-LOG.md");
+    const featuresPath = path.join(process.cwd(), "docs", "05-features.md");
+
+    // Dev features from PROJECT-LOG.md
+    let devFeatures: ReturnType<typeof parseProjectLog> = [];
+    let logLastModified = "";
+    if (fs.existsSync(logPath)) {
+      devFeatures = parseProjectLog(fs.readFileSync(logPath, "utf-8"));
+      logLastModified = fs.statSync(logPath).mtime.toISOString();
     }
 
-    const content = fs.readFileSync(filePath, "utf-8");
-    const lines = content.split("\n");
-
-    const features: {
-      number: number;
-      title: string;
-      session: string;
-      date: string;
-      description: string;
-      commit: string;
-      status: string;
-    }[] = [];
-
-    let currentSession = "";
-    let currentDate = "";
-    let currentFeature: (typeof features)[number] | null = null;
-
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-
-      // Match session headers: ### Session X — DATE
-      // Also handles "Session 5 (Continued) — 6 Apr 2026"
-      const sessionMatch = line.match(
-        /^### (Session \d+(?:\s*\([^)]*\))?)\s*—\s*(.+)$/
-      );
-      if (sessionMatch) {
-        currentSession = sessionMatch[1].trim();
-        currentDate = sessionMatch[2].trim();
-        continue;
-      }
-
-      // Match feature headers: #### N. Title
-      const featureMatch = line.match(/^#### (\d+)\.\s+(.+)$/);
-      if (featureMatch) {
-        // Push the previous feature if exists
-        if (currentFeature) {
-          features.push(currentFeature);
-        }
-        currentFeature = {
-          number: parseInt(featureMatch[1], 10),
-          title: featureMatch[2].trim(),
-          session: currentSession,
-          date: currentDate,
-          description: "",
-          commit: "",
-          status: "\u2705 Deployed",
-        };
-        continue;
-      }
-
-      if (!currentFeature) continue;
-
-      // Match What line
-      const whatMatch = line.match(/^-\s+\*\*What:\*\*\s*(.+)$/);
-      if (whatMatch) {
-        currentFeature.description = whatMatch[1].trim();
-        continue;
-      }
-
-      // Match Commit line
-      const commitMatch = line.match(
-        /^-\s+\*\*Commit:\*\*\s*`?([a-f0-9]+)`?/
-      );
-      if (commitMatch) {
-        currentFeature.commit = commitMatch[1].trim();
-        continue;
-      }
-
-      // Match Status line
-      const statusMatch = line.match(/^-\s+\*\*Status:\*\*\s*(.+)$/);
-      if (statusMatch) {
-        currentFeature.status = statusMatch[1].trim();
-        continue;
-      }
+    // Module capabilities from 05-features.md
+    let modules: ReturnType<typeof parseFeaturesDoc> = [];
+    let totalCapabilities = 0;
+    if (fs.existsSync(featuresPath)) {
+      modules = parseFeaturesDoc(fs.readFileSync(featuresPath, "utf-8"));
+      totalCapabilities = modules.reduce((sum, m) => sum + m.capabilities.length, 0);
     }
 
-    // Push the last feature
-    if (currentFeature) {
-      features.push(currentFeature);
+    if (view === "dev") {
+      return NextResponse.json({
+        features: devFeatures,
+        total: devFeatures.length,
+        lastUpdated: logLastModified,
+      });
     }
 
-    const stat = fs.statSync(filePath);
+    if (view === "modules") {
+      return NextResponse.json({
+        modules,
+        totalModules: modules.length,
+        totalCapabilities,
+        lastUpdated: logLastModified,
+      });
+    }
 
+    // "all" — combined view for Google Sheets
     return NextResponse.json({
-      features,
-      total: features.length,
-      lastUpdated: stat.mtime.toISOString(),
+      features: devFeatures,
+      totalDevFeatures: devFeatures.length,
+      modules,
+      totalModules: modules.length,
+      totalCapabilities,
+      lastUpdated: logLastModified,
     });
   } catch (error) {
-    console.error("Error reading PROJECT-LOG.md:", error);
+    console.error("Error reading features:", error);
     return NextResponse.json(
-      { error: "Failed to parse project log", features: [], total: 0 },
+      { error: "Failed to parse features", features: [], modules: [], total: 0 },
       { status: 500 }
     );
   }
