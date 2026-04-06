@@ -933,6 +933,29 @@
 - **Commit:** `7e6c0a1`
 - **Status:** ✅ Deployed
 
+### Session 8 — 6 Apr 2026
+
+#### 57. Role-Based Dashboard Views
+- **Requested by:** User — "Role-Based Dashboards"
+- **What:** Personalized dashboard experience based on logged-in user's role
+- **Implementation:**
+  - Integrated `useAuth()` hook to detect current user's role
+  - **Admin role**: Full dashboard — revenue stats, charts, staff summary, recent patients, communications, activity feed, upcoming appointments
+  - **Doctor/Therapist roles**: Quick Actions grid (Book Appointment, Register Patient, My Portal, Calendar), appointments, activity feed — no revenue/staff sections
+  - **Pharmacist role**: Inventory-focused view, no appointment sections
+  - **Receptionist/Staff roles**: Quick Actions for booking & registration, relevant operational sections
+  - Personalized greeting with role badge (e.g., "Good morning, Dr. Smith" with "Doctor" badge)
+  - Role-specific subtitles (e.g., "Your clinic at a glance" for admin, "Your schedule & patients" for doctors)
+  - Revenue stats only visible to admin
+  - Staff summary only visible to admin
+  - Inventory section visible to admin + pharmacist
+  - Charts visible to admin only
+  - Quick Actions grid for non-admin roles with contextual shortcuts
+- **Files:**
+  - `src/app/dashboard/page.tsx` (modified — added ~130 lines of role logic)
+- **Commit:** `34e8ed0`
+- **Status:** ✅ Deployed
+
 ---
 
 ## Pending / Upcoming
