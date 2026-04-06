@@ -712,6 +712,70 @@
   - `src/app/pricing/page.tsx` (dynamic pricing, branding, trial days)
 - **Status:** ✅ Complete
 
+### Session 6 — 6 Apr 2026
+
+#### 47. Doctor Portal: Full Consultation Workspace
+- **Requested by:** User — "1 by 1" feature build, Doctor Portal Enhancement
+- **What:** Complete consultation workspace for doctors with vitals, notes, prescriptions, and patient history
+- **Implementation:**
+  - New consultation page at `/doctor/consult/[id]` (~700 lines)
+  - **Patient header**: Avatar, demographics, allergies (red alert), medical notes (orange alert)
+  - **4 clinical tabs**:
+    1. **Vitals** — record form (BP, pulse, temp, weight, height, SpO2, resp rate) with auto BMI + history table
+    2. **Clinical Notes** — 7 note types (general, diagnosis, treatment plan, progress, follow-up, referral, discharge) + history
+    3. **Prescription** — multi-medicine form (dosage, frequency, timing, duration, quantity, instructions) with auto RX number
+    4. **History** — past appointments with status badges
+  - **Right sidebar**: patient quick info, latest vitals grid, "Complete Consultation" button
+  - Doctor dashboard updated: patient names link to consultation, green "Consult" button on appointments
+- **API:** `GET/PUT /api/doctor/consult/[id]`
+  - GET: Returns appointment + full patient context (vitals last 10, notes last 20, past appointments last 15, prescriptions last 10)
+  - PUT actions: save_vitals (auto BMI), save_note, save_prescription (auto RX-YYYYMM-XXXX), complete, update_status
+- **Files:**
+  - `src/app/doctor/consult/[id]/page.tsx` (NEW)
+  - `src/app/api/doctor/consult/[id]/route.ts` (NEW)
+  - `src/app/doctor/page.tsx` (updated with consult links)
+- **Status:** ✅ Complete
+
+#### 48. Appointment Reminder Engine (Cron-Based)
+- **Requested by:** User — automated reminders
+- **What:** Unified cron endpoint that auto-schedules and sends reminders for all clinics
+- **Implementation:**
+  - `POST /api/cron/reminders` — runs across ALL active clinics (not tenant-scoped)
+  - **Phase 1: Auto-Schedule** — finds appointments in next 48h, creates:
+    - 24h reminders for appointments >2h away
+    - 1h reminders for appointments within 2h but >15min away
+  - **Phase 2: Send** — processes max 100 pending reminders per clinic per run
+  - Channels: WhatsApp (preferred) > SMS > Email, respects feature flags
+  - Deduplication by `appointmentId` + `notes` field ("24h" vs "1h")
+  - Branded email templates with clinic name, green header
+  - Creates Communication records for sent reminders
+  - Auth: `CRON_SECRET` header (optional in dev)
+  - Added `/api/cron` to middleware PUBLIC_PATHS
+- **Files:**
+  - `src/app/api/cron/reminders/route.ts` (NEW)
+  - `src/app/api/reminders/auto-schedule/route.ts` (enhanced with 1h reminders)
+  - `src/middleware.ts` (added /api/cron to public paths)
+- **Status:** ✅ Complete
+
+#### 49. Invoice Auto-Generation on Consultation Completion
+- **Requested by:** Identified gap — billing system existed but wasn't wired to doctor workflow
+- **What:** Auto-generate invoice when doctor completes consultation, plus email invoice endpoint
+- **Implementation:**
+  - **Complete action enhanced**: When doctor marks appointment complete and sessionPrice > 0, auto-creates INV-YYYYMM-XXXX invoice with line items
+  - **Invoice email endpoint**: `POST /api/invoices/[id]/email` sends branded HTML invoice/receipt to patient email
+    - Full line items table, totals breakdown, payment history
+    - Clinic branding from ClinicSettings model
+    - Logs to Communication model
+  - **Consult page updated**: After completion, shows invoice panel with:
+    - Invoice number and "View Invoice" link to billing detail page
+    - "Email Invoice" button (if patient has email)
+    - "Back to Dashboard" button
+- **Files:**
+  - `src/app/api/doctor/consult/[id]/route.ts` (enhanced complete action)
+  - `src/app/api/invoices/[id]/email/route.ts` (NEW)
+  - `src/app/doctor/consult/[id]/page.tsx` (invoice panel after completion)
+- **Status:** ✅ Complete
+
 ---
 
 ## Pending / Upcoming
@@ -751,6 +815,7 @@ www.ayurgate.com (Railway)
 ├── /subscription .............. Subscription & Billing
 ├── /help ...................... Help & Support / FAQ
 ├── /doctor .................... Doctor portal
+│   └── /consult/[id] .......... Full consultation workspace
 ├── /super-admin ............... Platform admin console
 │   ├── /clinics ............... Manage clinics (bulk ops, CSV export)
 │   ├── /clinics/[id] .......... Clinic detail & plan management
@@ -783,4 +848,4 @@ www.ayurgate.com (Railway)
 
 ---
 
-*Last updated: 6 April 2026*
+*Last updated: 6 April 2026 (Session 6)*
