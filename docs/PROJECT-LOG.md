@@ -776,6 +776,48 @@
   - `src/app/doctor/consult/[id]/page.tsx` (invoice panel after completion)
 - **Status:** ✅ Complete
 
+#### 50. Patient Portal with OTP Login
+- **Requested by:** User — "yes can continue"
+- **What:** Full patient-facing portal with phone OTP authentication
+- **Implementation:**
+  - **Login** at `/portal/login`: Phone + 6-digit OTP (emailed, 5-min expiry)
+  - **Dashboard** at `/portal`: 4-tab mobile-friendly interface:
+    1. **Home** — stats grid, allergy alerts, upcoming appointments, recent prescriptions, outstanding balance
+    2. **Appointments** — upcoming + past visits with doctor, treatment, status, price
+    3. **Prescriptions** — full medicine list (dosage, frequency, timing, duration) per prescription
+    4. **Invoices** — invoice history with line items, paid/balance summary, totals
+  - Separate `patient_token` JWT cookie (7-day expiry)
+  - Middleware enforcement for /portal routes
+  - Schema: added `otpCode`, `otpExpiresAt`, `lastPortalLogin`, phone+clinicId index to Patient model
+- **Files:**
+  - `prisma/schema.prisma` (Patient model + portal auth fields)
+  - `src/lib/patient-auth.ts` (NEW — patient JWT helper)
+  - `src/app/api/portal/auth/route.ts` (NEW — request_otp, verify_otp, logout)
+  - `src/app/api/portal/me/route.ts` (NEW — profile + stats)
+  - `src/app/api/portal/appointments/route.ts` (NEW — upcoming + past)
+  - `src/app/api/portal/prescriptions/route.ts` (NEW — with items)
+  - `src/app/api/portal/invoices/route.ts` (NEW — with payment summary)
+  - `src/app/portal/login/page.tsx` (NEW)
+  - `src/app/portal/page.tsx` (NEW — ~350 lines, 4-tab dashboard)
+  - `src/middleware.ts` (added portal route handling)
+- **Status:** ✅ Complete
+
+#### 51. Online Payment at Booking (Stripe Checkout)
+- **Requested by:** User — continued feature building
+- **What:** Patients can pay consultation fee online when booking via Stripe Checkout
+- **Implementation:**
+  - After booking confirmation, "Pay Online" button appears if consultation fee > 0
+  - Creates Stripe Checkout session with appointment metadata
+  - On successful payment, webhook auto-creates invoice (INV-YYYYMM-XXXX) + payment record (REC-YYYYMM-XXXX)
+  - Success/cancelled states shown on return to booking page
+  - Graceful fallback if Stripe not configured ("pay at clinic")
+  - Booking page checks URL params for payment return status
+- **Files:**
+  - `src/app/api/public/payment/route.ts` (NEW — Stripe Checkout session)
+  - `src/app/api/stripe/webhook/route.ts` (enhanced — appointment_payment handling)
+  - `src/app/book/[slug]/page.tsx` (Pay Online button + payment status)
+- **Status:** ✅ Complete
+
 ---
 
 ## Pending / Upcoming
@@ -784,10 +826,8 @@
 |---|---------|----------|-------|
 | 1 | Google Workspace Setup | Medium | SPF/DKIM/DMARC on GoDaddy for email deliverability |
 | 2 | Mobile Responsiveness | Medium | UI fixes for phones/tablets across all pages |
-| 3 | Patient Portal | Low | Patients login to view records, appointments, prescriptions |
-| 4 | Online Payments | Low | Stripe integration for booking-time payment |
-| 5 | WhatsApp API Integration | Low | Beyond templates — actual WhatsApp Business API |
-| 6 | Daily Report Cron | Medium | Set up external cron to auto-trigger daily report |
+| 3 | WhatsApp API Integration | Low | Beyond templates — actual WhatsApp Business API |
+| 4 | Daily Report Cron | Medium | Set up external cron to auto-trigger daily report |
 
 ---
 
@@ -814,6 +854,8 @@ www.ayurgate.com (Railway)
 ├── /account ................... My Account / Profile
 ├── /subscription .............. Subscription & Billing
 ├── /help ...................... Help & Support / FAQ
+├── /portal .................... Patient portal (OTP login)
+│   └── /login ................. Patient phone + OTP login
 ├── /doctor .................... Doctor portal
 │   └── /consult/[id] .......... Full consultation workspace
 ├── /super-admin ............... Platform admin console
@@ -848,4 +890,4 @@ www.ayurgate.com (Railway)
 
 ---
 
-*Last updated: 6 April 2026 (Session 6)*
+*Last updated: 6 April 2026 (Session 6 continued)*
