@@ -36,6 +36,36 @@ model Clinic {
   updatedAt       DateTime @updatedAt
 
   subscription    ClinicSubscription?
+  onboarding      OnboardingProgress?
+}
+
+// ─── Onboarding / Activation Tracker ──────────────────────────────────────
+
+model OnboardingProgress {
+  id              String   @id @default(cuid())
+  clinicId        String   @unique
+
+  // Clinic type (sets defaults)
+  clinicType      String?  // ayurveda | wellness | physiotherapy | dental | general | multi_specialty
+
+  // 8 activation milestones — all auto-detected from real data
+  profileCompletedAt     DateTime?
+  branchCreatedAt        DateTime?
+  staffInvitedAt         DateTime?
+  servicesConfiguredAt   DateTime?
+  firstPatientAt         DateTime?
+  firstAppointmentAt     DateTime?
+  firstInvoiceAt         DateTime?
+  remindersEnabledAt     DateTime?
+
+  // Derived
+  completedSteps      Int      @default(0) // 0-8
+  activatedAt         DateTime? // set when all 8 done
+
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  clinic              Clinic   @relation(fields: [clinicId], references: [id], onDelete: Cascade)
 }
 
 model ClinicSubscription {
