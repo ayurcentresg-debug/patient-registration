@@ -123,6 +123,7 @@ export async function POST() {
         message = `Dear ${patient.firstName}, this is a reminder for your appointment on ${appointmentDateStr} at ${appointment.time || "the scheduled time"} with ${appointment.doctor || "your doctor"}. Please arrive 10 minutes early. - Ayurveda Clinic`;
       }
 
+      // Create 24h reminder
       await db.reminder.create({
         data: {
           patientId: appointment.patientId,
@@ -132,10 +133,37 @@ export async function POST() {
           scheduledAt,
           message,
           templateId: defaultTemplate?.id || null,
+          notes: "24h",
         },
       });
-
       scheduled++;
+
+      // Create 1h reminder if appointment is within 2 hours
+      const hoursAway = (appointmentTime.getTime() - now.getTime()) / (1000 * 60 * 60);
+      if (hoursAway <= 2 && hoursAway > 0.25) {
+        const reminderTime1h = new Date(appointmentTime.getTime() - 60 * 60 * 1000);
+        const scheduledAt1h = reminderTime1h < now ? now : reminderTime1h;
+        const msg1h = `Hi ${patient.firstName}, your appointment is in about 1 hour at ${appointment.time || "the scheduled time"} with ${appointment.doctor || "your doctor"}. See you soon!`;
+
+        const existing1h = await db.reminder.findFirst({
+          where: { appointmentId: appointment.id, notes: "1h", status: { in: ["pending", "sent"] } },
+        });
+
+        if (!existing1h) {
+          await db.reminder.create({
+            data: {
+              patientId: appointment.patientId,
+              appointmentId: appointment.id,
+              type: "appointment",
+              channel,
+              scheduledAt: scheduledAt1h,
+              message: msg1h,
+              notes: "1h",
+            },
+          });
+          scheduled++;
+        }
+      }
     }
 
     return NextResponse.json({ scheduled, skipped });
