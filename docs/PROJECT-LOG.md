@@ -818,6 +818,57 @@
   - `src/app/book/[slug]/page.tsx` (Pay Online button + payment status)
 - **Status:** ✅ Complete
 
+#### 52. Patient Feedback & Reviews with NPS Tracking
+- **Requested by:** User — continued feature building
+- **What:** Complete feedback system with admin dashboard, public review links, and patient portal integration
+- **Implementation:**
+  - **Admin dashboard** at `/feedback`: Average rating, total reviews, NPS score, star distribution chart
+  - Filters by category, rating, status + clinic response form
+  - Flag/hide controls for moderation
+  - **Public review page** at `/review?token=xxx`: Star rating with hover labels, quick tags, optional comment
+  - Token-based access (crypto.randomBytes, 7-day expiry) — no login needed
+  - Auto-generated on consultation completion with email notification
+  - **Portal integration**: Patient portal Reviews tab shows pending + past reviews
+  - Feedback model: rating 1-5, category, tags (JSON), response, NPS calculation (promoters - detractors)
+- **API:**
+  - `GET/PUT /api/feedback` — admin list with stats + respond/toggle status
+  - `GET/POST /api/public/feedback` — token-based public submission
+  - `GET/POST /api/portal/feedback` — patient portal feedback
+- **Files:**
+  - `prisma/schema.prisma` (Feedback model)
+  - `src/app/api/feedback/route.ts` (NEW)
+  - `src/app/api/public/feedback/route.ts` (NEW)
+  - `src/app/feedback/page.tsx` (NEW — admin dashboard)
+  - `src/app/review/page.tsx` (NEW — public review page)
+  - `src/components/Sidebar.tsx` (added Feedback nav)
+- **Commit:** `549b09b`
+- **Status:** ✅ Complete
+
+#### 53. Waitlist & Queue Management
+- **Requested by:** User — continued feature building
+- **What:** Patient waitlist with priority levels, notifications, and status tracking
+- **Implementation:**
+  - **Waitlist page** at `/waitlist`: Stats cards (waiting/notified/booked), filter tabs, add form
+  - Priority levels: Normal, High, Urgent with color-coded badges
+  - Status flow: waiting → notified → booked (or cancelled/expired)
+  - Add form: patient details, preferred doctor/date/time, treatment, priority
+  - Action buttons per entry: Notify (sends email), Booked, Remove
+  - Duplicate detection by phone + doctor + date
+  - 30-day auto-expiry on new entries
+  - Email notification when slot becomes available (branded HTML template)
+- **API:** `GET/POST/PUT/DELETE /api/waitlist`
+  - GET: list with filters (status, doctorId, date) + stats counts
+  - POST: add with duplicate check and auto-expiry
+  - PUT: notify (email), book, cancel, update priority/notes
+  - DELETE: remove entry
+- **Files:**
+  - `prisma/schema.prisma` (Waitlist model)
+  - `src/app/api/waitlist/route.ts` (NEW)
+  - `src/app/waitlist/page.tsx` (NEW)
+  - `src/components/Sidebar.tsx` (added Waitlist nav)
+- **Commit:** `f33573a`
+- **Status:** ✅ Complete
+
 ---
 
 ## Pending / Upcoming
@@ -850,6 +901,8 @@ www.ayurgate.com (Railway)
 ├── /admin/staff ............... Staff management
 ├── /admin/commission .......... Commission tracking
 ├── /admin/payroll ............. Country-specific payroll
+├── /feedback .................. Patient feedback & reviews
+├── /waitlist .................. Waitlist & queue management
 ├── /reports ................... Analytics & exports
 ├── /account ................... My Account / Profile
 ├── /subscription .............. Subscription & Billing
