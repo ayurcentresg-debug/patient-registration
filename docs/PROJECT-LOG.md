@@ -1099,41 +1099,6 @@ www.ayurgate.com (Railway)
 | Hosting | Railway (with persistent volume for DB) |
 | Source | GitHub (ayurcentresg-debug/ayurgate) |
 
-#### 60. Mobile Responsiveness — Full App
-- **Requested by:** User — "Mobile Responsiveness — UI fixes for phones/tablets"
-- **What:** Comprehensive mobile responsiveness overhaul across all major pages
-- **Implementation:**
-  - **Critical fix:** Added viewport meta tag (`width=device-width, initialScale=1`) to root layout
-  - **Layout fix:** Removed `w-0` from main content area in LayoutShell
-  - **Dashboard:** Header stacks on mobile, charts prevent overflow, grids start at 1-column
-  - **Appointments:** Toolbar scrolls horizontally, buttons compact on mobile, walk-in text shortened, QuickBook modal responsive width
-  - **Appointments Calendar:** Layout stacks vertically on mobile, week view scrolls horizontally
-  - **Patients List:** Already had mobile cards — no changes needed
-  - **Patient Detail:** Profile/edit rows stack vertically on mobile, 3-column layout becomes single column, extra bottom padding for mobile tab bar
-  - **Patient Registration:** Removed 350px max-width on inputs, submit buttons stack on mobile
-  - **Billing:** Stats cards start at 1-column, filters wrap, date inputs full-width on mobile
-  - **Prescriptions:** Search full-width on mobile, actions wrap
-  - **Admin Tabs:** Smaller padding/font on mobile, smooth iOS scrolling
-  - **Public Booking:** Compact step indicators, time slots 3-column on mobile, form fields stack
-  - **Pricing:** Header compact on mobile, reduced padding
-  - **Landing/Login:** CTA buttons responsive, form padding improved
-- **Files Modified:**
-  - `src/app/layout.tsx` (viewport meta)
-  - `src/components/LayoutShell.tsx` (layout fix)
-  - `src/components/AdminTabs.tsx` (responsive tabs)
-  - `src/app/dashboard/page.tsx`
-  - `src/app/appointments/page.tsx`
-  - `src/app/appointments/calendar/page.tsx`
-  - `src/app/patients/[id]/page.tsx`
-  - `src/app/patients/new/page.tsx`
-  - `src/app/billing/page.tsx`
-  - `src/app/prescriptions/page.tsx`
-  - `src/app/book/[slug]/page.tsx`
-  - `src/app/pricing/page.tsx`
-  - `src/app/page.tsx`
-  - `src/app/login/page.tsx`
-- **Status:** ✅ Complete
-
 ---
 
 *Last updated: 7 April 2026 (Session 9)*
