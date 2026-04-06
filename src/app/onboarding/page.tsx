@@ -363,17 +363,26 @@ export default function OnboardingPage() {
                     </span>
                   </div>
                   {!emailSent ? (
-                    <div className="flex items-center gap-3">
-                      <p className="text-[13px] flex-1" style={{ color: "#92400e" }}>
-                        We'll send a 6-digit code to <strong>{clinicProfile.clinicEmail}</strong>
-                      </p>
+                    <div>
+                      <div className="flex items-center gap-3">
+                        <p className="text-[13px] flex-1" style={{ color: "#92400e" }}>
+                          We&apos;ll send a 6-digit code to <strong>{clinicProfile.clinicEmail}</strong>
+                        </p>
+                        <button
+                          onClick={sendVerificationCode}
+                          disabled={sendingCode}
+                          className="px-4 py-1.5 rounded-lg text-white text-[13px] font-medium disabled:opacity-60"
+                          style={{ background: "#f59e0b" }}
+                        >
+                          {sendingCode ? "Sending..." : "Send Code"}
+                        </button>
+                      </div>
                       <button
-                        onClick={sendVerificationCode}
-                        disabled={sendingCode}
-                        className="px-4 py-1.5 rounded-lg text-white text-[13px] font-medium disabled:opacity-60"
-                        style={{ background: "#f59e0b" }}
+                        onClick={() => setEmailVerified(true)}
+                        className="text-[11px] mt-2 underline hover:no-underline"
+                        style={{ color: "#9ca3af" }}
                       >
-                        {sendingCode ? "Sending..." : "Send Code"}
+                        Skip verification for now
                       </button>
                     </div>
                   ) : (
@@ -413,6 +422,16 @@ export default function OnboardingPage() {
                           {verifyError}
                         </p>
                       )}
+                      <p className="text-[11px] mt-2" style={{ color: "#78716c" }}>
+                        Didn&apos;t receive the code? Check your <strong>spam/junk folder</strong>. The email comes from ayurcentresg@gmail.com
+                      </p>
+                      <button
+                        onClick={() => setEmailVerified(true)}
+                        className="text-[11px] mt-1 underline hover:no-underline"
+                        style={{ color: "#9ca3af" }}
+                      >
+                        Skip verification for now
+                      </button>
                     </div>
                   )}
                 </div>
