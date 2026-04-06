@@ -188,6 +188,35 @@ model Appointment {
   @@index([doctorId])
 }
 
+model Waitlist {
+  id              String   @id @default(cuid())
+  clinicId        String?
+  patientId       String?
+  patientName     String
+  patientPhone    String
+  patientEmail    String?
+  doctorId        String?
+  doctorName      String?
+  preferredDate   DateTime?        // specific date or null for "any"
+  preferredTime   String?          // e.g. "morning", "afternoon", "10:00"
+  treatmentId     String?
+  treatmentName   String?
+  reason          String?
+  priority        Int      @default(0) // 0=normal, 1=high, 2=urgent
+  status          String   @default("waiting") // waiting | notified | booked | expired | cancelled
+  notifiedAt      DateTime?
+  bookedAppointmentId String?      // linked appointment when converted
+  expiresAt       DateTime?        // auto-expire after X days
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([clinicId])
+  @@index([doctorId])
+  @@index([status])
+  @@index([preferredDate])
+}
+
 model Communication {
   id        String   @id @default(cuid())
   clinicId  String?
