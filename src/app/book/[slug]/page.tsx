@@ -78,6 +78,16 @@ export default function PublicBookingPage() {
   // Booking result
   const [booking, setBooking] = useState(false);
   const [booked, setBooked] = useState<{ id: string; date: string; time: string; doctor: string } | null>(null);
+  const [payingOnline, setPayingOnline] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState<"" | "success" | "cancelled">("");
+
+  // Check for payment return
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const payment = params.get("payment");
+    if (payment === "success") setPaymentStatus("success");
+    if (payment === "cancelled") setPaymentStatus("cancelled");
+  }, []);
 
   // Load clinic data
   useEffect(() => {
@@ -249,6 +259,61 @@ export default function PublicBookingPage() {
             </p>
           )}
 
+          {/* Payment Status */}
+          {paymentStatus === "success" && (
+            <div className="p-4 rounded-xl mb-6" style={{ background: "#f0fdf4", border: "1.5px solid #86efac" }}>
+              <div className="flex items-center gap-2 justify-center">
+                <svg className="w-5 h-5" fill="none" stroke="#16a34a" viewBox="0 0 24 24" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span className="text-[14px] font-bold" style={{ color: "#16a34a" }}>Payment Successful!</span>
+              </div>
+              <p className="text-[12px] mt-1" style={{ color: "#059669" }}>Your consultation fee has been paid. No payment needed at the clinic.</p>
+            </div>
+          )}
+
+          {paymentStatus === "cancelled" && (
+            <div className="p-4 rounded-xl mb-6" style={{ background: "#fef3c7", border: "1.5px solid #fbbf24" }}>
+              <p className="text-[13px] font-semibold" style={{ color: "#92400e" }}>Payment was cancelled. You can pay at the clinic instead.</p>
+            </div>
+          )}
+
+          {/* Pay Online Button */}
+          {selectedDoctor?.consultationFee && selectedDoctor.consultationFee > 0 && paymentStatus !== "success" && (
+            <button
+              disabled={payingOnline}
+              onClick={async () => {
+                if (!data || !booked) return;
+                setPayingOnline(true);
+                try {
+                  const res = await fetch("/api/public/payment", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ appointmentId: booked.id, clinicId: data.clinic.id }),
+                  });
+                  const result = await res.json();
+                  if (result.url) {
+                    window.location.href = result.url;
+                  } else {
+                    setError(result.error || "Payment not available");
+                    setPayingOnline(false);
+                  }
+                } catch {
+                  setError("Failed to start payment");
+                  setPayingOnline(false);
+                }
+              }}
+              className="w-full py-3 rounded-xl text-[15px] font-bold text-white transition-all hover:opacity-90 disabled:opacity-60 mb-4"
+              style={{ background: "linear-gradient(135deg, #2563eb, #1d4ed8)" }}
+            >
+              {payingOnline ? "Redirecting to payment..." : `Pay Online — S$${selectedDoctor.consultationFee.toFixed(2)}`}
+            </button>
+          )}
+
+          {paymentStatus !== "success" && selectedDoctor?.consultationFee && selectedDoctor.consultationFee > 0 && (
+            <p className="text-[12px] mb-4" style={{ color: "#9ca3af" }}>Or pay at the clinic during your visit</p>
+          )}
+
           <button
             onClick={() => {
               setBooked(null);
@@ -261,6 +326,7 @@ export default function PublicBookingPage() {
               setPatientPhone("");
               setPatientEmail("");
               setReason("");
+              setPaymentStatus("");
             }}
             className="px-6 py-2.5 rounded-lg text-[14px] font-semibold transition-all hover:opacity-90"
             style={{ color: "#14532d", border: "1.5px solid #14532d" }}

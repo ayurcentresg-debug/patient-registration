@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getStripe, PLAN_CONFIG } from "@/lib/stripe";
 import { prisma } from "@/lib/db";
+import { getTenantPrisma } from "@/lib/tenant-db";
 import { sendEmail } from "@/lib/email";
 import Stripe from "stripe";
 
@@ -50,7 +51,109 @@ export async function POST(req: NextRequest) {
         const session = event.data.object as Stripe.Checkout.Session;
         const clinicId = session.metadata?.clinicId;
         const plan = session.metadata?.plan;
+        const paymentType = session.metadata?.type;
 
+        // ── Appointment payment (not subscription) ─────────────────
+        if (paymentType === "appointment_payment") {
+          const appointmentId = session.metadata?.appointmentId;
+          const patientId = session.metadata?.patientId;
+          if (clinicId && appointmentId) {
+            const db = getTenantPrisma(clinicId);
+
+            // Find or create invoice, then record payment
+            let invoice = await db.invoice.findFirst({ where: { appointmentId } });
+            if (!invoice) {
+              // Auto-generate invoice
+              const appointment = await db.appointment.findUnique({ where: { id: appointmentId } });
+              if (appointment && appointment.sessionPrice) {
+                const now = new Date();
+                const ym = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}`;
+                const pfx = `INV-${ym}-`;
+                const last = await db.invoice.findFirst({ where: { invoiceNumber: { startsWith: pfx } }, orderBy: { invoiceNumber: "desc" } });
+                const seq = last ? parseInt(last.invoiceNumber.split("-").pop() || "0", 10) + 1 : 1;
+
+                invoice = await db.invoice.create({
+                  data: {
+                    invoiceNumber: `${pfx}${String(seq).padStart(4, "0")}`,
+                    patientId: patientId || null,
+                    appointmentId,
+                    patientName: appointment.walkinName || "Patient",
+                    subtotal: appointment.sessionPrice,
+                    discountPercent: 0, discountAmount: 0,
+                    taxableAmount: appointment.sessionPrice,
+                    gstAmount: 0,
+                    totalAmount: appointment.sessionPrice,
+                    paidAmount: appointment.sessionPrice,
+                    balanceAmount: 0,
+                    status: "paid",
+                    paymentMethod: "card",
+                    paymentNotes: `Stripe session ${session.id}`,
+                    items: {
+                      create: [{
+                        type: "consultation",
+                        description: `${appointment.treatmentName || "Consultation"} - ${appointment.doctor || "Doctor"}`,
+                        quantity: 1, unitPrice: appointment.sessionPrice,
+                        discount: 0, gstPercent: 0, gstAmount: 0,
+                        amount: appointment.sessionPrice,
+                      }],
+                    },
+                  },
+                });
+
+                // Record payment
+                const recPfx = `REC-${ym}-`;
+                const lastRec = await db.payment.findFirst({ where: { receiptNumber: { startsWith: recPfx } }, orderBy: { receiptNumber: "desc" } });
+                const recSeq = lastRec ? parseInt(lastRec.receiptNumber!.split("-").pop() || "0", 10) + 1 : 1;
+
+                await db.payment.create({
+                  data: {
+                    invoiceId: invoice.id,
+                    receiptNumber: `${recPfx}${String(recSeq).padStart(4, "0")}`,
+                    amount: appointment.sessionPrice,
+                    method: "card",
+                    reference: session.payment_intent as string || session.id,
+                    notes: "Online payment via Stripe",
+                    date: new Date(),
+                  },
+                });
+              }
+            } else if (invoice.status !== "paid") {
+              // Invoice exists but not paid — mark as paid
+              await db.invoice.update({
+                where: { id: invoice.id },
+                data: {
+                  paidAmount: invoice.totalAmount,
+                  balanceAmount: 0,
+                  status: "paid",
+                  paymentMethod: "card",
+                  paymentNotes: `Stripe session ${session.id}`,
+                },
+              });
+
+              // Record payment
+              const now = new Date();
+              const ym = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}`;
+              const recPfx = `REC-${ym}-`;
+              const lastRec = await db.payment.findFirst({ where: { receiptNumber: { startsWith: recPfx } }, orderBy: { receiptNumber: "desc" } });
+              const recSeq = lastRec ? parseInt(lastRec.receiptNumber!.split("-").pop() || "0", 10) + 1 : 1;
+
+              await db.payment.create({
+                data: {
+                  invoiceId: invoice.id,
+                  receiptNumber: `${recPfx}${String(recSeq).padStart(4, "0")}`,
+                  amount: invoice.totalAmount,
+                  method: "card",
+                  reference: session.payment_intent as string || session.id,
+                  notes: "Online payment via Stripe",
+                  date: new Date(),
+                },
+              });
+            }
+          }
+          break;
+        }
+
+        // ── Subscription payment ───────────────────────────────────
         if (!clinicId || !plan) {
           console.error("Missing metadata in checkout session:", session.id);
           break;
