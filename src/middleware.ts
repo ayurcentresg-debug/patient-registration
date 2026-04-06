@@ -56,6 +56,7 @@ const PUBLIC_PATHS = [
   "/api/portal/auth",
   "/review",
   "/api/public/feedback",
+  "/api/admin/features",
 ];
 
 // Paths that require auth but are allowed during onboarding
