@@ -125,7 +125,7 @@ export async function POST(
     const refundNumber = `${refPrefix}${String(sequence).padStart(4, "0")}`;
 
     // Create refund and update package status in a transaction
-    const [refund] = await prisma.$transaction([
+    const [refund] = await db.$transaction([
       db.packageRefund.create({
         data: {
           patientPackageId: id,

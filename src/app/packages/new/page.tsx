@@ -171,8 +171,8 @@ export default function SellPackagePage() {
         .then((data) => {
           const list = Array.isArray(data) ? data : data.packages || data.items || [];
           const options: PackageOption[] = list.map((p: Record<string, unknown>) => {
-            const sessions = (p.sessions as number) ?? (p.totalSessions as number) ?? 1;
-            const price = (p.price as number) ?? (p.packagePrice as number) ?? 0;
+            const sessions = (p.sessionCount as number) ?? (p.sessions as number) ?? (p.totalSessions as number) ?? 1;
+            const price = (p.totalPrice as number) ?? (p.price as number) ?? (p.packagePrice as number) ?? 0;
             const originalPrice = (selectedTreatment.basePrice * sessions);
             const savingsPercent = originalPrice > 0 ? Math.round(((originalPrice - price) / originalPrice) * 100) : 0;
             return {

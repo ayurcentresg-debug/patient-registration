@@ -162,6 +162,7 @@ export async function POST(request: NextRequest) {
       // Treatment & package fields
       treatmentId: body.treatmentId || null,
       packageId: body.packageId || null,
+      patientPackageId: body.patientPackageId || null,
       treatmentName: body.treatmentName || null,
       packageName: body.packageName || null,
       sessionPrice: body.sessionPrice != null ? parseFloat(body.sessionPrice) : null,

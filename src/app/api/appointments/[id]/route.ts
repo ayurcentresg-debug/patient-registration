@@ -98,9 +98,63 @@ export async function PUT(
         ...(body.reason !== undefined && { reason: body.reason || null }),
         ...(body.notes !== undefined && { notes: body.notes || null }),
         ...(body.status !== undefined && { status: body.status }),
+        ...(body.patientPackageId !== undefined && { patientPackageId: body.patientPackageId || null }),
       },
       include: includeRelations,
     });
+
+    // ─── Auto-deduct package session on completion ─────────────────────────
+    if (
+      body.status === "completed" &&
+      existing.status !== "completed" &&
+      (appointment.patientPackageId || existing.patientPackageId)
+    ) {
+      const ppId = appointment.patientPackageId || existing.patientPackageId;
+      try {
+        const pkg = await db.patientPackage.findUnique({ where: { id: ppId! } });
+        if (pkg && pkg.status === "active" && pkg.remainingSessions > 0) {
+          // Check if a session was already recorded for this appointment
+          const existingSession = await db.packageSession.findFirst({
+            where: { patientPackageId: ppId!, appointmentId: id },
+          });
+          if (!existingSession) {
+            const sessionNumber = pkg.usedSessions + 1;
+            const newRemaining = pkg.remainingSessions - 1;
+            const newStatus = newRemaining <= 0 ? "completed" : "active";
+
+            await db.packageSession.create({
+              data: {
+                patientPackageId: ppId!,
+                sessionNumber,
+                appointmentId: id,
+                usedByPatientId: appointment.patientId || existing.patientId || pkg.patientId,
+                date: new Date(),
+                doctorName: appointment.doctor || existing.doctor || null,
+                status: "completed",
+                notes: "Auto-recorded on appointment completion",
+              },
+            });
+
+            const updateData: Record<string, unknown> = {
+              usedSessions: sessionNumber,
+              remainingSessions: newRemaining,
+              status: newStatus,
+            };
+            if (!pkg.firstSessionDate) {
+              updateData.firstSessionDate = new Date();
+            }
+
+            await db.patientPackage.update({
+              where: { id: ppId! },
+              data: updateData,
+            });
+          }
+        }
+      } catch (pkgErr) {
+        // Don't fail the appointment update if package deduction fails
+        console.error("Package auto-deduction error:", pkgErr);
+      }
+    }
 
     return NextResponse.json(appointment);
   } catch (error) {

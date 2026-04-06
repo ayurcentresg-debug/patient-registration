@@ -283,6 +283,7 @@ export default function BookAppointmentPage() {
           type: apptType,
           reason: reason.trim() || null,
           notes: notes.trim() || null,
+          ...(selectedPackageId ? { patientPackageId: selectedPackageId } : {}),
         }),
       });
       if (!res.ok) {

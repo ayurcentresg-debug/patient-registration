@@ -121,7 +121,7 @@ export async function POST(
     }
 
     // Use a transaction to create session and update package atomically
-    const [session, updatedPackage] = await prisma.$transaction([
+    const [session, updatedPackage] = await db.$transaction([
       db.packageSession.create({
         data: {
           patientPackageId: id,

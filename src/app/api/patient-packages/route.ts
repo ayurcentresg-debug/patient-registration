@@ -224,7 +224,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Use transaction to create both package + invoice atomically
-    const [newPackage, invoice] = await prisma.$transaction(async (tx) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const [newPackage, invoice] = await db.$transaction(async (tx: any) => {
       // Create invoice
       const inv = await tx.invoice.create({
         data: {

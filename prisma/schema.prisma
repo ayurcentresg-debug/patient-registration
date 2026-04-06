@@ -173,6 +173,7 @@ model Appointment {
   packageName     String?  // e.g. "10-Session Package"
   sessionPrice    Float?   // price for this session (single or per-session from package)
   packageTotal    Float?   // total package price (null for single sessions)
+  patientPackageId String?  // link to the sold PatientPackage instance for session deduction
 
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -181,6 +182,7 @@ model Appointment {
   doctorRef       User?    @relation(fields: [doctorId], references: [id], onDelete: SetNull)
   treatment       Treatment? @relation(fields: [treatmentId], references: [id], onDelete: SetNull)
   treatmentPkg    TreatmentPackage? @relation(fields: [packageId], references: [id], onDelete: SetNull)
+  patientPackage  PatientPackage? @relation(fields: [patientPackageId], references: [id], onDelete: SetNull)
 
   @@index([clinicId])
   @@index([date])
@@ -1037,6 +1039,7 @@ model PatientPackage {
   patient           Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
   treatment         Treatment? @relation(fields: [treatmentId], references: [id], onDelete: SetNull)
   treatmentPackage  TreatmentPackage? @relation(fields: [treatmentPackageId], references: [id], onDelete: SetNull)
+  appointments      Appointment[]
   sessions          PackageSession[]
   shares            PackageShare[]
   refunds           PackageRefund[]
