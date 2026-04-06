@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import StatsCard from "@/components/StatsCard";
 import { PageGuide } from "@/components/HelpTip";
+import { useAuth } from "@/components/AuthProvider";
 import dynamic from "next/dynamic";
 
 const WeeklyRevenueChart = dynamic(() => import("@/components/DashboardCharts").then(m => m.WeeklyRevenueChart), { ssr: false });
@@ -133,7 +134,43 @@ const methodLabels: Record<string, string> = {
   bank_transfer: "Bank Transfer",
 };
 
+/* Role helpers */
+const ADMIN_ROLES = ["admin", "receptionist", "staff"];
+const CLINICAL_ROLES = ["doctor", "therapist"];
+const ROLE_GREETINGS: Record<string, string> = {
+  admin: "Clinic Overview",
+  receptionist: "Front Desk",
+  doctor: "Doctor Dashboard",
+  therapist: "Therapist Dashboard",
+  pharmacist: "Pharmacy Dashboard",
+  staff: "Dashboard",
+};
+const ROLE_SUBTITLES: Record<string, string> = {
+  admin: "Overview of your clinic management system",
+  receptionist: "Today's appointments, walk-ins, and patient queue",
+  doctor: "Your schedule, patients, and consultations",
+  therapist: "Your schedule, patients, and therapy sessions",
+  pharmacist: "Inventory, prescriptions, and stock alerts",
+  staff: "Quick actions and today's activity",
+};
+
 export default function Dashboard() {
+  const { user } = useAuth();
+  const role = user?.role || "admin";
+  const isAdmin = ADMIN_ROLES.includes(role) || role === "admin";
+  const isClinical = CLINICAL_ROLES.includes(role);
+  const isPharmacist = role === "pharmacist";
+  // Show revenue/charts only for admin
+  const showRevenue = role === "admin";
+  // Show appointments for everyone except pharmacist
+  const showAppointments = !isPharmacist;
+  // Show inventory for admin and pharmacist
+  const showInventory = isAdmin || isPharmacist;
+  // Show staff summary only for admin
+  const showStaffSummary = role === "admin";
+  // Show quick actions for receptionist and staff
+  const showQuickActions = ["receptionist", "staff"].includes(role) || isClinical;
+
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -256,10 +293,78 @@ export default function Dashboard() {
   return (
     <div className="p-6 md:p-8 yoda-fade-in">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-[24px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>Dashboard</h1>
-        <p className="text-[15px] mt-1" style={{ color: "var(--grey-600)" }}>Overview of your clinic management system</p>
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h1 className="text-[24px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>
+            {user?.name ? `Hi, ${user.name.split(" ")[0]}` : ROLE_GREETINGS[role] || "Dashboard"}
+          </h1>
+          <p className="text-[15px] mt-1" style={{ color: "var(--grey-600)" }}>
+            {ROLE_SUBTITLES[role] || "Overview of your clinic management system"}
+          </p>
+        </div>
+        <span className="hidden sm:inline-block px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider" style={{ background: "#f0fdf4", color: "#2d6a4f", border: "1px solid #d1fae5" }}>
+          {role}
+        </span>
       </div>
+
+      {/* ═══ Quick Actions (Receptionist / Clinical / Staff) ═══ */}
+      {showQuickActions && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+          {!isPharmacist && (
+            <Link href="/appointments/new" className="flex items-center gap-3 p-3 rounded-xl transition-all hover:shadow-md" style={{ background: "white", border: "1.5px solid #e5e7eb" }}>
+              <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "#eff6ff" }}>
+                <svg className="w-4 h-4" fill="none" stroke="#2563eb" viewBox="0 0 24 24" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+              </div>
+              <div>
+                <p className="text-[13px] font-semibold" style={{ color: "#111827" }}>Book Appointment</p>
+                <p className="text-[11px]" style={{ color: "#9ca3af" }}>Schedule now</p>
+              </div>
+            </Link>
+          )}
+          {!isClinical && (
+            <Link href="/patients/new" className="flex items-center gap-3 p-3 rounded-xl transition-all hover:shadow-md" style={{ background: "white", border: "1.5px solid #e5e7eb" }}>
+              <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "#f0fdf4" }}>
+                <svg className="w-4 h-4" fill="none" stroke="#2d6a4f" viewBox="0 0 24 24" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
+              </div>
+              <div>
+                <p className="text-[13px] font-semibold" style={{ color: "#111827" }}>Register Patient</p>
+                <p className="text-[11px]" style={{ color: "#9ca3af" }}>Add new</p>
+              </div>
+            </Link>
+          )}
+          {isClinical && (
+            <Link href="/doctor" className="flex items-center gap-3 p-3 rounded-xl transition-all hover:shadow-md" style={{ background: "white", border: "1.5px solid #e5e7eb" }}>
+              <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "#fef3c7" }}>
+                <svg className="w-4 h-4" fill="none" stroke="#d97706" viewBox="0 0 24 24" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+              </div>
+              <div>
+                <p className="text-[13px] font-semibold" style={{ color: "#111827" }}>My Portal</p>
+                <p className="text-[11px]" style={{ color: "#9ca3af" }}>Consult patients</p>
+              </div>
+            </Link>
+          )}
+          <Link href="/appointments/calendar" className="flex items-center gap-3 p-3 rounded-xl transition-all hover:shadow-md" style={{ background: "white", border: "1.5px solid #e5e7eb" }}>
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "#fdf4ff" }}>
+              <svg className="w-4 h-4" fill="none" stroke="#9333ea" viewBox="0 0 24 24" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+            </div>
+            <div>
+              <p className="text-[13px] font-semibold" style={{ color: "#111827" }}>Calendar</p>
+              <p className="text-[11px]" style={{ color: "#9ca3af" }}>View schedule</p>
+            </div>
+          </Link>
+          {isPharmacist && (
+            <Link href="/inventory" className="flex items-center gap-3 p-3 rounded-xl transition-all hover:shadow-md" style={{ background: "white", border: "1.5px solid #e5e7eb" }}>
+              <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "#fff7ed" }}>
+                <svg className="w-4 h-4" fill="none" stroke="#ea580c" viewBox="0 0 24 24" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+              </div>
+              <div>
+                <p className="text-[13px] font-semibold" style={{ color: "#111827" }}>Inventory</p>
+                <p className="text-[11px]" style={{ color: "#9ca3af" }}>Manage stock</p>
+              </div>
+            </Link>
+          )}
+        </div>
+      )}
 
       <PageGuide
         storageKey="dashboard"
@@ -331,8 +436,8 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* ═══════ Row 1: Key Metrics ═══════ */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      {/* ═══════ Row 1: Key Metrics (Admin only) ═══════ */}
+      {showRevenue && (<div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         {/* Today's Revenue */}
         <div className="p-4 transition-shadow duration-150 hover:shadow-md" style={{ ...cardStyle, boxShadow: "var(--shadow-sm)" }}>
           <div className="flex items-center justify-between">
@@ -400,10 +505,10 @@ export default function Dashboard() {
           icon="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
           color="blue"
         />
-      </div>
+      </div>)}
 
-      {/* ═══════ Staff Today ═══════ */}
-      {staffSummary && (
+      {/* ═══════ Staff Today (Admin only) ═══════ */}
+      {showStaffSummary && staffSummary && (
         <div className="mb-6 p-4 flex items-center gap-4 flex-wrap" style={{ ...cardStyle, boxShadow: "var(--shadow-sm)" }}>
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 flex items-center justify-center" style={{ background: "#d1f2e0", borderRadius: "var(--radius-sm)", color: "#2d6a4f" }}>
@@ -446,8 +551,8 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* ═══════ Inventory Overview ═══════ */}
-      <div className="mb-6">
+      {/* ═══════ Inventory Overview (Admin + Pharmacist) ═══════ */}
+      {showInventory && (<div className="mb-6">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>Inventory Overview</h2>
           {branches.length > 0 && (
@@ -529,16 +634,18 @@ export default function Dashboard() {
             </div>
           </Link>
         </div>
-      </div>
+      </div>)}
 
-      {/* ═══════ Row 2: Charts ═══════ */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-6">
-        <WeeklyRevenueChart data={weeklyRevenue} />
-        <AppointmentStatusChart data={statusBreakdown} total={totalStatusCount} />
-      </div>
+      {/* ═══════ Row 2: Charts (Admin only) ═══════ */}
+      {showRevenue && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-6">
+          <WeeklyRevenueChart data={weeklyRevenue} />
+          <AppointmentStatusChart data={statusBreakdown} total={totalStatusCount} />
+        </div>
+      )}
 
-      {/* ═══════ Row 3: Three Columns ═══════ */}
-      <div className="grid lg:grid-cols-3 gap-5 mb-6">
+      {/* ═══════ Row 3: Three Columns (Admin only) ═══════ */}
+      {showRevenue && (<div className="grid lg:grid-cols-3 gap-5 mb-6">
         {/* Today's Appointments (existing) */}
         <div className="p-5" style={cardStyle}>
           <div className="flex items-center justify-between mb-4">
@@ -596,10 +703,10 @@ export default function Dashboard() {
 
         {/* Revenue by Payment Method */}
         <RevenueByMethodChart data={revenueByMethod} />
-      </div>
+      </div>)}
 
-      {/* ═══════ Row 4: Monthly Trend + Quick Actions ═══════ */}
-      <div className="grid lg:grid-cols-3 gap-5 mb-6">
+      {/* ═══════ Row 4: Monthly Trend + Quick Actions (Admin only) ═══════ */}
+      {showRevenue && (<div className="grid lg:grid-cols-3 gap-5 mb-6">
         {/* Monthly Appointment Trend (spans 2 cols) */}
         <MonthlyTrendChart data={monthlyTrend} />
 
@@ -657,10 +764,10 @@ export default function Dashboard() {
             </Link>
           </div>
         </div>
-      </div>
+      </div>)}
 
       {/* ═══════ Row 5: Recent Patients + Communications ═══════ */}
-      <div className="grid lg:grid-cols-2 gap-5">
+      {isAdmin && (<div className="grid lg:grid-cols-2 gap-5">
         {/* Recent Patients */}
         <div className="p-5" style={cardStyle}>
           <div className="flex items-center justify-between mb-4">
@@ -747,6 +854,7 @@ export default function Dashboard() {
           )}
         </div>
       </div>
+      )}
 
       {/* ═══════ Row 6: Recent Activity Feed + Upcoming Appointments Today ═══════ */}
       <div className="grid lg:grid-cols-3 gap-5 mt-6">
