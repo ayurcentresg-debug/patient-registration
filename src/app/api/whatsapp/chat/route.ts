@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getClinicId, requireRole, ADMIN_ROLES } from "@/lib/get-clinic-id";
+import { sendTextMessage, sendTemplateMessage, isWhatsAppConfigured } from "@/lib/whatsapp";
 
 // GET /api/whatsapp/chat?patientId=xxx — get conversation history
 export async function GET(request: NextRequest) {
@@ -50,26 +51,24 @@ export async function POST(request: NextRequest) {
     if (!auth) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const clinicId = await getClinicId();
-    const { patientId, to, message } = await request.json();
+    const { patientId, to, message, type, templateName, templateLang, templateComponents } = await request.json();
 
-    if (!to || !message) {
-      return NextResponse.json({ error: "Phone number and message are required" }, { status: 400 });
+    if (!to || (!message && !templateName)) {
+      return NextResponse.json({ error: "Phone number and message (or template) are required" }, { status: 400 });
     }
 
-    const twilioSid = process.env.TWILIO_ACCOUNT_SID;
-    const twilioToken = process.env.TWILIO_AUTH_TOKEN;
-    const twilioFrom = process.env.TWILIO_WHATSAPP_NUMBER || "whatsapp:+14155238886";
+    const fromNumber = process.env.WA_PHONE_NUMBER || process.env.WA_PHONE_NUMBER_ID || "";
 
-    if (!twilioSid || !twilioToken || !twilioSid.startsWith("AC")) {
-      // Save as mock if Twilio not configured
+    // --- Mock mode if Meta WhatsApp not configured ---
+    if (!isWhatsAppConfigured()) {
       const msg = await prisma.whatsAppMessage.create({
         data: {
           clinicId,
           patientId: patientId || null,
           direction: "outbound",
-          from: twilioFrom.replace("whatsapp:", ""),
-          to: to.replace("whatsapp:", ""),
-          body: message,
+          from: fromNumber,
+          to: to.replace(/[^0-9+]/g, ""),
+          body: message || `[Template: ${templateName}]`,
           status: "sent",
           twilioSid: `mock_${Date.now()}`,
         },
@@ -77,31 +76,32 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, messageId: msg.id, provider: "mock" });
     }
 
-    const twilio = require("twilio");
-    const client = twilio(twilioSid, twilioToken);
-    const toNumber = to.startsWith("whatsapp:") ? to : `whatsapp:${to}`;
+    // --- Send via Meta WhatsApp Cloud API ---
+    let result;
+    const sendType = type || (templateName ? "template" : "text");
 
-    const twilioMsg = await client.messages.create({
-      body: message,
-      from: twilioFrom,
-      to: toNumber,
-      statusCallback: `${process.env.NEXT_PUBLIC_APP_URL || "https://www.ayurgate.com"}/api/whatsapp/webhook`,
-    });
+    if (sendType === "template" && templateName) {
+      result = await sendTemplateMessage(to, templateName, templateLang || "en", templateComponents);
+    } else {
+      result = await sendTextMessage(to, message);
+    }
+
+    const waMessageId = result.messages?.[0]?.id || null;
 
     const msg = await prisma.whatsAppMessage.create({
       data: {
         clinicId,
         patientId: patientId || null,
         direction: "outbound",
-        from: twilioFrom.replace("whatsapp:", ""),
-        to: to.replace("whatsapp:", ""),
-        body: message,
-        status: twilioMsg.status || "sent",
-        twilioSid: twilioMsg.sid,
+        from: fromNumber,
+        to: to.replace(/[^0-9+]/g, ""),
+        body: message || `[Template: ${templateName}]`,
+        status: result.messages?.[0]?.message_status || "sent",
+        twilioSid: waMessageId, // reusing field for Meta message ID
       },
     });
 
-    return NextResponse.json({ success: true, messageId: msg.id, sid: twilioMsg.sid });
+    return NextResponse.json({ success: true, messageId: msg.id, waMessageId });
   } catch (error) {
     console.error("Failed to send WhatsApp message:", error);
     const errMsg = error instanceof Error ? error.message : "Failed to send message";

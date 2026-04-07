@@ -1,91 +1,161 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { markAsRead, verifyWebhookSignature } from "@/lib/whatsapp";
 
-// Twilio sends webhooks as POST with form data
-export async function POST(request: NextRequest) {
-  try {
-    const formData = await request.formData();
-    const body = Object.fromEntries(formData.entries()) as Record<string, string>;
+/**
+ * GET — Meta webhook verification
+ * Meta sends: hub.mode=subscribe, hub.verify_token=<your token>, hub.challenge=<random string>
+ */
+export async function GET(req: NextRequest) {
+  const mode = req.nextUrl.searchParams.get("hub.mode");
+  const token = req.nextUrl.searchParams.get("hub.verify_token");
+  const challenge = req.nextUrl.searchParams.get("hub.challenge");
 
-    // Optional: Validate Twilio signature in production
-    // const authToken = process.env.TWILIO_AUTH_TOKEN;
-    // const signature = request.headers.get("x-twilio-signature");
-    // const url = request.url;
-    // if (authToken && signature) {
-    //   const twilio = require("twilio");
-    //   const valid = twilio.validateRequest(authToken, signature, url, body);
-    //   if (!valid) return NextResponse.json({ error: "Invalid signature" }, { status: 403 });
-    // }
-
-    const messageSid = body.MessageSid || body.SmsSid;
-    const messageStatus = body.MessageStatus || body.SmsStatus;
-
-    // STATUS UPDATE (delivery receipt)
-    if (messageStatus && messageSid && !body.Body) {
-      await prisma.whatsAppMessage.updateMany({
-        where: { twilioSid: messageSid },
-        data: {
-          status: messageStatus,
-          errorCode: body.ErrorCode || null,
-          errorMessage: body.ErrorMessage || null,
-        },
-      });
-      return new NextResponse("<Response></Response>", {
-        headers: { "Content-Type": "text/xml" },
-      });
-    }
-
-    // INCOMING MESSAGE
-    if (body.Body || body.MediaUrl0) {
-      const from = (body.From || "").replace("whatsapp:", "");
-      const to = (body.To || "").replace("whatsapp:", "");
-
-      // Find patient by WhatsApp number
-      const patient = await prisma.patient.findFirst({
-        where: {
-          OR: [
-            { whatsapp: from },
-            { whatsapp: `+${from.replace("+", "")}` },
-            { phone: from },
-            { phone: `+${from.replace("+", "")}` },
-          ],
-        },
-      });
-
-      await prisma.whatsAppMessage.create({
-        data: {
-          clinicId: patient?.clinicId || null,
-          patientId: patient?.id || null,
-          direction: "inbound",
-          from,
-          to,
-          body: body.Body || "",
-          mediaUrl: body.MediaUrl0 || null,
-          mediaType: body.MediaContentType0 || null,
-          status: "received",
-          twilioSid: messageSid || null,
-        },
-      });
-
-      // Return empty TwiML response (no auto-reply)
-      return new NextResponse("<Response></Response>", {
-        headers: { "Content-Type": "text/xml" },
-      });
-    }
-
-    return new NextResponse("<Response></Response>", {
-      headers: { "Content-Type": "text/xml" },
-    });
-  } catch (error) {
-    console.error("WhatsApp webhook error:", error);
-    return new NextResponse("<Response></Response>", {
-      headers: { "Content-Type": "text/xml" },
-      status: 200, // Always return 200 to Twilio
-    });
+  if (mode === "subscribe" && token === process.env.WA_VERIFY_TOKEN) {
+    console.log("[WhatsApp] Webhook verified");
+    return new NextResponse(challenge, { status: 200 });
   }
+
+  return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 }
 
-// GET for webhook verification
-export async function GET() {
-  return NextResponse.json({ status: "WhatsApp webhook active" });
+/**
+ * POST — Meta webhook for inbound messages + delivery status updates
+ * Must always return 200 quickly (Meta retries on failure)
+ */
+export async function POST(req: NextRequest) {
+  try {
+    const rawBody = await req.text();
+
+    // Verify signature in production (skip if WA_APP_SECRET not set)
+    if (process.env.WA_APP_SECRET) {
+      const signature = req.headers.get("x-hub-signature-256") || "";
+      if (!verifyWebhookSignature(rawBody, signature)) {
+        console.warn("[WhatsApp] Invalid webhook signature");
+        return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
+      }
+    }
+
+    const body = JSON.parse(rawBody);
+    const entry = body.entry?.[0];
+    const changes = entry?.changes?.[0];
+    const value = changes?.value;
+
+    if (!value) {
+      return NextResponse.json({ status: "ok" });
+    }
+
+    // --- Inbound Messages ---
+    if (value.messages) {
+      for (const message of value.messages) {
+        const from = message.from; // sender phone (digits only)
+        const waMessageId = message.id;
+        const type = message.type; // text, image, document, etc.
+
+        // Extract message content based on type
+        let messageBody = "";
+        let mediaUrl: string | null = null;
+        let mediaType: string | null = null;
+
+        if (type === "text") {
+          messageBody = message.text?.body || "";
+        } else if (type === "image") {
+          messageBody = message.image?.caption || "[Image]";
+          mediaType = "image";
+          // Media ID — you can download via GET /v21.0/{media-id}
+          mediaUrl = message.image?.id || null;
+        } else if (type === "document") {
+          messageBody = message.document?.caption || `[Document: ${message.document?.filename || "file"}]`;
+          mediaType = "document";
+          mediaUrl = message.document?.id || null;
+        } else if (type === "audio") {
+          messageBody = "[Audio message]";
+          mediaType = "audio";
+          mediaUrl = message.audio?.id || null;
+        } else if (type === "video") {
+          messageBody = message.video?.caption || "[Video]";
+          mediaType = "video";
+          mediaUrl = message.video?.id || null;
+        } else if (type === "location") {
+          messageBody = `[Location: ${message.location?.latitude}, ${message.location?.longitude}]`;
+        } else if (type === "contacts") {
+          messageBody = "[Contact shared]";
+        } else if (type === "reaction") {
+          // Reactions — skip storing for now
+          continue;
+        } else {
+          messageBody = `[${type}]`;
+        }
+
+        // Get contact name from Meta payload
+        const contact = value.contacts?.find((c: { wa_id: string }) => c.wa_id === from);
+        const contactName = contact?.profile?.name || null;
+
+        // Find patient by WhatsApp/phone number
+        const fromNormalized = from.startsWith("+") ? from : `+${from}`;
+        const patient = await prisma.patient.findFirst({
+          where: {
+            OR: [
+              { whatsapp: from },
+              { whatsapp: fromNormalized },
+              { phone: from },
+              { phone: fromNormalized },
+            ],
+          },
+        });
+
+        await prisma.whatsAppMessage.create({
+          data: {
+            clinicId: patient?.clinicId || null,
+            patientId: patient?.id || null,
+            direction: "inbound",
+            from: fromNormalized,
+            to: process.env.WA_PHONE_NUMBER || "",
+            body: messageBody,
+            mediaUrl,
+            mediaType,
+            status: "received",
+            twilioSid: waMessageId, // reusing field for Meta message ID
+          },
+        });
+
+        // Auto mark as read
+        try {
+          await markAsRead(waMessageId);
+        } catch {
+          // Non-critical — don't fail the webhook
+        }
+
+        console.log(`[WhatsApp] Inbound from ${from}${contactName ? ` (${contactName})` : ""}: ${messageBody.slice(0, 50)}`);
+      }
+    }
+
+    // --- Delivery Status Updates ---
+    if (value.statuses) {
+      for (const status of value.statuses) {
+        const waMessageId = status.id;
+        const statusValue = status.status; // sent, delivered, read, failed
+
+        const updateData: Record<string, unknown> = {
+          status: statusValue,
+        };
+
+        if (statusValue === "failed" && status.errors?.length > 0) {
+          updateData.errorCode = String(status.errors[0].code);
+          updateData.errorMessage = status.errors[0].message || status.errors[0].title;
+        }
+
+        await prisma.whatsAppMessage.updateMany({
+          where: { twilioSid: waMessageId },
+          data: updateData,
+        });
+      }
+    }
+
+    return NextResponse.json({ status: "ok" });
+  } catch (error) {
+    console.error("[WhatsApp] Webhook error:", error);
+    // Always return 200 — Meta retries on non-200
+    return NextResponse.json({ status: "error" }, { status: 200 });
+  }
 }
