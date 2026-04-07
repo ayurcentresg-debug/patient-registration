@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getTenantPrisma } from "@/lib/tenant-db";
-import { sendMarketingEmail } from "@/lib/email";
+import { sendEmail } from "@/lib/email";
 
 const REPORT_EMAIL = process.env.DAILY_REPORT_EMAIL || "ayurcentresg@gmail.com";
 
@@ -159,7 +159,7 @@ export async function GET(req: NextRequest) {
     // Send the email
     let emailResult = { messageId: null as string | null, provider: "none", error: "" };
     try {
-      const r = await sendMarketingEmail({
+      const r = await sendEmail({
         to: REPORT_EMAIL,
         subject: `AYUR GATE Daily Report — ${today.toLocaleDateString("en-SG", { day: "2-digit", month: "short", year: "numeric" })}`,
         html,
