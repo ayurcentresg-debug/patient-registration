@@ -57,6 +57,7 @@ const PUBLIC_PATHS = [
   "/review",
   "/api/public/feedback",
   "/api/admin/features",
+  "/api/whatsapp/webhook",
   "/terms",
   "/privacy",
 ];

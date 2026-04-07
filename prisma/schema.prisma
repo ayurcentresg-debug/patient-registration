@@ -159,6 +159,7 @@ model Patient {
   treatmentPlans TreatmentPlan[]
   prescriptions  Prescription[]
   patientPackages PatientPackage[]
+  whatsappMessages WhatsAppMessage[]
 
   @@unique([clinicId, patientIdNumber])
   @@index([clinicId])
@@ -1470,4 +1471,31 @@ model PlatformSettings {
   supportPhone          String  @default("")
 
   updatedAt             DateTime @updatedAt
+}
+
+// ─── WhatsApp Two-Way Chat ──────────────────────────────────────────────
+
+model WhatsAppMessage {
+  id           String   @id @default(cuid())
+  clinicId     String?
+  patientId    String?
+  patient      Patient? @relation(fields: [patientId], references: [id])
+  direction    String   // "inbound" | "outbound"
+  from         String   // sender phone number
+  to           String   // recipient phone number
+  body         String
+  mediaUrl     String?  // for images/documents
+  mediaType    String?  // "image/jpeg", "application/pdf", etc.
+  status       String   @default("sent") // sent, delivered, read, failed, received
+  twilioSid    String?  @unique // Twilio message SID
+  errorCode    String?
+  errorMessage String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([clinicId])
+  @@index([patientId])
+  @@index([from])
+  @@index([to])
+  @@index([twilioSid])
 }
