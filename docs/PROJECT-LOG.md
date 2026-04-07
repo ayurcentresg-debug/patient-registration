@@ -1042,17 +1042,33 @@
 - **Commit:** `abf4961`
 - **Status:** ✅ Deployed
 
+#### 69. Staff Detail/Profile Page
+- **What:** Full staff profile page at `/admin/staff/[id]` with inline editing, overview stat cards (appointments, joined date, employment type, last login), personal & employment info, clinical section (schedule display, specialization, fees) for doctors/therapists, tab navigation to documents/leave/performance sub-pages, password modal, and toast notifications.
+- **Commit:** `3bf6f4d`
+- **Status:** ✅ Deployed
+
+#### 70. Resend Invite System
+- **What:** New POST `/api/staff/[id]/resend-invite` endpoint generates fresh 7-day invite token and re-sends email. "Resend Invite" button added to staff list for members who haven't signed in yet or have pending invites.
+- **Commit:** `3bf6f4d`
+- **Status:** ✅ Deployed
+
+#### 71. SMTP Config — info@ayurgate.com
+- **What:** Switched transactional email sender from `ayurgate@gmail.com` (Gmail) to `info@ayurgate.com` (Google Workspace) with App Password authentication. Updated Railway env vars: SMTP_USER, SMTP_PASS, EMAIL_FROM. Added error fallback in marketing email to use Resend when Gmail SMTP times out.
+- **Commit:** `e6cdf20`
+- **Status:** ✅ Deployed
+
+#### 72. Daily Report Cron
+- **What:** Automated daily clinic report via scheduled task. Triggers `GET /api/daily-report` every day at 11 PM SGT. Sends email with appointment stats, revenue, new patients, inventory alerts, and upcoming appointments across all clinics.
+- **Status:** ✅ Active (cron scheduled)
+
 ---
 
 ## Pending / Upcoming
 
 | # | Feature | Priority | Notes |
 |---|---------|----------|-------|
-| 1 | Staff Detail/Edit Page | Medium | `/admin/staff/[id]` — dedicated view/edit page for individual staff members |
-| 2 | Invite Resend & Batch Invite | Low | Resend expired invites, invite multiple staff at once |
-| 3 | Update SMTP Config for info@ayurgate.com | Medium | Switch app transactional email from Gmail SMTP to Google Workspace SMTP with info@ayurgate.com |
-| 4 | WhatsApp API Integration | Low | Beyond templates — actual WhatsApp Business API |
-| 5 | Daily Report Cron | Medium | Set up external cron to auto-trigger daily report |
+| 1 | Batch Invite | Low | Invite multiple staff members at once |
+| 2 | WhatsApp API Integration | Low | Beyond templates — actual WhatsApp Business API |
 
 ---
 
@@ -1121,4 +1137,4 @@ www.ayurgate.com (Railway)
 
 ---
 
-*Last updated: 7 April 2026 (Session 10)*
+*Last updated: 8 April 2026 (Session 10)*
