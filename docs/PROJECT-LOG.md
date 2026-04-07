@@ -1072,6 +1072,39 @@
 - **Commit:** `cfb8147`
 - **Status:** ✅ Deployed
 
+### Session 11 — 8 Apr 2026
+
+#### 74. Meta WhatsApp Cloud API Migration (Twilio → Meta Direct)
+- **What:** Replaced Twilio WhatsApp integration with direct Meta WhatsApp Cloud API:
+  - Created Meta Developer App "AYUR GATE" (App ID: 26764399736511116, Business type)
+  - New `/lib/whatsapp.ts`: Full Meta Cloud API client — `sendTextMessage`, `sendTemplateMessage`, `sendImageMessage`, `sendDocumentMessage`, `markAsRead`, `verifyWebhookSignature`, `isWhatsAppConfigured`
+  - Backward-compatible `sendWhatsApp()` wrapper preserves 6 existing route integrations
+  - Rewrote `/api/whatsapp/webhook`: GET for Meta hub.challenge verification, POST for inbound messages + delivery statuses
+  - Rewrote `/api/whatsapp/chat`: Meta API sending (text + template messages), mock fallback
+  - `.env` updated: `WA_PHONE_NUMBER_ID`, `WA_ACCESS_TOKEN`, `WA_VERIFY_TOKEN`, `WA_APP_SECRET`, `WA_PHONE_NUMBER`
+- **Commit:** `57af924`
+- **Status:** ✅ Deployed
+
+#### 75. Super Admin WhatsApp Monitoring Dashboard
+- **What:** WhatsApp monitoring in Super Admin panel:
+  - New `/super-admin/whatsapp` page: 5 stat cards, 7-day bar chart, quick stats, clinic usage table (sortable, filterable), recent messages feed
+  - New `/api/super-admin/whatsapp` API: overview stats, per-clinic breakdown, daily trend, recent messages
+  - Dashboard enhanced: WhatsApp summary card + staff role breakdown row
+  - Sidebar: WhatsApp nav link added
+- **Commit:** `57af924`
+- **Status:** ✅ Deployed
+
+#### 76. Meta WhatsApp Cloud API — Production Setup
+- **What:** Full production configuration of Meta WhatsApp Cloud API:
+  - Generated temporary access token from Meta API Setup
+  - Retrieved App Secret from App Settings > Basic
+  - Configured webhook: callback URL `https://www.ayurgate.com/api/whatsapp/webhook`, verify token `ayurgate-wa-verify-2026` — verified successfully
+  - Subscribed to `messages` webhook field
+  - Added 5 WA_ env vars to Railway (31 total service variables)
+  - End-to-end test: sent `hello_world` template message to `+6593273921` — delivered successfully
+  - Test phone number: +1 555 159 9591, Phone Number ID: 1088907630967104
+- **Status:** ✅ Live & Verified
+
 ---
 
 ## Pending / Upcoming
@@ -1079,7 +1112,9 @@
 | # | Feature | Priority | Notes |
 |---|---------|----------|-------|
 | 1 | Batch Invite | Low | Invite multiple staff members at once |
-| 2 | Twilio WhatsApp Production Setup | Medium | Register Twilio number, configure webhook URL, WhatsApp Business Profile |
+| 2 | Per-Clinic WhatsApp Setup | Medium | Each clinic gets own WhatsApp number + credentials, with AyurGate global credentials as fallback |
+| 3 | Meta App Live Mode | Medium | Switch from Development to Live mode — requires Privacy Policy URL + business verification |
+| 4 | Permanent WhatsApp Token | Medium | Current token is temporary (24h) — set up System User permanent token |
 
 ---
 
@@ -1125,6 +1160,7 @@ www.ayurgate.com (Railway)
 │   ├── /notifications ......... Push notifications to clinics
 │   ├── /health ................ Clinic health monitoring (scores)
 │   ├── /audit-log ............. Super admin action audit trail
+│   ├── /whatsapp .............. WhatsApp monitoring dashboard (NEW)
 │   └── /settings .............. Trial, pricing, features, branding
 └── /api ....................... REST APIs
     ├── /api/public ............ Public endpoints (no auth)
@@ -1143,10 +1179,10 @@ www.ayurgate.com (Railway)
 | Auth | JWT (jose), 2FA (TOTP) |
 | Email | Resend (primary) + Gmail SMTP (fallback/marketing) |
 | Payments | Stripe |
-| Messaging | Twilio (WhatsApp) |
+| Messaging | Meta WhatsApp Cloud API (direct) |
 | Hosting | Railway (with persistent volume for DB) |
 | Source | GitHub (ayurcentresg-debug/ayurgate) |
 
 ---
 
-*Last updated: 7 April 2026 (Session 10)*
+*Last updated: 8 April 2026 (Session 11)*
