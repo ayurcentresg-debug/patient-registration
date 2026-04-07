@@ -1061,6 +1061,16 @@
 - **What:** Automated daily clinic report via scheduled task. Triggers `GET /api/daily-report` every day at 11 PM SGT. Sends email with appointment stats, revenue, new patients, inventory alerts, and upcoming appointments across all clinics.
 - **Status:** ✅ Active (cron scheduled)
 
+#### 73. WhatsApp Business API — Two-Way Messaging
+- **What:** Full WhatsApp Business API integration with two-way messaging:
+  - WhatsAppMessage model (direction, delivery status, media support, Twilio SID tracking)
+  - Inbound webhook (`POST /api/whatsapp/webhook`) for receiving patient messages and delivery status callbacks
+  - Chat API (`GET/POST /api/whatsapp/chat`) for conversation history and sending
+  - Conversations API (`GET /api/whatsapp/conversations`) for grouped patient conversations with unread counts
+  - Two-panel WhatsApp-style chat UI at `/communications/whatsapp` with message bubbles, delivery indicators, date dividers, auto-scroll, 10s polling, and mobile responsive design
+- **Commit:** `cfb8147`
+- **Status:** ✅ Deployed
+
 ---
 
 ## Pending / Upcoming
@@ -1068,7 +1078,7 @@
 | # | Feature | Priority | Notes |
 |---|---------|----------|-------|
 | 1 | Batch Invite | Low | Invite multiple staff members at once |
-| 2 | WhatsApp API Integration | Low | Beyond templates — actual WhatsApp Business API |
+| 2 | Twilio WhatsApp Production Setup | Medium | Register Twilio number, configure webhook URL, WhatsApp Business Profile |
 
 ---
 
