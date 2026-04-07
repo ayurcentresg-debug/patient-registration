@@ -32,6 +32,11 @@ export async function GET() {
       allClinics,
       thisMonthClinics,
       lastMonthClinics,
+      // WhatsApp stats
+      totalWhatsAppMessages,
+      todayWhatsAppMessages,
+      // Staff role breakdown
+      staffRoleBreakdown,
     ] = await Promise.all([
       prisma.clinic.count(),
       prisma.user.count(),
@@ -102,6 +107,17 @@ export async function GET() {
       // Last month new clinics
       prisma.clinic.count({
         where: { createdAt: { gte: lastMonthStart, lte: lastMonthEnd } },
+      }),
+      // WhatsApp: total messages
+      prisma.whatsAppMessage.count(),
+      // WhatsApp: today's messages
+      prisma.whatsAppMessage.count({
+        where: { createdAt: { gte: today } },
+      }),
+      // Staff: role breakdown
+      prisma.user.groupBy({
+        by: ["role"],
+        _count: { id: true },
       }),
     ]);
 
@@ -210,6 +226,12 @@ export async function GET() {
       status: c.subscription?.status || "unknown",
     }));
 
+    // Staff role counts
+    const roleBreakdown: Record<string, number> = {};
+    for (const row of staffRoleBreakdown) {
+      roleBreakdown[row.role] = row._count.id;
+    }
+
     return NextResponse.json({
       stats: {
         totalClinics,
@@ -238,6 +260,12 @@ export async function GET() {
       monthlySignups,
       recentActivity,
       recentRegistrations,
+      // New: WhatsApp + Staff
+      whatsapp: {
+        totalMessages: totalWhatsAppMessages,
+        todayMessages: todayWhatsAppMessages,
+      },
+      roleBreakdown,
     });
   } catch (error) {
     console.error("Super admin stats error:", error);

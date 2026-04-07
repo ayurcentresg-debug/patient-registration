@@ -52,6 +52,8 @@ interface DashboardData {
     plan: string;
     status: string;
   }[];
+  whatsapp?: { totalMessages: number; todayMessages: number };
+  roleBreakdown?: Record<string, number>;
 }
 
 const PLAN_BADGE: Record<string, { bg: string; color: string }> = {
@@ -249,6 +251,61 @@ export default function SuperAdminDashboard() {
                     </div>
                   );
                 })}
+              </div>
+            </div>
+          </div>
+
+          {/* ── Row 2.5: WhatsApp + Staff Role Breakdown ───────── */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 24 }}>
+            {/* WhatsApp Summary */}
+            <a href="/super-admin/whatsapp" style={{ textDecoration: "none", color: "inherit" }}>
+              <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e5e7eb", padding: "20px 24px", display: "flex", alignItems: "center", gap: 16, transition: "box-shadow 0.2s", cursor: "pointer" }}
+                onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.boxShadow = "0 2px 8px rgba(0,0,0,0.06)"; }}
+                onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.boxShadow = "none"; }}
+              >
+                <div style={{ width: 48, height: 48, borderRadius: 12, background: "#ecfdf5", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" />
+                  </svg>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: "#111827", marginBottom: 4 }}>WhatsApp Messaging</div>
+                  <div style={{ display: "flex", gap: 16, fontSize: 13 }}>
+                    <span style={{ color: "#6b7280" }}>Total: <strong style={{ color: "#111827" }}>{(data.whatsapp?.totalMessages ?? 0).toLocaleString()}</strong></span>
+                    <span style={{ color: "#6b7280" }}>Today: <strong style={{ color: "#059669" }}>{(data.whatsapp?.todayMessages ?? 0).toLocaleString()}</strong></span>
+                  </div>
+                </div>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                </svg>
+              </div>
+            </a>
+
+            {/* Staff Role Breakdown */}
+            <div style={{ background: "#fff", borderRadius: 12, border: "1px solid #e5e7eb", padding: "20px 24px" }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "#111827", marginBottom: 12 }}>Staff by Role</div>
+              <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+                {(() => {
+                  const rb = data.roleBreakdown || {};
+                  const roleColors: Record<string, string> = {
+                    admin: "#7c3aed", doctor: "#059669", therapist: "#0891b2",
+                    pharmacist: "#ea580c", receptionist: "#2563eb", staff: "#6b7280",
+                  };
+                  const roles = ["admin", "doctor", "therapist", "pharmacist", "receptionist", "staff"];
+                  return roles.filter((r) => (rb[r] || 0) > 0).map((r) => (
+                    <div key={r} style={{
+                      display: "flex", alignItems: "center", gap: 8,
+                      padding: "6px 12px", borderRadius: 8,
+                      background: (roleColors[r] || "#6b7280") + "10",
+                    }}>
+                      <span style={{ fontSize: 18, fontWeight: 700, color: roleColors[r] || "#6b7280" }}>{rb[r]}</span>
+                      <span style={{ fontSize: 12, color: "#6b7280", textTransform: "capitalize" }}>{r}s</span>
+                    </div>
+                  ));
+                })()}
+                {(!data.roleBreakdown || Object.keys(data.roleBreakdown).length === 0) && (
+                  <span style={{ fontSize: 13, color: "#9ca3af" }}>No staff data</span>
+                )}
               </div>
             </div>
           </div>

@@ -1058,8 +1058,9 @@
 - **Status:** ✅ Deployed
 
 #### 72. Daily Report Cron
-- **What:** Automated daily clinic report via scheduled task. Triggers `GET /api/daily-report` every day at 11 PM SGT. Sends email with appointment stats, revenue, new patients, inventory alerts, and upcoming appointments across all clinics.
-- **Status:** ✅ Active (cron scheduled)
+- **What:** Automated daily clinic report via scheduled task. Triggers `GET /api/daily-report` every day at 11 PM SGT. Sends email with appointment stats, revenue, new patients, inventory alerts, and upcoming appointments across all clinics. Switched from `sendMarketingEmail()` to `sendEmail()` to route through Resend API with verified `ayurgate.com` domain (Gmail SMTP had IPv6 issues on Railway).
+- **Commit:** `c09d59a`
+- **Status:** ✅ Active & Verified (email delivered via Resend)
 
 #### 73. WhatsApp Business API — Two-Way Messaging
 - **What:** Full WhatsApp Business API integration with two-way messaging:
@@ -1101,6 +1102,7 @@ www.ayurgate.com (Railway)
 ├── /inventory ................. Stock management
 ├── /billing ................... Invoices & payments
 ├── /communications ............ WhatsApp/Email/SMS
+│   └── /whatsapp .............. Two-way WhatsApp chat UI (NEW)
 ├── /admin/staff ............... Staff management
 ├── /admin/import .............. CSV data import center (NEW)
 ├── /admin/commission .......... Commission tracking
@@ -1147,4 +1149,4 @@ www.ayurgate.com (Railway)
 
 ---
 
-*Last updated: 8 April 2026 (Session 10)*
+*Last updated: 7 April 2026 (Session 10)*
