@@ -120,11 +120,15 @@ export async function sendMarketingEmail({
   // Strategy 1: Marketing SMTP (Gmail)
   const marketing = getMarketingTransporter();
   if (marketing) {
-    const info = await marketing.sendMail({ from: sender, to, subject, html });
-    return { messageId: info.messageId, provider: "marketing-smtp" };
+    try {
+      const info = await marketing.sendMail({ from: sender, to, subject, html });
+      return { messageId: info.messageId, provider: "marketing-smtp" };
+    } catch (err) {
+      console.warn("⚠️  Marketing SMTP failed, falling back to transactional:", err);
+    }
   }
 
-  // Fallback: use transactional sender
-  console.warn("⚠️  Marketing SMTP not configured — falling back to transactional email");
+  // Fallback: use transactional sender (Resend → SMTP)
+  console.warn("⚠️  Using transactional email as fallback for marketing");
   return sendEmail({ to, subject, html, from: sender });
 }
