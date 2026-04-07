@@ -1023,16 +1023,36 @@
 - **Commit:** `978a712`
 - **Status:** ✅ Deployed
 
+### Session 10 — 7 Apr 2026
+
+#### 66. Google Workspace Email Deliverability Setup
+- **What:** Full email authentication configured for ayurgate.com domain:
+  - SPF — Already configured (Google + Resend authorized senders)
+  - DKIM (Google) — Generated 2048-bit key in Google Admin, added `google._domainkey` TXT record on GoDaddy, activated authentication
+  - DKIM (Resend) — Already configured (`resend._domainkey`)
+  - DMARC — Already configured (`p=quarantine`)
+- **Status:** ✅ Live (DNS propagated)
+
+#### 67. Google Workspace — info@ayurgate.com Account
+- **What:** Created `info@ayurgate.com` as a full Google Workspace user account (not alias) — can independently log in, send, and receive emails. Intended as the primary transactional email sender for the app (appointment confirmations, invoices, invites).
+- **Status:** ✅ Active (ready for first sign-in)
+
+#### 68. Feature Tracker Fix — Duplicate Entry Removed
+- **What:** Fixed duplicate Feature 60 block in PROJECT-LOG.md (appended after Architecture Summary section) that caused the `/api/admin/features` parser to return only 60 features instead of 65. Google Sheets tracker now correctly shows all features.
+- **Commit:** `abf4961`
+- **Status:** ✅ Deployed
+
 ---
 
 ## Pending / Upcoming
 
 | # | Feature | Priority | Notes |
 |---|---------|----------|-------|
-| 1 | Unified Staff Management | High | Merge Doctor model into User, single Staff tab, email invites |
-| 2 | Google Workspace Setup | Medium | SPF/DKIM/DMARC on GoDaddy for email deliverability |
-| 3 | WhatsApp API Integration | Low | Beyond templates — actual WhatsApp Business API |
-| 4 | Daily Report Cron | Medium | Set up external cron to auto-trigger daily report |
+| 1 | Staff Detail/Edit Page | Medium | `/admin/staff/[id]` — dedicated view/edit page for individual staff members |
+| 2 | Invite Resend & Batch Invite | Low | Resend expired invites, invite multiple staff at once |
+| 3 | Update SMTP Config for info@ayurgate.com | Medium | Switch app transactional email from Gmail SMTP to Google Workspace SMTP with info@ayurgate.com |
+| 4 | WhatsApp API Integration | Low | Beyond templates — actual WhatsApp Business API |
+| 5 | Daily Report Cron | Medium | Set up external cron to auto-trigger daily report |
 
 ---
 
@@ -1101,4 +1121,4 @@ www.ayurgate.com (Railway)
 
 ---
 
-*Last updated: 7 April 2026 (Session 9)*
+*Last updated: 7 April 2026 (Session 10)*

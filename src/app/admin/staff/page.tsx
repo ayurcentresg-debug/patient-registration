@@ -165,6 +165,7 @@ export default function StaffPage() {
   const [showConfirmPw, setShowConfirmPw] = useState(false);
   const [onLeaveIds, setOnLeaveIds] = useState<Set<string>>(new Set());
   const [showImport, setShowImport] = useState(false);
+  const [resendingId, setResendingId] = useState<string | null>(null);
 
   const showToast = (msg: string, type: "ok" | "err" = "ok") => {
     setToast({ msg, type });
@@ -331,6 +332,25 @@ export default function StaffPage() {
     });
     showToast(`${s.name} ${newStatus === "active" ? "activated" : "deactivated"}`);
     fetchStaff();
+  };
+
+  // ─── Resend Invite handler ──────────────────────────────────────────
+  const handleResendInvite = async (s: Staff) => {
+    setResendingId(s.id);
+    try {
+      const res = await fetch(`/api/staff/${s.id}/resend-invite`, { method: "POST" });
+      if (res.ok) {
+        showToast(`Invite resent to ${s.email}`);
+        fetchStaff();
+      } else {
+        const data = await res.json();
+        showToast(data.error || "Failed to resend invite", "err");
+      }
+    } catch {
+      showToast("Network error", "err");
+    } finally {
+      setResendingId(null);
+    }
   };
 
   // ─── Password handler ────────────────────────────────────────────────
@@ -659,6 +679,17 @@ export default function StaffPage() {
                           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                           Docs
                         </a>
+                        {(s.invitePending || !s.lastLogin) && (
+                          <button
+                            onClick={() => handleResendInvite(s)}
+                            disabled={resendingId === s.id}
+                            className="px-2.5 py-1 text-[13px] font-semibold transition-colors disabled:opacity-50"
+                            style={{ background: "#fff7ed", color: "#c2410c", borderRadius: "var(--radius-sm)", border: "1px solid #fed7aa" }}
+                            title="Resend email invite"
+                          >
+                            {resendingId === s.id ? "Sending..." : "Resend Invite"}
+                          </button>
+                        )}
                         <button
                           onClick={() => openPasswordModal(s)}
                           className="px-2.5 py-1 text-[13px] font-semibold transition-colors"
