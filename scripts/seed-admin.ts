@@ -28,9 +28,14 @@ async function main() {
   // ─── Admin ────────────────────────────────────────────────────────────
   const existingAdmin = await prisma.user.findFirst({ where: { email: "admin@clinic.com" } });
   if (existingAdmin) {
-    // Never overwrite existing admin password — only ensure active
-    await prisma.user.update({ where: { id: existingAdmin.id }, data: { isActive: true } });
-    console.log(`⏭️  Admin already exists: ${existingAdmin.email} (password unchanged)`);
+    // If SEED_ADMIN_PASSWORD is explicitly set, update the password (for password resets via env var)
+    if (process.env.SEED_ADMIN_PASSWORD) {
+      await prisma.user.update({ where: { id: existingAdmin.id }, data: { isActive: true, password: adminPassword } });
+      console.log(`🔑 Admin password updated via SEED_ADMIN_PASSWORD env var: ${existingAdmin.email}`);
+    } else {
+      await prisma.user.update({ where: { id: existingAdmin.id }, data: { isActive: true } });
+      console.log(`⏭️  Admin already exists: ${existingAdmin.email} (password unchanged)`);
+    }
   } else {
     const admin = await prisma.user.create({ data: {
       name: "Admin",
