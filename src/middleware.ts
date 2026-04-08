@@ -111,12 +111,15 @@ export async function middleware(req: NextRequest) {
   }
 
   // Allow public paths, static files, and Next.js internals
+  // Note: /cme is public but /cme/admin requires auth
+  const isPublicPath = PUBLIC_PATHS.some((p) => pathname.startsWith(p));
+  const isCmeAdmin = pathname.startsWith("/cme/admin");
   if (
-    pathname === "/" ||
-    PUBLIC_PATHS.some((p) => pathname.startsWith(p)) ||
+    (pathname === "/" ||
+    isPublicPath ||
     pathname.startsWith("/_next") ||
     pathname.startsWith("/favicon") ||
-    pathname.includes(".")
+    pathname.includes(".")) && !isCmeAdmin
   ) {
     // If logged in and visiting "/", redirect appropriately
     if (pathname === "/") {

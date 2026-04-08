@@ -31,15 +31,29 @@ export async function getClinicId(): Promise<string | null> {
 
 /**
  * Extracts the full JWT payload from the current request's auth cookie.
+ * Also checks super_admin_token for super admin access.
  * Useful when you need both clinicId and userId/role.
  */
 export async function getAuthPayload() {
   try {
     const cookieStore = await cookies();
-    const token = cookieStore.get("auth_token")?.value;
-    if (!token) return null;
 
-    return await verifyToken(token);
+    // Check regular auth token first
+    const token = cookieStore.get("auth_token")?.value;
+    if (token) {
+      return await verifyToken(token);
+    }
+
+    // Fall back to super admin token
+    const saToken = cookieStore.get("super_admin_token")?.value;
+    if (saToken) {
+      const payload = await verifyToken(saToken);
+      if (payload && payload.role === "super_admin") {
+        return { ...payload, role: "admin" as const };
+      }
+    }
+
+    return null;
   } catch {
     return null;
   }
