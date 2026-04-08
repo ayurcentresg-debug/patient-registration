@@ -7,7 +7,14 @@ const adapter = new PrismaBetterSqlite3({ url: DB_PATH });
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
-  console.log("Seeding CME events...");
+  // Skip if events already exist
+  const existingCount = await prisma.cmeEvent.count();
+  if (existingCount > 0) {
+    console.log(`⏭️  CME events already seeded (${existingCount} events). Skipping.`);
+    return;
+  }
+
+  console.log("🎓 Seeding CME events...");
 
   // Create speakers first
   const speakers = await Promise.all([
