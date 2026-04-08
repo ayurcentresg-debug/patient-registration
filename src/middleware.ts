@@ -110,16 +110,32 @@ export async function middleware(req: NextRequest) {
     }
   }
 
+  // ── CME Admin routes (accessible by super admin or clinic admin) ───
+  if (pathname.startsWith("/cme/admin")) {
+    const saToken = req.cookies.get("super_admin_token")?.value;
+    if (saToken) {
+      try {
+        const { payload } = await jwtVerify(saToken, secret);
+        if (payload.role === "super_admin") return NextResponse.next();
+      } catch { /* fall through */ }
+    }
+    const authToken = req.cookies.get("auth_token")?.value;
+    if (authToken) {
+      try {
+        const { payload } = await jwtVerify(authToken, secret);
+        if (payload.role === "admin") return NextResponse.next();
+      } catch { /* fall through */ }
+    }
+    return NextResponse.redirect(new URL("/login", req.url));
+  }
+
   // Allow public paths, static files, and Next.js internals
-  // Note: /cme is public but /cme/admin requires auth
-  const isPublicPath = PUBLIC_PATHS.some((p) => pathname.startsWith(p));
-  const isCmeAdmin = pathname.startsWith("/cme/admin");
   if (
-    (pathname === "/" ||
-    isPublicPath ||
+    pathname === "/" ||
+    PUBLIC_PATHS.some((p) => pathname.startsWith(p)) ||
     pathname.startsWith("/_next") ||
     pathname.startsWith("/favicon") ||
-    pathname.includes(".")) && !isCmeAdmin
+    pathname.includes(".")
   ) {
     // If logged in and visiting "/", redirect appropriately
     if (pathname === "/") {
