@@ -1,12 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
 const STARS = [1, 2, 3, 4, 5];
 const TAGS = ["Friendly staff", "Clean facility", "Short wait time", "Clear explanation", "Professional", "Helpful advice", "Good follow-up"];
 
 export default function ReviewPage() {
+  return (
+    <Suspense fallback={<div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#fefbf6" }}><p style={{ color: "#6b7280" }}>Loading...</p></div>}>
+      <ReviewContent />
+    </Suspense>
+  );
+}
+
+function ReviewContent() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
 
