@@ -1107,14 +1107,187 @@
 
 ---
 
+### Session 12 — 8 April 2026
+
+#### 77. Permanent WhatsApp Access Token (System User)
+- **What:** Replaced temporary 24-hour Meta API token with a permanent never-expiring token via System User:
+  - Created System User "AyurGate WhatsApp Bot" in Meta Business Suite (Admin role)
+  - Assigned assets: AyurGate app (Full control) + WhatsApp Business Account (Full control)
+  - Generated permanent token with permissions: `whatsapp_business_messaging`, `whatsapp_business_management`
+  - Token expiry: **Never** (permanent)
+  - Verified token works via Graph API curl test (HTTP 200)
+  - Updated `.env` locally with new `WA_ACCESS_TOKEN`
+  - Updated Railway environment variable `WA_ACCESS_TOKEN` and redeployed
+  - WhatsApp messaging now uses permanent credentials — no more 24h token expiry issues
+- **Status:** ✅ Live & Deployed
+
+---
+
+### Session 13 — 8 April 2026
+
+#### 78. MOA/AOA Analysis — 3Phala Ayurcentre Pvt Ltd
+- **What:** Read and analyzed the full MOA (Memorandum of Association) of 3Phala Ayurcentre Pvt Ltd to determine if it can be used to operate AyurGate SaaS platform
+- **Key Findings from MOA Objects Clause:**
+  - **Main Object (III-A):** Ayurvedic Consultation, Treatments, Sale of Medicines (Retail & E-commerce), Clinics, Hospitals, Yoga, Education, Manufacturing, Research
+  - **Supportive Ancillary Objects (III-B):**
+    - Item 6: Training, seminars, conferences, exhibitions (supports CME/Webinar module)
+    - Item 7: Patents, copy rights, sophisticated technology, designs, licenses
+    - Item 9: Technical collaborations, import equipment, materials, data, programs
+    - Item 20: Franchises, rights to use our technologies, receive royalties/fees
+    - Item 21: Licence agreements, technical information, know-how
+    - Item 22: Research laboratories, scientific and technical research
+  - **NIC Code:** 74999 ("Other Business Activities") — broad catch-all
+  - **CIN:** U74999TN2018PTC125961
+- **Verdict:** Partial fit — MOA covers "technology," "programs," "E-commerce," "franchises/tech rights" but does NOT explicitly mention "software," "SaaS," "IT services," or "cloud computing"
+- **Status:** ✅ Analysis Complete
+
+#### 79. Bridge Strategy Decision — Operate AyurGate under 3Phala
+- **What:** Decided on bridge strategy to operate AyurGate immediately under 3Phala Ayurcentre Pvt Ltd while registering new company in parallel
+- **Strategy:**
+  - **Immediate:** Use 3Phala's E-commerce + technology clauses to operate AyurGate SaaS
+  - **Parallel:** Register "AyurGate Technologies Private Limited" in India with broad tech MOA via SPICe+
+  - **Later:** Transfer SaaS IP from 3Phala to AyurGate Technologies once registered
+- **Benefits:** Zero delay — can proceed with Meta Business Verification, WhatsApp API using 3Phala's existing Certificate of Incorporation, PAN, GST
+- **Status:** ✅ Decision Made
+
+#### 80. Google Sheet — Bridge Strategy & Action Items Update
+- **What:** Added bridge strategy action items to Google Sheet "Action Items / Reminders" tab
+- **Items Added:**
+  - #13: MOA Analysis Complete (Done)
+  - #14: Use 3Phala for AyurGate Bridge (Decision Made)
+  - #15: Meta Business Verification with 3Phala docs (Next Session)
+  - #16: Register AyurGate Technologies Pvt Ltd in India (Future)
+  - #17: Transfer AyurGate IP to new company (After Registration)
+  - #18: Social Media Brand Reservation — FB, YouTube, LinkedIn, Instagram, X (Pending)
+- **Status:** ✅ Complete
+
+### Session 14 — 8 April 2026
+
+#### 81. CME / Webinar Module — Phase 1 MVP (Complete Build)
+- **Requested by:** User — "cme/webinars"
+- **What:** Built the full CME (Continuing Medical Education) / Webinar / Events module — the first ecosystem module beyond clinic management
+- **Database Schema (6 new models):**
+  - `CmeEvent` — events with schedule, location, video platform, CME credits, pricing, capacity, media, status
+  - `CmeSpeaker` — speaker profiles (can link to platform User)
+  - `CmeEventSpeaker` — many-to-many with role (speaker/moderator/panelist/chief_guest)
+  - `CmeSession` — multi-session support for conferences
+  - `CmeRegistration` — attendee registration with payment, attendance, WhatsApp opt-in
+  - `CmeCertificate` — certificate generation with verification code, delivery tracking
+  - Added `enableCme` feature flag to `PlatformSettings`
+- **API Routes (10 files):**
+  - `/api/cme/events` — GET (list) + POST (create, auto-slug)
+  - `/api/cme/events/[id]` — GET/PUT/DELETE with ownership checks
+  - `/api/cme/events/[id]/register` — POST public registration, generates CME-YYYYMM-XXXX
+  - `/api/cme/events/[id]/registrations` — GET admin list with search
+  - `/api/cme/events/[id]/check-in` — POST toggle check-in
+  - `/api/cme/events/[id]/publish` — POST toggle draft/published
+  - `/api/cme/events/[id]/speakers` — POST add / DELETE remove speaker
+  - `/api/cme/speakers` — GET list + POST create
+  - `/api/cme/speakers/[id]` — GET/PUT/DELETE
+  - `/api/public/cme/events` — GET public listing with spotsLeft/isFull computed
+- **Public Pages (4 files):**
+  - `/cme` — Event listing with hero, search, category filters, featured/upcoming/past sections
+  - `/cme/[slug]` — Event detail with banner, schedule, speakers, sessions, sidebar registration CTA
+  - `/cme/[slug]/register` — Registration form with success state
+  - `/cme/layout.tsx` — Public CME header/footer with AyurGate branding
+- **Admin Pages (6 files):**
+  - `/cme/admin/layout.tsx` — Sub-navigation (Dashboard | Events | Speakers)
+  - `/cme/admin/page.tsx` — Dashboard with stats, filterable event table
+  - `/cme/admin/events/new/page.tsx` — Create event form (8 sections)
+  - `/cme/admin/events/[id]/page.tsx` — Edit event + manage speakers & sessions
+  - `/cme/admin/events/[id]/registrations/page.tsx` — Registrations table with check-in toggle
+  - `/cme/admin/speakers/page.tsx` — Speaker directory with add/edit/delete
+- **Status:** ✅ Complete
+
+#### 82. CME Admin Pages — Tailwind CSS & Responsive Design Rewrite
+- **Requested by:** User — "i develop for desktop, tab, mobile compatibility with proper spacing"
+- **What:** Rewrote all 6 CME admin pages from inline `style={}` objects to Tailwind CSS with full responsive design
+- **Problem:** Background agent generated admin pages with ~400 inline style attributes and zero responsive breakpoints
+- **Fix:** 6 parallel agents rewrote every page:
+  - Removed all inline style constants (card, labelStyle, inputStyle, etc.)
+  - Replaced with Tailwind classes (className)
+  - Added responsive breakpoints: 1-col mobile → 2-col sm → 3-col lg grids
+  - Tables become card-based on mobile (`md:hidden` cards, `hidden md:block` table)
+  - Modals full-width on mobile, max-w-lg on desktop
+  - Headers stack vertically on mobile, row on sm+
+- **Verification:** Build compiles with zero errors, zero inline `style={}` remaining in `/cme/admin/`
+- **Files changed:** All 6 files in `src/app/cme/admin/`
+- **Status:** ✅ Complete
+
+---
+
+### Session 15 — 9 April 2026 — CME Module, Production Deployment & Super Admin Fixes
+
+#### 83. CME & Events Module — Public Pages & Admin Panel
+- **What:** Built full CME public experience and admin panel with AyurGate green theme:
+  - **Public pages:** `/cme` listing page, `/cme/[slug]` detail page with hero banner, schedule, speakers, pricing sidebar
+  - **Admin panel:** `/cme/admin` with full CRUD for events, speakers, registrations, check-in
+  - Inline registration form in sidebar below pricing card
+  - Breadcrumbs, SVG icons, 8 seed events
+- **Status:** ✅ Complete
+
+#### 84. CME Inline Registration
+- **What:** Registration form appears in sidebar below pricing card on event detail page
+  - Compact single-column layout
+  - Amber/gold hover on register button
+  - Public API at `/api/public/cme/register` (no auth required)
+- **Status:** ✅ Complete
+
+#### 85. Super Admin CME Integration
+- **What:** Integrated CME module into super admin console:
+  - `enableCme` feature flag toggle in Settings
+  - CME & Events link in super admin sidebar linking to `/cme/admin`
+- **Status:** ✅ Complete
+
+#### 86. Admin Password Reset Script
+- **What:** Created `scripts/reset-password.ts` CLI tool for resetting admin passwords
+  - Works with local `dev.db` and Railway (via `DB_PATH` env var)
+- **Status:** ✅ Complete
+
+#### 87. Seed Admin Password Update
+- **What:** `seed-admin.ts` now updates admin password when `SEED_ADMIN_PASSWORD` env var is explicitly set
+  - Enables password reset via Railway env vars without CLI access
+- **Status:** ✅ Complete
+
+#### 88. Super Admin Env Var Auth
+- **What:** Super admin login now reads from `SUPER_ADMIN_EMAIL` / `SUPER_ADMIN_PASSWORD` env vars instead of hardcoded values
+- **Status:** ✅ Complete
+
+#### Bug Fixes
+- **Turbopack stale code:** Root cause was Service Worker caching old JS bundles — fixed by clearing via `navigator.serviceWorker.getRegistrations()`
+- **Registration API returning HTML:** Created public endpoint bypassing auth middleware
+- **Railway build failure:** `/review` page `useSearchParams()` wrapped in Suspense boundary (Next.js 16.2.1 requires this for static generation)
+- **Sidebar scrollbar:** Added `hide-scrollbar` CSS class to nav element
+
+#### Production Deployment
+- All features deployed to **www.ayurgate.com** via Railway
+- CME public pages live at `/cme`
+- Super admin accessible with env var credentials
+- Admin password reset working via `SEED_ADMIN_PASSWORD` env var
+
+#### Tech Notes
+- Next.js 16.2.1 requires `useSearchParams()` inside Suspense boundary for static generation
+- Service Workers can cache JS bundles aggressively — clear via `navigator.serviceWorker.getRegistrations()`
+- Railway builds each commit individually; intermediate failed builds are superseded by later successful ones
+
+---
+
 ## Pending / Upcoming
 
 | # | Feature | Priority | Notes |
 |---|---------|----------|-------|
 | 1 | Batch Invite | Low | Invite multiple staff members at once |
 | 2 | Per-Clinic WhatsApp Setup | Medium | Each clinic gets own WhatsApp number + credentials, with AyurGate global credentials as fallback |
-| 3 | Meta App Live Mode | Medium | Switch from Development to Live mode — requires Privacy Policy URL + business verification |
-| 4 | Permanent WhatsApp Token | Medium | Current token is temporary (24h) — set up System User permanent token |
+| 3 | Meta App Live Mode | High | Switch from Development to Live mode — requires Privacy Policy URL + business verification |
+| 4 | ~~Permanent WhatsApp Token~~ | ~~Medium~~ | ✅ **Done** (Session 12) — System User permanent token configured |
+| 5 | Multi-Tenant WhatsApp Architecture | Medium | Design per-clinic WhatsApp: shared platform number vs clinic-owned numbers, routing, credential storage |
+| 6 | Unified Staff Management | Medium | Merge Doctor model into User model, email invites, role-based staff (plan exists) |
+| 7 | Real WhatsApp Business Number | High | Register actual business phone number (replace Meta test number +1 555 159 9591) |
+| 8 | WhatsApp Message Templates | Medium | Create & submit custom message templates for appointment reminders, billing, etc. |
+| 9 | Meta Business Verification | High | Complete business verification for Live mode access |
+| 10 | Register AyurGate Technologies Pvt Ltd | Medium | New company in India via SPICe+ with broad tech MOA |
+| 11 | Social Media Brand Reservation | High | Reserve AyurGate on Facebook, YouTube, LinkedIn, Instagram, X |
+| 12 | AyurGate Ecosystem Master Plan | Low | 20-module Super App vision (CME, Jobs, Pharma, Events, Teleconsult, Marketplace, etc.) |
 
 ---
 
@@ -1152,6 +1325,14 @@ www.ayurgate.com (Railway)
 │   └── /login ................. Patient phone + OTP login
 ├── /doctor .................... Doctor portal
 │   └── /consult/[id] .......... Full consultation workspace
+├── /cme ....................... CME & Events (public) (NEW)
+│   ├── /[slug] ................ Event detail page
+│   └── /[slug]/register ....... Public registration form
+├── /cme/admin ................. CME Admin panel (NEW)
+│   ├── /events/new ............ Create event
+│   ├── /events/[id] ........... Edit event + speakers + sessions
+│   ├── /events/[id]/registrations Check-in & attendance
+│   └── /speakers .............. Speaker directory
 ├── /super-admin ............... Platform admin console
 │   ├── /clinics ............... Manage clinics (bulk ops, CSV export)
 │   ├── /clinics/[id] .......... Clinic detail & plan management
@@ -1185,4 +1366,4 @@ www.ayurgate.com (Railway)
 
 ---
 
-*Last updated: 8 April 2026 (Session 11)*
+*Last updated: 8 April 2026 (Session 14)*
