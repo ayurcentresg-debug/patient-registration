@@ -1463,6 +1463,7 @@ model PlatformSettings {
   enableWhatsApp        Boolean @default(false)
   enableSMS             Boolean @default(false)
   enableApiAccess       Boolean @default(false)
+  enableCme             Boolean @default(true)
   maintenanceMode       Boolean @default(false)
 
   // Branding
@@ -1498,4 +1499,196 @@ model WhatsAppMessage {
   @@index([from])
   @@index([to])
   @@index([twilioSid])
+}
+
+// ─── CME / Webinar Module ───────────────────────────────────────────────
+
+model CmeEvent {
+  id                  String   @id @default(cuid())
+  clinicId            String?
+  slug                String   @unique
+  title               String
+  subtitle            String?
+  description         String
+  shortDescription    String?
+  category            String   @default("cme") // cme | webinar | workshop | conference
+
+  // Schedule
+  startDate           DateTime
+  endDate             DateTime
+  timezone            String   @default("Asia/Singapore")
+
+  // Location / Platform
+  mode                String   @default("online") // online | in_person | hybrid
+  venue               String?
+  venueAddress        String?
+
+  // Video integration
+  platformType        String?  // zoom | youtube_live | custom_url
+  platformUrl         String?
+  platformMeetingId   String?
+  embedUrl            String?
+  recordingUrl        String?
+
+  // CME specifics
+  cmeCredits          Float    @default(0)
+  cmeAccreditor       String?
+  cmeAccreditationId  String?
+
+  // Capacity & pricing
+  maxAttendees        Int?
+  registrationFee     Float    @default(0)
+  currency            String   @default("INR")
+  earlyBirdFee        Float?
+  earlyBirdDeadline   DateTime?
+
+  // Media
+  bannerImageUrl      String?
+  thumbnailUrl        String?
+
+  // Status
+  status              String   @default("draft") // draft | published | live | completed | cancelled
+  isPublic            Boolean  @default(true)
+  isFeatured          Boolean  @default(false)
+
+  // Tags
+  tags                String   @default("[]")
+
+  createdBy           String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  speakers            CmeEventSpeaker[]
+  registrations       CmeRegistration[]
+  sessions            CmeSession[]
+  certificates        CmeCertificate[]
+
+  @@index([clinicId])
+  @@index([status])
+  @@index([startDate])
+  @@index([category])
+}
+
+model CmeSpeaker {
+  id              String   @id @default(cuid())
+  userId          String?
+  name            String
+  email           String?
+  phone           String?
+  title           String?
+  designation     String?
+  organization    String?
+  bio             String?
+  photoUrl        String?
+  specializations String   @default("[]")
+  linkedinUrl     String?
+  websiteUrl      String?
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  events          CmeEventSpeaker[]
+}
+
+model CmeEventSpeaker {
+  id        String   @id @default(cuid())
+  eventId   String
+  speakerId String
+  role      String   @default("speaker") // speaker | moderator | panelist | chief_guest
+  topic     String?
+  sortOrder Int      @default(0)
+
+  event     CmeEvent   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  speaker   CmeSpeaker @relation(fields: [speakerId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, speakerId])
+}
+
+model CmeSession {
+  id          String   @id @default(cuid())
+  eventId     String
+  title       String
+  description String?
+  speakerId   String?
+  startTime   DateTime
+  endTime     DateTime
+  sortOrder   Int      @default(0)
+
+  event       CmeEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
+}
+
+model CmeRegistration {
+  id                  String   @id @default(cuid())
+  eventId             String
+  registrationNo      String
+
+  // Attendee identity
+  userId              String?
+  name                String
+  email               String
+  phone               String?
+  designation         String?
+  organization        String?
+  city                String?
+  registrationSource  String   @default("web") // web | admin | whatsapp | import
+
+  // Payment
+  amountPaid          Float    @default(0)
+  paymentStatus       String   @default("pending") // pending | paid | waived | refunded
+  paymentMethod       String?
+  paymentReference    String?
+
+  // Attendance
+  checkedIn           Boolean  @default(false)
+  checkedInAt         DateTime?
+  attendancePct       Float?
+
+  // Status
+  status              String   @default("registered") // registered | confirmed | attended | no_show | cancelled
+
+  // WhatsApp
+  whatsappOptIn       Boolean  @default(false)
+  remindersSent       String   @default("[]")
+
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  event               CmeEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  certificate         CmeCertificate?
+
+  @@unique([eventId, email])
+  @@index([eventId])
+  @@index([userId])
+  @@index([email])
+}
+
+model CmeCertificate {
+  id                String   @id @default(cuid())
+  registrationId    String   @unique
+  eventId           String
+  certificateNo     String   @unique
+
+  attendeeName      String
+  eventTitle        String
+  eventDate         String
+  cmeCredits        Float    @default(0)
+
+  templateData      String?
+  pdfUrl            String?
+  verificationCode  String   @unique
+
+  sentViaEmail      Boolean  @default(false)
+  sentViaWhatsApp   Boolean  @default(false)
+  sentAt            DateTime?
+  downloadCount     Int      @default(0)
+
+  issuedAt          DateTime @default(now())
+
+  event             CmeEvent        @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  registration      CmeRegistration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
+  @@index([verificationCode])
 }

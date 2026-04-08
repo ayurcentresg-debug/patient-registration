@@ -12,6 +12,7 @@ const FEATURE_ROUTE_MAP: [string, string[]][] = [
   ["enablePackages", ["/packages", "/api/packages"]],
   ["enableReports", ["/reports", "/api/reports"]],
   ["enableMultiBranch", ["/branches", "/api/branches"]],
+  ["enableCme", ["/cme/admin", "/api/cme"]],
   ["enableOnlineBooking", ["/book"]],
 ];
 
@@ -60,6 +61,8 @@ const PUBLIC_PATHS = [
   "/api/whatsapp/webhook",
   "/terms",
   "/privacy",
+  "/cme",
+  "/api/public/cme",
 ];
 
 // Paths that require auth but are allowed during onboarding

@@ -47,6 +47,7 @@ export async function GET() {
         enablePackages: settings.enablePackages,
         enableReports: settings.enableReports,
         enableMultiBranch: settings.enableMultiBranch,
+        enableCme: settings.enableCme,
         enableWhatsApp: settings.enableWhatsApp,
         enableSMS: settings.enableSMS,
         enableApiAccess: settings.enableApiAccess,

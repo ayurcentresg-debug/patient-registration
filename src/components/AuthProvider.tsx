@@ -62,12 +62,13 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     router.push("/login");
   };
 
-  // Don't redirect on public pages
-  if (pathname === "/login" || pathname === "/register" || pathname === "/pricing" || pathname?.startsWith("/invite")) {
+  // Don't redirect or show loading on public pages
+  const isPublicPath = pathname === "/login" || pathname === "/register" || pathname === "/pricing" || pathname?.startsWith("/invite") || (pathname?.startsWith("/cme") && !pathname?.startsWith("/cme/admin"));
+  if (isPublicPath) {
     return <>{children}</>;
   }
 
-  // Show loading spinner while checking auth
+  // Show loading spinner while checking auth (only for protected pages)
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: "#fefbf6" }}>

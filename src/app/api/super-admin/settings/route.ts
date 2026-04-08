@@ -83,7 +83,7 @@ export async function PUT(req: NextRequest) {
       const allowed = [
         "enableOnlineBooking", "enablePayroll", "enableInventory",
         "enablePackages", "enableReports", "enableMultiBranch",
-        "enableWhatsApp", "enableSMS", "enableApiAccess", "maintenanceMode",
+        "enableCme", "enableWhatsApp", "enableSMS", "enableApiAccess", "maintenanceMode",
       ];
       const updateData: Record<string, boolean> = {};
       for (const key of allowed) {

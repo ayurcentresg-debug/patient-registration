@@ -3,9 +3,10 @@
   "configurations": [
     {
       "name": "dev",
-      "runtimeExecutable": "/usr/local/bin/npx",
-      "runtimeArgs": ["next", "dev"],
-      "port": 3000
+      "runtimeExecutable": "/bin/sh",
+      "runtimeArgs": ["-c", "PATH=/usr/local/bin:/opt/homebrew/bin:$PATH npx next dev --turbopack"],
+      "port": 3000,
+      "autoPort": true
     }
   ]
 }
