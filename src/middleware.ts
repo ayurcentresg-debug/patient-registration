@@ -218,6 +218,18 @@ export async function middleware(req: NextRequest) {
   }
 
   if (!token) {
+    // Allow super admins to access tenant pages (e.g. /cme/admin)
+    const saToken = req.cookies.get("super_admin_token")?.value;
+    if (saToken) {
+      try {
+        const { payload } = await jwtVerify(saToken, secret);
+        if (payload.role === "super_admin") {
+          return NextResponse.next();
+        }
+      } catch {
+        // Invalid super admin token, fall through to login redirect
+      }
+    }
     return NextResponse.redirect(new URL("/login", req.url));
   }
 
