@@ -110,25 +110,6 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  // ── CME Admin routes (accessible by super admin or clinic admin) ───
-  if (pathname.startsWith("/cme/admin")) {
-    const saToken = req.cookies.get("super_admin_token")?.value;
-    if (saToken) {
-      try {
-        const { payload } = await jwtVerify(saToken, secret);
-        if (payload.role === "super_admin") return NextResponse.next();
-      } catch { /* fall through */ }
-    }
-    const authToken = req.cookies.get("auth_token")?.value;
-    if (authToken) {
-      try {
-        const { payload } = await jwtVerify(authToken, secret);
-        if (payload.role === "admin") return NextResponse.next();
-      } catch { /* fall through */ }
-    }
-    return NextResponse.redirect(new URL("/login", req.url));
-  }
-
   // Allow public paths, static files, and Next.js internals
   if (
     pathname === "/" ||
