@@ -2,49 +2,58 @@ import Link from "next/link";
 
 const FEATURES = [
   {
-    icon: "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z",
+    emoji: "\uD83D\uDC65",
     title: "Patient Records",
-    desc: "Complete medical history, Prakriti assessment, vitals, treatment tracking, and family linkage — all digitized.",
+    desc: "Complete medical history, Prakriti assessment, vitals, treatment tracking, and family linkage \u2014 all digitized.",
+    gradient: "linear-gradient(135deg, #d1f2e0 0%, #a7f3d0 100%)",
   },
   {
-    icon: "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z",
+    emoji: "\uD83D\uDCC5",
     title: "Smart Scheduling",
     desc: "Doctor-wise time slots, walk-ins, treatment packages, and automated WhatsApp reminders that cut no-shows by 40%.",
+    gradient: "linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)",
   },
   {
-    icon: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z",
+    emoji: "\uD83D\uDCDD",
     title: "Digital Prescriptions",
     desc: "Ayurvedic medicine database with dosage templates. Share via WhatsApp, print, or send to pharmacy in one click.",
+    gradient: "linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)",
   },
   {
-    icon: "M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4",
+    emoji: "\uD83C\uDF3F",
     title: "Inventory Management",
     desc: "Track herbs, medicines, and supplies in real time. Expiry alerts, purchase orders, and multi-branch stock transfers.",
+    gradient: "linear-gradient(135deg, #d1fae5 0%, #6ee7b7 100%)",
   },
   {
-    icon: "M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z",
+    emoji: "\uD83E\uDDFE",
     title: "GST-Compliant Billing",
     desc: "Auto-generated invoices with tax, payment tracking, treatment packages, credit notes, and financial reports.",
+    gradient: "linear-gradient(135deg, #ede9fe 0%, #c4b5fd 100%)",
   },
   {
-    icon: "M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z",
+    emoji: "\uD83D\uDCF2",
     title: "WhatsApp & Email",
     desc: "Pre-built templates for appointment reminders, follow-ups, birthday wishes, and bulk campaigns.",
+    gradient: "linear-gradient(135deg, #dcfce7 0%, #86efac 100%)",
   },
   {
-    icon: "M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z",
+    emoji: "\uD83D\uDC68\u200D\u2695\uFE0F",
     title: "Staff & Payroll",
     desc: "Manage doctors, therapists, receptionists. Leave tracking, commissions, and country-specific payroll (CPF/EPF/SOCSO).",
+    gradient: "linear-gradient(135deg, #fce7f3 0%, #f9a8d4 100%)",
   },
   {
-    icon: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z",
+    emoji: "\uD83D\uDCCA",
     title: "Reports & Analytics",
-    desc: "Revenue trends, appointment analytics, staff performance, inventory reports — all exportable to CSV.",
+    desc: "Revenue trends, appointment analytics, staff performance, inventory reports \u2014 all exportable to CSV.",
+    gradient: "linear-gradient(135deg, #e0e7ff 0%, #a5b4fc 100%)",
   },
   {
-    icon: "M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4",
+    emoji: "\uD83C\uDFE5",
     title: "Multi-Branch",
     desc: "Run multiple clinic locations from one dashboard. Transfer stock, share patients, and view consolidated reports.",
+    gradient: "linear-gradient(135deg, #ffedd5 0%, #fdba74 100%)",
   },
 ];
 
@@ -231,15 +240,20 @@ export default function LandingPage() {
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {FEATURES.map((f) => (
-              <div key={f.title} className="p-6 rounded-xl transition-all hover:shadow-md" style={{ border: "1.5px solid #f3f4f6", background: "#fefefe" }}>
-                <div className="w-11 h-11 rounded-lg flex items-center justify-center mb-4" style={{ background: "#d1f2e0" }}>
-                  <svg className="w-5 h-5" fill="none" stroke="#14532d" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d={f.icon} />
-                  </svg>
+            {FEATURES.map((f, i) => (
+              <div
+                key={f.title}
+                className="group p-6 rounded-2xl transition-all duration-300 hover:shadow-lg hover:-translate-y-1 cursor-default"
+                style={{ border: "1px solid #e5e7eb", background: "white" }}
+              >
+                <div
+                  className="w-14 h-14 rounded-xl flex items-center justify-center mb-5 transition-transform duration-300 group-hover:scale-110"
+                  style={{ background: f.gradient }}
+                >
+                  <span className="text-[28px]">{f.emoji}</span>
                 </div>
-                <h3 className="text-[16px] font-bold mb-2" style={{ color: "#111827" }}>{f.title}</h3>
-                <p className="text-[14px] leading-relaxed" style={{ color: "#6b7280" }}>{f.desc}</p>
+                <h3 className="text-[17px] font-bold mb-2" style={{ color: "#111827" }}>{f.title}</h3>
+                <p className="text-[14.5px] leading-relaxed" style={{ color: "#6b7280" }}>{f.desc}</p>
               </div>
             ))}
           </div>
@@ -541,49 +555,69 @@ export default function LandingPage() {
       </section>
 
       {/* ─── Footer ─── */}
-      <footer className="px-6 lg:px-16 py-10" style={{ borderTop: "1px solid #e5e7eb" }}>
+      <footer className="px-6 lg:px-16 py-12" style={{ background: "#14532d" }}>
         <div className="max-w-5xl mx-auto">
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-8 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-8 mb-10">
             {/* Brand */}
             <div className="sm:col-span-2">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-8 h-8 rounded-md flex items-center justify-center" style={{ background: "#14532d" }}>
-                  <span className="text-[11px] font-extrabold text-white">AG</span>
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "rgba(255,255,255,0.15)" }}>
+                  <span className="text-[12px] font-extrabold text-white">AG</span>
                 </div>
-                <span className="text-[16px] font-bold tracking-wider" style={{ color: "#14532d" }}>AYUR GATE</span>
+                <span className="text-[17px] font-bold tracking-wider text-white">AYUR GATE</span>
               </div>
-              <p className="text-[13px] leading-relaxed max-w-xs" style={{ color: "#6b7280" }}>
+              <p className="text-[13px] leading-relaxed max-w-xs mb-6" style={{ color: "rgba(255,255,255,0.6)" }}>
                 Complete clinic management software built specifically for Ayurveda, Siddha, and wellness practices.
               </p>
+              {/* Social Media Icons */}
+              <div className="flex items-center gap-3">
+                <a href="https://www.facebook.com/ayurgate" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-lg flex items-center justify-center transition-all hover:opacity-80" style={{ background: "rgba(255,255,255,0.1)" }} aria-label="Facebook">
+                  <svg className="w-4 h-4" fill="white" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                </a>
+                <a href="https://www.instagram.com/ayurgate" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-lg flex items-center justify-center transition-all hover:opacity-80" style={{ background: "rgba(255,255,255,0.1)" }} aria-label="Instagram">
+                  <svg className="w-4 h-4" fill="white" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+                </a>
+                <a href="https://www.linkedin.com/company/ayurgate" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-lg flex items-center justify-center transition-all hover:opacity-80" style={{ background: "rgba(255,255,255,0.1)" }} aria-label="LinkedIn">
+                  <svg className="w-4 h-4" fill="white" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+                </a>
+                <a href="https://x.com/ayurgate" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-lg flex items-center justify-center transition-all hover:opacity-80" style={{ background: "rgba(255,255,255,0.1)" }} aria-label="X (Twitter)">
+                  <svg className="w-4 h-4" fill="white" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                </a>
+                <a href="https://www.youtube.com/@ayurgate" target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-lg flex items-center justify-center transition-all hover:opacity-80" style={{ background: "rgba(255,255,255,0.1)" }} aria-label="YouTube">
+                  <svg className="w-4 h-4" fill="white" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                </a>
+              </div>
             </div>
 
             {/* Product Links */}
             <div>
-              <h4 className="text-[13px] font-bold mb-3" style={{ color: "#111827" }}>Product</h4>
-              <div className="space-y-2">
-                <a href="#features" className="block text-[13px] hover:underline" style={{ color: "#6b7280" }}>Features</a>
-                <Link href="/pricing" className="block text-[13px] hover:underline" style={{ color: "#6b7280" }}>Pricing</Link>
-                <Link href="/register" className="block text-[13px] hover:underline" style={{ color: "#6b7280" }}>Free Trial</Link>
-                <Link href="/login" className="block text-[13px] hover:underline" style={{ color: "#6b7280" }}>Sign In</Link>
+              <h4 className="text-[13px] font-bold mb-4 text-white">Product</h4>
+              <div className="space-y-2.5">
+                <a href="#features" className="block text-[13px] transition-colors hover:text-white" style={{ color: "rgba(255,255,255,0.6)" }}>Features</a>
+                <Link href="/pricing" className="block text-[13px] transition-colors hover:text-white" style={{ color: "rgba(255,255,255,0.6)" }}>Pricing</Link>
+                <Link href="/register" className="block text-[13px] transition-colors hover:text-white" style={{ color: "rgba(255,255,255,0.6)" }}>Free Trial</Link>
+                <Link href="/login" className="block text-[13px] transition-colors hover:text-white" style={{ color: "rgba(255,255,255,0.6)" }}>Sign In</Link>
               </div>
             </div>
 
             {/* Contact */}
             <div>
-              <h4 className="text-[13px] font-bold mb-3" style={{ color: "#111827" }}>Contact</h4>
-              <div className="space-y-2">
-                <p className="text-[13px]" style={{ color: "#6b7280" }}>ayurcentresg@gmail.com</p>
-                <p className="text-[13px]" style={{ color: "#6b7280" }}>Singapore &bull; India &bull; Malaysia</p>
+              <h4 className="text-[13px] font-bold mb-4 text-white">Contact</h4>
+              <div className="space-y-2.5">
+                <a href="mailto:ayurcentresg@gmail.com" className="block text-[13px] transition-colors hover:text-white" style={{ color: "rgba(255,255,255,0.6)" }}>ayurcentresg@gmail.com</a>
+                <p className="text-[13px]" style={{ color: "rgba(255,255,255,0.6)" }}>Singapore &bull; India &bull; Malaysia</p>
+                <Link href="/terms" className="block text-[13px] transition-colors hover:text-white" style={{ color: "rgba(255,255,255,0.6)" }}>Terms of Service</Link>
+                <Link href="/privacy" className="block text-[13px] transition-colors hover:text-white" style={{ color: "rgba(255,255,255,0.6)" }}>Privacy Policy</Link>
               </div>
             </div>
           </div>
 
-          <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3" style={{ borderTop: "1px solid #f3f4f6" }}>
-            <p className="text-[12px]" style={{ color: "#9ca3af" }}>
+          <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3" style={{ borderTop: "1px solid rgba(255,255,255,0.1)" }}>
+            <p className="text-[12px]" style={{ color: "rgba(255,255,255,0.4)" }}>
               &copy; 2026 AYUR GATE. All rights reserved.
             </p>
-            <p className="text-[12px]" style={{ color: "#9ca3af" }}>
-              Built for Ayurveda clinics worldwide.
+            <p className="text-[12px]" style={{ color: "rgba(255,255,255,0.4)" }}>
+              Empowering Ayurveda clinics worldwide.
             </p>
           </div>
         </div>
