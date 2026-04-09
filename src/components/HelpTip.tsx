@@ -114,14 +114,20 @@ export function PageGuide({ storageKey, title, subtitle, steps }: PageGuideProps
     return (
       <button
         onClick={reset}
-        className="inline-flex items-center gap-1.5 text-[13px] font-medium transition-colors hover:underline mb-3"
-        style={{ color: "var(--blue-500)" }}
+        className="inline-flex items-center gap-2 text-[13px] font-semibold transition-all hover:shadow-md mb-3"
+        style={{
+          background: "linear-gradient(135deg, #eff6ff, #e0f2fe)",
+          color: "#2563eb",
+          padding: "8px 16px",
+          borderRadius: 10,
+          border: "1.5px solid #bfdbfe",
+        }}
         title="Show getting started guide"
       >
-        <svg className="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
-          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clipRule="evenodd" />
+        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
         </svg>
-        Show Guide
+        Page Guide
       </button>
     );
   }
