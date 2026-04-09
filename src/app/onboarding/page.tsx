@@ -525,7 +525,7 @@ export default function OnboardingPage() {
             <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "#f0fdf4" }}>
               <span className="text-xl">🌿</span>
             </div>
-            <span className="text-xl font-bold tracking-wider" style={{ color: "#14532d" }}>AYUR GATE</span>
+            <span className="text-xl font-bold tracking-wider" style={{ color: "#14532d" }}>AyurGate</span>
           </div>
         </div>
 
@@ -599,7 +599,7 @@ export default function OnboardingPage() {
         <div className="lg:hidden flex items-center justify-between px-5 py-4" style={{ borderBottom: "1px solid #f3f4f6", background: "white" }}>
           <div className="flex items-center gap-2">
             <span className="text-lg">🌿</span>
-            <span className="text-base font-bold tracking-wider" style={{ color: "#14532d" }}>AYUR GATE</span>
+            <span className="text-base font-bold tracking-wider" style={{ color: "#14532d" }}>AyurGate</span>
           </div>
           <div className="flex items-center gap-1.5">
             {SECTIONS.map((sec) => (
@@ -677,7 +677,7 @@ export default function OnboardingPage() {
                       <span className="text-5xl">🌿</span>
                     </div>
                     <div>
-                      <h2 className="text-2xl font-bold text-white tracking-wider mb-1">AYUR GATE</h2>
+                      <h2 className="text-2xl font-bold text-white tracking-wider mb-1">AyurGate</h2>
                       <p className="text-[13px]" style={{ color: "rgba(255,255,255,0.7)" }}>Ayurveda SaaS Platform</p>
                     </div>
                   </div>

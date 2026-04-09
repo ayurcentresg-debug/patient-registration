@@ -200,7 +200,7 @@ export async function POST(request: NextRequest) {
       if (!isWalkin && pat?.email) {
         await sendEmail({
           to: pat.email,
-          subject: "Appointment Confirmed — AYUR GATE",
+          subject: "Appointment Confirmed — AyurGate",
           html: appointmentConfirmationEmail({
             patientName,
             date: appointmentDate.toLocaleDateString("en-SG", { weekday: "long", year: "numeric", month: "long", day: "numeric" }),

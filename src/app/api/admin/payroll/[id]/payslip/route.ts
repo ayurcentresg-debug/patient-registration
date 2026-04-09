@@ -32,7 +32,7 @@ export async function GET(
     });
 
     // Get clinic info
-    let clinicName = "AYUR GATE";
+    let clinicName = "AyurGate";
     let clinicAddress = "";
     let clinicLogo = "";
     let clinicPhone = "";

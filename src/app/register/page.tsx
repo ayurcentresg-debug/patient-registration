@@ -167,7 +167,7 @@ export default function RegisterPage() {
           <div className="lg:hidden flex items-center gap-2 mb-8">
             <span className="text-xl">&#127807;</span>
             <span className="text-xl font-bold tracking-wider" style={{ color: "#14532d" }}>
-              AYUR GATE
+              AyurGate
             </span>
           </div>
 
@@ -270,7 +270,7 @@ export default function RegisterPage() {
           <div className="lg:hidden flex items-center gap-2 mb-8">
             <span className="text-xl">&#127807;</span>
             <span className="text-xl font-bold tracking-wider" style={{ color: "#14532d" }}>
-              AYUR GATE
+              AyurGate
             </span>
           </div>
 
@@ -388,7 +388,7 @@ export default function RegisterPage() {
         <div className="lg:hidden flex items-center gap-2 mb-8">
           <span className="text-xl">&#127807;</span>
           <span className="text-xl font-bold tracking-wider" style={{ color: "#14532d" }}>
-            AYUR GATE
+            AyurGate
           </span>
         </div>
 
@@ -942,7 +942,7 @@ export default function RegisterPage() {
               <span className="text-2xl">&#127807;</span>
             </div>
             <span className="text-2xl font-bold text-white tracking-wider">
-              AYUR GATE
+              AyurGate
             </span>
           </div>
           <h1 className="text-3xl font-bold text-white mb-4">

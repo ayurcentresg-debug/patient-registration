@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
     try {
       await sendEmail({
         to: email,
-        subject: "Password Reset Code — AYUR GATE",
+        subject: "Password Reset Code — AyurGate",
         html: passwordResetEmail(user.name, otp),
       });
     } catch (emailErr) {

@@ -170,7 +170,7 @@ export async function POST(req: NextRequest) {
     <p style="font-size:12px;color:#9ca3af;margin:16px 0 0;">If you need to reschedule, please call the clinic directly.</p>
   </div>
   <div style="text-align:center;padding:16px 0;">
-    <p style="font-size:11px;color:#9ca3af;">Powered by AYUR GATE</p>
+    <p style="font-size:11px;color:#9ca3af;">Powered by AyurGate</p>
   </div>
 </div>
 </body></html>`,

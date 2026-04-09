@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
             price_data: {
               currency: CURRENCY,
               product_data: {
-                name: `AYUR GATE ${planConfig.name}`,
+                name: `AyurGate ${planConfig.name}`,
                 description: `${planConfig.name} plan — ${planConfig.maxUsers} staff, ${planConfig.maxPatients === 999999 ? "unlimited" : planConfig.maxPatients} patients`,
               },
               unit_amount: annual

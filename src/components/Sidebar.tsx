@@ -107,7 +107,7 @@ export default function Sidebar() {
   const notifRef = useRef<HTMLDivElement>(null);
 
   // Clinic branding
-  const [clinicName, setClinicName] = useState("AYUR GATE");
+  const [clinicName, setClinicName] = useState("AyurGate");
   const clinicInitials = clinicName.split(/\s+/).map(w => w[0]).join("").slice(0, 2).toUpperCase();
 
   // Filter upcoming appointments (not yet passed)
@@ -347,7 +347,7 @@ export default function Sidebar() {
             AG
           </div>
           <span style={{ color: "#fff", fontSize: 15, fontWeight: 700, letterSpacing: "1px" }}>
-            AYUR GATE
+            AyurGate
           </span>
         </div>
 
@@ -413,9 +413,9 @@ export default function Sidebar() {
             AG
           </div>
           <span style={{ color: "#fff", fontSize: 16, fontWeight: 700, letterSpacing: "1.5px" }}>
-            AYUR GATE
+            AyurGate
           </span>
-          {clinicName !== "AYUR GATE" && (
+          {clinicName !== "AyurGate" && (
             <span style={{ color: "rgba(255,255,255,0.5)", fontSize: 13, fontWeight: 500, marginLeft: 4 }}>
               — {clinicName}
             </span>
@@ -1027,8 +1027,8 @@ export default function Sidebar() {
               minWidth: 0,
             }}
           >
-            <h1 className="text-[15px] font-bold text-white" style={{ letterSpacing: "1.5px" }}>AYUR GATE</h1>
-            <p className="text-[11px] font-medium" style={{ color: "rgba(255,255,255,0.45)" }}>{clinicName !== "AYUR GATE" ? clinicName : "Ayurveda Clinic"}</p>
+            <h1 className="text-[15px] font-bold text-white" style={{ letterSpacing: "1.5px" }}>AyurGate</h1>
+            <p className="text-[11px] font-medium" style={{ color: "rgba(255,255,255,0.45)" }}>{clinicName !== "AyurGate" ? clinicName : "Ayurveda Clinic"}</p>
           </div>
 
         </div>

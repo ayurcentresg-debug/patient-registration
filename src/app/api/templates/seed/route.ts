@@ -307,7 +307,7 @@ Warmest wishes,
 
 Running an Ayurveda clinic is hard enough without wrestling with spreadsheets, missed appointments, and billing headaches.
 
-AYUR GATE is an all-in-one clinic management platform built specifically for Ayurveda and traditional medicine practices. It handles:
+AyurGate is an all-in-one clinic management platform built specifically for Ayurveda and traditional medicine practices. It handles:
 
 - Patient registration and medical records
 - Appointment scheduling with online booking
@@ -315,22 +315,22 @@ AYUR GATE is an all-in-one clinic management platform built specifically for Ayu
 - Inventory management for herbs and medicines
 - WhatsApp and email communications
 
-Hundreds of practitioners across Singapore and Asia trust AYUR GATE to run their clinics more efficiently.
+Hundreds of practitioners across Singapore and Asia trust AyurGate to run their clinics more efficiently.
 
 Would you be open to a quick 15-minute demo to see how it could work for your practice?
 
 Warm regards,
-The AYUR GATE Team
+The AyurGate Team
 https://ayurgate.com`,
   },
   {
     name: "B2B Free Trial Invitation",
     channel: "email",
     category: "marketing",
-    subject: "Try AYUR GATE free for 14 days — no credit card needed",
+    subject: "Try AyurGate free for 14 days — no credit card needed",
     body: `Dear {{patientName}},
 
-We'd love to invite you to try AYUR GATE — the clinic management software built for Ayurveda practitioners — completely free for 14 days.
+We'd love to invite you to try AyurGate — the clinic management software built for Ayurveda practitioners — completely free for 14 days.
 
 Here's what you'll get during your trial:
 
@@ -348,13 +348,13 @@ Start your free trial today and see the difference in how you manage your practi
 Ready to get started? Reply to this email or visit https://ayurgate.com/register
 
 Best regards,
-The AYUR GATE Team`,
+The AyurGate Team`,
   },
   {
     name: "B2B Pain Points & Features",
     channel: "email",
     category: "marketing",
-    subject: "5 clinic problems AYUR GATE solves instantly",
+    subject: "5 clinic problems AyurGate solves instantly",
     body: `Dear {{patientName}},
 
 If you're running an Ayurveda clinic, chances are you're dealing with at least one of these:
@@ -369,24 +369,24 @@ If you're running an Ayurveda clinic, chances are you're dealing with at least o
 
 5. No patient follow-up — Automated WhatsApp and email follow-ups keep patients engaged and coming back.
 
-AYUR GATE was built by practitioners, for practitioners. Every feature solves a real problem we've seen in clinics just like yours.
+AyurGate was built by practitioners, for practitioners. Every feature solves a real problem we've seen in clinics just like yours.
 
 Interested in seeing it in action? Let's schedule a quick demo.
 
 Best regards,
-The AYUR GATE Team
+The AyurGate Team
 https://ayurgate.com`,
   },
   {
     name: "B2B Case Study - Success Story",
     channel: "email",
     category: "marketing",
-    subject: "How one clinic saved 10 hours per week with AYUR GATE",
+    subject: "How one clinic saved 10 hours per week with AyurGate",
     body: `Dear {{patientName}},
 
 We recently spoke with a clinic owner who was spending over 2 hours every day on admin tasks — scheduling, billing, follow-ups, and inventory checks.
 
-After switching to AYUR GATE:
+After switching to AyurGate:
 
 - Appointment no-shows dropped by 35% (automated WhatsApp reminders)
 - Billing time reduced from 45 minutes to 5 minutes per day
@@ -395,22 +395,22 @@ After switching to AYUR GATE:
 
 The result? 10+ hours saved every week — time that now goes back into patient care.
 
-Every Ayurveda clinic deserves tools that work as hard as you do. AYUR GATE is designed to be that tool.
+Every Ayurveda clinic deserves tools that work as hard as you do. AyurGate is designed to be that tool.
 
 Want similar results for your practice? Let's talk.
 
 Warm regards,
-The AYUR GATE Team
+The AyurGate Team
 https://ayurgate.com`,
   },
   {
     name: "B2B Pricing & Plans",
     channel: "email",
     category: "marketing",
-    subject: "AYUR GATE plans start at just S$49/month",
+    subject: "AyurGate plans start at just S$49/month",
     body: `Dear {{patientName}},
 
-Great clinic software shouldn't break the bank. That's why AYUR GATE offers flexible plans for every practice size:
+Great clinic software shouldn't break the bank. That's why AyurGate offers flexible plans for every practice size:
 
 STARTER — S$49/month
 - Up to 500 patients
@@ -436,7 +436,7 @@ All plans include a 14-day free trial. No credit card required.
 Which plan fits your practice? Reply to this email and we'll help you choose.
 
 Best regards,
-The AYUR GATE Team
+The AyurGate Team
 https://ayurgate.com`,
   },
   {
@@ -466,7 +466,7 @@ Spaces are limited. Reserve your spot today by replying to this email.
 Can't make it? We'll send you the recording afterward. Just let us know.
 
 See you there!
-The AYUR GATE Team
+The AyurGate Team
 https://ayurgate.com`,
   },
 

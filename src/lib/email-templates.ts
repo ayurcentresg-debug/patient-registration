@@ -1,5 +1,5 @@
 /**
- * Branded HTML email templates for AYUR GATE
+ * Branded HTML email templates for AyurGate
  * All emails use a consistent layout with green branding
  */
 
@@ -12,7 +12,7 @@ function layout(title: string, body: string): string {
     <!-- Header -->
     <div style="text-align:center;margin-bottom:24px;">
       <div style="display:inline-block;background:#14532d;color:#fff;font-weight:800;font-size:14px;padding:8px 14px;border-radius:8px;letter-spacing:2px;">AG</div>
-      <span style="display:inline-block;margin-left:8px;font-size:18px;font-weight:700;color:#14532d;letter-spacing:2px;vertical-align:middle;">AYUR GATE</span>
+      <span style="display:inline-block;margin-left:8px;font-size:18px;font-weight:700;color:#14532d;letter-spacing:2px;vertical-align:middle;">AyurGate</span>
     </div>
 
     <!-- Card -->
@@ -23,7 +23,7 @@ function layout(title: string, body: string): string {
 
     <!-- Footer -->
     <div style="text-align:center;margin-top:24px;padding-top:16px;">
-      <p style="color:#9ca3af;font-size:12px;margin:0;">Sent by AYUR GATE &middot; Ayurveda Clinic Management</p>
+      <p style="color:#9ca3af;font-size:12px;margin:0;">Sent by AyurGate &middot; Ayurveda Clinic Management</p>
       <p style="color:#d1d5db;font-size:11px;margin:4px 0 0 0;">www.ayurgate.com</p>
     </div>
   </div>
@@ -141,7 +141,7 @@ export function clinicRegistrationNotification(params: {
     `<tr><td style="padding:8px 12px;${isLast ? "" : "border-bottom:1px solid #f3f4f6;"}color:#6b7280;font-size:13px;width:120px;">${label}</td><td style="padding:8px 12px;${isLast ? "" : "border-bottom:1px solid #f3f4f6;"}color:#111827;font-size:14px;font-weight:600;">${value}</td></tr>`;
 
   return layout("New Clinic Registration", `
-    <p style="color:#374151;font-size:14px;line-height:1.6;margin:0 0 16px 0;">A new clinic has registered on AYUR GATE:</p>
+    <p style="color:#374151;font-size:14px;line-height:1.6;margin:0 0 16px 0;">A new clinic has registered on AyurGate:</p>
     <table style="width:100%;border-collapse:collapse;margin:0 0 20px 0;">
       ${row("Clinic", params.clinicName)}
       ${row("Owner", params.ownerName)}

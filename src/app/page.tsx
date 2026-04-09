@@ -86,7 +86,7 @@ const STEPS = [
 
 const TESTIMONIALS = [
   {
-    quote: "We went from 2 hours of daily admin to 15 minutes. AYUR GATE handles everything — scheduling, billing, inventory. My staff loves it.",
+    quote: "We went from 2 hours of daily admin to 15 minutes. AyurGate handles everything — scheduling, billing, inventory. My staff loves it.",
     name: "Dr. Priya Nair",
     role: "Ayurveda Physician",
     location: "Singapore",
@@ -107,8 +107,8 @@ const TESTIMONIALS = [
 
 const FAQS = [
   {
-    q: "Is AYUR GATE specifically built for Ayurveda clinics?",
-    a: "Yes. Unlike generic clinic software, AYUR GATE is built from the ground up for Ayurveda, Siddha, Unani, and wellness practices. It includes Prakriti assessment, Ayurvedic medicine categories, Panchakarma treatment plans, and herbal inventory management.",
+    q: "Is AyurGate specifically built for Ayurveda clinics?",
+    a: "Yes. Unlike generic clinic software, AyurGate is built from the ground up for Ayurveda, Siddha, Unani, and wellness practices. It includes Prakriti assessment, Ayurvedic medicine categories, Panchakarma treatment plans, and herbal inventory management.",
   },
   {
     q: "How long does it take to set up?",
@@ -124,7 +124,7 @@ const FAQS = [
   },
   {
     q: "Do you support GST billing for Singapore, India, and Malaysia?",
-    a: "Yes. AYUR GATE generates GST-compliant invoices for all three countries, with the correct tax rates and formats for each jurisdiction.",
+    a: "Yes. AyurGate generates GST-compliant invoices for all three countries, with the correct tax rates and formats for each jurisdiction.",
   },
   {
     q: "What happens after the free trial?",
@@ -156,7 +156,7 @@ export default function LandingPage() {
           <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "#14532d" }}>
             <span className="text-[13px] font-extrabold text-white">AG</span>
           </div>
-          <span className="text-[18px] font-bold tracking-wider" style={{ color: "#14532d" }}>AYUR GATE</span>
+          <span className="text-[18px] font-bold tracking-wider" style={{ color: "#14532d" }}>AyurGate</span>
         </div>
         <div className="hidden sm:flex items-center gap-6">
           <a href="#features" className="text-[14px] font-medium hover:opacity-70 transition-opacity" style={{ color: "#374151" }}>Features</a>
@@ -325,7 +325,7 @@ export default function LandingPage() {
               Sound familiar?
             </h2>
             <p className="text-[16px]" style={{ color: "#6b7280" }}>
-              Every clinic faces these challenges. AYUR GATE solves them.
+              Every clinic faces these challenges. AyurGate solves them.
             </p>
           </div>
 
@@ -543,7 +543,7 @@ export default function LandingPage() {
         <div className="max-w-3xl mx-auto text-center p-10 sm:p-14 rounded-2xl" style={{ background: "linear-gradient(135deg, #14532d 0%, #2d6a4f 50%, #40916c 100%)" }}>
           <h2 className="text-[28px] sm:text-[36px] font-bold text-white mb-3">Ready to modernise your clinic?</h2>
           <p className="text-[16px] text-white/80 mb-8 max-w-lg mx-auto">
-            Join hundreds of Ayurveda clinics in Singapore, India, and Malaysia already using AYUR GATE to save time and grow their practice.
+            Join hundreds of Ayurveda clinics in Singapore, India, and Malaysia already using AyurGate to save time and grow their practice.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
@@ -554,7 +554,7 @@ export default function LandingPage() {
               Start 7-Day Free Trial
             </Link>
             <a
-              href="mailto:ayurcentresg@gmail.com?subject=AYUR GATE Demo Request"
+              href="mailto:ayurcentresg@gmail.com?subject=AyurGate Demo Request"
               className="inline-block px-8 py-3.5 text-[16px] font-semibold rounded-xl transition-all hover:opacity-90"
               style={{ color: "white", border: "1.5px solid rgba(255,255,255,0.4)" }}
             >
@@ -575,7 +575,7 @@ export default function LandingPage() {
                 <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "rgba(255,255,255,0.15)" }}>
                   <span className="text-[12px] font-extrabold text-white">AG</span>
                 </div>
-                <span className="text-[17px] font-bold tracking-wider text-white">AYUR GATE</span>
+                <span className="text-[17px] font-bold tracking-wider text-white">AyurGate</span>
               </div>
               <p className="text-[13px] leading-relaxed max-w-xs mb-6" style={{ color: "rgba(255,255,255,0.6)" }}>
                 Complete clinic management software built specifically for Ayurveda, Siddha, and wellness practices.
@@ -625,7 +625,7 @@ export default function LandingPage() {
 
           <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3" style={{ borderTop: "1px solid rgba(255,255,255,0.1)" }}>
             <p className="text-[12px]" style={{ color: "rgba(255,255,255,0.4)" }}>
-              &copy; 2026 AYUR GATE. All rights reserved.
+              &copy; 2026 AyurGate. All rights reserved.
             </p>
             <p className="text-[12px]" style={{ color: "rgba(255,255,255,0.4)" }}>
               Empowering Ayurveda clinics worldwide.

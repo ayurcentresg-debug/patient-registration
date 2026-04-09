@@ -43,7 +43,7 @@ export async function POST(
     }
 
     // Get clinic info
-    let clinicName = "AYUR GATE";
+    let clinicName = "AyurGate";
     let clinicAddress = "";
     let clinicLogo = "";
     if (clinicId) {

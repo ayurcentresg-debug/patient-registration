@@ -71,7 +71,7 @@ export default function AdminClinicsPage() {
         <div>
           <h1 style={{ fontSize: 22, fontWeight: 700, margin: 0 }}>Registered Clinics</h1>
           <p style={{ color: "#6b7280", fontSize: 14, marginTop: 4 }}>
-            {clinics.length} clinic{clinics.length !== 1 ? "s" : ""} registered on AYUR GATE
+            {clinics.length} clinic{clinics.length !== 1 ? "s" : ""} registered on AyurGate
           </p>
         </div>
       </div>

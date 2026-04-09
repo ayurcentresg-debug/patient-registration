@@ -115,7 +115,7 @@ export default function SuperAdminDashboard() {
         <div style={{ padding: "24px 32px", borderBottom: "1px solid #e5e7eb", background: "#fff", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div>
             <h1 style={{ fontSize: 24, fontWeight: 700, color: "#111827", margin: 0 }}>Dashboard</h1>
-            <p style={{ fontSize: 14, color: "#6b7280", margin: "4px 0 0" }}>AYUR GATE Platform Overview</p>
+            <p style={{ fontSize: 14, color: "#6b7280", margin: "4px 0 0" }}>AyurGate Platform Overview</p>
           </div>
           <div style={{ display: "flex", gap: 8 }}>
             {expiringSoon > 0 && (

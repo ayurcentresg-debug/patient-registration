@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get clinic info
-    let clinicName = "AYUR GATE";
+    let clinicName = "AyurGate";
     let clinicAddress = "";
     let clinicLogo = "";
     if (clinicId) {

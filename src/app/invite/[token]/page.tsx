@@ -65,7 +65,7 @@ export default function InvitePage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-6">
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl text-white font-bold text-xl mb-3" style={{ background: "#14532d" }}>AC</div>
-          <h1 className="text-xl font-bold" style={{ color: "var(--grey-900, #111)" }}>AYUR GATE</h1>
+          <h1 className="text-xl font-bold" style={{ color: "var(--grey-900, #111)" }}>AyurGate</h1>
         </div>
 
         <div className="bg-white rounded-2xl shadow-lg p-6" style={{ border: "1.5px solid var(--grey-200, #e5e7eb)" }}>
@@ -94,7 +94,7 @@ export default function InvitePage() {
             <>
               <h2 className="text-[16px] font-bold mb-1" style={{ color: "var(--grey-900)" }}>Welcome, {info.name}!</h2>
               <p className="text-[15px] mb-4" style={{ color: "var(--grey-500)" }}>
-                Set your password to activate your <strong>{info.role}</strong> account on AYUR GATE.
+                Set your password to activate your <strong>{info.role}</strong> account on AyurGate.
               </p>
 
               {error && (

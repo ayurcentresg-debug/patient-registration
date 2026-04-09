@@ -12,28 +12,28 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: {
-    default: "AYUR GATE — Ayurveda Clinic Management Software",
-    template: "%s — AYUR GATE",
+    default: "AyurGate — Ayurveda Clinic Management Software",
+    template: "%s — AyurGate",
   },
-  description: "AYUR GATE — Modern clinic management software for Ayurveda, wellness & healthcare practices. Appointments, billing, inventory, multi-branch & more.",
+  description: "AyurGate — Modern clinic management software for Ayurveda, wellness & healthcare practices. Appointments, billing, inventory, multi-branch & more.",
   manifest: "/manifest.json",
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://www.ayurgate.com"),
   openGraph: {
-    title: "AYUR GATE — Ayurveda Clinic Management Software",
+    title: "AyurGate — Ayurveda Clinic Management Software",
     description: "Modern clinic management for Ayurveda & wellness practices. Appointments, billing, inventory, prescriptions, multi-branch — all in one platform.",
-    siteName: "AYUR GATE",
+    siteName: "AyurGate",
     type: "website",
     locale: "en_SG",
   },
   twitter: {
     card: "summary_large_image",
-    title: "AYUR GATE — Ayurveda Clinic Management Software",
+    title: "AyurGate — Ayurveda Clinic Management Software",
     description: "Modern clinic management for Ayurveda & wellness practices. Appointments, billing, inventory, prescriptions & more.",
   },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "AYUR GATE",
+    title: "AyurGate",
   },
 };
 

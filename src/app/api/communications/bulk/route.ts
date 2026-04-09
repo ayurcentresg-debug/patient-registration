@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
                 <p>Dear ${patient.firstName},</p>
                 <p>${finalMessage}</p>
                 <hr style="border-color: #e5e7eb;" />
-                <p style="color: #6b7280; font-size: 12px;">Sent via AYUR GATE</p>
+                <p style="color: #6b7280; font-size: 12px;">Sent via AyurGate</p>
               </div>`;
 
           // Use marketing sender (Gmail SMTP) or transactional

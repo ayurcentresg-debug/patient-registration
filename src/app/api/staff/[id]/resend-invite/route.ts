@@ -45,11 +45,11 @@ export async function POST(
 
     await sendEmail({
       to: user.email,
-      subject: `You're invited to join — AYUR GATE`,
+      subject: `You're invited to join — AyurGate`,
       html: staffInviteEmail({
         staffName: user.name,
         role: roleLabel,
-        clinicName: "AYUR GATE",
+        clinicName: "AyurGate",
         inviteUrl,
         tempPassword: "",
       }),

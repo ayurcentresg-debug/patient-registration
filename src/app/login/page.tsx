@@ -145,7 +145,7 @@ export default function LoginPage() {
   }[view];
 
   const viewSubtitle = {
-    login: "Sign in to your AYUR GATE account",
+    login: "Sign in to your AyurGate account",
     totp: "Enter your authenticator code",
     forgot: "We'll send a reset code to your email",
     reset: "Enter the code sent to your email",
@@ -169,7 +169,7 @@ export default function LoginPage() {
             <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: "rgba(255,255,255,0.15)" }}>
               <span className="text-2xl">&#127807;</span>
             </div>
-            <span className="text-2xl font-bold text-white tracking-wider">AYUR GATE</span>
+            <span className="text-2xl font-bold text-white tracking-wider">AyurGate</span>
           </div>
           <h1 className="text-3xl font-bold text-white mb-4">
             Your Ayurveda Practice, Simplified
@@ -210,7 +210,7 @@ export default function LoginPage() {
           {/* Mobile-only logo */}
           <div className="lg:hidden flex items-center gap-2 mb-8">
             <span className="text-xl">&#127807;</span>
-            <span className="text-xl font-bold tracking-wider" style={{ color: "#14532d" }}>AYUR GATE</span>
+            <span className="text-xl font-bold tracking-wider" style={{ color: "#14532d" }}>AyurGate</span>
           </div>
 
           {/* Title */}
@@ -493,7 +493,7 @@ export default function LoginPage() {
           )}
 
           <p className="mt-6 text-center text-[11px]" style={{ color: "#9ca3af" }}>
-            AYUR GATE v1.0 &middot; Ayurveda SaaS Platform
+            AyurGate v1.0 &middot; Ayurveda SaaS Platform
           </p>
         </div>
       </div>

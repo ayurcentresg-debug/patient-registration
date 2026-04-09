@@ -208,7 +208,7 @@ export async function POST(request: NextRequest) {
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <div style="background: linear-gradient(135deg, #14532d, #2d6a4f); padding: 24px; border-radius: 12px 12px 0 0;">
-              <h1 style="color: white; margin: 0; font-size: 20px; letter-spacing: 0.08em;">AYUR GATE</h1>
+              <h1 style="color: white; margin: 0; font-size: 20px; letter-spacing: 0.08em;">AyurGate</h1>
               <p style="color: #a7f3d0; margin: 4px 0 0; font-size: 14px;">New Clinic Registration</p>
             </div>
             <div style="background: white; padding: 24px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px;">
@@ -229,7 +229,7 @@ export async function POST(request: NextRequest) {
                 <tr><td style="padding: 8px 0; color: #6b7280;">Registered At</td><td style="padding: 8px 0;">${new Date().toLocaleString("en-SG", { timeZone: "Asia/Singapore" })}</td></tr>
               </table>
               <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
-              <p style="color: #9ca3af; font-size: 12px; margin: 0;">This is an automated notification from AYUR GATE (www.ayurgate.com)</p>
+              <p style="color: #9ca3af; font-size: 12px; margin: 0;">This is an automated notification from AyurGate (www.ayurgate.com)</p>
             </div>
           </div>
         `,

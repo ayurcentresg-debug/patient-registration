@@ -1206,7 +1206,7 @@ export default function PatientDetailPage() {
   `;
   const pdfHeader = (docType: string, docTypeClass: string, title: string, subtitle: string) =>
     `<div class="header"><div><div class="doc-type ${docTypeClass}">${docType}</div><h1>${title}</h1><p class="subtitle">${subtitle}</p></div><div class="clinic"><strong>${clinicName || "Clinic"}</strong><br/>Generated: ${new Date().toLocaleDateString("en-SG", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}</div></div>`;
-  const pdfFooter = `<div class="footer">Confidential Document &mdash; Generated from AYUR GATE &mdash; Not valid without authorized clinic stamp</div>`;
+  const pdfFooter = `<div class="footer">Confidential Document &mdash; Generated from AyurGate &mdash; Not valid without authorized clinic stamp</div>`;
   const openPdfWindow = (title: string, body: string) => {
     const w = window.open("", "_blank");
     if (!w) { showToast("Popup blocked — please allow popups", "error"); return; }

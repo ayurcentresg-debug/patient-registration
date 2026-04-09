@@ -54,12 +54,12 @@ export async function POST(request: NextRequest) {
       try {
         await sendEmail({
           to: clinic.email,
-          subject: "Verify your email — AYUR GATE",
+          subject: "Verify your email — AyurGate",
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto;">
               <div style="background: linear-gradient(135deg, #14532d, #2d6a4f); padding: 24px; border-radius: 12px 12px 0 0; text-align: center;">
                 <span style="font-size: 32px;">&#127807;</span>
-                <h1 style="color: white; margin: 8px 0 0; font-size: 20px; letter-spacing: 0.08em;">AYUR GATE</h1>
+                <h1 style="color: white; margin: 8px 0 0; font-size: 20px; letter-spacing: 0.08em;">AyurGate</h1>
               </div>
               <div style="background: white; padding: 32px 24px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px; text-align: center;">
                 <h2 style="color: #111; margin: 0 0 8px; font-size: 18px;">Verify your email</h2>

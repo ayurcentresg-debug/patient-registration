@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
     const secret = new OTPAuth.Secret({ size: 20 });
 
     const totp = new OTPAuth.TOTP({
-      issuer: "AYUR GATE",
+      issuer: "AyurGate",
       label: payload.email,
       algorithm: "SHA1",
       digits: 6,

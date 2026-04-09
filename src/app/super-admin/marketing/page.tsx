@@ -142,14 +142,14 @@ export default function SuperAdminMarketingPage() {
         .replace(/\n/g, "<br/>");
       setHtmlBody(`<div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 30px; color: #333;">
   <div style="text-align: center; margin-bottom: 30px;">
-    <h1 style="color: #2d6a4f; font-size: 28px; margin: 0;">AYUR GATE</h1>
+    <h1 style="color: #2d6a4f; font-size: 28px; margin: 0;">AyurGate</h1>
     <p style="color: #6b7280; font-size: 13px; margin: 4px 0 0;">Clinic Management for Ayurveda</p>
   </div>
   <div style="background: #f9fafb; border-radius: 12px; padding: 30px; border: 1px solid #e5e7eb;">
     <p>${htmlContent}</p>
   </div>
   <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
-    <p style="color: #9ca3af; font-size: 12px;">AYUR GATE Pte Ltd | Singapore</p>
+    <p style="color: #9ca3af; font-size: 12px;">Ayur Centre Pte Ltd | Singapore</p>
     <p style="color: #9ca3af; font-size: 11px;">You received this email because you may be interested in clinic management solutions.</p>
   </div>
 </div>`);
@@ -501,7 +501,7 @@ export default function SuperAdminMarketingPage() {
                           textAlign: "center",
                         }}
                       >
-                        <div>ayurgate@gmail.com</div>
+                        <div>info@ayurgate.com</div>
                         <div style={{ fontSize: 11, opacity: 0.7, marginTop: 2 }}>Marketing</div>
                       </button>
                     </div>

@@ -524,7 +524,7 @@ export default function PatientPortal() {
 
       {/* Footer */}
       <footer style={{ textAlign: "center", padding: "20px 0 40px", fontSize: 12, color: "#d1d5db" }}>
-        Patient Portal • Powered by AYUR GATE
+        Patient Portal • Powered by AyurGate
       </footer>
     </div>
   );

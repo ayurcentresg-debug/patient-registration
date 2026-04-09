@@ -89,7 +89,7 @@ export default function SuperAdminLoginPage() {
               margin: "0 0 4px 0",
             }}
           >
-            AYUR GATE
+            AyurGate
           </h1>
           <p
             style={{

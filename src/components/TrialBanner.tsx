@@ -67,7 +67,7 @@ export default function TrialBanner() {
           </h2>
           <p className="text-[14px] mb-6" style={{ color: "#6b7280" }}>
             Your 7-day free trial for <strong>{sub.clinicName}</strong> has ended.
-            Choose a plan to continue using AYUR GATE.
+            Choose a plan to continue using AyurGate.
           </p>
 
           {/* Quick upgrade buttons */}
@@ -99,7 +99,7 @@ export default function TrialBanner() {
               Compare All Plans
             </button>
             <a
-              href="mailto:ayurcentresg@gmail.com?subject=AYUR GATE Subscription Help"
+              href="mailto:ayurcentresg@gmail.com?subject=AyurGate Subscription Help"
               className="flex-1 py-2.5 rounded-lg font-medium text-[13px] text-center transition-colors hover:bg-gray-50"
               style={{ color: "#6b7280", border: "1px solid #e5e7eb" }}
             >

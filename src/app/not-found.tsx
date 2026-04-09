@@ -9,7 +9,7 @@ export default function NotFound() {
           <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: "#14532d" }}>
             <span className="text-sm font-extrabold text-white">AG</span>
           </div>
-          <span className="text-xl font-bold tracking-wider" style={{ color: "#14532d" }}>AYUR GATE</span>
+          <span className="text-xl font-bold tracking-wider" style={{ color: "#14532d" }}>AyurGate</span>
         </div>
 
         {/* 404 */}

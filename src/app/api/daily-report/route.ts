@@ -161,7 +161,7 @@ export async function GET(req: NextRequest) {
     try {
       const r = await sendEmail({
         to: REPORT_EMAIL,
-        subject: `AYUR GATE Daily Report — ${today.toLocaleDateString("en-SG", { day: "2-digit", month: "short", year: "numeric" })}`,
+        subject: `AyurGate Daily Report — ${today.toLocaleDateString("en-SG", { day: "2-digit", month: "short", year: "numeric" })}`,
         html,
       });
       emailResult = { ...r, error: "" };
@@ -271,7 +271,7 @@ function buildReportEmail(dateStr: string, totals: Totals, clinics: ClinicReport
       <table width="100%" cellpadding="0" cellspacing="0">
         <tr>
           <td>
-            <div style="font-size:20px;font-weight:800;color:white;letter-spacing:1px;">AYUR GATE</div>
+            <div style="font-size:20px;font-weight:800;color:white;letter-spacing:1px;">AyurGate</div>
             <div style="font-size:14px;color:rgba(255,255,255,0.7);margin-top:4px;">Daily Activity Report</div>
           </td>
           <td style="text-align:right;">
@@ -369,7 +369,7 @@ function buildReportEmail(dateStr: string, totals: Totals, clinics: ClinicReport
         Open Dashboard
       </a>
       <div style="font-size:11px;color:#9ca3af;margin-top:12px;">
-        This is an automated daily report from AYUR GATE.<br>
+        This is an automated daily report from AyurGate.<br>
         Generated at ${new Date().toLocaleTimeString("en-SG", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Singapore" })} SGT
       </div>
     </div>

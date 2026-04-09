@@ -54,9 +54,9 @@ function getMarketingTransporter(): nodemailer.Transporter | null {
 }
 
 // ── Default senders ───────────────────────────────────────────────────
-const DEFAULT_FROM = "AYUR GATE <info@ayurgate.com>";
+const DEFAULT_FROM = "AyurGate <info@ayurgate.com>";
 const MARKETING_FROM =
-  process.env.MARKETING_EMAIL_FROM || "AYUR GATE <ayurgate@gmail.com>";
+  process.env.MARKETING_EMAIL_FROM || "AyurGate <info@ayurgate.com>";
 
 // ── Unified send function (transactional) ─────────────────────────────
 export async function sendEmail({
@@ -101,7 +101,7 @@ export async function sendEmail({
 }
 
 /**
- * Send a marketing email via Gmail SMTP (ayurgate@gmail.com).
+ * Send a marketing email via SMTP (info@ayurgate.com).
  * Falls back to transactional sendEmail() if marketing SMTP is not configured.
  */
 export async function sendMarketingEmail({

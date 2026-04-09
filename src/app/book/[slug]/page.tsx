@@ -191,7 +191,7 @@ export default function PublicBookingPage() {
           </div>
           <h1 className="text-[20px] font-bold mb-2" style={{ color: "#111827" }}>Clinic Not Found</h1>
           <p className="text-[14px] mb-6" style={{ color: "#6b7280" }}>This booking link doesn&apos;t appear to be valid.</p>
-          <Link href="/" className="text-[14px] font-semibold hover:underline" style={{ color: "#14532d" }}>Go to AYUR GATE</Link>
+          <Link href="/" className="text-[14px] font-semibold hover:underline" style={{ color: "#14532d" }}>Go to AyurGate</Link>
         </div>
       </div>
     );
@@ -705,7 +705,7 @@ export default function PublicBookingPage() {
       {/* Footer */}
       <footer className="px-6 py-6 mt-8" style={{ borderTop: "1px solid #e5e7eb" }}>
         <div className="max-w-2xl mx-auto flex items-center justify-between">
-          <p className="text-[11px]" style={{ color: "#9ca3af" }}>Powered by AYUR GATE</p>
+          <p className="text-[11px]" style={{ color: "#9ca3af" }}>Powered by AyurGate</p>
           <Link href="/" className="text-[11px] hover:underline" style={{ color: "#9ca3af" }}>ayurgate.com</Link>
         </div>
       </footer>

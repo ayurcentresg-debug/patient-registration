@@ -211,11 +211,11 @@ export async function POST(request: NextRequest) {
       try {
         await sendEmail({
           to: email,
-          subject: `You're invited to join — AYUR GATE`,
+          subject: `You're invited to join — AyurGate`,
           html: staffInviteEmail({
             staffName: name,
             role: roleLabel,
-            clinicName: "AYUR GATE",
+            clinicName: "AyurGate",
             inviteUrl,
             tempPassword: "",
           }),

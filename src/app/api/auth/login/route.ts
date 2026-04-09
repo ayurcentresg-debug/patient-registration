@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
 
       // Verify TOTP code
       const totp = new OTPAuth.TOTP({
-        issuer: "AYUR GATE",
+        issuer: "AyurGate",
         label: user.email,
         algorithm: "SHA1",
         digits: 6,

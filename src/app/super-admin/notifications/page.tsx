@@ -37,14 +37,14 @@ const TEMPLATES = [
     label: "New Feature",
     icon: "🚀",
     subject: "New Feature: [Feature Name]",
-    message: "We're excited to announce a new feature in AYUR GATE!\n\n[Description of the feature and how it helps your clinic]\n\nHow to use it:\n1. [Step 1]\n2. [Step 2]\n3. [Step 3]\n\nTry it now in your dashboard!",
+    message: "We're excited to announce a new feature in AyurGate!\n\n[Description of the feature and how it helps your clinic]\n\nHow to use it:\n1. [Step 1]\n2. [Step 2]\n3. [Step 3]\n\nTry it now in your dashboard!",
   },
   {
     type: "update",
     label: "System Update",
     icon: "🔄",
     subject: "System Update: Performance Improvements",
-    message: "We've made several improvements to AYUR GATE:\n\n• Faster appointment loading\n• Improved search accuracy\n• Better mobile experience\n\nNo action needed — updates are applied automatically.",
+    message: "We've made several improvements to AyurGate:\n\n• Faster appointment loading\n• Improved search accuracy\n• Better mobile experience\n\nNo action needed — updates are applied automatically.",
   },
   {
     type: "tip",

@@ -49,7 +49,7 @@ export async function POST() {
                 <p>Dear ${reminder.patient.firstName},</p>
                 <p>${reminder.message}</p>
                 <hr style="border-color: #e5e7eb;" />
-                <p style="color: #6b7280; font-size: 12px;">Sent via AYUR GATE</p>
+                <p style="color: #6b7280; font-size: 12px;">Sent via AyurGate</p>
               </div>
             `,
           });

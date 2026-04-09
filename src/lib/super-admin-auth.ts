@@ -16,14 +16,14 @@ export function validateSuperAdminCredentials(
   email: string,
   password: string
 ): boolean {
-  const adminEmail = process.env.SUPER_ADMIN_EMAIL || "ayurgate@gmail.com";
+  const adminEmail = process.env.SUPER_ADMIN_EMAIL || "info@ayurgate.com";
   const adminPassword = process.env.SUPER_ADMIN_PASSWORD || "Veda@2026";
   return email === adminEmail && password === adminPassword;
 }
 
 /** Create a signed JWT for the super admin (expires in 12h) */
 export async function createSuperAdminToken(): Promise<string> {
-  const adminEmail = process.env.SUPER_ADMIN_EMAIL || "ayurgate@gmail.com";
+  const adminEmail = process.env.SUPER_ADMIN_EMAIL || "info@ayurgate.com";
   return new SignJWT({ email: adminEmail, role: "super_admin" })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()

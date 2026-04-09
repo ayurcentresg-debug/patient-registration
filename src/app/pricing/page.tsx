@@ -24,7 +24,7 @@ function buildPlans(p?: PlatformData) {
   const s = p?.plans?.starter || { maxUsers: 10, maxPatients: 500, monthlyPrice: 3999, annualPrice: 3199 };
   const pr = p?.plans?.professional || { maxUsers: 25, maxPatients: 999999, monthlyPrice: 7999, annualPrice: 6399 };
   const supportEmail = p?.branding?.supportEmail || "ayurcentresg@gmail.com";
-  const platformName = p?.branding?.platformName || "AYUR GATE";
+  const platformName = p?.branding?.platformName || "AyurGate";
 
   return {
     platformName,

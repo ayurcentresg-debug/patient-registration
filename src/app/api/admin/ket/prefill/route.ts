@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
     // Get clinic info
-    let companyName = "AYUR GATE";
+    let companyName = "AyurGate";
     let placeOfWork = "";
     if (clinicId) {
       const clinic = await prisma.clinic.findUnique({

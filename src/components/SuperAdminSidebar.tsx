@@ -58,7 +58,7 @@ export default function SuperAdminSidebar() {
             </svg>
           </div>
           <div>
-            <div style={{ fontWeight: 700, fontSize: 16 }}>AYUR GATE</div>
+            <div style={{ fontWeight: 700, fontSize: 16 }}>AyurGate</div>
             <div style={{ fontSize: 11, opacity: 0.7 }}>Super Admin</div>
           </div>
         </div>

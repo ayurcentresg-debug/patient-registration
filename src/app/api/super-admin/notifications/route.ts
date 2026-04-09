@@ -126,7 +126,7 @@ export async function POST(req: NextRequest) {
 
     for (const clinic of targetClinics) {
       try {
-        await sendEmail({ to: clinic.email, subject: `[AYUR GATE] ${subject}`, html });
+        await sendEmail({ to: clinic.email, subject: `[AyurGate] ${subject}`, html });
         sent++;
       } catch (err) {
         failed++;
@@ -181,7 +181,7 @@ function buildNotificationEmail(type: string, subject: string, message: string):
 <body style="margin:0;padding:0;background:#f9fafb;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
 <div style="max-width:560px;margin:0 auto;padding:24px 16px;">
   <div style="background:linear-gradient(135deg,#14532d,#2d6a4f);border-radius:12px;padding:20px 24px;margin-bottom:20px;">
-    <div style="font-size:18px;font-weight:700;color:white;">AYUR GATE</div>
+    <div style="font-size:18px;font-weight:700;color:white;">AyurGate</div>
   </div>
   <div style="background:white;border:1px solid #e5e7eb;border-radius:12px;padding:24px;">
     <div style="display:inline-block;background:${t.bg};border-radius:6px;padding:4px 12px;font-size:12px;font-weight:700;margin-bottom:16px;">
@@ -194,7 +194,7 @@ function buildNotificationEmail(type: string, subject: string, message: string):
     </div>
   </div>
   <div style="text-align:center;padding:16px 0;">
-    <p style="font-size:11px;color:#9ca3af;">You received this because you're a clinic admin on AYUR GATE.</p>
+    <p style="font-size:11px;color:#9ca3af;">You received this because you're a clinic admin on AyurGate.</p>
   </div>
 </div>
 </body></html>`;
