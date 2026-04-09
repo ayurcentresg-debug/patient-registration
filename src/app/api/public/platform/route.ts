@@ -13,7 +13,7 @@ export async function GET() {
     const trialDays = await getTrialDuration();
 
     return NextResponse.json({
-      _build: "v20260409a",
+      _build: "v20260409b",
       branding: {
         platformName: settings.platformName,
         supportEmail: settings.supportEmail,
