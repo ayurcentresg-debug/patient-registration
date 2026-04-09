@@ -153,6 +153,9 @@ export default function ClinicDetailPage() {
       });
       const json = await res.json();
       setActionResult(json);
+      if (json.tempPassword) {
+        alert(`Password reset successful!\n\nEmail: ${json.userEmail}\nTemporary Password: ${json.tempPassword}\n\nPlease copy this password now.`);
+      }
       if (json.success) fetchClinic();
     } catch {
       setActionResult({ error: "Network error" });
