@@ -2,58 +2,67 @@ import Link from "next/link";
 
 const FEATURES = [
   {
-    emoji: "\uD83D\uDC65",
     title: "Patient Records",
     desc: "Complete medical history, Prakriti assessment, vitals, treatment tracking, and family linkage \u2014 all digitized.",
-    gradient: "linear-gradient(135deg, #d1f2e0 0%, #a7f3d0 100%)",
+    iconBg: "#ecfdf5",
+    iconColor: "#059669",
+    icon: "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z",
   },
   {
-    emoji: "\uD83D\uDCC5",
     title: "Smart Scheduling",
     desc: "Doctor-wise time slots, walk-ins, treatment packages, and automated WhatsApp reminders that cut no-shows by 40%.",
-    gradient: "linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)",
+    iconBg: "#eff6ff",
+    iconColor: "#2563eb",
+    icon: "M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5m-9-6h.008v.008H12v-.008zM12 15h.008v.008H12V15zm0 2.25h.008v.008H12v-.008zM9.75 15h.008v.008H9.75V15zm0 2.25h.008v.008H9.75v-.008zM7.5 15h.008v.008H7.5V15zm0 2.25h.008v.008H7.5v-.008zm6.75-4.5h.008v.008h-.008v-.008zm0 2.25h.008v.008h-.008V15zm0 2.25h.008v.008h-.008v-.008zm2.25-4.5h.008v.008H16.5v-.008zm0 2.25h.008v.008H16.5V15z",
   },
   {
-    emoji: "\uD83D\uDCDD",
     title: "Digital Prescriptions",
     desc: "Ayurvedic medicine database with dosage templates. Share via WhatsApp, print, or send to pharmacy in one click.",
-    gradient: "linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)",
+    iconBg: "#fefce8",
+    iconColor: "#ca8a04",
+    icon: "M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z",
   },
   {
-    emoji: "\uD83C\uDF3F",
     title: "Inventory Management",
     desc: "Track herbs, medicines, and supplies in real time. Expiry alerts, purchase orders, and multi-branch stock transfers.",
-    gradient: "linear-gradient(135deg, #d1fae5 0%, #6ee7b7 100%)",
+    iconBg: "#f0fdf4",
+    iconColor: "#16a34a",
+    icon: "M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z",
   },
   {
-    emoji: "\uD83E\uDDFE",
     title: "GST-Compliant Billing",
     desc: "Auto-generated invoices with tax, payment tracking, treatment packages, credit notes, and financial reports.",
-    gradient: "linear-gradient(135deg, #ede9fe 0%, #c4b5fd 100%)",
+    iconBg: "#faf5ff",
+    iconColor: "#9333ea",
+    icon: "M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z",
   },
   {
-    emoji: "\uD83D\uDCF2",
     title: "WhatsApp & Email",
     desc: "Pre-built templates for appointment reminders, follow-ups, birthday wishes, and bulk campaigns.",
-    gradient: "linear-gradient(135deg, #dcfce7 0%, #86efac 100%)",
+    iconBg: "#ecfdf5",
+    iconColor: "#059669",
+    icon: "M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z",
   },
   {
-    emoji: "\uD83D\uDC68\u200D\u2695\uFE0F",
     title: "Staff & Payroll",
     desc: "Manage doctors, therapists, receptionists. Leave tracking, commissions, and country-specific payroll (CPF/EPF/SOCSO).",
-    gradient: "linear-gradient(135deg, #fce7f3 0%, #f9a8d4 100%)",
+    iconBg: "#fdf2f8",
+    iconColor: "#db2777",
+    icon: "M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z",
   },
   {
-    emoji: "\uD83D\uDCCA",
     title: "Reports & Analytics",
     desc: "Revenue trends, appointment analytics, staff performance, inventory reports \u2014 all exportable to CSV.",
-    gradient: "linear-gradient(135deg, #e0e7ff 0%, #a5b4fc 100%)",
+    iconBg: "#eef2ff",
+    iconColor: "#4f46e5",
+    icon: "M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z",
   },
   {
-    emoji: "\uD83C\uDFE5",
     title: "Multi-Branch",
     desc: "Run multiple clinic locations from one dashboard. Transfer stock, share patients, and view consolidated reports.",
-    gradient: "linear-gradient(135deg, #ffedd5 0%, #fdba74 100%)",
+    iconBg: "#fff7ed",
+    iconColor: "#ea580c",
+    icon: "M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z",
   },
 ];
 
@@ -240,17 +249,19 @@ export default function LandingPage() {
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {FEATURES.map((f, i) => (
+            {FEATURES.map((f) => (
               <div
                 key={f.title}
                 className="group p-6 rounded-2xl transition-all duration-300 hover:shadow-lg hover:-translate-y-1 cursor-default"
-                style={{ border: "1px solid #e5e7eb", background: "white" }}
+                style={{ border: "1px solid #f0f0f0", background: "white" }}
               >
                 <div
-                  className="w-14 h-14 rounded-xl flex items-center justify-center mb-5 transition-transform duration-300 group-hover:scale-110"
-                  style={{ background: f.gradient }}
+                  className="w-12 h-12 rounded-xl flex items-center justify-center mb-5 transition-transform duration-300 group-hover:scale-110"
+                  style={{ background: f.iconBg }}
                 >
-                  <span className="text-[28px]">{f.emoji}</span>
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke={f.iconColor}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d={f.icon} />
+                  </svg>
                 </div>
                 <h3 className="text-[17px] font-bold mb-2" style={{ color: "#111827" }}>{f.title}</h3>
                 <p className="text-[14.5px] leading-relaxed" style={{ color: "#6b7280" }}>{f.desc}</p>
