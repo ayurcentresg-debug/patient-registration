@@ -12,7 +12,6 @@ const FEATURE_ROUTE_MAP: [string, string[]][] = [
   ["enablePackages", ["/packages", "/api/packages"]],
   ["enableReports", ["/reports", "/api/reports"]],
   ["enableMultiBranch", ["/branches", "/api/branches"]],
-  ["enableCme", ["/cme/admin", "/api/cme"]],
   ["enableOnlineBooking", ["/book"]],
 ];
 

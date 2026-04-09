@@ -354,7 +354,6 @@ export default function SettingsPage() {
                 { key: "enablePackages", label: "Treatment Packages", desc: "Multi-session treatment packages" },
                 { key: "enableReports", label: "Reports & Analytics", desc: "Revenue, appointment, and staff reports" },
                 { key: "enableMultiBranch", label: "Multi-Branch", desc: "Multiple clinic locations" },
-                { key: "enableCme", label: "CME & Events", desc: "Continuing Medical Education events & registration" },
                 { key: "enableWhatsApp", label: "WhatsApp Integration", desc: "Send reminders via WhatsApp" },
                 { key: "enableSMS", label: "SMS Notifications", desc: "SMS appointment reminders" },
                 { key: "enableApiAccess", label: "API Access", desc: "REST API for third-party integrations" },
