@@ -676,6 +676,41 @@ export default function ClinicDetailPage() {
                 </button>
               </div>
 
+              {/* Delete Clinic */}
+              <div style={{ background: "#fff", borderRadius: 14, padding: "24px", border: "1px solid #fecaca" }}>
+                <h3 style={{ fontSize: 16, fontWeight: 700, color: "#991b1b", margin: "0 0 4px" }}>
+                  Delete Clinic Permanently
+                </h3>
+                <p style={{ fontSize: 13, color: "#6b7280", margin: "0 0 16px" }}>
+                  This will permanently delete the clinic, all users, patients, appointments, invoices, and all related data. This action cannot be undone.
+                </p>
+                <button
+                  onClick={async () => {
+                    const name = clinic.name;
+                    const input = prompt(`Type "${name}" to confirm permanent deletion:`);
+                    if (input !== name) { alert("Name didn't match. Deletion cancelled."); return; }
+                    try {
+                      const res = await fetch(`/api/super-admin/clinics/${clinicId}`, { method: "DELETE" });
+                      const json = await res.json();
+                      if (json.success) {
+                        alert(json.message);
+                        router.push("/super-admin/clinics");
+                      } else {
+                        alert("Error: " + (json.error || "Failed to delete"));
+                      }
+                    } catch { alert("Network error"); }
+                  }}
+                  disabled={actionLoading}
+                  style={{
+                    padding: "10px 24px", borderRadius: 10, fontSize: 14, fontWeight: 600,
+                    background: "#991b1b", color: "#fff", border: "none", cursor: "pointer",
+                    opacity: actionLoading ? 0.6 : 1,
+                  }}
+                >
+                  Delete Clinic Forever
+                </button>
+              </div>
+
               {/* Action Result */}
               {actionResult && (
                 <div style={{

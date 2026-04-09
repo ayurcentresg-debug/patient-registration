@@ -420,3 +420,86 @@ export async function PUT(
     );
   }
 }
+
+/**
+ * DELETE /api/super-admin/clinics/[id]
+ * Permanently delete a clinic and all its data
+ */
+export async function DELETE(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    if (!(await isSuperAdmin())) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { id } = await params;
+
+    const clinic = await prisma.clinic.findUnique({
+      where: { id },
+      select: { id: true, name: true, email: true },
+    });
+
+    if (!clinic) {
+      return NextResponse.json({ error: "Clinic not found" }, { status: 404 });
+    }
+
+    // Delete all related data in order (child tables first)
+    await prisma.$transaction(async (tx) => {
+      // Delete audit logs
+      await tx.auditLog.deleteMany({ where: { clinicId: id } });
+      // Delete communications
+      await tx.communication.deleteMany({ where: { clinicId: id } });
+      // Delete payments
+      await tx.payment.deleteMany({ where: { invoice: { clinicId: id } } });
+      // Delete invoice items
+      await tx.invoiceItem.deleteMany({ where: { invoice: { clinicId: id } } });
+      // Delete invoices
+      await tx.invoice.deleteMany({ where: { clinicId: id } });
+      // Delete prescriptions
+      await tx.prescription.deleteMany({ where: { clinicId: id } });
+      // Delete vitals
+      await tx.vital.deleteMany({ where: { clinicId: id } });
+      // Delete clinical notes
+      await tx.clinicalNote.deleteMany({ where: { clinicId: id } });
+      // Delete appointments
+      await tx.appointment.deleteMany({ where: { clinicId: id } });
+      // Delete patients
+      await tx.patient.deleteMany({ where: { clinicId: id } });
+      // Delete stock transactions
+      await tx.stockTransaction.deleteMany({ where: { clinicId: id } });
+      // Delete inventory items
+      await tx.inventoryItem.deleteMany({ where: { clinicId: id } });
+      // Delete treatments
+      await tx.treatment.deleteMany({ where: { clinicId: id } });
+      // Delete users
+      await tx.user.deleteMany({ where: { clinicId: id } });
+      // Delete subscription
+      await tx.clinicSubscription.deleteMany({ where: { clinicId: id } });
+      // Delete clinic settings
+      await tx.clinicSettings.deleteMany({ where: { clinicId: id } });
+      // Delete the clinic itself
+      await tx.clinic.delete({ where: { id } });
+    });
+
+    await logSuperAdminAction({
+      action: "delete_clinic",
+      entity: "clinic",
+      entityId: id,
+      entityName: `${clinic.name} (${clinic.email})`,
+      details: { permanently_deleted: true },
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: `Clinic "${clinic.name}" and all its data have been permanently deleted`,
+    });
+  } catch (error) {
+    console.error("Error deleting clinic:", error);
+    return NextResponse.json(
+      { error: "Failed to delete clinic. Some related records may have foreign key constraints." },
+      { status: 500 }
+    );
+  }
+}
