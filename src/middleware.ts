@@ -60,6 +60,8 @@ const PUBLIC_PATHS = [
   "/api/whatsapp/webhook",
   "/terms",
   "/privacy",
+  "/api/auth/google",
+  "/google-setup",
 ];
 
 // Paths that require auth but are allowed during onboarding
