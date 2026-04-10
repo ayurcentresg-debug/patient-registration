@@ -122,9 +122,9 @@ export async function middleware(req: NextRequest) {
         try {
           const { payload } = await jwtVerify(token, secret);
           const role = payload.role as string;
-          // New registrations → onboarding first
+          // New registrations → dashboard (setup checklist guides them)
           if (role === "admin" && payload.onboardingComplete === false) {
-            return NextResponse.redirect(new URL("/onboarding", req.url));
+            return NextResponse.redirect(new URL("/dashboard", req.url));
           }
           if (role === "doctor" || role === "therapist") {
             return NextResponse.redirect(new URL("/doctor", req.url));
@@ -235,15 +235,8 @@ export async function middleware(req: NextRequest) {
     const role = payload.role as string;
     const onboardingComplete = payload.onboardingComplete as boolean | undefined;
 
-    // ── Onboarding gate (admin only — invited staff skip this) ─────
-    if (role === "admin" && onboardingComplete === false) {
-      // Allow onboarding-related paths through
-      const isOnboardingPath = ONBOARDING_ALLOWED_PATHS.some((p) => pathname.startsWith(p));
-      if (!isOnboardingPath) {
-        return NextResponse.redirect(new URL("/onboarding", req.url));
-      }
-      return NextResponse.next();
-    }
+    // ── New registrations go to dashboard (setup checklist guides them) ─────
+    // No onboarding gate — all pages accessible immediately
 
     // If user is on /onboarding but already completed → redirect to dashboard
     if (pathname.startsWith("/onboarding") && onboardingComplete !== false) {
