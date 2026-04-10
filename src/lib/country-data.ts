@@ -250,7 +250,7 @@ export const REFERRAL_SOURCES = [
 // ─── Password Rules & Validation ────────────────────────────
 
 export const PASSWORD_RULES = [
-  { test: (p: string) => p.length >= 12, label: "At least 12 characters" },
+  { test: (p: string) => p.length >= 8, label: "At least 8 characters" },
   { test: (p: string) => /[a-z]/.test(p), label: "Contains a lowercase letter" },
   { test: (p: string) => /[A-Z]/.test(p), label: "Contains an uppercase letter" },
   { test: (p: string) => /[0-9]/.test(p), label: "Contains a number" },

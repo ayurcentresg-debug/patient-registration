@@ -436,7 +436,7 @@ export default function RegisterPage() {
                 required
                 value={form.password}
                 onChange={(e) => updateForm("password", e.target.value)}
-                placeholder="Min 12 characters"
+                placeholder="Min 8 characters"
                 className={inputClassName}
                 style={{ ...inputStyle, paddingRight: 40 }}
                 onFocus={onFocus}

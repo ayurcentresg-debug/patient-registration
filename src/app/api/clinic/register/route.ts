@@ -51,9 +51,9 @@ export async function POST(request: NextRequest) {
     // ownerName is optional — fallback to clinic name or email prefix
     const resolvedOwnerName = ownerName || clinicName || email.split("@")[0];
 
-    if (password.length < 12) {
+    if (password.length < 8) {
       return NextResponse.json(
-        { error: "Password must be at least 12 characters" },
+        { error: "Password must be at least 8 characters" },
         { status: 400 }
       );
     }
