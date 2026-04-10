@@ -10,7 +10,11 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Google OAuth not configured" }, { status: 500 });
   }
 
-  const redirectUri = `${request.nextUrl.origin}/api/auth/google/callback`;
+  // Use x-forwarded-host or host header to get the real origin (Railway uses reverse proxy)
+  const host = request.headers.get("x-forwarded-host") || request.headers.get("host") || request.nextUrl.host;
+  const protocol = request.headers.get("x-forwarded-proto") || "https";
+  const origin = `${protocol}://${host}`;
+  const redirectUri = `${origin}/api/auth/google/callback`;
 
   // Pass "mode" param so callback knows if this is register or login
   const mode = request.nextUrl.searchParams.get("mode") || "login";

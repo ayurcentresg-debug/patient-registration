@@ -24,22 +24,27 @@ interface GoogleUserInfo {
  * Handles the OAuth callback from Google
  */
 export async function GET(request: NextRequest) {
+  // Use x-forwarded-host or host header to get the real origin (Railway uses reverse proxy)
+  const host = request.headers.get("x-forwarded-host") || request.headers.get("host") || request.nextUrl.host;
+  const protocol = request.headers.get("x-forwarded-proto") || "https";
+  const baseUrl = `${protocol}://${host}`;
+
   try {
     const code = request.nextUrl.searchParams.get("code");
     const mode = request.nextUrl.searchParams.get("state") || "login";
     const error = request.nextUrl.searchParams.get("error");
 
     if (error) {
-      return NextResponse.redirect(new URL(`/login?error=google_denied`, request.url));
+      return NextResponse.redirect(`${baseUrl}/login?error=google_denied`);
     }
 
     if (!code) {
-      return NextResponse.redirect(new URL(`/login?error=no_code`, request.url));
+      return NextResponse.redirect(`${baseUrl}/login?error=no_code`);
     }
 
     const clientId = process.env.GOOGLE_CLIENT_ID!;
     const clientSecret = process.env.GOOGLE_CLIENT_SECRET!;
-    const redirectUri = `${request.nextUrl.origin}/api/auth/google/callback`;
+    const redirectUri = `${baseUrl}/api/auth/google/callback`;
 
     // Exchange code for tokens
     const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
@@ -56,7 +61,7 @@ export async function GET(request: NextRequest) {
 
     if (!tokenRes.ok) {
       console.error("Google token exchange failed:", await tokenRes.text());
-      return NextResponse.redirect(new URL(`/login?error=token_failed`, request.url));
+      return NextResponse.redirect(`${baseUrl}/login?error=token_failed`);
     }
 
     const tokens: GoogleTokenResponse = await tokenRes.json();
@@ -67,13 +72,13 @@ export async function GET(request: NextRequest) {
     });
 
     if (!userInfoRes.ok) {
-      return NextResponse.redirect(new URL(`/login?error=userinfo_failed`, request.url));
+      return NextResponse.redirect(`${baseUrl}/login?error=userinfo_failed`);
     }
 
     const googleUser: GoogleUserInfo = await userInfoRes.json();
 
     if (!googleUser.email) {
-      return NextResponse.redirect(new URL(`/login?error=no_email`, request.url));
+      return NextResponse.redirect(`${baseUrl}/login?error=no_email`);
     }
 
     // Check if user already exists (any clinic)
@@ -106,7 +111,7 @@ export async function GET(request: NextRequest) {
         data: { lastLogin: new Date() },
       });
 
-      const response = NextResponse.redirect(new URL("/dashboard", request.url));
+      const response = NextResponse.redirect(`${baseUrl}/dashboard`);
       response.headers.set("Set-Cookie", cookie);
       return response;
     }
@@ -130,14 +135,14 @@ export async function GET(request: NextRequest) {
         maxAge: 60 * 10, // 10 minutes
       });
 
-      const response = NextResponse.redirect(new URL("/google-setup", request.url));
+      const response = NextResponse.redirect(`${baseUrl}/google-setup`);
       response.headers.set("Set-Cookie", tempCookie);
       return response;
     }
 
-    return NextResponse.redirect(new URL("/login?error=unknown", request.url));
+    return NextResponse.redirect(`${baseUrl}/login?error=unknown`);
   } catch (err) {
     console.error("Google OAuth callback error:", err);
-    return NextResponse.redirect(new URL("/login?error=server_error", request.url));
+    return NextResponse.redirect(`${baseUrl}/login?error=server_error`);
   }
 }
