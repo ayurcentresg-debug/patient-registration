@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 if (!process.env.JWT_SECRET) {
   throw new Error("JWT_SECRET environment variable is required");
@@ -92,6 +93,27 @@ const CSRF_EXEMPT_PREFIXES = [
 
 const MUTATING_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 
+// Rate-limit configuration. Auth surface is locked down tighter than the
+// general API to slow brute-force attempts.
+const AUTH_RATE_LIMIT_PREFIXES = [
+  "/api/auth/login",
+  "/api/auth/forgot-password",
+  "/api/auth/reset-password",
+  "/api/super-admin/login",
+  "/api/portal/auth",
+  "/api/invite/",
+];
+const AUTH_RATE = { maxRequests: 10, windowMs: 60_000 };
+const API_RATE = { maxRequests: 100, windowMs: 60_000 };
+
+function clientIp(req: NextRequest): string {
+  const xff = req.headers.get("x-forwarded-for");
+  if (xff) return xff.split(",")[0].trim();
+  const real = req.headers.get("x-real-ip");
+  if (real) return real;
+  return "unknown";
+}
+
 /**
  * CSRF defense via Origin/Referer check.
  * Same-origin browser requests always carry an Origin header on mutating
@@ -138,6 +160,29 @@ export async function middleware(req: NextRequest) {
       { error: "CSRF check failed: request origin not allowed" },
       { status: 403 }
     );
+  }
+
+  // ── Rate limiting: protect /api/* against brute-force and abuse ─────
+  if (pathname.startsWith("/api/")) {
+    const isAuthRoute = AUTH_RATE_LIMIT_PREFIXES.some((p) => pathname.startsWith(p));
+    const opts = isAuthRoute ? AUTH_RATE : API_RATE;
+    const bucket = isAuthRoute ? "auth" : "api";
+    const ip = clientIp(req);
+    const limit = checkRateLimit(ip, bucket, opts);
+    if (!limit.allowed) {
+      const retrySec = Math.max(1, Math.ceil(limit.retryAfterMs / 1000));
+      return NextResponse.json(
+        { error: "Too many requests. Please slow down." },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": String(retrySec),
+            "X-RateLimit-Limit": String(opts.maxRequests),
+            "X-RateLimit-Window": String(opts.windowMs),
+          },
+        }
+      );
+    }
   }
 
   // ── Super Admin routes ──────────────────────────────────────────────
