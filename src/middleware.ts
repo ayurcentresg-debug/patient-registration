@@ -81,8 +81,64 @@ const ADMIN_ONLY_PATHS = ["/admin", "/reports", "/inventory", "/communications",
 // Routes only accessible by doctors/therapists
 const DOCTOR_PATHS = ["/doctor"];
 
+// Paths that receive legitimate cross-origin POSTs (external webhooks, cron)
+// and therefore must be exempted from the CSRF Origin check.
+const CSRF_EXEMPT_PREFIXES = [
+  "/api/stripe/webhook",
+  "/api/whatsapp/webhook",
+  "/api/cron",
+  "/api/daily-report",
+];
+
+const MUTATING_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
+
+/**
+ * CSRF defense via Origin/Referer check.
+ * Same-origin browser requests always carry an Origin header on mutating
+ * methods; forged cross-site requests either carry a foreign Origin or none
+ * at all (for legacy clients). Reject both.
+ */
+function failsCsrfCheck(req: NextRequest): boolean {
+  if (!MUTATING_METHODS.has(req.method)) return false;
+  if (!req.nextUrl.pathname.startsWith("/api/")) return false;
+  if (CSRF_EXEMPT_PREFIXES.some((p) => req.nextUrl.pathname.startsWith(p))) return false;
+
+  const expectedHost = req.headers.get("host");
+  if (!expectedHost) return true;
+
+  const origin = req.headers.get("origin");
+  if (origin) {
+    try {
+      return new URL(origin).host !== expectedHost;
+    } catch {
+      return true;
+    }
+  }
+
+  // No Origin header — fall back to Referer
+  const referer = req.headers.get("referer");
+  if (referer) {
+    try {
+      return new URL(referer).host !== expectedHost;
+    } catch {
+      return true;
+    }
+  }
+
+  // Mutating request with neither Origin nor Referer → reject
+  return true;
+}
+
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
+
+  // ── CSRF defense: block mutating API requests from foreign origins ──
+  if (failsCsrfCheck(req)) {
+    return NextResponse.json(
+      { error: "CSRF check failed: request origin not allowed" },
+      { status: 403 }
+    );
+  }
 
   // ── Super Admin routes ──────────────────────────────────────────────
   if (pathname.startsWith("/super-admin") || pathname.startsWith("/api/super-admin")) {
