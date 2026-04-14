@@ -6,7 +6,10 @@ import fs from "fs";
 import { logSuperAdminAction } from "@/lib/super-admin-audit";
 import path from "path";
 
-const secret = new TextEncoder().encode(process.env.JWT_SECRET || "");
+if (!process.env.JWT_SECRET) {
+  throw new Error("JWT_SECRET environment variable is required");
+}
+const secret = new TextEncoder().encode(process.env.JWT_SECRET);
 const HISTORY_FILE = path.join(process.cwd(), "data", "notification-history.json");
 
 function ensureDataDir() {

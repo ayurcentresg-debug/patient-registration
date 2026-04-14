@@ -5,7 +5,10 @@ import { generateOTP } from "@/lib/auth";
 import { sendEmail } from "@/lib/email";
 import { getBranding } from "@/lib/plan-enforcement";
 
-const secret = new TextEncoder().encode(process.env.JWT_SECRET || "");
+if (!process.env.JWT_SECRET) {
+  throw new Error("JWT_SECRET environment variable is required");
+}
+const secret = new TextEncoder().encode(process.env.JWT_SECRET);
 
 interface PatientPayload {
   patientId: string;

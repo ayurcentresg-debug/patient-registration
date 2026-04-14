@@ -1,5 +1,4 @@
-import { prisma } from "@/lib/db";
-import { getClinicId } from "@/lib/get-clinic-id";
+import { getClinicId, getAuthPayload } from "@/lib/get-clinic-id";
 import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -7,7 +6,15 @@ import { NextRequest, NextResponse } from "next/server";
 export async function GET(request: NextRequest) {
   try {
     const clinicId = await getClinicId();
-    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+    const payload = await getAuthPayload();
+
+    // Require authenticated tenant-scoped access — never return
+    // cross-clinic aggregates from the reports API.
+    if (!clinicId || !payload) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const db = getTenantPrisma(clinicId);
 
     const { searchParams } = new URL(request.url);
     const period = searchParams.get("period") || "month"; // week | month | quarter | year | custom
@@ -146,10 +153,10 @@ export async function GET(request: NextRequest) {
           COUNT(*) as count
         FROM Appointment
         WHERE date >= ? AND date <= ?
-          ${clinicId ? "AND clinicId = ?" : ""}
+          AND clinicId = ?
         GROUP BY strftime('%H', date), strftime('%w', date)
         ORDER BY count DESC`,
-        ...(clinicId ? [fromDate.toISOString(), toDate.toISOString(), clinicId] : [fromDate.toISOString(), toDate.toISOString()])
+        fromDate.toISOString(), toDate.toISOString(), clinicId
       ),
       db.$queryRawUnsafe<Array<{ hour: number; count: number }>>(
         `SELECT
@@ -157,10 +164,10 @@ export async function GET(request: NextRequest) {
           COUNT(*) as count
         FROM Appointment
         WHERE date >= ? AND date <= ?
-          ${clinicId ? "AND clinicId = ?" : ""}
+          AND clinicId = ?
         GROUP BY strftime('%H', date)
         ORDER BY hour ASC`,
-        ...(clinicId ? [fromDate.toISOString(), toDate.toISOString(), clinicId] : [fromDate.toISOString(), toDate.toISOString()])
+        fromDate.toISOString(), toDate.toISOString(), clinicId
       ),
     ]);
 

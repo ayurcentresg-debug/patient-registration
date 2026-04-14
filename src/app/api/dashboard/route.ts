@@ -1,12 +1,19 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
-import { getClinicId } from "@/lib/get-clinic-id";
+import { getClinicId, getAuthPayload } from "@/lib/get-clinic-id";
 import { getTenantPrisma } from "@/lib/tenant-db";
 
 export async function GET() {
   try {
     const clinicId = await getClinicId();
-    const db = clinicId ? getTenantPrisma(clinicId) : prisma;
+    const payload = await getAuthPayload();
+
+    // Require authenticated tenant-scoped access. Super admin is routed
+    // through its own dashboard — do NOT leak cross-clinic aggregates here.
+    if (!clinicId || !payload) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const db = getTenantPrisma(clinicId);
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -136,10 +143,10 @@ export async function GET() {
          FROM Invoice
          WHERE date >= ? AND date < ?
            AND status NOT IN ('cancelled', 'draft')
-           ${clinicId ? "AND clinicId = ?" : ""}
+           AND clinicId = ?
          GROUP BY strftime('%Y-%m-%d', date)
          ORDER BY date ASC`,
-        ...(clinicId ? [sevenDaysAgoISO, tomorrowISO, clinicId] : [sevenDaysAgoISO, tomorrowISO])
+        sevenDaysAgoISO, tomorrowISO, clinicId
       ),
 
       // ── Appointment status breakdown (today) ──────────────────────────
@@ -147,9 +154,9 @@ export async function GET() {
         `SELECT status, COUNT(*) as count
          FROM Appointment
          WHERE date >= ? AND date < ?
-           ${clinicId ? "AND clinicId = ?" : ""}
+           AND clinicId = ?
          GROUP BY status`,
-        ...(clinicId ? [todayISO, tomorrowISO, clinicId] : [todayISO, tomorrowISO])
+        todayISO, tomorrowISO, clinicId
       ),
 
       // ── Monthly appointment trend (last 6 months) ─────────────────────
@@ -157,10 +164,10 @@ export async function GET() {
         `SELECT strftime('%Y-%m', date) as month, COUNT(*) as count
          FROM Appointment
          WHERE date >= ?
-           ${clinicId ? "AND clinicId = ?" : ""}
+           AND clinicId = ?
          GROUP BY strftime('%Y-%m', date)
          ORDER BY month ASC`,
-        ...(clinicId ? [sixMonthsAgoISO, clinicId] : [sixMonthsAgoISO])
+        sixMonthsAgoISO, clinicId
       ),
 
       // ── Top treatments this month ─────────────────────────────────────
@@ -169,11 +176,11 @@ export async function GET() {
          FROM Appointment
          WHERE date >= ? AND date < ?
            AND treatmentName IS NOT NULL AND treatmentName != ''
-           ${clinicId ? "AND clinicId = ?" : ""}
+           AND clinicId = ?
          GROUP BY treatmentName
          ORDER BY count DESC
          LIMIT 10`,
-        ...(clinicId ? [monthStartISO, tomorrowISO, clinicId] : [monthStartISO, tomorrowISO])
+        monthStartISO, tomorrowISO, clinicId
       ),
 
       // ── Revenue by payment method this month ──────────────────────────
@@ -183,10 +190,10 @@ export async function GET() {
          JOIN Invoice i ON p.invoiceId = i.id
          WHERE i.date >= ? AND i.date < ?
            AND i.status NOT IN ('cancelled', 'draft')
-           ${clinicId ? "AND i.clinicId = ?" : ""}
+           AND i.clinicId = ?
          GROUP BY p.method
          ORDER BY revenue DESC`,
-        ...(clinicId ? [monthStartISO, tomorrowISO, clinicId] : [monthStartISO, tomorrowISO])
+        monthStartISO, tomorrowISO, clinicId
       ),
 
       // ── Recent appointments (for activity feed) ─────────────────────
