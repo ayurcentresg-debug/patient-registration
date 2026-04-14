@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getClinicId } from "@/lib/get-clinic-id";
+import { ADMIN_ROLES, getClinicId, requireRole } from "@/lib/get-clinic-id";
 import { getTenantPrisma } from "@/lib/tenant-db";
 
 // GET /api/treatments/[id] - Get single treatment with packages
@@ -37,6 +37,11 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const payload = await requireRole(ADMIN_ROLES);
+    if (!payload) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     const clinicId = await getClinicId();
     const db = clinicId ? getTenantPrisma(clinicId) : prisma;
 
@@ -94,6 +99,11 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const payload = await requireRole(ADMIN_ROLES);
+    if (!payload) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
     const clinicId = await getClinicId();
     const db = clinicId ? getTenantPrisma(clinicId) : prisma;
 
