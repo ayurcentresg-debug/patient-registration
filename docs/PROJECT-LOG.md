@@ -1272,6 +1272,151 @@
 
 ---
 
+### Session 16 — 14 April 2026 — Strategic Planning, QA Audit, VAPT Analysis & Sprint 11 Security Fixes
+
+#### 1. QA Audit Report (Generated)
+- **Requested by:** User
+- **What:** Senior-QA-engineer analysis of the existing test suite
+- **Finding:** ZERO test infrastructure across 202 API endpoints, 63 DB models, 105 pages
+- **Deliverable:** `AyurGate-QA-Audit-Report.docx` on Desktop (25KB)
+- **Contents:** Executive summary, current state, coverage gaps, 4-phase remediation roadmap (12 weeks), framework recommendations (Vitest, Playwright, Testing Library, MSW), timeline, success metrics
+
+#### 2. VAPT Reports — India & Singapore (Generated)
+- **Requested by:** User ("actually my clients and i am planning mainly for india india company indian clients" + "and in singapore")
+- **What:** Vulnerability Assessment & Penetration Testing reports tailored to each jurisdiction
+- **Deliverables:**
+  - `AyurGate-VAPT-Report.docx` (India-focused, 30KB) — DPDP Act 2023, CERT-In 6-hr breach notification, ABDM/AYUSH Grid, INR 1-8 lakh vendor estimates, 10-day execution plan
+  - `AyurGate-VAPT-Report-Singapore.docx` (23KB) — PDPA 2012 Sec 24/26D, NRIC handling test cases, CPF/MOM data protection, SGD 5K-40K vendor estimates, India vs Singapore comparison
+
+#### 3. Competitor & Website Feature Analysis
+- **Analyzed 7 platforms:** Splose, Zanda Health, Curable, SafeTalk, SimplePractice, EasyClinic, WellnessLiving
+- **Finding:** AyurGate sits in a "blue ocean" — no modern cloud-native Ayurveda-first SaaS exists for India + Singapore dual-market
+- **Top 15 features recommended for adoption:** AI clinical notes, embeddable booking widget, ePrescribe, video consultation, AI churn predictor, client portal, multi-tier pricing, secure messaging, batch invoicing, Razorpay/UPI + Stripe, white-label mobile app, loyalty program, ISO 27001 path, in-app AI assistant, staff training academy
+
+#### 4. Master Project Plan — 12-Sheet XLSX Workbook (Generated)
+- **Requested by:** User ("set up a formal Agile board or sprint structure for AyurGate's remaining")
+- **Deliverable:** `AyurGate-Master-Project-Plan.xlsx` on Desktop (33KB)
+- **Sheets:**
+  1. Vision & Mission — 5 core values, 5 strategic goals with KPIs
+  2. Sprint History — 10 completed sprints (Apr 2-14), 160 story points, 91+ features
+  3. Product Backlog — 60+ items across 10 epics, P0-P3 prioritized
+  4. Sprint Plan — 10 future sprints (Sprint 11-20+) through Q3 2026
+  5. Database Strategy — 6-phase SQLite→PostgreSQL migration plan
+  6. Testing Roadmap — 4 test phases + 9-stage CI/CD pipeline
+  7. Security Roadmap — 14 security categories with action items
+  8. Backup & DR — RPO 1hr / RTO 4hr, 6 disaster scenarios
+  9. Compliance Matrix — 22 regulatory items (DPDP, PDPA, HCSA, IT Act, ABDM)
+  10. Release Plan — 7 releases (v1.0 → v2.0)
+  11. Risk Register — 15 risks scored by probability × impact
+  12. Team & Roles — 10 roles (1 active, 9 to hire), 3-phase hiring timeline
+
+#### 5. Sprint 11 — Critical Security Fixes ⭐ (Deployed)
+- **JWT secret fallback eliminated** in 4 files. App now throws `JWT_SECRET environment variable is required` at startup instead of falling back to empty string.
+  - `src/middleware.ts`
+  - `src/lib/patient-auth.ts`
+  - `src/app/api/portal/auth/route.ts`
+  - `src/app/api/super-admin/notifications/route.ts`
+- **Cross-clinic data leak in dashboard/reports fixed:**
+  - `src/app/api/dashboard/route.ts` — added auth guard (returns 401 without clinic-scoped token), removed global `prisma` fallback, hardcoded `clinicId = ?` in all 5 raw SQL queries
+  - `src/app/api/reports/route.ts` — same fix applied, hardcoded `clinicId = ?` in all 2 raw SQL queries
+- **Verification (local):**
+  - TypeScript: `npx tsc --noEmit` → 0 errors
+  - ESLint: 0 errors (4 pre-existing warnings unrelated to changes)
+  - Smoke tests: Dashboard/reports return 307 → /login for unauth + forged-token requests (defense in depth)
+  - Landing page, /login, /api/public/platform all 200 OK
+- **Already-fixed discoveries (roadmap was stale):**
+  - `setup-doctor-passwords/route.ts` and `doctor/dashboard/route.ts` already use `verifyToken()` from shared auth module
+  - `global-error.tsx` already sanitized (no `error.message` exposed to client)
+  - `ErrorBoundary.tsx` already gates stack traces to `NODE_ENV !== "production"`
+- **Deployed:** Commit `ec521bd` pushed to `origin/main`, Railway auto-deploy triggered
+- **Prereq verified:** User confirmed `JWT_SECRET` is set in Railway env vars before push
+
+#### Remaining Sprint 11 Items (Still Open)
+- SEC-002: API-level role checks on all 202 endpoints (8 points)
+- SEC-006: CSRF protection (double-submit cookie pattern)
+- SEC-007: Rate limiting (Redis-backed, 100/min auth, 1000/min API)
+- SEC-008: Content Security Policy + security headers
+
+---
+
+### Session 17 — 15 April 2026 — Sprint 11 Security Hardening (Closeout)
+
+Four security items landed in a single session, each verified locally before push. Sprint 11 security track is now closed.
+
+#### 1. SEC-002 — Role guards on sensitive endpoints (commit `604e3db`)
+Added `requireRole()` guards to PUT/PATCH/DELETE handlers on 8 high-impact routes. Defense-in-depth on top of middleware JWT verification; each handler returns `403 Forbidden` if the caller's role is not in the allowed list.
+
+| Endpoint | Method(s) | Guard |
+|---|---|---|
+| `/api/users/[id]` | PUT, DELETE | `ADMIN_ROLES` |
+| `/api/invoices/[id]` | PUT, DELETE | `ADMIN_ROLES` |
+| `/api/credit-notes/[id]` | PUT, DELETE | `ADMIN_ROLES` |
+| `/api/treatments/[id]` | PUT, DELETE | `ADMIN_ROLES` |
+| `/api/patient-packages/[id]/refund` | POST | `ADMIN_ROLES` |
+| `/api/transfers/[id]` | PUT | `STAFF_ROLES` |
+| `/api/inventory/[id]` | PUT | `STAFF_ROLES` |
+| `/api/prescriptions/[id]` | PUT, DELETE | admin + doctor + pharmacist |
+
+Verified: `tsc --noEmit` clean; eslint 0 errors (3 pre-existing warnings unrelated).
+
+#### 2. SEC-006 — CSRF defense (commit `8aac494`)
+Origin/Referer check in `src/middleware.ts`. Rejects any mutating request (POST/PUT/PATCH/DELETE to `/api/*`) whose `Origin` — or `Referer` fallback — does not match the request host. Absent both → reject.
+
+Webhook exemptions: `/api/stripe/webhook`, `/api/whatsapp/webhook`, `/api/cron`, `/api/daily-report`.
+
+Smoke-tested via curl:
+- POST no Origin → 403 ✅
+- POST foreign Origin (`evil.example.com`) → 403 ✅
+- POST same Origin → passes, reaches handler ✅
+- GET requests → unaffected ✅
+- Webhook POST → exempt, reaches handler ✅
+
+OWASP lists Origin validation as sufficient standalone CSRF defense. Zero frontend changes required.
+
+#### 3. SEC-007 — Rate limiting (commit `2611e67`)
+Global per-IP rate limit in middleware using the existing in-memory sliding-window limiter (`src/lib/rate-limit.ts`). Returns 429 with `Retry-After`, `X-RateLimit-Limit`, `X-RateLimit-Window` headers.
+
+| Bucket | Limit |
+|---|---|
+| `/api/auth/login`, `forgot-password`, `reset-password`, `/api/super-admin/login`, `/api/portal/auth`, `/api/invite/*` | 10 req / 60s |
+| All other `/api/*` | 100 req / 60s |
+
+Smoke-tested: 10 login attempts → 401, requests 11–12 → 429 with `Retry-After: 47`. Client IP resolved from `X-Forwarded-For` (Railway) → `X-Real-IP` → `"unknown"`.
+
+Scaling note: in-memory limiter works for a single Railway replica. Swap to `@upstash/ratelimit` (Redis) if scaling horizontally.
+
+#### 4. SEC-008 — Security headers hardened (commit `c4b63e6`)
+Tightened the header bundle in `next.config.ts`:
+
+- **Dropped X-XSS-Protection** — deprecated, Chromium removed it, legacy implementations had known bypasses.
+- **HSTS**: `max-age=31536000` (1y) → `max-age=63072000; includeSubDomains; preload` (2y). Domain is now eligible for the Chrome HSTS preload list.
+- **Permissions-Policy**: explicitly deny `payment`, `usb`, `magnetometer`, `accelerometer`, `gyroscope`, `interest-cohort` (FLoC). Camera retained as `self` for medical photo capture.
+- **CSP additions**: `frame-ancestors 'none'` (clickjacking defense that survives X-Frame-Options deprecation), `form-action 'self'`, `upgrade-insecure-requests`.
+
+Verified via `curl -I /login`: all 6 headers present, X-XSS-Protection absent, page renders 200 with no hydration or CSP violation errors.
+
+**Still open** (separate tickets): nonce-based CSP to drop `'unsafe-inline'` / `'unsafe-eval'` from `script-src` (requires Next 16 hydration script migration).
+
+#### Sprint 11 closeout
+
+| ID | Fix | Commit |
+|---|---|---|
+| SEC-001 | Remove JWT secret fallback (4 files) | `ec521bd` |
+| SEC-001b | Cross-clinic data leak in dashboard/reports | `ec521bd` |
+| SEC-002 | Role guards on 8 sensitive endpoints | `604e3db` |
+| SEC-006 | CSRF: Origin/Referer check | `8aac494` |
+| SEC-007 | Rate limiting: 10/min auth, 100/min API | `2611e67` |
+| SEC-008 | Security headers (HSTS preload, Permissions-Policy, CSP) | `c4b63e6` |
+
+All six commits on `main`, Railway auto-deployed.
+
+#### Remaining security backlog (not Sprint 11)
+- Nonce-based CSP (drop `'unsafe-inline'` / `'unsafe-eval'`)
+- Redis-backed rate limiter for multi-replica scaling
+- Full 202-endpoint role-check audit (Sprint 11 covered the 8 highest-risk)
+
+---
+
 ## Pending / Upcoming
 
 | # | Feature | Priority | Notes |
@@ -1366,4 +1511,4 @@ www.ayurgate.com (Railway)
 
 ---
 
-*Last updated: 8 April 2026 (Session 14)*
+*Last updated: 15 April 2026 (Session 17)*
