@@ -154,6 +154,7 @@ export default function StaffPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<StaffForm>(EMPTY_FORM);
   const [formError, setFormError] = useState("");
+  const [errorField, setErrorField] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type: "ok" | "err" } | null>(null);
   const [passwordModal, setPasswordModal] = useState<{ id: string; name: string } | null>(null);
@@ -212,6 +213,7 @@ export default function StaffPage() {
     setForm(EMPTY_FORM);
     setEditingId(null);
     setFormError("");
+    setErrorField(null);
     setShowForm(true);
   };
 
@@ -248,26 +250,47 @@ export default function StaffPage() {
     });
     setEditingId(s.id);
     setFormError("");
+    setErrorField(null);
     setShowForm(true);
   };
 
-  const closeForm = () => { setShowForm(false); setEditingId(null); setFormError(""); };
+  const closeForm = () => { setShowForm(false); setEditingId(null); setFormError(""); setErrorField(null); };
 
   const isClinical = CLINICAL_ROLES.includes(form.role);
 
-  const validate = (): string | null => {
-    if (!form.name.trim()) return "Name is required";
-    if (!form.email.trim()) return "Email is required";
-    if (isClinical && !form.specialization) return "Specialization is required for clinical roles";
-    if (isClinical && !form.department) return "Department is required for clinical roles";
+  // Scroll the input flagged as invalid into view + focus it so the user
+  // doesn't have to hunt through a long form for the red border.
+  const focusErrorField = (field: string) => {
+    // Defer to next tick so the error state has rendered the red border first.
+    requestAnimationFrame(() => {
+      const el = document.querySelector<HTMLElement>(`[data-field="${field}"]`);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        // Tiny focus delay so scroll can finish before focus ring appears.
+        setTimeout(() => (el as HTMLInputElement | HTMLSelectElement).focus?.(), 300);
+      }
+    });
+  };
+
+  const validate = (): { field: string; message: string } | null => {
+    if (!form.name.trim()) return { field: "name", message: "Name is required" };
+    if (!form.email.trim()) return { field: "email", message: "Email is required" };
+    if (isClinical && !form.specialization) return { field: "specialization", message: "Specialization is required for clinical roles" };
+    if (isClinical && !form.department) return { field: "department", message: "Department is required for clinical roles" };
     return null;
   };
 
   const handleSave = async () => {
     const err = validate();
-    if (err) { setFormError(err); return; }
+    if (err) {
+      setFormError(err.message);
+      setErrorField(err.field);
+      focusErrorField(err.field);
+      return;
+    }
     setSaving(true);
     setFormError("");
+    setErrorField(null);
 
     const payload = {
       name: form.name.trim(),
@@ -876,11 +899,29 @@ export default function StaffPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Name *</label>
-                  <input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full px-3 py-2 text-[15px]" style={inputStyle} placeholder="Full name" />
+                  <input
+                    type="text"
+                    data-field="name"
+                    value={form.name}
+                    onChange={(e) => { setForm({ ...form, name: e.target.value }); if (errorField === "name") { setErrorField(null); setFormError(""); } }}
+                    className="w-full px-3 py-2 text-[15px]"
+                    style={errorField === "name" ? { ...inputStyle, borderColor: "#dc2626", boxShadow: "0 0 0 1px #dc2626" } : inputStyle}
+                    placeholder="Full name"
+                  />
+                  {errorField === "name" && <p className="text-[12px] mt-1" style={{ color: "#dc2626" }}>{formError}</p>}
                 </div>
                 <div>
                   <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Email *</label>
-                  <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="w-full px-3 py-2 text-[15px]" style={inputStyle} placeholder="email@clinic.com" />
+                  <input
+                    type="email"
+                    data-field="email"
+                    value={form.email}
+                    onChange={(e) => { setForm({ ...form, email: e.target.value }); if (errorField === "email") { setErrorField(null); setFormError(""); } }}
+                    className="w-full px-3 py-2 text-[15px]"
+                    style={errorField === "email" ? { ...inputStyle, borderColor: "#dc2626", boxShadow: "0 0 0 1px #dc2626" } : inputStyle}
+                    placeholder="email@clinic.com"
+                  />
+                  {errorField === "email" && <p className="text-[12px] mt-1" style={{ color: "#dc2626" }}>{formError}</p>}
                 </div>
               </div>
 
@@ -985,11 +1026,21 @@ export default function StaffPage() {
               {/* Department + Date of Joining */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Department</label>
-                  <select value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })} className="w-full px-3 py-2 text-[15px]" style={inputStyle}>
+                  <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Department{isClinical ? " *" : ""}</label>
+                  <select
+                    data-field="department"
+                    value={form.department}
+                    onChange={(e) => {
+                      setForm({ ...form, department: e.target.value });
+                      if (errorField === "department") { setErrorField(null); setFormError(""); }
+                    }}
+                    className="w-full px-3 py-2 text-[15px]"
+                    style={errorField === "department" ? { ...inputStyle, borderColor: "#dc2626", boxShadow: "0 0 0 1px #dc2626" } : inputStyle}
+                  >
                     <option value="">-- Select --</option>
                     {DEPARTMENTS.map((d) => <option key={d} value={d}>{d}</option>)}
                   </select>
+                  {errorField === "department" && <p className="text-[12px] mt-1" style={{ color: "#dc2626" }}>{formError}</p>}
                 </div>
                 <div>
                   <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Date of Joining</label>
@@ -1029,10 +1080,20 @@ export default function StaffPage() {
 
                   <div>
                     <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Specialization *</label>
-                    <select value={form.specialization} onChange={(e) => setForm({ ...form, specialization: e.target.value })} className="w-full px-3 py-2 text-[15px]" style={inputStyle}>
+                    <select
+                      data-field="specialization"
+                      value={form.specialization}
+                      onChange={(e) => {
+                        setForm({ ...form, specialization: e.target.value });
+                        if (errorField === "specialization") { setErrorField(null); setFormError(""); }
+                      }}
+                      className="w-full px-3 py-2 text-[15px]"
+                      style={errorField === "specialization" ? { ...inputStyle, borderColor: "#dc2626", boxShadow: "0 0 0 1px #dc2626" } : inputStyle}
+                    >
                       <option value="">-- Select --</option>
                       {specializations.map((s) => <option key={s} value={s}>{s}</option>)}
                     </select>
+                    {errorField === "specialization" && <p className="text-[12px] mt-1" style={{ color: "#dc2626" }}>{formError}</p>}
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
