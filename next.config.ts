@@ -21,6 +21,15 @@ const nextConfig: NextConfig = {
 
     return [
       {
+        // Force fresh HTML on every visit to authenticated app routes so users
+        // pick up new deploys immediately (no Fastly/CDN serving stale shells).
+        // Hashed /_next/static/* assets are still long-cached by their own headers.
+        source: "/:path((?!_next/static|_next/image|favicon.ico|sw.js|manifest.json|api/).*)",
+        headers: [
+          { key: "Cache-Control", value: "no-store, must-revalidate" },
+        ],
+      },
+      {
         source: "/(.*)",
         headers: [
           { key: "X-Frame-Options", value: "DENY" },
