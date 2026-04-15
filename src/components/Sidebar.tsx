@@ -345,31 +345,36 @@ export default function Sidebar() {
               )}
             </svg>
           </button>
-          <div
-            style={{
-              width: 30,
-              height: 30,
-              borderRadius: 7,
-              backgroundColor: "#14532d",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "#fff",
-              fontSize: 11,
-              fontWeight: 900,
-              letterSpacing: "1px",
-            }}
-          >
-            AG
-          </div>
-          <span style={{ color: "#fff", fontSize: 15, fontWeight: 700, letterSpacing: "1px" }}>
-            AyurGate
-          </span>
-          {clinicName !== "AyurGate" && (
-            <span style={{ color: "rgba(255,255,255,0.5)", fontSize: 12, fontWeight: 500, marginLeft: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 90 }}>
-              — {clinicName}
-            </span>
+          {clinicLogoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={clinicLogoUrl}
+              alt={clinicName}
+              style={{ width: 30, height: 30, borderRadius: 7, objectFit: "cover", flexShrink: 0 }}
+            />
+          ) : (
+            <div
+              style={{
+                width: 30,
+                height: 30,
+                borderRadius: 7,
+                backgroundColor: "#14532d",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "#fff",
+                fontSize: 11,
+                fontWeight: 900,
+                letterSpacing: "1px",
+                flexShrink: 0,
+              }}
+            >
+              {clinicInitials}
+            </div>
           )}
+          <span style={{ color: "#fff", fontSize: 14, fontWeight: 700, letterSpacing: "0.3px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 140 }}>
+            {clinicName}
+          </span>
           <div style={{ marginLeft: 4 }}>
             <BranchSelector />
           </div>
@@ -441,34 +446,39 @@ export default function Sidebar() {
           boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
         }}
       >
-        {/* Left: Brand */}
+        {/* Left: Clinic identity (logo or initials + clinic name) */}
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: 8,
-              backgroundColor: "#14532d",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "#fff",
-              fontSize: 12,
-              fontWeight: 900,
-              letterSpacing: "1px",
-              border: "1.5px solid rgba(255,255,255,0.15)",
-            }}
-          >
-            AG
-          </div>
-          <span style={{ color: "#fff", fontSize: 16, fontWeight: 700, letterSpacing: "1.5px" }}>
-            AyurGate
-          </span>
-          {clinicName !== "AyurGate" && (
-            <span style={{ color: "rgba(255,255,255,0.5)", fontSize: 13, fontWeight: 500, marginLeft: 4 }}>
-              — {clinicName}
-            </span>
+          {clinicLogoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={clinicLogoUrl}
+              alt={clinicName}
+              style={{ width: 32, height: 32, borderRadius: 8, objectFit: "cover", border: "1.5px solid rgba(255,255,255,0.15)", flexShrink: 0 }}
+            />
+          ) : (
+            <div
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 8,
+                backgroundColor: "#14532d",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "#fff",
+                fontSize: 12,
+                fontWeight: 900,
+                letterSpacing: "1px",
+                border: "1.5px solid rgba(255,255,255,0.15)",
+                flexShrink: 0,
+              }}
+            >
+              {clinicInitials}
+            </div>
           )}
+          <span style={{ color: "#fff", fontSize: 16, fontWeight: 700, letterSpacing: "0.5px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 280 }}>
+            {clinicName}
+          </span>
           <div style={{ marginLeft: 12 }}>
             <BranchSelector />
           </div>
