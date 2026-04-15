@@ -117,7 +117,7 @@ export default function Sidebar() {
   const notifRef = useRef<HTMLDivElement>(null);
 
   // Clinic branding
-  const [clinicName, setClinicName] = useState("AyurGate");
+  const [clinicName, setClinicName] = useState("");
   const [clinicLogoUrl, setClinicLogoUrl] = useState<string | null>(null);
   const clinicInitials = clinicName.split(/\s+/).map(w => w[0]).join("").slice(0, 2).toUpperCase();
   const userInitials = (user?.name || "").split(/\s+/).map(w => w[0]).join("").slice(0, 2).toUpperCase() || "U";
@@ -1358,18 +1358,28 @@ export default function Sidebar() {
             transition: "padding-left 0.2s ease",
           }}
         >
-          <div
-            className="flex items-center justify-center rounded-lg text-white font-black flex-shrink-0"
-            style={{
-              width: 36,
-              height: 36,
-              backgroundColor: "#14532d",
-              fontSize: 12,
-              letterSpacing: "1px",
-            }}
-          >
-            AG
-          </div>
+          {clinicLogoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={clinicLogoUrl}
+              alt={clinicName || "Clinic"}
+              className="flex-shrink-0"
+              style={{ width: 36, height: 36, borderRadius: 8, objectFit: "cover" }}
+            />
+          ) : (
+            <div
+              className="flex items-center justify-center rounded-lg text-white font-black flex-shrink-0"
+              style={{
+                width: 36,
+                height: 36,
+                backgroundColor: "#14532d",
+                fontSize: 12,
+                letterSpacing: "1px",
+              }}
+            >
+              {clinicInitials || "·"}
+            </div>
+          )}
           <div
             className="ml-3 overflow-hidden whitespace-nowrap"
             style={{
@@ -1379,8 +1389,10 @@ export default function Sidebar() {
               minWidth: 0,
             }}
           >
-            <h1 className="text-[15px] font-bold text-white" style={{ letterSpacing: "1.5px" }}>AyurGate</h1>
-            <p className="text-[11px] font-medium" style={{ color: "rgba(255,255,255,0.45)" }}>{clinicName !== "AyurGate" ? clinicName : "Ayurveda Clinic"}</p>
+            <h1 className="text-[15px] font-bold text-white" style={{ letterSpacing: "0.5px", overflow: "hidden", textOverflow: "ellipsis" }}>
+              {clinicName || "\u00A0"}
+            </h1>
+            <p className="text-[11px] font-medium" style={{ color: "rgba(255,255,255,0.45)" }}>Clinic admin</p>
           </div>
 
         </div>
