@@ -100,6 +100,11 @@ export default function Sidebar() {
   const [accountOpen, setAccountOpen] = useState(false);
   const accountRef = useRef<HTMLDivElement>(null);
 
+  // Help modal state
+  const [helpOpen, setHelpOpen] = useState(false);
+  const [helpInfo, setHelpInfo] = useState<{ plan?: string; status?: string; trialDaysRemaining?: number | null; clinicName?: string } | null>(null);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
+
   // Notification state
   const [notifOpen, setNotifOpen] = useState(false);
   const [lowStockAlerts, setLowStockAlerts] = useState<AlertItem[]>([]);
@@ -519,6 +524,35 @@ export default function Sidebar() {
             )}
           </div>
 
+          {/* Help / Support */}
+          <button
+            onClick={() => {
+              setHelpOpen(true);
+              if (!helpInfo) {
+                fetch("/api/clinic/subscription").then(r => r.ok ? r.json() : null).then(data => { if (data) setHelpInfo(data); }).catch(() => {});
+              }
+            }}
+            style={{
+              backgroundColor: "transparent",
+              border: "none",
+              cursor: "pointer",
+              padding: 8,
+              borderRadius: 8,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              transition: "background 0.15s",
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.1)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}
+            title="Help & support"
+            aria-label="Help and support"
+          >
+            <svg style={{ width: 20, height: 20 }} fill="none" stroke="rgba(255,255,255,0.9)" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093M12 17h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </button>
+
           {/* Notifications Bell */}
           <div ref={notifRef} style={{ position: "relative" }}>
             <button
@@ -781,6 +815,149 @@ export default function Sidebar() {
           </div>
         </div>
       </header>
+
+      {/* ============ HELP & SUPPORT MODAL ============ */}
+      {helpOpen && (
+        <div
+          onClick={() => setHelpOpen(false)}
+          style={{
+            position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.5)",
+            zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 16
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              backgroundColor: "#fff", borderRadius: 14, width: "100%", maxWidth: 480,
+              boxShadow: "0 20px 60px rgba(0,0,0,0.3)", overflow: "hidden",
+              maxHeight: "90vh", display: "flex", flexDirection: "column"
+            }}
+          >
+            {/* Header */}
+            <div style={{ padding: "16px 20px", borderBottom: "1px solid #e5e7eb", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{ width: 36, height: 36, borderRadius: 8, background: "linear-gradient(135deg,#14532d,#2d6a4f)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <svg style={{ width: 18, height: 18 }} fill="none" stroke="#fff" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093M12 17h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                </div>
+                <div>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: "#111" }}>Help & Support</div>
+                  <div style={{ fontSize: 12, color: "#6b7280" }}>Account info and how to reach us</div>
+                </div>
+              </div>
+              <button onClick={() => setHelpOpen(false)} style={{ background: "none", border: "none", cursor: "pointer", padding: 4, color: "#6b7280" }} aria-label="Close">
+                <svg style={{ width: 20, height: 20 }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+
+            {/* Body — scrollable */}
+            <div style={{ padding: 20, overflowY: "auto" }}>
+              {/* Account section */}
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>Your account</div>
+                <div style={{ background: "#f9fafb", border: "1px solid #e5e7eb", borderRadius: 10, padding: 12 }}>
+                  {/* Customer ID */}
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 0" }}>
+                    <div>
+                      <div style={{ fontSize: 11, color: "#6b7280" }}>Customer ID</div>
+                      <div style={{ fontSize: 13, fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace", color: "#111", marginTop: 2 }}>{user?.clinicId || "—"}</div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        if (user?.clinicId) {
+                          navigator.clipboard.writeText(user.clinicId);
+                          setCopiedField("clinicId");
+                          setTimeout(() => setCopiedField(null), 1500);
+                        }
+                      }}
+                      style={{ background: "none", border: "1px solid #d1d5db", borderRadius: 6, padding: "4px 10px", fontSize: 11, fontWeight: 600, color: "#374151", cursor: "pointer" }}
+                    >
+                      {copiedField === "clinicId" ? "Copied!" : "Copy"}
+                    </button>
+                  </div>
+
+                  <div style={{ height: 1, background: "#e5e7eb", margin: "6px 0" }} />
+
+                  {/* Plan */}
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 0" }}>
+                    <div style={{ fontSize: 13, color: "#374151" }}>Plan</div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <span style={{
+                        padding: "2px 10px", borderRadius: 999, fontSize: 11, fontWeight: 700, textTransform: "capitalize",
+                        background: helpInfo?.plan === "trial" ? "#fef3c7" : helpInfo?.plan === "enterprise" ? "#dbeafe" : "#dcfce7",
+                        color: helpInfo?.plan === "trial" ? "#92400e" : helpInfo?.plan === "enterprise" ? "#1e40af" : "#166534",
+                      }}>{helpInfo?.plan || "—"}</span>
+                      {helpInfo?.plan === "trial" && typeof helpInfo?.trialDaysRemaining === "number" && (
+                        <span style={{ fontSize: 12, color: "#6b7280" }}>{helpInfo.trialDaysRemaining} days left</span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div style={{ height: 1, background: "#e5e7eb", margin: "6px 0" }} />
+
+                  {/* Status */}
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 0" }}>
+                    <div style={{ fontSize: 13, color: "#374151" }}>Status</div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: helpInfo?.status === "active" ? "#16a34a" : "#dc2626", textTransform: "capitalize" }}>
+                      {helpInfo?.status || "—"}
+                    </div>
+                  </div>
+
+                  <div style={{ height: 1, background: "#e5e7eb", margin: "6px 0" }} />
+
+                  {/* Logged in user */}
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 0" }}>
+                    <div style={{ fontSize: 13, color: "#374151" }}>Signed in as</div>
+                    <div style={{ fontSize: 12, color: "#6b7280", textAlign: "right" }}>
+                      <div style={{ color: "#111", fontWeight: 600 }}>{user?.email || "—"}</div>
+                      <div style={{ textTransform: "capitalize" }}>{user?.role || ""}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Support section */}
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>Get help</div>
+                <div style={{ display: "grid", gap: 8 }}>
+                  <a href="mailto:support@ayurgate.com?subject=Support%20request" style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", border: "1px solid #e5e7eb", borderRadius: 10, textDecoration: "none", color: "#111" }}>
+                    <div style={{ width: 32, height: 32, borderRadius: 8, background: "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <svg style={{ width: 16, height: 16 }} fill="none" stroke="#16a34a" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 13, fontWeight: 600 }}>Email support</div>
+                      <div style={{ fontSize: 12, color: "#6b7280" }}>support@ayurgate.com</div>
+                    </div>
+                  </a>
+
+                  <a href="https://www.ayurgate.com/help" target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", border: "1px solid #e5e7eb", borderRadius: 10, textDecoration: "none", color: "#111" }}>
+                    <div style={{ width: 32, height: 32, borderRadius: 8, background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <svg style={{ width: 16, height: 16 }} fill="none" stroke="#2563eb" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 13, fontWeight: 600 }}>Help Centre</div>
+                      <div style={{ fontSize: 12, color: "#6b7280" }}>Guides and how-tos</div>
+                    </div>
+                  </a>
+
+                  <Link href="/subscription" onClick={() => setHelpOpen(false)} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", border: "1px solid #e5e7eb", borderRadius: 10, textDecoration: "none", color: "#111" }}>
+                    <div style={{ width: 32, height: 32, borderRadius: 8, background: "#fef3c7", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <svg style={{ width: 16, height: 16 }} fill="none" stroke="#d97706" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 13, fontWeight: 600 }}>Subscription &amp; billing</div>
+                      <div style={{ fontSize: 12, color: "#6b7280" }}>Manage your plan</div>
+                    </div>
+                  </Link>
+                </div>
+              </div>
+
+              <div style={{ fontSize: 11, color: "#9ca3af", textAlign: "center", paddingTop: 8, borderTop: "1px solid #f3f4f6" }}>
+                Include your Customer ID when contacting support to speed things up.
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ============ MOBILE SEARCH BAR (below header) ============ */}
       {mobileSearchOpen && (
