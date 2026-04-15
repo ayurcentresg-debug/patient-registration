@@ -394,6 +394,31 @@ export default function Sidebar() {
               )}
             </button>
           </div>
+          {/* Help (mobile) */}
+          <button
+            onClick={() => { setHelpOpen(true); setMobileMenuOpen(false); setMobileSearchOpen(false); setNotifOpen(false); }}
+            aria-label="Help and support"
+            style={{ background: "none", border: "none", cursor: "pointer", padding: 8, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center" }}
+          >
+            <svg style={{ width: 20, height: 20 }} fill="none" stroke="rgba(255,255,255,0.8)" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093M12 17h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </button>
+          {/* Avatar (mobile) */}
+          <button
+            onClick={() => { setAccountOpen(!accountOpen); setMobileMenuOpen(false); setMobileSearchOpen(false); setNotifOpen(false); }}
+            aria-label="Account menu"
+            style={{ background: "none", border: "none", cursor: "pointer", padding: 4, borderRadius: 99, display: "flex", alignItems: "center", justifyContent: "center", marginLeft: 4 }}
+          >
+            {clinicLogoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={clinicLogoUrl} alt="" style={{ width: 30, height: 30, borderRadius: 99, objectFit: "cover", border: "1.5px solid rgba(255,255,255,0.3)" }} />
+            ) : (
+              <div style={{ width: 30, height: 30, borderRadius: 99, background: "linear-gradient(135deg, #10b981, #059669)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 11, fontWeight: 700, border: "1.5px solid rgba(255,255,255,0.3)" }}>
+                {userInitials}
+              </div>
+            )}
+          </button>
         </div>
       </header>
 
