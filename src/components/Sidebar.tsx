@@ -365,6 +365,14 @@ export default function Sidebar() {
           <span style={{ color: "#fff", fontSize: 15, fontWeight: 700, letterSpacing: "1px" }}>
             AyurGate
           </span>
+          {clinicName !== "AyurGate" && (
+            <span style={{ color: "rgba(255,255,255,0.5)", fontSize: 12, fontWeight: 500, marginLeft: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 90 }}>
+              — {clinicName}
+            </span>
+          )}
+          <div style={{ marginLeft: 4 }}>
+            <BranchSelector />
+          </div>
         </div>
 
         {/* Right: Search + Notifications */}
