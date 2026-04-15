@@ -42,11 +42,15 @@ export default function BranchSelector() {
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
-  // Hide entirely when there's nothing meaningful to switch between
-  if (branches.length < 2) return null;
+  // Hide entirely only when there are zero branches (clinic not yet set up).
+  // With 1 branch we still show the pill so admins can see their current
+  // branch context and discover the "Add branch" action.
+  if (branches.length === 0) return null;
 
   const selected = branches.find((b) => b.id === selectedId);
-  const label = selected ? selected.name : "All branches";
+  const label = branches.length === 1
+    ? (branches[0].name)
+    : (selected ? selected.name : "All branches");
 
   function pick(id: string | null) {
     setSelectedId(id);
@@ -103,34 +107,38 @@ export default function BranchSelector() {
           }}
         >
           <div style={{ padding: "8px 14px 4px", fontSize: 10, fontWeight: 700, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-            Switch branch
+            {branches.length > 1 ? "Switch branch" : "Your branch"}
           </div>
-          <button
-            onClick={() => pick(null)}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              width: "100%",
-              padding: "8px 14px",
-              border: "none",
-              background: selectedId === null ? "#f0fdf4" : "transparent",
-              cursor: "pointer",
-              fontSize: 13,
-              color: "#111",
-              textAlign: "left",
-            }}
-            onMouseEnter={(e) => { if (selectedId !== null) e.currentTarget.style.background = "#f9fafb"; }}
-            onMouseLeave={(e) => { if (selectedId !== null) e.currentTarget.style.background = "transparent"; }}
-          >
-            <span style={{ fontWeight: 600 }}>All branches</span>
-            {selectedId === null && (
-              <svg style={{ width: 14, height: 14 }} fill="none" stroke="#16a34a" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-              </svg>
-            )}
-          </button>
-          <div style={{ height: 1, background: "#e5e7eb", margin: "2px 0" }} />
+          {branches.length > 1 && (
+            <>
+              <button
+                onClick={() => pick(null)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  width: "100%",
+                  padding: "8px 14px",
+                  border: "none",
+                  background: selectedId === null ? "#f0fdf4" : "transparent",
+                  cursor: "pointer",
+                  fontSize: 13,
+                  color: "#111",
+                  textAlign: "left",
+                }}
+                onMouseEnter={(e) => { if (selectedId !== null) e.currentTarget.style.background = "#f9fafb"; }}
+                onMouseLeave={(e) => { if (selectedId !== null) e.currentTarget.style.background = "transparent"; }}
+              >
+                <span style={{ fontWeight: 600 }}>All branches</span>
+                {selectedId === null && (
+                  <svg style={{ width: 14, height: 14 }} fill="none" stroke="#16a34a" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
+              </button>
+              <div style={{ height: 1, background: "#e5e7eb", margin: "2px 0" }} />
+            </>
+          )}
           {branches.map((b) => {
             const active = selectedId === b.id;
             return (
@@ -173,6 +181,28 @@ export default function BranchSelector() {
               </button>
             );
           })}
+          <div style={{ height: 1, background: "#e5e7eb", margin: "2px 0" }} />
+          <a
+            href="/admin/branches"
+            onClick={() => setOpen(false)}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              padding: "10px 14px",
+              fontSize: 13,
+              color: "#14532d",
+              fontWeight: 600,
+              textDecoration: "none",
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = "#f0fdf4"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+          >
+            <svg style={{ width: 14, height: 14 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            {branches.length === 1 ? "Add branch" : "Manage branches"}
+          </a>
         </div>
       )}
     </div>
