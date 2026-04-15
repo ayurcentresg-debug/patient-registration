@@ -1397,6 +1397,38 @@ Verified via `curl -I /login`: all 6 headers present, X-XSS-Protection absent, p
 
 **Still open** (separate tickets): nonce-based CSP to drop `'unsafe-inline'` / `'unsafe-eval'` from `script-src` (requires Next 16 hydration script migration).
 
+#### 5. OAuth production incident & fix
+Google Sign-In was returning `Error 401: invalid_client` on prod (`https://ayurgate.com/login`). Root cause: the `GOOGLE_CLIENT_ID` Railway env var had the client secret concatenated with a space — so `ID` carried the full token and `SECRET` was empty. The secret leaked through the Google error-page URL during debugging and had to be rotated twice.
+
+Remediation:
+- Rotated the OAuth client secret in Google Cloud Console (final value `****7gf7`).
+- Split the Railway variables into clean separate `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` entries. Verified via TextEdit-paste sanity check that no whitespace slipped in.
+- Shipped an OAuth production runbook at `docs/runbooks/google-oauth-production.md` (commit `1bacc04`) covering rotation, redirect-URI pitfalls, and this exact incident pattern.
+
+**Follow-ups flagged for user**: delete the stale unused secret in Google Console; consider moving to short-lived tokens via workload identity federation.
+
+#### 6. Automated database backups
+First non-manual backup system for the production SQLite on the Railway volume. Every piece of the pipeline is one HTTP request deep — `GET /api/cron/backup?secret=<CRON_SECRET>` — so any external scheduler can drive it.
+
+Pipeline per run:
+1. `VACUUM INTO` a timestamped `.db` snapshot.
+2. Gzip it (level 9) and delete the raw copy. Compression saves ~89% on current dev data (1.5 MB → 167 KB).
+3. Row-count integrity check across `clinics`, `users`, `patients`, `appointments`, `invoices`.
+4. Threat detection: flags >20% drops vs. yesterday and any table that went non-zero → zero.
+5. Optional offsite upload to S3/R2 if all four `BACKUP_S3_*` env vars are set; silently local-only otherwise.
+6. Rotation: 30 days local (was 7), 90 days offsite.
+7. HTML status email to `ayurcentresg@gmail.com` with size, duration, snapshot counts, and alerts.
+
+Hardening:
+- **Removed the hardcoded CRON_SECRET fallback** (`"ayurgate-daily-2026"`) — the route now throws at module load if `CRON_SECRET` is unset, matching the SEC-001 pattern.
+- Offsite failure does NOT fail the backup — local copy is still written and the email flags the problem.
+- Restore script (`scripts/restore-backup.ts`) refuses to overwrite without `--yes`, snapshots current DB to `<db>.pre-restore-<ts>` first, and verifies the SQLite header before touching the target.
+- Runbook at `docs/runbooks/database-backup.md` documents cadence, R2/S3 setup, recovery scenarios, limitations.
+
+**User action items**:
+- Set `CRON_SECRET` in Railway and wire a daily cron trigger (Railway cron / cron-job.org / GH Actions).
+- Optional: create a Cloudflare R2 bucket + API token and add `BACKUP_S3_*` vars to activate offsite.
+
 #### Sprint 11 closeout
 
 | ID | Fix | Commit |

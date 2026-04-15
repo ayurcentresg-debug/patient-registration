@@ -1,51 +1,86 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { sendEmail } from "@/lib/email";
+import {
+  loadS3Config,
+  uploadBackup,
+  pruneOldBackups,
+  describeTarget,
+} from "@/lib/backup-storage";
 import fs from "fs";
 import path from "path";
+import zlib from "zlib";
+import { pipeline } from "stream/promises";
 
 const BACKUP_EMAIL = process.env.DAILY_REPORT_EMAIL || "ayurcentresg@gmail.com";
-const MAX_LOCAL_BACKUPS = 7; // Keep last 7 days of local backups
+const MAX_LOCAL_BACKUPS = 30; // Keep last 30 days of local backups
+const OFFSITE_RETENTION_DAYS = 90; // Keep offsite copies for 90 days
+
+// SEC-001: fail fast if CRON_SECRET is not configured. We removed the old
+// hardcoded fallback ("ayurgate-daily-2026") because it let anyone hit the
+// endpoint before the env var was set.
+if (!process.env.CRON_SECRET) {
+  // Throwing at module load makes the route return 500 on every request until
+  // the operator sets CRON_SECRET — which is the safe behaviour.
+  throw new Error("CRON_SECRET environment variable is required");
+}
+const EXPECTED_SECRET = process.env.CRON_SECRET;
+
+type BackupResult = {
+  success: boolean;
+  backupFile: string;
+  sizeBytes: number;
+  compressedSizeBytes: number;
+  integrity: { passed: boolean; details: Record<string, number> };
+  alerts: string[];
+  cleanedUp: number;
+  duration: number;
+  offsite: {
+    enabled: boolean;
+    uploaded: boolean;
+    key?: string;
+    target?: string;
+    pruned?: number;
+    error?: string;
+  };
+};
 
 /**
  * GET /api/cron/backup?secret=CRON_SECRET
  *
  * Automated database backup system:
- * 1. Creates a SQLite backup copy with timestamp
- * 2. Verifies backup integrity (row counts)
- * 3. Cleans up old local backups (keeps last 7)
- * 4. Sends backup status email with summary
- * 5. Logs suspicious changes (big drops in data)
+ * 1. Creates a consistent SQLite snapshot via VACUUM INTO
+ * 2. Gzips the snapshot to ~20-30% of original size
+ * 3. Uploads to offsite S3/R2 if configured (silently skipped otherwise)
+ * 4. Verifies integrity via row counts + threat detection
+ * 5. Rotates local backups (keeps last 30 days)
+ * 6. Rotates offsite backups (keeps last 90 days)
+ * 7. Emails a status report
  *
- * Should be triggered daily by external cron service.
+ * Should be triggered daily by an external cron service (Railway cron,
+ * GitHub Actions, cron-job.org, etc.).
  */
 export async function GET(req: NextRequest) {
   const cronSecret = req.nextUrl.searchParams.get("secret");
-  const expectedSecret = process.env.CRON_SECRET || "ayurgate-daily-2026";
-
-  if (cronSecret !== expectedSecret) {
+  if (cronSecret !== EXPECTED_SECRET) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const startTime = Date.now();
   const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
-  const results: {
-    success: boolean;
-    backupFile: string;
-    sizeBytes: number;
-    integrity: { passed: boolean; details: Record<string, number> };
-    alerts: string[];
-    cleanedUp: number;
-    duration: number;
-  } = {
+  const results: BackupResult = {
     success: false,
     backupFile: "",
     sizeBytes: 0,
+    compressedSizeBytes: 0,
     integrity: { passed: false, details: {} },
     alerts: [],
     cleanedUp: 0,
     duration: 0,
+    offsite: { enabled: false, uploaded: false },
   };
+
+  let rawBackupPath = "";
 
   try {
     // ─── 1. Locate database file ───────────────────────────────────────
@@ -63,17 +98,27 @@ export async function GET(req: NextRequest) {
       fs.mkdirSync(backupDir, { recursive: true });
     }
 
-    // ─── 3. Create backup using SQLite VACUUM INTO ─────────────────────
-    const backupFilename = `backup-${timestamp}.db`;
-    const backupPath = path.join(backupDir, backupFilename);
+    // ─── 3. Create SQLite snapshot via VACUUM INTO ─────────────────────
+    const rawFilename = `backup-${timestamp}.db`;
+    rawBackupPath = path.join(backupDir, rawFilename);
+    await prisma.$queryRawUnsafe(`VACUUM INTO '${rawBackupPath}'`);
+    results.sizeBytes = fs.existsSync(rawBackupPath) ? fs.statSync(rawBackupPath).size : 0;
 
-    // Use Prisma raw query to create a consistent backup
-    await prisma.$queryRawUnsafe(`VACUUM INTO '${backupPath}'`);
+    // ─── 4. Gzip the snapshot, then delete the raw copy ────────────────
+    const gzFilename = `${rawFilename}.gz`;
+    const gzPath = path.join(backupDir, gzFilename);
+    await pipeline(
+      fs.createReadStream(rawBackupPath),
+      zlib.createGzip({ level: 9 }),
+      fs.createWriteStream(gzPath)
+    );
+    fs.unlinkSync(rawBackupPath);
+    rawBackupPath = "";
 
-    results.backupFile = backupFilename;
-    results.sizeBytes = fs.existsSync(backupPath) ? fs.statSync(backupPath).size : 0;
+    results.backupFile = gzFilename;
+    results.compressedSizeBytes = fs.statSync(gzPath).size;
 
-    // ─── 4. Integrity check — count rows in key tables ─────────────────
+    // ─── 5. Integrity check — count rows in key tables ─────────────────
     const [clinicCount, userCount, patientCount, appointmentCount, invoiceCount] =
       await Promise.all([
         prisma.clinic.count(),
@@ -91,7 +136,7 @@ export async function GET(req: NextRequest) {
       invoices: invoiceCount,
     };
 
-    // ─── 5. Compare with previous backup metadata ──────────────────────
+    // ─── 6. Compare with previous backup metadata ──────────────────────
     const metaPath = path.join(backupDir, "backup-meta.json");
     let previousMeta: Record<string, number> | null = null;
 
@@ -112,13 +157,11 @@ export async function GET(req: NextRequest) {
       ];
 
       for (const check of checks) {
-        // Alert if more than 20% data loss
         if (check.prev > 10 && check.curr < check.prev * 0.8) {
           results.alerts.push(
             `⚠️ SUSPICIOUS: ${check.table} dropped from ${check.prev} to ${check.curr} (${Math.round((1 - check.curr / check.prev) * 100)}% decrease)`
           );
         }
-        // Alert if data was completely wiped
         if (check.prev > 0 && check.curr === 0) {
           results.alerts.push(
             `🚨 CRITICAL: ${check.table} table is EMPTY (was ${check.prev} records)`
@@ -126,7 +169,6 @@ export async function GET(req: NextRequest) {
         }
       }
 
-      // Check backup file size vs previous
       const prevSize = previousMeta._backupSize || 0;
       if (prevSize > 0 && results.sizeBytes < prevSize * 0.5) {
         results.alerts.push(
@@ -135,18 +177,43 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // Save current meta for next comparison
     fs.writeFileSync(metaPath, JSON.stringify({
       ...results.integrity.details,
       _backupSize: results.sizeBytes,
+      _compressedSize: results.compressedSizeBytes,
       _timestamp: new Date().toISOString(),
     }));
 
-    results.integrity.passed = results.sizeBytes > 0 && results.alerts.filter(a => a.includes("CRITICAL")).length === 0;
+    results.integrity.passed =
+      results.compressedSizeBytes > 0 &&
+      results.alerts.filter((a) => a.includes("CRITICAL")).length === 0;
 
-    // ─── 6. Cleanup old backups ────────────────────────────────────────
+    // ─── 7. Upload to offsite S3/R2 (if configured) ────────────────────
+    const s3Config = loadS3Config();
+    if (s3Config) {
+      results.offsite.enabled = true;
+      results.offsite.target = describeTarget(s3Config);
+      try {
+        const uploaded = await uploadBackup(s3Config, gzPath, gzFilename);
+        results.offsite.uploaded = true;
+        results.offsite.key = uploaded.key;
+
+        // Prune offsite copies older than retention window
+        const pruned = await pruneOldBackups(s3Config, OFFSITE_RETENTION_DAYS);
+        results.offsite.pruned = pruned.deleted;
+      } catch (err) {
+        // Don't fail the whole job if offsite upload fails — local backup
+        // still succeeded and the email will flag the problem.
+        const msg = err instanceof Error ? err.message : String(err);
+        results.offsite.error = msg;
+        results.alerts.push(`⚠️ Offsite upload failed: ${msg}`);
+        console.error("Offsite backup upload failed:", err);
+      }
+    }
+
+    // ─── 8. Cleanup old local backups ──────────────────────────────────
     const backupFiles = fs.readdirSync(backupDir)
-      .filter(f => f.startsWith("backup-") && f.endsWith(".db"))
+      .filter((f) => f.startsWith("backup-") && (f.endsWith(".db") || f.endsWith(".db.gz")))
       .sort()
       .reverse();
 
@@ -161,7 +228,7 @@ export async function GET(req: NextRequest) {
     results.success = true;
     results.duration = Date.now() - startTime;
 
-    // ─── 7. Send status email ──────────────────────────────────────────
+    // ─── 9. Send status email ──────────────────────────────────────────
     const hasAlerts = results.alerts.length > 0;
     const subject = hasAlerts
       ? `🚨 AyurGate Backup Alert — ${timestamp.slice(0, 10)}`
@@ -170,9 +237,21 @@ export async function GET(req: NextRequest) {
     const alertsHtml = results.alerts.length > 0
       ? `<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:16px;margin:16px 0;">
           <h3 style="color:#991b1b;margin:0 0 8px;">Security Alerts</h3>
-          ${results.alerts.map(a => `<p style="color:#b91c1c;margin:4px 0;font-size:14px;">${a}</p>`).join("")}
+          ${results.alerts.map((a) => `<p style="color:#b91c1c;margin:4px 0;font-size:14px;">${a}</p>`).join("")}
          </div>`
       : "";
+
+    const offsiteRow = results.offsite.enabled
+      ? `<tr>
+          <td style="padding:10px 14px;font-size:13px;color:#6b7280;border:1px solid #e5e7eb;">Offsite Upload</td>
+          <td style="padding:10px 14px;font-size:13px;font-weight:600;color:${results.offsite.uploaded ? "#059669" : "#dc2626"};border:1px solid #e5e7eb;">
+            ${results.offsite.uploaded ? `✓ ${results.offsite.target}` : `✗ ${results.offsite.error || "failed"}`}
+          </td>
+         </tr>`
+      : `<tr>
+          <td style="padding:10px 14px;font-size:13px;color:#6b7280;border:1px solid #e5e7eb;">Offsite Upload</td>
+          <td style="padding:10px 14px;font-size:13px;color:#9ca3af;border:1px solid #e5e7eb;">Not configured (set BACKUP_S3_* vars)</td>
+         </tr>`;
 
     const html = `
     <div style="max-width:600px;margin:0 auto;font-family:system-ui,sans-serif;">
@@ -196,17 +275,18 @@ export async function GET(req: NextRequest) {
             <td style="padding:10px 14px;font-size:13px;font-weight:600;color:#111;border:1px solid #e5e7eb;">${results.backupFile}</td>
           </tr>
           <tr>
-            <td style="padding:10px 14px;font-size:13px;color:#6b7280;border:1px solid #e5e7eb;">File Size</td>
-            <td style="padding:10px 14px;font-size:13px;font-weight:600;color:#111;border:1px solid #e5e7eb;">${formatBytes(results.sizeBytes)}</td>
+            <td style="padding:10px 14px;font-size:13px;color:#6b7280;border:1px solid #e5e7eb;">Raw → Compressed</td>
+            <td style="padding:10px 14px;font-size:13px;font-weight:600;color:#111;border:1px solid #e5e7eb;">${formatBytes(results.sizeBytes)} → ${formatBytes(results.compressedSizeBytes)} (${results.sizeBytes > 0 ? Math.round((1 - results.compressedSizeBytes / results.sizeBytes) * 100) : 0}% saved)</td>
           </tr>
           <tr style="background:#f9fafb;">
             <td style="padding:10px 14px;font-size:13px;color:#6b7280;border:1px solid #e5e7eb;">Duration</td>
             <td style="padding:10px 14px;font-size:13px;font-weight:600;color:#111;border:1px solid #e5e7eb;">${results.duration}ms</td>
           </tr>
           <tr>
-            <td style="padding:10px 14px;font-size:13px;color:#6b7280;border:1px solid #e5e7eb;">Old Backups Cleaned</td>
-            <td style="padding:10px 14px;font-size:13px;font-weight:600;color:#111;border:1px solid #e5e7eb;">${results.cleanedUp} files</td>
+            <td style="padding:10px 14px;font-size:13px;color:#6b7280;border:1px solid #e5e7eb;">Local Retention</td>
+            <td style="padding:10px 14px;font-size:13px;font-weight:600;color:#111;border:1px solid #e5e7eb;">${MAX_LOCAL_BACKUPS} days (cleaned up ${results.cleanedUp} old)</td>
           </tr>
+          ${offsiteRow}
         </table>
 
         <h3 style="font-size:15px;font-weight:700;color:#111;margin:20px 0 8px;">Data Snapshot</h3>
@@ -238,7 +318,11 @@ export async function GET(req: NextRequest) {
   } catch (error) {
     console.error("Backup failed:", error);
 
-    // Send failure alert email
+    // Clean up half-finished raw backup if present
+    if (rawBackupPath && fs.existsSync(rawBackupPath)) {
+      try { fs.unlinkSync(rawBackupPath); } catch { /* ignore */ }
+    }
+
     try {
       await sendEmail({
         to: BACKUP_EMAIL,
