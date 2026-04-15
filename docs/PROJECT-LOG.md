@@ -1543,4 +1543,69 @@ www.ayurgate.com (Railway)
 
 ---
 
-*Last updated: 15 April 2026 (Session 17)*
+### Session 18 — 15 April 2026 — Automated DB Backups + Practo-Style UX Pass
+
+Two threads in one session: (1) automated production database backups deployed and verified, and (2) a five-fix UX pass aligning the clinic-admin shell with Practo Ray / Google Merchant Center conventions.
+
+#### 1. Automated DB Backups (commits `7cda4cb`, `23037d8`)
+- New endpoint `/api/cron/backup` — secret-protected via `CRON_SECRET` env var (no fallback default; throws on missing per SEC-001 pattern).
+- Uses Prisma `VACUUM INTO` for a consistent SQLite snapshot, then `zlib.createGzip()` for compression. Optional S3/R2 offsite via `@aws-sdk/client-s3` if `BACKUP_S3_*` envs are set.
+- Integrity check after backup: counts clinics, users, patients, appointments, invoices to confirm restore-readiness.
+- Hotfix `23037d8`: removed an over-strict `fs.existsSync()` pre-check that blocked Railway runs (the SQLite file lives on a mounted volume at an unknown path). `VACUUM INTO` already validates the source loudly.
+- **Production verified**: 1.28 MB → 99 KB gzipped in ~50 ms. Sample response: `{"success":true,"backupFile":"backup-2026-04-15T08-29-26.db.gz","integrity":{"passed":true,"details":{"clinics":9,"users":18,"patients":3}}}`.
+- **Open**: daily cron schedule (cron-job.org or similar) hitting `/api/cron/backup?secret=...` not yet configured by user.
+
+#### 2. UX Fix #1 — Top-right account avatar dropdown (commit `b0d30a3`)
+Added a Practo-style identity control to `Sidebar.tsx`. Avatar shows clinic logo (or initials gradient circle) + chevron. Click opens a 280px dropdown with user name/email, clinic name, and links to Account settings, Subscription & billing, Clinic branding, Security, plus a red Sign out. Closes on outside click.
+
+#### 3. UX Fix #2 — Clinic logo upload (commit `d534025`)
+New "Branding" section in `/admin/settings`. Client-side canvas resize to max 512×512, stored as base64 data URL in `clinicSettings.logoUrl`. **No filesystem dependency** — survives Railway redeploys and DB backups. SVGs stored as-is. Sidebar avatar already reads `logoUrl`, so saved logos appear automatically.
+
+Decision: skipped per-clinic favicon (only useful with subdomains/white-label, which AyurGate doesn't have yet).
+
+#### 4. UX Fix #3 — Help & Support modal (commit `6a989bd`)
+New `?` icon in the header opens a modal showing:
+- **Customer ID** (clinicId) with one-click Copy
+- **Plan badge** (trial/starter/professional/enterprise) — colored
+- Trial days remaining if applicable, subscription status, signed-in user
+- Quick links: email support (mailto), Help Centre, Subscription & billing
+- Footer reminder: "Include your Customer ID when contacting support to speed things up."
+
+Subscription data is lazy-loaded on first open via `/api/clinic/subscription`.
+
+#### 5. UX Fix #4 — StatusBanner for paid-plan issues (commit `1acbb97`)
+New component `src/components/StatusBanner.tsx`, wired into `LayoutShell` next to the existing `TrialBanner` (which it deliberately skips to avoid duplication). Surfaces actionable subscription problems for paid plans:
+
+| Status | Severity | Message | CTA |
+|---|---|---|---|
+| `past_due` | red | Latest payment failed | Update payment |
+| `suspended` | red | Account suspended | Contact support (mailto) |
+| `expired` | red | Subscription expired | Renew now |
+| `cancelled` | amber | Will end at period end | Reactivate |
+
+Dismissals persist 24 h via sessionStorage so the banner doesn't nag every page load.
+
+#### 6. UX Fix #5 — Branch selector in header (commit `bc98331`)
+For multi-branch clinics: a "Switch branch" pill appears in the desktop header next to the clinic name. Single-branch clinics see nothing. Selection persists per-tab via localStorage and broadcasts a `branchchange` window event.
+
+New hook `src/lib/use-selected-branch.ts` lets pages opt into branch filtering incrementally:
+```ts
+const branchId = useSelectedBranch();
+useEffect(() => { refetch(branchId); }, [branchId]);
+```
+Lightweight surfacing — no big-bang API refactor required; pages adopt the filter on their own schedule.
+
+#### Verification (all six items)
+- `npx tsc --noEmit` clean after every commit
+- All 6 commits pushed to `main` → Railway auto-deployed
+- Backup endpoint live-tested in production with real data
+- No data loss — multi-tenant clinics + users still intact post-deploy
+
+#### Open follow-ups
+- Schedule daily cron hits to `/api/cron/backup?secret=...`
+- Adopt `useSelectedBranch()` on dashboard, appointments, patients pages (incremental)
+- Per-clinic logo display on invoices/prescriptions/emails (currently only sidebar avatar)
+
+---
+
+*Last updated: 15 April 2026 (Session 18)*
