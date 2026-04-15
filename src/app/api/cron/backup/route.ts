@@ -83,22 +83,17 @@ export async function GET(req: NextRequest) {
   let rawBackupPath = "";
 
   try {
-    // ─── 1. Locate database file ───────────────────────────────────────
-    const dbUrl = process.env.DATABASE_URL || "file:./dev.db";
-    const dbPath = dbUrl.replace("file:", "").replace("?", "");
-    const resolvedDbPath = path.resolve(process.cwd(), dbPath);
-
-    if (!fs.existsSync(resolvedDbPath)) {
-      return NextResponse.json({ error: "Database file not found", path: resolvedDbPath }, { status: 500 });
-    }
-
-    // ─── 2. Create backup directory ────────────────────────────────────
+    // ─── 1. Create backup directory ────────────────────────────────────
+    // We don't pre-check the source DB path — Prisma's VACUUM INTO below
+    // will fail loudly if it can't read the source. Avoiding a pre-check
+    // means this route works in every environment regardless of whether
+    // DATABASE_URL is relative, absolute, or on a mounted volume.
     const backupDir = path.join(process.cwd(), "backups");
     if (!fs.existsSync(backupDir)) {
       fs.mkdirSync(backupDir, { recursive: true });
     }
 
-    // ─── 3. Create SQLite snapshot via VACUUM INTO ─────────────────────
+    // ─── 2. Create SQLite snapshot via VACUUM INTO ─────────────────────
     const rawFilename = `backup-${timestamp}.db`;
     rawBackupPath = path.join(backupDir, rawFilename);
     await prisma.$queryRawUnsafe(`VACUUM INTO '${rawBackupPath}'`);
