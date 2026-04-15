@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import Link from "next/link";
 import AdminTabs from "@/components/AdminTabs";
 import { PageGuide } from "@/components/HelpTip";
 import { validatePassword, PASSWORD_RULES } from "@/lib/country-data";
@@ -42,38 +43,6 @@ interface Staff {
   createdAt: string;
 }
 
-interface ScheduleBlock { start: string; end: string }
-type WeeklySchedule = Record<string, ScheduleBlock[]>;
-
-interface StaffForm {
-  name: string;
-  email: string;
-  phone: string;
-  role: string;
-  gender: string;
-  ethnicity: string;
-  dateOfBirth: string;
-  residencyStatus: string;
-  prStartDate: string;
-  dateOfJoining: string;
-  lastWorkingDate: string;
-  resignationDate: string;
-  resignationReason: string;
-  nricFin: string;
-  jobTitle: string;
-  mainDuties: string;
-  employmentType: string;
-  isWorkman: boolean;
-  weeklyContractedHours: string;
-  workingDaysPerWeek: string;
-  specialization: string;
-  department: string;
-  consultationFee: string;
-  slotDuration: string;
-  schedule: WeeklySchedule;
-  sendInvite: boolean;
-}
-
 // ─── Constants ──────────────────────────────────────────────────────────────
 const ALL_ROLES = [
   { value: "doctor", label: "Doctor", prefix: "D", color: "#2d6a4f", bg: "#f0faf4" },
@@ -84,44 +53,6 @@ const ALL_ROLES = [
   { value: "staff", label: "Staff", prefix: "S", color: "#78716c", bg: "#fafaf9" },
 ];
 
-const CLINICAL_ROLES = ["doctor", "therapist"];
-
-const DOCTOR_SPECIALIZATIONS = [
-  "Kayachikitsa", "Panchakarma", "Balachikitsa", "Graha Chikitsa",
-  "Shalakya Tantra", "Shalya Tantra", "Agada Tantra", "Rasayana",
-  "Vajikarana", "General Ayurveda",
-];
-
-const THERAPIST_SPECIALIZATIONS = [
-  "Panchakarma Therapy", "Abhyanga", "Shirodhara", "Pizhichil",
-  "Njavarakizhi", "Elakizhi", "Podikizhi", "Nasyam", "Vasthi",
-  "Udvarthanam", "Takradhara", "General Therapy",
-];
-
-const DEPARTMENTS = [
-  "Panchakarma", "General Ayurveda", "Kayachikitsa",
-  "Yoga & Naturopathy", "Marma Therapy",
-  "Admin", "Operations", "Front Desk", "Pharmacy", "Accounts", "General",
-];
-
-const SLOT_DURATIONS = [15, 20, 30, 45, 60];
-
-const DAYS = [
-  { key: "monday", label: "Mon" },
-  { key: "tuesday", label: "Tue" },
-  { key: "wednesday", label: "Wed" },
-  { key: "thursday", label: "Thu" },
-  { key: "friday", label: "Fri" },
-  { key: "saturday", label: "Sat" },
-];
-
-const EMPTY_FORM: StaffForm = {
-  name: "", email: "", phone: "", role: "doctor", gender: "", ethnicity: "",
-  dateOfBirth: "", residencyStatus: "", prStartDate: "", dateOfJoining: "", lastWorkingDate: "", resignationDate: "", resignationReason: "",
-  nricFin: "", jobTitle: "", mainDuties: "", employmentType: "full_time", isWorkman: false, weeklyContractedHours: "44", workingDaysPerWeek: "5.5",
-  specialization: "", department: "", consultationFee: "", slotDuration: "30",
-  schedule: {}, sendInvite: false,
-};
 
 // ─── Design Tokens (YODA) ───────────────────────────────────────────────────
 const cardStyle: React.CSSProperties = {
@@ -150,12 +81,6 @@ export default function StaffPage() {
   const [loading, setLoading] = useState(true);
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
-  const [showForm, setShowForm] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState<StaffForm>(EMPTY_FORM);
-  const [formError, setFormError] = useState("");
-  const [errorField, setErrorField] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type: "ok" | "err" } | null>(null);
   const [passwordModal, setPasswordModal] = useState<{ id: string; name: string } | null>(null);
   const [newPassword, setNewPassword] = useState("");
@@ -207,144 +132,6 @@ export default function StaffPage() {
       })
     ).then(() => setOnLeaveIds(new Set(ids)));
   }, [staff]);
-
-  // ─── Form handlers ─────────────────────────────────────────────────────
-  const openAdd = () => {
-    setForm(EMPTY_FORM);
-    setEditingId(null);
-    setFormError("");
-    setErrorField(null);
-    setShowForm(true);
-  };
-
-  const openEdit = (s: Staff) => {
-    let schedule: WeeklySchedule = {};
-    try { schedule = JSON.parse(s.schedule || "{}"); } catch { /* ignore */ }
-    setForm({
-      name: s.name,
-      email: s.email,
-      phone: s.phone || "",
-      role: s.role,
-      gender: s.gender || "",
-      ethnicity: s.ethnicity || "",
-      dateOfBirth: s.dateOfBirth ? s.dateOfBirth.split("T")[0] : "",
-      residencyStatus: s.residencyStatus || "",
-      prStartDate: s.prStartDate ? s.prStartDate.split("T")[0] : "",
-      dateOfJoining: s.dateOfJoining ? s.dateOfJoining.split("T")[0] : "",
-      lastWorkingDate: s.lastWorkingDate ? s.lastWorkingDate.split("T")[0] : "",
-      resignationDate: s.resignationDate ? s.resignationDate.split("T")[0] : "",
-      resignationReason: s.resignationReason || "",
-      nricFin: s.nricFin || "",
-      jobTitle: s.jobTitle || "",
-      mainDuties: s.mainDuties || "",
-      employmentType: s.employmentType || "full_time",
-      isWorkman: s.isWorkman || false,
-      weeklyContractedHours: String(s.weeklyContractedHours || 44),
-      workingDaysPerWeek: String(s.workingDaysPerWeek || 5.5),
-      specialization: s.specialization || "",
-      department: s.department || "",
-      consultationFee: s.consultationFee !== null ? String(s.consultationFee) : "",
-      slotDuration: String(s.slotDuration || 30),
-      schedule,
-      sendInvite: false,
-    });
-    setEditingId(s.id);
-    setFormError("");
-    setErrorField(null);
-    setShowForm(true);
-  };
-
-  const closeForm = () => { setShowForm(false); setEditingId(null); setFormError(""); setErrorField(null); };
-
-  const isClinical = CLINICAL_ROLES.includes(form.role);
-
-  // Scroll the input flagged as invalid into view + focus it so the user
-  // doesn't have to hunt through a long form for the red border.
-  const focusErrorField = (field: string) => {
-    // Defer to next tick so the error state has rendered the red border first.
-    requestAnimationFrame(() => {
-      const el = document.querySelector<HTMLElement>(`[data-field="${field}"]`);
-      if (el) {
-        el.scrollIntoView({ behavior: "smooth", block: "center" });
-        // Tiny focus delay so scroll can finish before focus ring appears.
-        setTimeout(() => (el as HTMLInputElement | HTMLSelectElement).focus?.(), 300);
-      }
-    });
-  };
-
-  const validate = (): { field: string; message: string } | null => {
-    if (!form.name.trim()) return { field: "name", message: "Name is required" };
-    if (!form.email.trim()) return { field: "email", message: "Email is required" };
-    if (isClinical && !form.specialization) return { field: "specialization", message: "Specialization is required for clinical roles" };
-    if (isClinical && !form.department) return { field: "department", message: "Department is required for clinical roles" };
-    return null;
-  };
-
-  const handleSave = async () => {
-    const err = validate();
-    if (err) {
-      setFormError(err.message);
-      setErrorField(err.field);
-      focusErrorField(err.field);
-      return;
-    }
-    setSaving(true);
-    setFormError("");
-    setErrorField(null);
-
-    const payload = {
-      name: form.name.trim(),
-      email: form.email.trim(),
-      phone: form.phone.trim() || null,
-      role: form.role,
-      gender: form.gender || null,
-      ethnicity: form.ethnicity || null,
-      dateOfBirth: form.dateOfBirth || null,
-      residencyStatus: form.residencyStatus || null,
-      prStartDate: form.prStartDate || null,
-      dateOfJoining: form.dateOfJoining || null,
-      lastWorkingDate: form.lastWorkingDate || null,
-      resignationDate: form.resignationDate || null,
-      resignationReason: form.resignationReason || null,
-      nricFin: form.nricFin.trim() || null,
-      jobTitle: form.jobTitle.trim() || null,
-      mainDuties: form.mainDuties.trim() || null,
-      employmentType: form.employmentType || "full_time",
-      isWorkman: form.isWorkman,
-      weeklyContractedHours: parseFloat(form.weeklyContractedHours) || 44,
-      workingDaysPerWeek: parseFloat(form.workingDaysPerWeek) || 5.5,
-      specialization: isClinical ? form.specialization : null,
-      department: form.department || null,
-      consultationFee: isClinical && form.consultationFee ? Number(form.consultationFee) : null,
-      slotDuration: isClinical ? Number(form.slotDuration) : 30,
-      schedule: isClinical ? JSON.stringify(form.schedule) : "{}",
-      sendInvite: form.sendInvite,
-    };
-
-    try {
-      const url = editingId ? `/api/staff/${editingId}` : "/api/staff";
-      const res = await fetch(url, {
-        method: editingId ? "PUT" : "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        const data = await res.json();
-        setFormError(data.error || "Failed to save");
-        setSaving(false);
-        return;
-      }
-
-      showToast(editingId ? "Staff member updated" : "Staff member created");
-      closeForm();
-      fetchStaff();
-    } catch {
-      setFormError("Network error");
-    } finally {
-      setSaving(false);
-    }
-  };
 
   const toggleStatus = async (s: Staff) => {
     const newStatus = s.status === "active" ? "inactive" : "active";
@@ -413,39 +200,9 @@ export default function StaffPage() {
     }
   };
 
-  // ─── Schedule helpers ─────────────────────────────────────────────────
-  const toggleDay = (day: string) => {
-    const s = { ...form.schedule };
-    if (s[day]) { delete s[day]; } else { s[day] = [{ start: "09:00", end: "13:00" }]; }
-    setForm({ ...form, schedule: s });
-  };
-
-  const updateBlock = (day: string, idx: number, field: "start" | "end", value: string) => {
-    const s = { ...form.schedule };
-    const blocks = [...(s[day] || [])];
-    blocks[idx] = { ...blocks[idx], [field]: value };
-    s[day] = blocks;
-    setForm({ ...form, schedule: s });
-  };
-
-  const addBlock = (day: string) => {
-    const s = { ...form.schedule };
-    s[day] = [...(s[day] || []), { start: "14:00", end: "17:00" }];
-    setForm({ ...form, schedule: s });
-  };
-
-  const removeBlock = (day: string, idx: number) => {
-    const s = { ...form.schedule };
-    const blocks = (s[day] || []).filter((_, i) => i !== idx);
-    if (blocks.length === 0) delete s[day]; else s[day] = blocks;
-    setForm({ ...form, schedule: s });
-  };
-
   // ─── Role counts ──────────────────────────────────────────────────────
   const roleCounts: Record<string, number> = { all: staff.length };
   staff.forEach((s) => { roleCounts[s.role] = (roleCounts[s.role] || 0) + 1; });
-
-  const specializations = form.role === "therapist" ? THERAPIST_SPECIALIZATIONS : DOCTOR_SPECIALIZATIONS;
 
   // ─── Render ───────────────────────────────────────────────────────────
   return (
@@ -471,14 +228,14 @@ export default function StaffPage() {
           <p className="text-[15px] mt-0.5" style={{ color: "var(--grey-600)" }}>Manage doctors, therapists, and clinic staff</p>
         </div>
         <div className="flex items-center gap-2">
-          <a
+          <Link
             href="/admin/staff/performance"
             className="inline-flex items-center gap-2 px-4 py-2 text-[15px] font-semibold transition-colors"
             style={{ background: "var(--green-light)", color: "var(--green)", borderRadius: "var(--radius-sm)", border: "1px solid var(--green)" }}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
             Performance
-          </a>
+          </Link>
           <button
             onClick={() => setShowImport(true)}
             className="inline-flex items-center gap-2 px-4 py-2 text-[14px] font-semibold transition-colors"
@@ -487,14 +244,14 @@ export default function StaffPage() {
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
             Import CSV
           </button>
-          <button
-            onClick={openAdd}
+          <Link
+            href="/admin/staff/new"
             className="inline-flex items-center gap-2 text-white px-5 py-2 text-[15px] font-semibold"
             style={{ background: "var(--blue-500)", borderRadius: "var(--radius-sm)" }}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
             Add Staff
-          </button>
+          </Link>
         </div>
       </div>
 
@@ -668,13 +425,13 @@ export default function StaffPage() {
                     {/* Actions */}
                     <td className="px-4 py-3 text-right">
                       <div className="inline-flex items-center gap-1.5">
-                        <button
-                          onClick={() => openEdit(s)}
-                          className="px-2.5 py-1 text-[13px] font-semibold transition-colors"
+                        <Link
+                          href={`/admin/staff/${s.id}/edit`}
+                          className="px-2.5 py-1 text-[13px] font-semibold transition-colors inline-block"
                           style={{ background: "var(--grey-100)", color: "var(--grey-700)", borderRadius: "var(--radius-sm)", border: "1px solid var(--grey-300)" }}
                         >
                           Edit
-                        </button>
+                        </Link>
                         <a
                           href={`/admin/staff/${s.id}/leave`}
                           className="px-2.5 py-1 text-[13px] font-semibold transition-colors inline-block"
@@ -849,343 +606,6 @@ export default function StaffPage() {
                 style={{ background: "var(--blue-600)", borderRadius: "var(--radius-sm)" }}
               >
                 {passwordSaving ? "Saving..." : "Set Password"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ─── Add/Edit Modal ──────────────────────────────────────────────── */}
-      {showForm && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center" style={{ background: "rgba(0,0,0,0.35)" }} onClick={closeForm}>
-          <div
-            className="bg-white w-full max-w-lg mx-4 mt-12 mb-8 overflow-y-auto yoda-slide-in"
-            style={{ maxHeight: "calc(100vh - 80px)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-lg)" }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Modal header */}
-            <div className="px-5 py-4" style={{ borderBottom: "1px solid var(--grey-300)" }}>
-              <h3 className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>
-                {editingId ? "Edit Staff Member" : "Add New Staff Member"}
-              </h3>
-              <p className="text-[14px] mt-0.5" style={{ color: "var(--grey-500)" }}>
-                {editingId ? "Update staff details below" : "Fill in the details to add a new staff member"}
-              </p>
-            </div>
-
-            <div className="px-5 py-5 space-y-4">
-              {formError && (
-                <div className="p-3 text-[14px] font-semibold" style={{ background: "var(--red-light)", color: "var(--red)", borderRadius: "var(--radius-sm)", border: "1px solid #fecaca" }}>
-                  {formError}
-                </div>
-              )}
-
-              {/* Role */}
-              <div>
-                <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Role</label>
-                <select
-                  value={form.role}
-                  onChange={(e) => setForm({ ...form, role: e.target.value, specialization: "", department: "" })}
-                  className="w-full px-3 py-2 text-[15px]"
-                  style={inputStyle}
-                >
-                  {ALL_ROLES.map((r) => (
-                    <option key={r.value} value={r.value}>{r.label}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Name + Email */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Name *</label>
-                  <input
-                    type="text"
-                    data-field="name"
-                    value={form.name}
-                    onChange={(e) => { setForm({ ...form, name: e.target.value }); if (errorField === "name") { setErrorField(null); setFormError(""); } }}
-                    className="w-full px-3 py-2 text-[15px]"
-                    style={errorField === "name" ? { ...inputStyle, borderColor: "#dc2626", boxShadow: "0 0 0 1px #dc2626" } : inputStyle}
-                    placeholder="Full name"
-                  />
-                  {errorField === "name" && <p className="text-[12px] mt-1" style={{ color: "#dc2626" }}>{formError}</p>}
-                </div>
-                <div>
-                  <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Email *</label>
-                  <input
-                    type="email"
-                    data-field="email"
-                    value={form.email}
-                    onChange={(e) => { setForm({ ...form, email: e.target.value }); if (errorField === "email") { setErrorField(null); setFormError(""); } }}
-                    className="w-full px-3 py-2 text-[15px]"
-                    style={errorField === "email" ? { ...inputStyle, borderColor: "#dc2626", boxShadow: "0 0 0 1px #dc2626" } : inputStyle}
-                    placeholder="email@clinic.com"
-                  />
-                  {errorField === "email" && <p className="text-[12px] mt-1" style={{ color: "#dc2626" }}>{formError}</p>}
-                </div>
-              </div>
-
-              {/* Phone + Gender */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Phone</label>
-                  <input type="tel" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="w-full px-3 py-2 text-[15px]" style={inputStyle} placeholder="+65 XXXX XXXX" />
-                </div>
-                <div>
-                  <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Gender</label>
-                  <select value={form.gender} onChange={(e) => setForm({ ...form, gender: e.target.value })} className="w-full px-3 py-2 text-[15px]" style={inputStyle}>
-                    <option value="">-- Select --</option>
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                  </select>
-                </div>
-              </div>
-              <div>
-                <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Ethnicity <span className="font-normal text-[12px]" style={{ color: "var(--grey-400)" }}>(for SHG fund)</span></label>
-                <select value={form.ethnicity} onChange={(e) => setForm({ ...form, ethnicity: e.target.value })} className="w-full px-3 py-2 text-[15px]" style={inputStyle}>
-                  <option value="">-- Select --</option>
-                  <option value="chinese">Chinese (CDAC)</option>
-                  <option value="malay">Malay (MBMF)</option>
-                  <option value="indian">Indian (SINDA)</option>
-                  <option value="eurasian">Eurasian (ECF)</option>
-                  <option value="other">Other</option>
-                </select>
-              </div>
-
-              {/* NRIC/FIN + Employment Type */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>NRIC/FIN <span className="font-normal text-[12px]" style={{ color: "var(--grey-400)" }}>(for KET)</span></label>
-                  <input value={form.nricFin} onChange={(e) => setForm({ ...form, nricFin: e.target.value })} placeholder="e.g. S9576543F" className="w-full px-3 py-2 text-[15px]" style={inputStyle} />
-                </div>
-                <div>
-                  <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Employment Type</label>
-                  <select value={form.employmentType} onChange={(e) => setForm({ ...form, employmentType: e.target.value })} className="w-full px-3 py-2 text-[15px]" style={inputStyle}>
-                    <option value="full_time">Full-Time</option>
-                    <option value="part_time">Part-Time</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* MOM Work Hours */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Weekly Hours <span className="font-normal text-[12px]" style={{ color: "var(--grey-400)" }}>(contracted)</span></label>
-                  <input type="number" value={form.weeklyContractedHours} onChange={(e) => setForm({ ...form, weeklyContractedHours: e.target.value })} step="0.5" placeholder="44" className="w-full px-3 py-2 text-[15px]" style={inputStyle} />
-                  {parseFloat(form.weeklyContractedHours) < 35 && <p className="text-[11px] mt-1" style={{ color: "#7c3aed" }}>Part-time (&lt;35 hrs/wk)</p>}
-                </div>
-                <div>
-                  <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Working Days/Week</label>
-                  <input type="number" value={form.workingDaysPerWeek} onChange={(e) => setForm({ ...form, workingDaysPerWeek: e.target.value })} step="0.5" placeholder="5.5" className="w-full px-3 py-2 text-[15px]" style={inputStyle} />
-                </div>
-                <div className="flex items-center gap-2 mt-6">
-                  <input type="checkbox" id="isWorkman" checked={form.isWorkman} onChange={(e) => setForm({ ...form, isWorkman: e.target.checked })} />
-                  <label htmlFor="isWorkman" className="text-[13px] font-semibold" style={{ color: "var(--grey-700)" }}>Workman <span className="font-normal text-[11px]" style={{ color: "var(--grey-400)" }}>(manual labour)</span></label>
-                </div>
-              </div>
-
-              {/* Job Title + Main Duties */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Job Title <span className="font-normal text-[12px]" style={{ color: "var(--grey-400)" }}>(for KET)</span></label>
-                  <input value={form.jobTitle} onChange={(e) => setForm({ ...form, jobTitle: e.target.value })} placeholder="e.g. Administrative Assistant" className="w-full px-3 py-2 text-[15px]" style={inputStyle} />
-                </div>
-                <div>
-                  <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Main Duties <span className="font-normal text-[12px]" style={{ color: "var(--grey-400)" }}>(for KET)</span></label>
-                  <input value={form.mainDuties} onChange={(e) => setForm({ ...form, mainDuties: e.target.value })} placeholder="e.g. Administrative duties, filing" className="w-full px-3 py-2 text-[15px]" style={inputStyle} />
-                </div>
-              </div>
-
-              {/* Date of Birth + Residency Status */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Date of Birth</label>
-                  <input type="date" value={form.dateOfBirth} onChange={(e) => setForm({ ...form, dateOfBirth: e.target.value })} className="w-full px-3 py-2 text-[15px]" style={inputStyle} />
-                </div>
-                <div>
-                  <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Residency Status <span className="font-normal text-[12px]" style={{ color: "var(--grey-400)" }}>(for CPF)</span></label>
-                  <select value={form.residencyStatus} onChange={(e) => setForm({ ...form, residencyStatus: e.target.value })} className="w-full px-3 py-2 text-[15px]" style={inputStyle}>
-                    <option value="">-- Select --</option>
-                    <option value="singaporean">Singaporean</option>
-                    <option value="pr">Permanent Resident (PR)</option>
-                    <option value="foreigner">Foreigner</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* PR Start Date (shown only if PR) */}
-              {form.residencyStatus === "pr" && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>PR Effective Date <span className="font-normal text-[12px]" style={{ color: "var(--grey-400)" }}>(for graduated CPF rates)</span></label>
-                    <input type="date" value={form.prStartDate} onChange={(e) => setForm({ ...form, prStartDate: e.target.value })} className="w-full px-3 py-2 text-[15px]" style={inputStyle} />
-                  </div>
-                </div>
-              )}
-
-              {/* Department + Date of Joining */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Department{isClinical ? " *" : ""}</label>
-                  <select
-                    data-field="department"
-                    value={form.department}
-                    onChange={(e) => {
-                      setForm({ ...form, department: e.target.value });
-                      if (errorField === "department") { setErrorField(null); setFormError(""); }
-                    }}
-                    className="w-full px-3 py-2 text-[15px]"
-                    style={errorField === "department" ? { ...inputStyle, borderColor: "#dc2626", boxShadow: "0 0 0 1px #dc2626" } : inputStyle}
-                  >
-                    <option value="">-- Select --</option>
-                    {DEPARTMENTS.map((d) => <option key={d} value={d}>{d}</option>)}
-                  </select>
-                  {errorField === "department" && <p className="text-[12px] mt-1" style={{ color: "#dc2626" }}>{formError}</p>}
-                </div>
-                <div>
-                  <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Date of Joining</label>
-                  <input type="date" value={form.dateOfJoining} onChange={(e) => setForm({ ...form, dateOfJoining: e.target.value })} className="w-full px-3 py-2 text-[15px]" style={inputStyle} />
-                </div>
-              </div>
-
-              {/* Resignation details — only show when editing and status is inactive */}
-              {editingId && (
-                <>
-                  <div className="pt-2 pb-1">
-                    <p className="text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-500)" }}>Separation Details</p>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Resignation Date</label>
-                      <input type="date" value={form.resignationDate} onChange={(e) => setForm({ ...form, resignationDate: e.target.value })} className="w-full px-3 py-2 text-[15px]" style={inputStyle} />
-                    </div>
-                    <div>
-                      <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Last Working Date</label>
-                      <input type="date" value={form.lastWorkingDate} onChange={(e) => setForm({ ...form, lastWorkingDate: e.target.value })} className="w-full px-3 py-2 text-[15px]" style={inputStyle} />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Reason for Leaving</label>
-                    <input type="text" value={form.resignationReason} onChange={(e) => setForm({ ...form, resignationReason: e.target.value })} className="w-full px-3 py-2 text-[15px]" style={inputStyle} placeholder="e.g., Personal reasons, Career change..." />
-                  </div>
-                </>
-              )}
-
-              {/* Clinical fields */}
-              {isClinical && (
-                <>
-                  <div className="pt-2 pb-1">
-                    <p className="text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--grey-500)" }}>Clinical Details</p>
-                  </div>
-
-                  <div>
-                    <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Specialization *</label>
-                    <select
-                      data-field="specialization"
-                      value={form.specialization}
-                      onChange={(e) => {
-                        setForm({ ...form, specialization: e.target.value });
-                        if (errorField === "specialization") { setErrorField(null); setFormError(""); }
-                      }}
-                      className="w-full px-3 py-2 text-[15px]"
-                      style={errorField === "specialization" ? { ...inputStyle, borderColor: "#dc2626", boxShadow: "0 0 0 1px #dc2626" } : inputStyle}
-                    >
-                      <option value="">-- Select --</option>
-                      {specializations.map((s) => <option key={s} value={s}>{s}</option>)}
-                    </select>
-                    {errorField === "specialization" && <p className="text-[12px] mt-1" style={{ color: "#dc2626" }}>{formError}</p>}
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>{form.role === "therapist" ? "Therapy" : "Consultation"} Fee (SGD)</label>
-                      <input type="number" value={form.consultationFee} onChange={(e) => setForm({ ...form, consultationFee: e.target.value })} className="w-full px-3 py-2 text-[15px]" style={inputStyle} placeholder="0" min="0" />
-                    </div>
-                    <div>
-                      <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Slot Duration</label>
-                      <select value={form.slotDuration} onChange={(e) => setForm({ ...form, slotDuration: e.target.value })} className="w-full px-3 py-2 text-[15px]" style={inputStyle}>
-                        {SLOT_DURATIONS.map((d) => <option key={d} value={d}>{d} min</option>)}
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* Schedule builder */}
-                  <div>
-                    <label className="block text-[14px] font-semibold mb-2" style={{ color: "var(--grey-700)" }}>Weekly Schedule</label>
-                    <div className="flex flex-wrap gap-1.5 mb-3">
-                      {DAYS.map((d) => (
-                        <button
-                          key={d.key}
-                          type="button"
-                          onClick={() => toggleDay(d.key)}
-                          className="px-3 py-1.5 text-[13px] font-bold transition-all"
-                          style={{
-                            borderRadius: "var(--radius-sm)",
-                            background: form.schedule[d.key] ? "var(--blue-500)" : "var(--grey-100)",
-                            color: form.schedule[d.key] ? "white" : "var(--grey-600)",
-                            border: form.schedule[d.key] ? "1px solid var(--blue-500)" : "1px solid var(--grey-300)",
-                          }}
-                        >
-                          {d.label}
-                        </button>
-                      ))}
-                    </div>
-                    {DAYS.filter((d) => form.schedule[d.key]).map((d) => (
-                      <div key={d.key} className="mb-2 p-3" style={{ background: "var(--grey-100)", borderRadius: "var(--radius-sm)", border: "1px solid var(--grey-200)" }}>
-                        <div className="text-[13px] font-bold mb-1.5" style={{ color: "var(--grey-700)" }}>{d.label}</div>
-                        {(form.schedule[d.key] || []).map((block, idx) => (
-                          <div key={idx} className="flex items-center gap-2 mb-1.5">
-                            <input type="time" value={block.start} onChange={(e) => updateBlock(d.key, idx, "start", e.target.value)} className="px-2 py-1 text-[14px]" style={inputStyle} />
-                            <span className="text-[13px]" style={{ color: "var(--grey-500)" }}>to</span>
-                            <input type="time" value={block.end} onChange={(e) => updateBlock(d.key, idx, "end", e.target.value)} className="px-2 py-1 text-[14px]" style={inputStyle} />
-                            {(form.schedule[d.key] || []).length > 1 && (
-                              <button type="button" onClick={() => removeBlock(d.key, idx)} className="text-[13px] font-semibold" style={{ color: "var(--red)" }}>Remove</button>
-                            )}
-                          </div>
-                        ))}
-                        <button type="button" onClick={() => addBlock(d.key)} className="text-[13px] font-semibold mt-0.5" style={{ color: "var(--blue-500)" }}>+ Add time block</button>
-                      </div>
-                    ))}
-                  </div>
-                </>
-              )}
-
-              {/* Send invite toggle */}
-              {!editingId && (
-                <div className="flex items-center gap-3 p-3" style={{ background: "var(--grey-100)", borderRadius: "var(--radius-sm)", border: "1px solid var(--grey-200)" }}>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={form.sendInvite}
-                      onChange={(e) => setForm({ ...form, sendInvite: e.target.checked })}
-                      className="sr-only peer"
-                    />
-                    <div className="w-9 h-5 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[var(--blue-500)]"></div>
-                  </label>
-                  <div>
-                    <p className="text-[14px] font-semibold" style={{ color: "var(--grey-800)" }}>Send email invite</p>
-                    <p className="text-[12px]" style={{ color: "var(--grey-500)" }}>Staff member will receive an email to set their password</p>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Footer */}
-            <div className="px-5 py-4 flex justify-end gap-2" style={{ borderTop: "1px solid var(--grey-300)" }}>
-              <button
-                onClick={closeForm}
-                className="px-4 py-2 text-[15px] font-semibold"
-                style={{ background: "var(--grey-100)", color: "var(--grey-700)", borderRadius: "var(--radius-sm)", border: "1px solid var(--grey-300)" }}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSave}
-                disabled={saving}
-                className="px-5 py-2 text-[15px] font-semibold text-white disabled:opacity-50"
-                style={{ background: "var(--blue-500)", borderRadius: "var(--radius-sm)" }}
-              >
-                {saving ? "Saving..." : editingId ? "Update" : "Add Staff"}
               </button>
             </div>
           </div>
