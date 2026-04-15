@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { useTheme } from "@/components/ThemeProvider";
+import BranchSelector from "@/components/BranchSelector";
 
 // roles: "all" = everyone, "admin" = admin/receptionist/staff only, "clinical" = doctor/therapist + admin
 const navItems = [
@@ -435,6 +436,9 @@ export default function Sidebar() {
               — {clinicName}
             </span>
           )}
+          <div style={{ marginLeft: 12 }}>
+            <BranchSelector />
+          </div>
         </div>
 
         {/* Right: Search + Notifications */}
