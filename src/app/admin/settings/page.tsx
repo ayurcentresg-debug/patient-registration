@@ -6,6 +6,7 @@ import AdminTabs from "@/components/AdminTabs";
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface ClinicSettingsData {
   clinicName: string;
+  logoUrl: string;
   address: string;
   city: string;
   state: string;
@@ -27,6 +28,7 @@ interface ClinicSettingsData {
 // ─── Constants ──────────────────────────────────────────────────────────────
 const DEFAULT_SETTINGS: ClinicSettingsData = {
   clinicName: "",
+  logoUrl: "",
   address: "",
   city: "",
   state: "",
@@ -95,6 +97,7 @@ export default function ClinicSettingsPage() {
         } catch { /* use default */ }
         setSettings({
           clinicName: data.clinicName || "",
+          logoUrl: data.logoUrl || "",
           address: data.address || "",
           city: data.city || "",
           state: data.state || "",
@@ -131,6 +134,7 @@ export default function ClinicSettingsPage() {
     const dayMap: Record<string, number> = { monday: 1, tuesday: 2, wednesday: 3, thursday: 4, friday: 5, saturday: 6, sunday: 0 };
     const payload = {
       clinicName: settings.clinicName,
+      logoUrl: settings.logoUrl,
       address: settings.address,
       city: settings.city,
       state: settings.state,
@@ -164,6 +168,56 @@ export default function ClinicSettingsPage() {
 
   const updateField = (field: keyof ClinicSettingsData, value: string | string[]) => {
     setSettings(prev => ({ ...prev, [field]: value }));
+  };
+
+  // Resize image to max 512x512 and compress to JPEG/PNG data URL
+  const handleLogoUpload = async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      setToast({ message: "Please select an image file (PNG, JPG, SVG)", type: "error" });
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setToast({ message: "Image too large. Max 5MB.", type: "error" });
+      return;
+    }
+    // For SVG, store as-is (already tiny)
+    if (file.type === "image/svg+xml") {
+      const text = await file.text();
+      const dataUrl = `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(text)))}`;
+      setSettings(prev => ({ ...prev, logoUrl: dataUrl }));
+      setToast({ message: "Logo uploaded. Click Save Changes to apply.", type: "success" });
+      return;
+    }
+    // For raster images: resize via canvas to max 512x512, export PNG
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const MAX = 512;
+        let w = img.width;
+        let h = img.height;
+        if (w > MAX || h > MAX) {
+          if (w > h) { h = Math.round(h * (MAX / w)); w = MAX; }
+          else { w = Math.round(w * (MAX / h)); h = MAX; }
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+        ctx.drawImage(img, 0, 0, w, h);
+        const dataUrl = canvas.toDataURL("image/png");
+        setSettings(prev => ({ ...prev, logoUrl: dataUrl }));
+        setToast({ message: "Logo uploaded. Click Save Changes to apply.", type: "success" });
+      };
+      img.src = e.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const removeLogo = () => {
+    setSettings(prev => ({ ...prev, logoUrl: "" }));
+    setToast({ message: "Logo removed. Click Save Changes to apply.", type: "success" });
   };
 
   const toggleDay = (dayKey: string) => {
@@ -228,6 +282,65 @@ export default function ClinicSettingsPage() {
         <div className="space-y-4">{[...Array(3)].map((_, i) => <div key={i} className="h-48 animate-pulse" style={{ background: "var(--grey-100)", borderRadius: "var(--radius)" }} />)}</div>
       ) : (
         <div className="space-y-6">
+          {/* ── Branding ────────────────────────────────────────────────── */}
+          <div id="branding" className="p-5" style={cardStyle}>
+            <h2 className="text-[17px] font-bold mb-1" style={{ color: "var(--grey-900)" }}>Branding</h2>
+            <p className="text-[13px] mb-4" style={{ color: "var(--grey-600)" }}>
+              Your clinic logo appears in the top-right avatar, on invoices, prescriptions, and patient-facing emails.
+            </p>
+            <div className="flex items-center gap-5">
+              {/* Preview */}
+              <div style={{
+                width: 96, height: 96, borderRadius: 12,
+                border: "1px dashed var(--grey-400)",
+                background: "var(--grey-50, #fafafa)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                overflow: "hidden", flexShrink: 0
+              }}>
+                {settings.logoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={settings.logoUrl} alt="Clinic logo" style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }} />
+                ) : (
+                  <div style={{ fontSize: 12, color: "var(--grey-500)", textAlign: "center", padding: 8 }}>No logo</div>
+                )}
+              </div>
+              {/* Controls */}
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-wrap gap-2 mb-2">
+                  <label
+                    className="inline-flex items-center gap-2 px-4 py-2 text-[14px] font-semibold cursor-pointer"
+                    style={{ background: "var(--blue-500)", color: "#fff", borderRadius: "var(--radius-sm)" }}
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                    {settings.logoUrl ? "Replace logo" : "Upload logo"}
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg,image/svg+xml,image/webp"
+                      style={{ display: "none" }}
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (f) handleLogoUpload(f);
+                        e.target.value = "";
+                      }}
+                    />
+                  </label>
+                  {settings.logoUrl && (
+                    <button
+                      onClick={removeLogo}
+                      className="inline-flex items-center gap-2 px-4 py-2 text-[14px] font-semibold"
+                      style={{ background: "transparent", color: "var(--red, #dc2626)", border: "1px solid var(--red, #dc2626)", borderRadius: "var(--radius-sm)" }}
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
+                <p className="text-[12px]" style={{ color: "var(--grey-600)" }}>
+                  PNG, JPG, SVG or WebP. Max 5MB. Square images work best — large images are auto-resized to 512×512.
+                </p>
+              </div>
+            </div>
+          </div>
+
           {/* ── Clinic Information ──────────────────────────────────────── */}
           <div className="p-5" style={cardStyle}>
             <h2 className="text-[17px] font-bold mb-4" style={{ color: "var(--grey-900)" }}>Clinic Information</h2>
