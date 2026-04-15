@@ -6,6 +6,7 @@ import Sidebar from "@/components/Sidebar";
 import AuthProvider from "@/components/AuthProvider";
 import ThemeProvider from "@/components/ThemeProvider";
 import TrialBanner from "@/components/TrialBanner";
+import StatusBanner from "@/components/StatusBanner";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import EmailVerifyBanner from "@/components/EmailVerifyBanner";
 
@@ -61,6 +62,7 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
         <AuthProvider>
           <ErrorBoundary>
             <TrialBanner />
+            <StatusBanner />
             <main className="min-h-screen" role="main">{children}</main>
           </ErrorBoundary>
         </AuthProvider>
@@ -74,6 +76,7 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
       <AuthProvider>
         <ErrorBoundary>
           <TrialBanner />
+          <StatusBanner />
           <EmailVerifyBanner />
           <div className="flex min-h-screen overflow-x-hidden">
             <Sidebar />
