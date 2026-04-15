@@ -43,13 +43,23 @@ export async function POST(
       ? user.role.charAt(0).toUpperCase() + user.role.slice(1)
       : "Staff";
 
+    // Pull actual clinic name so resent invites show the correct clinic
+    let clinicDisplayName = "your clinic";
+    if (clinicId) {
+      const clinic = await db.clinic.findUnique({
+        where: { id: clinicId },
+        select: { name: true },
+      });
+      if (clinic?.name) clinicDisplayName = clinic.name;
+    }
+
     await sendEmail({
       to: user.email,
-      subject: `You're invited to join — AyurGate`,
+      subject: `You're invited to join ${clinicDisplayName}`,
       html: staffInviteEmail({
         staffName: user.name,
         role: roleLabel,
-        clinicName: "AyurGate",
+        clinicName: clinicDisplayName,
         inviteUrl,
         tempPassword: "",
       }),

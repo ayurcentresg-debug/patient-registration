@@ -208,14 +208,25 @@ export async function POST(request: NextRequest) {
       const inviteUrl = `${baseUrl.startsWith("http") ? baseUrl : `https://${baseUrl}`}/invite/${inviteToken}`;
       const roleLabel = role ? role.charAt(0).toUpperCase() + role.slice(1) : "Staff";
 
+      // Pull the actual clinic name from the tenant record so the invite
+      // email and subject line show the correct clinic (not the SaaS brand).
+      let clinicDisplayName = "your clinic";
+      if (clinicId) {
+        const clinic = await db.clinic.findUnique({
+          where: { id: clinicId },
+          select: { name: true },
+        });
+        if (clinic?.name) clinicDisplayName = clinic.name;
+      }
+
       try {
         await sendEmail({
           to: email,
-          subject: `You're invited to join — AyurGate`,
+          subject: `You're invited to join ${clinicDisplayName}`,
           html: staffInviteEmail({
             staffName: name,
             role: roleLabel,
-            clinicName: "AyurGate",
+            clinicName: clinicDisplayName,
             inviteUrl,
             tempPassword: "",
           }),
