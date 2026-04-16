@@ -4,8 +4,8 @@ import { getClinicId, requireRole, ADMIN_ROLES } from "@/lib/get-clinic-id";
 import { getTenantPrisma } from "@/lib/tenant-db";
 import { logAudit } from "@/lib/audit";
 
-// GET /api/admin/payroll/salary-config — list all salary configs with staff info
-export async function GET() {
+// GET /api/admin/payroll/salary-config — list all salary configs (or single by ?userId=xxx)
+export async function GET(request: NextRequest) {
   try {
     const auth = await requireRole(ADMIN_ROLES);
     if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -13,8 +13,15 @@ export async function GET() {
     const clinicId = await getClinicId();
     const db = clinicId ? getTenantPrisma(clinicId) : prisma;
 
+    const { searchParams } = new URL(request.url);
+    const filterUserId = searchParams.get("userId");
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const where: any = { isActive: true };
+    if (filterUserId) where.userId = filterUserId;
+
     const configs = await db.salaryConfig.findMany({
-      where: { isActive: true },
+      where,
       orderBy: { createdAt: "desc" },
     });
 
@@ -57,6 +64,7 @@ export async function POST(request: NextRequest) {
     const {
       userId,
       baseSalary,
+      salaryCurrency = "SGD",
       salaryType = "monthly",
       hourlyRate,
       allowances = [],
@@ -67,11 +75,45 @@ export async function POST(request: NextRequest) {
       bankAccount,
       country = "SG",
       age,
+      paymentFrequency = "monthly",
+      paymentDayOfMonth,
+      paymentMode,
+      hourlyOvertimeRate,
+      awsEligible = false,
+      awsMonths,
+      variableBonusNote,
+      cpfRateType = "graduated_graduated",
+      cpfOptIn = true,
     } = body;
 
     if (!userId || baseSalary === undefined) {
       return NextResponse.json({ error: "userId and baseSalary are required" }, { status: 400 });
     }
+
+    const configData = {
+      baseSalary: parseFloat(baseSalary),
+      salaryCurrency: salaryCurrency || "SGD",
+      salaryType,
+      hourlyRate: hourlyRate ? parseFloat(hourlyRate) : null,
+      allowances: JSON.stringify(allowances),
+      deductions: JSON.stringify(deductions),
+      cpfEmployee: parseFloat(cpfEmployee),
+      cpfEmployer: parseFloat(cpfEmployer),
+      bankName: bankName || null,
+      bankAccount: bankAccount || null,
+      country: country || "SG",
+      age: age ? parseInt(age) : null,
+      paymentFrequency: paymentFrequency || "monthly",
+      paymentDayOfMonth: paymentDayOfMonth != null ? parseInt(paymentDayOfMonth) : null,
+      paymentMode: paymentMode || null,
+      hourlyOvertimeRate: hourlyOvertimeRate != null ? parseFloat(hourlyOvertimeRate) : null,
+      awsEligible: Boolean(awsEligible),
+      awsMonths: awsMonths != null ? parseFloat(awsMonths) : null,
+      variableBonusNote: variableBonusNote || null,
+      cpfRateType: cpfRateType || "graduated_graduated",
+      cpfOptIn: cpfOptIn !== false,
+      isActive: true,
+    };
 
     // Check if config already exists for this user
     const existing = await db.salaryConfig.findUnique({ where: { userId } });
@@ -80,20 +122,7 @@ export async function POST(request: NextRequest) {
     if (existing) {
       config = await db.salaryConfig.update({
         where: { userId },
-        data: {
-          baseSalary: parseFloat(baseSalary),
-          salaryType,
-          hourlyRate: hourlyRate ? parseFloat(hourlyRate) : null,
-          allowances: JSON.stringify(allowances),
-          deductions: JSON.stringify(deductions),
-          cpfEmployee: parseFloat(cpfEmployee),
-          cpfEmployer: parseFloat(cpfEmployer),
-          bankName: bankName || null,
-          bankAccount: bankAccount || null,
-          country: country || "SG",
-          age: age ? parseInt(age) : null,
-          isActive: true,
-        },
+        data: configData,
       });
       await logAudit({
         action: "update",
@@ -103,20 +132,7 @@ export async function POST(request: NextRequest) {
       });
     } else {
       config = await db.salaryConfig.create({
-        data: {
-          userId,
-          baseSalary: parseFloat(baseSalary),
-          salaryType,
-          hourlyRate: hourlyRate ? parseFloat(hourlyRate) : null,
-          allowances: JSON.stringify(allowances),
-          deductions: JSON.stringify(deductions),
-          cpfEmployee: parseFloat(cpfEmployee),
-          cpfEmployer: parseFloat(cpfEmployer),
-          bankName: bankName || null,
-          bankAccount: bankAccount || null,
-          country: country || "SG",
-          age: age ? parseInt(age) : null,
-        },
+        data: { userId, ...configData },
       });
       await logAudit({
         action: "create",

@@ -906,6 +906,27 @@ model User {
   inviteToken     String?   @unique // keep globally unique for invite links
   inviteExpiresAt DateTime?
 
+  // ─── HR / MOM KET fields (Key Employment Terms) ───
+  // Working hours & rest
+  dailyStartTime      String?  // e.g. "09:00" — HH:MM 24h
+  dailyEndTime        String?  // e.g. "18:00"
+  breakDurationMin    Int?     // lunch/break minutes per day
+  restDay             String?  // "sunday" | "saturday" | "rotating" | etc.
+  overtimeEligible    Boolean  @default(false) // MOM: non-workman earning ≤$2,600 eligible for OT
+
+  // Leave entitlements (days per year)
+  annualLeaveDays           Int?  // MOM min 7 (1yr) scaling to 14 (8+yr)
+  sickLeaveDays             Int?  // MOM: 14 outpatient (after 6mo service)
+  hospitalisationLeaveDays  Int?  // MOM: 60 incl. outpatient sick leave
+
+  // Probation & termination
+  probationMonths       Int?       // e.g. 3
+  probationStartDate    DateTime?  // usually = dateOfJoining
+  probationEndDate      DateTime?
+  noticeDaysProbation   Int?       // notice during probation
+  noticeDaysConfirmed   Int?       // notice after confirmation
+  employmentEndDate     DateTime?  // only for fixed-term contracts
+
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
@@ -1268,16 +1289,33 @@ model SalaryConfig {
   userId          String   @unique
   country         String   @default("SG") // "SG" | "IN" | "MY"
   baseSalary      Float    // monthly base salary
+  salaryCurrency  String   @default("SGD") // SGD | INR | MYR | USD
   salaryType      String   @default("monthly") // "monthly" | "hourly"
   hourlyRate      Float?   // if hourly
   age             Int?     // employee age (for age-based CPF in SG)
-  allowances      String   @default("[]") // JSON: [{ name: "Transport", amount: 200 }, ...]
-  deductions      String   @default("[]") // JSON: [{ name: "Insurance", amount: 50 }, ...]
+  allowances      String   @default("[]") // JSON: [{ name, amount, taxable, cpfable }]
+  deductions      String   @default("[]") // JSON: [{ name, amount }]
   cpfEmployee     Float    @default(20) // employee CPF rate % (Singapore) — kept as override
   cpfEmployer     Float    @default(17) // employer CPF rate % — kept as override
   bankName        String?
   bankAccount     String?
   isActive        Boolean  @default(true)
+
+  // MOM KET Section C — payment terms
+  paymentFrequency   String  @default("monthly") // monthly | fortnightly | weekly | daily
+  paymentDayOfMonth  Int?    // 1..31 — day salary is paid
+  paymentMode        String? // bank_transfer | cheque | cash | paynow
+  hourlyOvertimeRate Float?  // SGD/hour
+
+  // Annual Wage Supplement / 13th month
+  awsEligible        Boolean @default(false)
+  awsMonths          Float?  // e.g., 1.0 = full 13th month
+  variableBonusNote  String? // free-text
+
+  // CPF configuration (PR-specific)
+  cpfRateType        String  @default("graduated_graduated") // graduated_graduated (G/G) | full_graduated (F/G)
+  cpfOptIn           Boolean @default(true) // false for foreigners
+
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 

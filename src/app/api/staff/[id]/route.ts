@@ -88,6 +88,37 @@ export async function PUT(
     if (body.isWorkman !== undefined) updateData.isWorkman = body.isWorkman;
     if (body.weeklyContractedHours !== undefined) updateData.weeklyContractedHours = parseFloat(body.weeklyContractedHours) || 44;
     if (body.workingDaysPerWeek !== undefined) updateData.workingDaysPerWeek = parseFloat(body.workingDaysPerWeek) || 5.5;
+
+    // ── HR / MOM KET fields ──
+    if (body.dailyStartTime !== undefined) updateData.dailyStartTime = body.dailyStartTime || null;
+    if (body.dailyEndTime !== undefined) updateData.dailyEndTime = body.dailyEndTime || null;
+    if (body.breakDurationMin !== undefined) {
+      updateData.breakDurationMin = body.breakDurationMin === null || body.breakDurationMin === "" ? null : Number(body.breakDurationMin);
+    }
+    if (body.restDay !== undefined) updateData.restDay = body.restDay || null;
+    if (body.overtimeEligible !== undefined) updateData.overtimeEligible = Boolean(body.overtimeEligible);
+    if (body.annualLeaveDays !== undefined) {
+      updateData.annualLeaveDays = body.annualLeaveDays === null || body.annualLeaveDays === "" ? null : Number(body.annualLeaveDays);
+    }
+    if (body.sickLeaveDays !== undefined) {
+      updateData.sickLeaveDays = body.sickLeaveDays === null || body.sickLeaveDays === "" ? null : Number(body.sickLeaveDays);
+    }
+    if (body.hospitalisationLeaveDays !== undefined) {
+      updateData.hospitalisationLeaveDays = body.hospitalisationLeaveDays === null || body.hospitalisationLeaveDays === "" ? null : Number(body.hospitalisationLeaveDays);
+    }
+    if (body.probationMonths !== undefined) {
+      updateData.probationMonths = body.probationMonths === null || body.probationMonths === "" ? null : Number(body.probationMonths);
+    }
+    if (body.probationStartDate !== undefined) updateData.probationStartDate = body.probationStartDate ? new Date(body.probationStartDate) : null;
+    if (body.probationEndDate !== undefined) updateData.probationEndDate = body.probationEndDate ? new Date(body.probationEndDate) : null;
+    if (body.noticeDaysProbation !== undefined) {
+      updateData.noticeDaysProbation = body.noticeDaysProbation === null || body.noticeDaysProbation === "" ? null : Number(body.noticeDaysProbation);
+    }
+    if (body.noticeDaysConfirmed !== undefined) {
+      updateData.noticeDaysConfirmed = body.noticeDaysConfirmed === null || body.noticeDaysConfirmed === "" ? null : Number(body.noticeDaysConfirmed);
+    }
+    if (body.employmentEndDate !== undefined) updateData.employmentEndDate = body.employmentEndDate ? new Date(body.employmentEndDate) : null;
+
     if (body.password && typeof body.password === "string" && body.password.length >= 12) {
       updateData.password = await bcrypt.hash(body.password, 12);
     }

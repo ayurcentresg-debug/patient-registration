@@ -45,29 +45,28 @@ export async function PUT(
     const db = clinicId ? getTenantPrisma(clinicId) : prisma;
 
     const body = await request.json();
-    const {
-      baseSalary,
-      salaryType,
-      hourlyRate,
-      allowances,
-      deductions,
-      cpfEmployee,
-      cpfEmployer,
-      bankName,
-      bankAccount,
-    } = body;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const data: any = {};
-    if (baseSalary !== undefined) data.baseSalary = parseFloat(baseSalary);
-    if (salaryType !== undefined) data.salaryType = salaryType;
-    if (hourlyRate !== undefined) data.hourlyRate = hourlyRate ? parseFloat(hourlyRate) : null;
-    if (allowances !== undefined) data.allowances = JSON.stringify(allowances);
-    if (deductions !== undefined) data.deductions = JSON.stringify(deductions);
-    if (cpfEmployee !== undefined) data.cpfEmployee = parseFloat(cpfEmployee);
-    if (cpfEmployer !== undefined) data.cpfEmployer = parseFloat(cpfEmployer);
-    if (bankName !== undefined) data.bankName = bankName || null;
-    if (bankAccount !== undefined) data.bankAccount = bankAccount || null;
+    if (body.baseSalary !== undefined) data.baseSalary = parseFloat(body.baseSalary);
+    if (body.salaryCurrency !== undefined) data.salaryCurrency = body.salaryCurrency || "SGD";
+    if (body.salaryType !== undefined) data.salaryType = body.salaryType;
+    if (body.hourlyRate !== undefined) data.hourlyRate = body.hourlyRate ? parseFloat(body.hourlyRate) : null;
+    if (body.allowances !== undefined) data.allowances = JSON.stringify(body.allowances);
+    if (body.deductions !== undefined) data.deductions = JSON.stringify(body.deductions);
+    if (body.cpfEmployee !== undefined) data.cpfEmployee = parseFloat(body.cpfEmployee);
+    if (body.cpfEmployer !== undefined) data.cpfEmployer = parseFloat(body.cpfEmployer);
+    if (body.bankName !== undefined) data.bankName = body.bankName || null;
+    if (body.bankAccount !== undefined) data.bankAccount = body.bankAccount || null;
+    if (body.paymentFrequency !== undefined) data.paymentFrequency = body.paymentFrequency || "monthly";
+    if (body.paymentDayOfMonth !== undefined) data.paymentDayOfMonth = body.paymentDayOfMonth != null ? parseInt(body.paymentDayOfMonth) : null;
+    if (body.paymentMode !== undefined) data.paymentMode = body.paymentMode || null;
+    if (body.hourlyOvertimeRate !== undefined) data.hourlyOvertimeRate = body.hourlyOvertimeRate != null ? parseFloat(body.hourlyOvertimeRate) : null;
+    if (body.awsEligible !== undefined) data.awsEligible = Boolean(body.awsEligible);
+    if (body.awsMonths !== undefined) data.awsMonths = body.awsMonths != null ? parseFloat(body.awsMonths) : null;
+    if (body.variableBonusNote !== undefined) data.variableBonusNote = body.variableBonusNote || null;
+    if (body.cpfRateType !== undefined) data.cpfRateType = body.cpfRateType || "graduated_graduated";
+    if (body.cpfOptIn !== undefined) data.cpfOptIn = body.cpfOptIn !== false;
 
     const config = await db.salaryConfig.update({ where: { id }, data });
 

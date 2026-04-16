@@ -1609,3 +1609,88 @@ Lightweight surfacing — no big-bang API refactor required; pages adopt the fil
 ---
 
 *Last updated: 15 April 2026 (Session 18)*
+
+---
+
+## Session 19 — 16 April 2026
+
+**Theme:** Unified Staff Management — full-page form + HR & Payroll tabs, MOM KET compliance.
+
+### 1. Staff Add/Edit form migrated from slide-over modal to full page
+- New shared component `src/app/admin/staff/StaffFormPage.tsx` (`mode: "create" | "edit"`)
+- New routes:
+  - `src/app/admin/staff/new/page.tsx` — Add Staff
+  - `src/app/admin/staff/[id]/edit/page.tsx` — Edit Staff
+- Removed ~600 lines of inline modal JSX from `src/app/admin/staff/page.tsx` (now just list + password modal + bulk import)
+- Same field sizing / typography / spacing preserved (14 px labels, 15 px inputs, 6-section layout)
+- Field-level error UX retained: red border, inline text, auto-scroll to offending field
+
+### 2. MOM KET compliance comparison
+Compared staff form against:
+- `CPFcontributionratesfrom1Jan2026.pdf` (5 rate tables)
+- `wr-kets-with-description-english.pdf` (MOM Key Employment Terms template)
+
+**Findings:**
+- ✅ CPF inputs complete (DOB, Residency, PR Start, Ethnicity)
+- ⚠️ Missing: daily hours, break, rest day, leave entitlements, probation, notice, salary structure
+- Decided to split the missing fields into two new dedicated tabs instead of bloating the Add Staff form.
+
+### 3. HR Details tab — `/admin/staff/[id]/hr`
+Added 14 fields to `User` model (Prisma schema + API):
+- Working hours: `dailyStartTime`, `dailyEndTime`, `breakDurationMin`, `restDay`, `overtimeEligible`
+- Leave: `annualLeaveDays`, `sickLeaveDays`, `hospitalisationLeaveDays`
+- Probation: `probationMonths`, `probationStartDate`, `probationEndDate`
+- Termination: `noticeDaysProbation`, `noticeDaysConfirmed`, `employmentEndDate`
+
+UI: 2 cards (Working Hours & Rest Day · Leave & Termination). Probation end auto-calcs from start + months. Sticky save bar, toast on save, breadcrumb back to profile.
+
+API: extended `PUT /api/staff/[id]` to accept all 14 HR fields (null-safe partial updates).
+
+### 4. Payroll tab — `/admin/staff/[id]/payroll`
+Added 15 payroll fields to `User` model:
+- `basicSalary`, `salaryCurrency`, `paymentFrequency`, `paymentDayOfMonth`, `paymentMode`
+- `bankName`, `bankAccountNumber`, `hourlyOvertimeRate`
+- `allowances` (JSON), `deductions` (JSON)
+- `awsEligible`, `awsMonths`, `variableBonusNote`
+- `cpfRateType` (G/G vs F/G for PR 1st/2nd year), `cpfOptIn`
+
+UI: 3 cards (Salary & Payment · Allowances & Deductions · CPF Configuration) + **live CPF / payslip preview** sidebar showing:
+- Basic + allowances → Gross
+- Employee deductions (CPF %, SHG Fund) in red
+- Net pay
+- Employer cost (CPF employer %, SDL)
+- MOM hourly / daily / OT reference rates
+- Part IV coverage indicator
+
+### 5. CPF rate tables updated to 2026 (`src/lib/payroll-rules.ts`)
+- Full rates (Citizen / PR 3rd+): corrected 55-60 to 17%/15.5%, 60-65 to 11.5%/12%
+- PR 1st year G/G, 2nd year G/G rates rewritten to match 1 Jan 2026 tables
+- Added new F/G (Full/Graduated) variants for PR 1st and 2nd year (CPF joint application)
+- `calculateStatutory()` now accepts `cpfRateType` option and emits correct rate label on payslip (e.g. "CPF Employee (PR 1st yr F/G)")
+
+### 6. Navigation wired
+Added `HR Details` and `Payroll` tabs to the "More" section of `/admin/staff/[id]/page.tsx` — alongside existing Documents / Leave / Performance tabs.
+
+### ~~⚠️ Known architectural conflict~~ ✅ Resolved
+Rewired Payroll tab to use **SalaryConfig** table as single source of truth (Option A):
+- Removed 15 payroll fields from User model (basicSalary, salaryCurrency, etc.)
+- Extended SalaryConfig model with 10 new fields (paymentFrequency, paymentDayOfMonth, paymentMode, hourlyOvertimeRate, awsEligible, awsMonths, variableBonusNote, cpfRateType, cpfOptIn, salaryCurrency)
+- Payroll tab now fetches from `/api/admin/payroll/salary-config?userId=xxx` in parallel with staff profile
+- Saves via `POST /api/admin/payroll/salary-config` (upserts by userId)
+- `configToForm()` converts SalaryConfigData → PayrollForm, handles null config (new staff with no payroll yet)
+
+### Verification
+- `npm run build` — compiled successfully, all new routes registered
+- Schema pushed to `patient-registration/dev.db` (correct file, after catching a path-resolution bug)
+- Backups taken: `dev.db.backup-*` before each push
+- 14 existing staff records intact post-migration
+- **Live browser testing passed:**
+  - HR Details tab: filled Daily Start (09:00), End (18:00), Rest Day (Sunday) → PUT 200 ✅
+  - Payroll tab: entered Basic Salary S$4,500 → live preview showed CPF Employee 20% (S$900), SHG/CDAC (S$1.50), Net S$3,598.50, Employer CPF 17% (S$765), SDL (S$11.25), Total employer cost S$5,276.25 ✅
+  - Payroll save → POST salary-config 200 ✅
+  - Page reload → data persisted from SalaryConfig ✅
+  - MOM reference rates displayed: Hourly S$23.60, Daily S$188.81, OT 1.5× S$20.45 with Part IV cap note ✅
+
+---
+
+*Last updated: 16 April 2026 (Session 19)*

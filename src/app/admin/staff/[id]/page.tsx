@@ -900,6 +900,8 @@ export default function StaffDetailPage() {
         <h2 style={{ fontSize: 18, fontWeight: 700, color: "var(--grey-900)", marginBottom: 14, marginTop: 0 }}>More</h2>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
           {[
+            { label: "HR Details", href: `/admin/staff/${id}/hr`, icon: "\uD83D\uDCCB" },
+            { label: "Payroll", href: `/admin/staff/${id}/payroll`, icon: "\uD83D\uDCB0" },
             { label: "Documents", href: `/admin/staff/${id}/documents`, icon: "\uD83D\uDCC4" },
             { label: "Leave", href: `/admin/staff/${id}/leave`, icon: "\uD83C\uDFD6\uFE0F" },
             { label: "Performance", href: `/admin/staff/${id}/performance`, icon: "\uD83D\uDCC8" },

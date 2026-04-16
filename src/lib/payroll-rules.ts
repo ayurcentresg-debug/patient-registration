@@ -130,31 +130,52 @@ export function calculateSHG(monthlyWage: number, ethnicity?: string): { fundNam
 // ─── Singapore CPF Rate Tables ─────────────────────────────────────────────
 // Source: https://www.cpf.gov.sg/employer/employer-obligations/how-much-cpf-contributions-to-pay
 
+// ─── CPF contribution rates — effective 1 Jan 2026 ───
+// Source: CPF Board (official rate table PDF, 1 Jan 2026 edition)
+
 // Full rates — Singaporean & PR 3rd year+
 function getCPFRatesFull(age: number): { employee: number; employer: number } {
   if (age <= 55) return { employee: 0.20, employer: 0.17 };
-  if (age <= 60) return { employee: 0.18, employer: 0.16 };
-  if (age <= 65) return { employee: 0.125, employer: 0.125 };
+  if (age <= 60) return { employee: 0.17, employer: 0.155 }; // 2026: bumped from prev years
+  if (age <= 65) return { employee: 0.115, employer: 0.12 }; // 2026
   if (age <= 70) return { employee: 0.075, employer: 0.09 };
   return { employee: 0.05, employer: 0.075 };
 }
 
-// PR 1st year graduated rates
-function getCPFRatesPR1(age: number): { employee: number; employer: number } {
+// PR 1st year Graduated/Graduated (G/G) — both employer & employee phased in
+function getCPFRatesPR1GG(age: number): { employee: number; employer: number } {
   if (age <= 55) return { employee: 0.05, employer: 0.04 };
   if (age <= 60) return { employee: 0.05, employer: 0.04 };
-  if (age <= 65) return { employee: 0.05, employer: 0.04 };
-  if (age <= 70) return { employee: 0.05, employer: 0.04 };
-  return { employee: 0.05, employer: 0.04 };
+  if (age <= 65) return { employee: 0.05, employer: 0.035 };
+  if (age <= 70) return { employee: 0.05, employer: 0.035 };
+  return { employee: 0.05, employer: 0.035 };
 }
 
-// PR 2nd year graduated rates
-function getCPFRatesPR2(age: number): { employee: number; employer: number } {
+// PR 1st year Full/Graduated (F/G) — full employer, graduated employee
+function getCPFRatesPR1FG(age: number): { employee: number; employer: number } {
+  if (age <= 55) return { employee: 0.05, employer: 0.17 };
+  if (age <= 60) return { employee: 0.05, employer: 0.155 };
+  if (age <= 65) return { employee: 0.05, employer: 0.12 };
+  if (age <= 70) return { employee: 0.05, employer: 0.09 };
+  return { employee: 0.05, employer: 0.075 };
+}
+
+// PR 2nd year Graduated/Graduated (G/G)
+function getCPFRatesPR2GG(age: number): { employee: number; employer: number } {
   if (age <= 55) return { employee: 0.15, employer: 0.09 };
-  if (age <= 60) return { employee: 0.125, employer: 0.09 };
-  if (age <= 65) return { employee: 0.05, employer: 0.06 };
-  if (age <= 70) return { employee: 0.05, employer: 0.06 };
-  return { employee: 0.05, employer: 0.06 };
+  if (age <= 60) return { employee: 0.125, employer: 0.06 };
+  if (age <= 65) return { employee: 0.075, employer: 0.035 };
+  if (age <= 70) return { employee: 0.05, employer: 0.035 };
+  return { employee: 0.05, employer: 0.035 };
+}
+
+// PR 2nd year Full/Graduated (F/G)
+function getCPFRatesPR2FG(age: number): { employee: number; employer: number } {
+  if (age <= 55) return { employee: 0.15, employer: 0.17 };
+  if (age <= 60) return { employee: 0.125, employer: 0.155 };
+  if (age <= 65) return { employee: 0.075, employer: 0.12 };
+  if (age <= 70) return { employee: 0.05, employer: 0.09 };
+  return { employee: 0.05, employer: 0.075 };
 }
 
 // Determine PR year from prStartDate
@@ -177,6 +198,7 @@ function calculateSingapore(grossSalary: number, options?: {
   residencyStatus?: string;
   prStartDate?: string | Date | null;
   dateOfBirth?: string | Date | null;
+  cpfRateType?: string; // "graduated_graduated" | "full_graduated" — PR 1st/2nd year only
 }): StatutoryResult {
   // Calculate age from DOB if available, otherwise use provided age
   let age = options?.age || 30;
@@ -217,12 +239,13 @@ function calculateSingapore(grossSalary: number, options?: {
 
   if (residency === "pr") {
     const prYear = getPRYear(options?.prStartDate);
+    const isFG = (options?.cpfRateType || "graduated_graduated") === "full_graduated";
     if (prYear === 1) {
-      cpfRates = getCPFRatesPR1(age);
-      rateLabel = " (PR 1st yr)";
+      cpfRates = isFG ? getCPFRatesPR1FG(age) : getCPFRatesPR1GG(age);
+      rateLabel = isFG ? " (PR 1st yr F/G)" : " (PR 1st yr G/G)";
     } else if (prYear === 2) {
-      cpfRates = getCPFRatesPR2(age);
-      rateLabel = " (PR 2nd yr)";
+      cpfRates = isFG ? getCPFRatesPR2FG(age) : getCPFRatesPR2GG(age);
+      rateLabel = isFG ? " (PR 2nd yr F/G)" : " (PR 2nd yr G/G)";
     } else {
       cpfRates = getCPFRatesFull(age);
       rateLabel = " (PR 3rd yr+)";
@@ -418,7 +441,7 @@ function calculateMalaysia(grossSalary: number, options?: { age?: number; annual
 export function calculateStatutory(
   country: string,
   grossSalary: number,
-  options?: { age?: number; annualIncome?: number; ethnicity?: string; residencyStatus?: string; prStartDate?: string | Date | null; dateOfBirth?: string | Date | null }
+  options?: { age?: number; annualIncome?: number; ethnicity?: string; residencyStatus?: string; prStartDate?: string | Date | null; dateOfBirth?: string | Date | null; cpfRateType?: string }
 ): StatutoryResult {
   switch (country) {
     case "IN":
