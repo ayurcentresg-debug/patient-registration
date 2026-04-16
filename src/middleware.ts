@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { resolveModule, canAccess } from "@/lib/permissions";
 
 if (!process.env.JWT_SECRET) {
   throw new Error("JWT_SECRET environment variable is required");
@@ -76,11 +77,9 @@ const ONBOARDING_ALLOWED_PATHS = [
   "/api/upload",
 ];
 
-// Routes only accessible by admin/receptionist/staff (not doctors)
-const ADMIN_ONLY_PATHS = ["/admin", "/reports", "/inventory", "/communications", "/billing"];
-
-// Routes only accessible by doctors/therapists
-const DOCTOR_PATHS = ["/doctor"];
+// Legacy constants kept for reference — access is now controlled by permissions.ts
+// const ADMIN_ONLY_PATHS = ["/admin", "/reports", "/inventory", "/communications", "/billing"];
+// const DOCTOR_PATHS = ["/doctor"];
 
 // Paths that receive legitimate cross-origin POSTs (external webhooks, cron)
 // and therefore must be exempted from the CSRF Origin check.
@@ -347,18 +346,26 @@ export async function middleware(req: NextRequest) {
       return NextResponse.redirect(new URL("/dashboard", req.url));
     }
 
-    // Doctor/therapist trying to access admin-only routes → redirect to doctor portal
-    if ((role === "doctor" || role === "therapist") && ADMIN_ONLY_PATHS.some(p => pathname.startsWith(p))) {
-      return NextResponse.redirect(new URL("/doctor", req.url));
-    }
-
-    // Non-doctor trying to access doctor portal → redirect to main dashboard
-    if (DOCTOR_PATHS.some(p => pathname.startsWith(p)) && role !== "doctor" && role !== "therapist" && role !== "admin") {
-      return NextResponse.redirect(new URL("/dashboard", req.url));
+    // ── RBAC: check module-level permissions ──────────────────────────────
+    const module = resolveModule(pathname);
+    if (module) {
+      if (!canAccess(role, module)) {
+        // Redirect to appropriate dashboard based on role
+        if (pathname.startsWith("/api/")) {
+          return NextResponse.json(
+            { error: "You don't have permission to access this resource." },
+            { status: 403 }
+          );
+        }
+        const hasDoctorPortal = canAccess(role, "doctor_portal");
+        return NextResponse.redirect(
+          new URL(hasDoctorPortal ? "/doctor" : "/dashboard", req.url)
+        );
+      }
     }
 
     // Doctor/therapist accessing root "/" or "/dashboard" → redirect to doctor portal
-    if ((role === "doctor" || role === "therapist") && (pathname === "/" || pathname === "/dashboard")) {
+    if (canAccess(role, "doctor_portal") && (pathname === "/" || pathname === "/dashboard")) {
       return NextResponse.redirect(new URL("/doctor", req.url));
     }
 

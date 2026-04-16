@@ -59,11 +59,16 @@ export async function getAuthPayload() {
   }
 }
 
-/** Roles that can access admin panel — settings, staff, payroll, branches */
-export const ADMIN_ROLES = ["admin", "receptionist", "staff"];
-
-/** Roles allowed to manage inventory and billing */
-export const STAFF_ROLES = ["admin", "receptionist", "pharmacist", "staff"];
+/**
+ * Role arrays — now derived from the central permissions map.
+ * Import directly from @/lib/permissions for new code.
+ * These re-exports maintain backward compatibility with existing API routes.
+ */
+export {
+  ADMIN_ROLES,
+  STAFF_ROLES,
+  PRESCRIBER_ROLES,
+} from "@/lib/permissions";
 
 /**
  * Checks if the authenticated user has one of the allowed roles.

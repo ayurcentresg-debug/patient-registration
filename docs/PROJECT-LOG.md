@@ -1693,4 +1693,48 @@ Rewired Payroll tab to use **SalaryConfig** table as single source of truth (Opt
 
 ---
 
-*Last updated: 16 April 2026 (Session 19)*
+### Session 20 — 16 Apr 2026
+
+**Theme:** Role-Based Access Control (RBAC) System
+
+### 1. Central permissions engine (`src/lib/permissions.ts`) — NEW
+- Defined 21 modules: dashboard, patients, appointments, prescriptions, doctor_portal, inventory, billing, packages, reports, communications, whatsapp, admin_settings, staff_management, payroll, commission, branches, import, feedback, waitlist, security, cme
+- 5 access levels: `full` → `write` → `view` → `own` → `none`
+- 7 predefined roles: owner, admin, receptionist, doctor, therapist, pharmacist, staff
+- Complete permissions matrix: `ROLE_PERMISSIONS[role][module] → access level`
+- Helper functions: `hasAccess()`, `canAccess()`, `canWrite()`, `canDelete()`, `getAccessLevel()`
+- Route → Module mapping (`ROUTE_MODULE_MAP`) for automatic middleware enforcement
+- `getVisibleNavItems(role)` for Sidebar component
+
+### 2. Middleware updated (`src/middleware.ts`)
+- Replaced hardcoded `ADMIN_ONLY_PATHS` and `DOCTOR_PATHS` with `resolveModule()` + `canAccess()` check
+- Every route now checked against the permissions map — one central place to manage access
+- API routes get 403 JSON response; UI routes redirect to appropriate dashboard
+- **Fixed:** Pharmacist can now access inventory (was blocked by ADMIN_ONLY_PATHS)
+
+### 3. Sidebar updated (`src/components/Sidebar.tsx`)
+- Removed old `access: "admin" | "clinical" | "all"` system
+- Now uses `getVisibleNavItems(role)` from permissions.ts
+- Each nav item shown/hidden based on the user's role permissions
+
+### 4. Legacy compatibility (`src/lib/get-clinic-id.ts`)
+- `ADMIN_ROLES`, `STAFF_ROLES`, `PRESCRIBER_ROLES` now derived from permissions map
+- Re-exported from get-clinic-id.ts for backward compatibility with existing API routes
+- Values match old behavior + new `owner` role:
+  - ADMIN_ROLES: owner, admin, receptionist, staff
+  - STAFF_ROLES: owner, admin, receptionist, pharmacist, staff
+  - PRESCRIBER_ROLES: owner, admin, doctor, pharmacist
+
+### Key fixes
+- **Pharmacist lockout fixed** — can now access inventory (full), prescriptions (full), billing (view)
+- **Doctor/therapist properly gated** — middleware blocks them from admin, inventory, billing etc. via permissions map
+- **API routes inherit middleware protection** — /api/inventory, /api/billing etc. now get 403 if role lacks permission
+
+### Verification
+- `npm run build` — compiled successfully
+- Legacy role arrays verified via tsx: match expected values
+- No breaking changes to existing API routes (they still use requireRole with same arrays)
+
+---
+
+*Last updated: 16 April 2026 (Session 20)*
