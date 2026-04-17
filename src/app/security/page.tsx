@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useFlash } from "@/components/FlashCardProvider";
 import { validatePassword, PASSWORD_RULES } from "@/lib/country-data";
 
 export default function SecurityPage() {
@@ -10,6 +11,7 @@ export default function SecurityPage() {
   const [qrCode, setQrCode] = useState("");
   const [secret, setSecret] = useState("");
   const [verifyCode, setVerifyCode] = useState("");
+  const { showFlash } = useFlash();
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [verifying, setVerifying] = useState(false);

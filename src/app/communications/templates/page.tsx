@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import CommunicationTabs from "@/components/CommunicationTabs";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import { useFlash } from "@/components/FlashCardProvider";
 import { cardStyle, inputStyle } from "@/lib/styles";
 
 const CHANNEL_COLORS: Record<string, string> = { whatsapp: "#25D366", email: "#3b82f6", sms: "#8b5cf6" };
@@ -87,13 +88,7 @@ export default function TemplatesPage() {
     e.target.value = "";
   }
 
-  // Toast
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
-
-  const showToast = useCallback((message: string, type: "success" | "error") => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
-  }, []);
+  const { showFlash } = useFlash();
 
   const fetchTemplates = useCallback(async () => {
     try {
@@ -101,11 +96,11 @@ export default function TemplatesPage() {
       const data = await res.json();
       setTemplates(data);
     } catch {
-      showToast("Failed to load templates", "error");
+      showFlash({ type: "error", title: "Error", message: "Failed to load templates" });
     } finally {
       setLoading(false);
     }
-  }, [showToast]);
+  }, [showFlash]);
 
   useEffect(() => { fetchTemplates(); }, [fetchTemplates]);
 
@@ -115,13 +110,13 @@ export default function TemplatesPage() {
       const res = await fetch("/api/templates/seed", { method: "POST" });
       const data = await res.json();
       if (res.ok) {
-        showToast(`${data.created} templates added (${data.skipped} already existed)`, "success");
+        showFlash({ type: "success", title: "Success", message: `${data.created} templates added (${data.skipped} already existed)` });
         fetchTemplates();
       } else {
-        showToast(data.error || "Failed to seed templates", "error");
+        showFlash({ type: "error", title: "Error", message: data.error || "Failed to seed templates" });
       }
     } catch {
-      showToast("Failed to seed templates", "error");
+      showFlash({ type: "error", title: "Error", message: "Failed to seed templates" });
     }
     setSeeding(false);
   }
@@ -188,15 +183,15 @@ export default function TemplatesPage() {
       }
 
       if (res.ok) {
-        showToast(editingTemplate ? "Template updated" : "Template created", "success");
+        showFlash({ type: "success", title: "Success", message: editingTemplate ? "Template updated" : "Template created" });
         setShowForm(false);
         fetchTemplates();
       } else {
         const err = await res.json();
-        showToast(err.error || "Failed to save template", "error");
+        showFlash({ type: "error", title: "Error", message: err.error || "Failed to save template" });
       }
     } catch {
-      showToast("Failed to save template", "error");
+      showFlash({ type: "error", title: "Error", message: "Failed to save template" });
     }
     setSaving(false);
   }
@@ -213,13 +208,13 @@ export default function TemplatesPage() {
         try {
           const res = await fetch(`/api/templates/${id}`, { method: "DELETE" });
           if (res.ok) {
-            showToast("Template deleted", "success");
+            showFlash({ type: "success", title: "Success", message: "Template deleted" });
             setTemplates((prev) => prev.filter((t) => t.id !== id));
           } else {
-            showToast("Failed to delete template", "error");
+            showFlash({ type: "error", title: "Error", message: "Failed to delete template" });
           }
         } catch {
-          showToast("Failed to delete template", "error");
+          showFlash({ type: "error", title: "Error", message: "Failed to delete template" });
         } finally {
           setConfirmLoading(false);
           setConfirmDialog((prev) => ({ ...prev, open: false }));
@@ -239,7 +234,7 @@ export default function TemplatesPage() {
         setTemplates((prev) => prev.map((t) => t.id === tpl.id ? { ...t, isActive: !t.isActive } : t));
       }
     } catch {
-      showToast("Failed to update template", "error");
+      showFlash({ type: "error", title: "Error", message: "Failed to update template" });
     }
   }
 
@@ -273,16 +268,6 @@ export default function TemplatesPage() {
   return (
     <div className="p-6 md:p-8 yoda-fade-in">
       <CommunicationTabs />
-
-      {/* Toast */}
-      {toast && (
-        <div
-          className="fixed top-4 right-4 z-50 px-4 py-3 text-[15px] font-semibold text-white yoda-slide-in"
-          style={{ background: toast.type === "success" ? "var(--green)" : "var(--red)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-lg)" }}
-        >
-          {toast.message}
-        </div>
-      )}
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">

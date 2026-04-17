@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useFlash } from "@/components/FlashCardProvider";
 import AdminTabs from "@/components/AdminTabs";
 import TreatmentTabs from "@/components/TreatmentTabs";
 import ConfirmDialog from "@/components/ConfirmDialog";
@@ -243,8 +244,7 @@ export default function TreatmentsPage() {
   const [packageForTreatment, setPackageForTreatment] = useState<Treatment | null>(null);
   const [editPackage, setEditPackage] = useState<TreatmentPackage | null>(null);
 
-  // Toast
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const { showFlash } = useFlash();
   const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; title: string; message: string; confirmLabel: string; variant: "danger" | "warning" | "default"; onConfirm: () => void }>({ open: false, title: "", message: "", confirmLabel: "Confirm", variant: "default", onConfirm: () => {} });
   const [confirmLoading, setConfirmLoading] = useState(false);
 
@@ -273,13 +273,13 @@ export default function TreatmentsPage() {
       const res = await fetch("/api/treatments/seed", { method: "POST" });
       const data = await res.json();
       if (data.seeded) {
-        setToast({ message: `Seeded ${data.treatments.length} treatments with packages`, type: "success" });
+        showFlash({ type: "success", title: "Success", message: `Seeded ${data.treatments.length} treatments with packages` });
         fetchTreatments();
       } else {
-        setToast({ message: data.message, type: "error" });
+        showFlash({ type: "error", title: "Error", message: data.message });
       }
     } catch {
-      setToast({ message: "Failed to seed treatments", type: "error" });
+      showFlash({ type: "error", title: "Error", message: "Failed to seed treatments" });
     }
   }
 
@@ -294,7 +294,7 @@ export default function TreatmentsPage() {
     }
     setShowTreatmentModal(false);
     setEditTreatment(null);
-    setToast({ message: editTreatment ? "Treatment updated" : "Treatment created", type: "success" });
+    showFlash({ type: "success", title: "Success", message: editTreatment ? "Treatment updated" : "Treatment created" });
     fetchTreatments();
   }
 
@@ -311,9 +311,9 @@ export default function TreatmentsPage() {
         try {
           const res = await fetch(`/api/treatments/${id}`, { method: "DELETE" });
           const data = await res.json();
-          setToast({ message: data.deactivated ? "Treatment deactivated (has appointments)" : "Treatment deleted", type: "success" });
+          showFlash({ type: "success", title: "Success", message: data.deactivated ? "Treatment deactivated (has appointments)" : "Treatment deleted" });
           fetchTreatments();
-        } catch { setToast({ message: "Failed to delete", type: "error" }); }
+        } catch { showFlash({ type: "error", title: "Error", message: "Failed to delete" }); }
         finally { setConfirmLoading(false); setConfirmDialog(prev => ({ ...prev, open: false })); }
       },
     });
@@ -333,7 +333,7 @@ export default function TreatmentsPage() {
     setShowPackageModal(false);
     setEditPackage(null);
     setPackageForTreatment(null);
-    setToast({ message: data.packageId ? "Package updated" : "Package created", type: "success" });
+    showFlash({ type: "success", title: "Success", message: data.packageId ? "Package updated" : "Package created" });
     fetchTreatments();
   }
 
@@ -350,20 +350,13 @@ export default function TreatmentsPage() {
         try {
           const res = await fetch(`/api/treatments/${treatmentId}/packages?packageId=${packageId}`, { method: "DELETE" });
           const data = await res.json();
-          setToast({ message: data.deactivated ? "Package deactivated" : "Package deleted", type: "success" });
+          showFlash({ type: "success", title: "Success", message: data.deactivated ? "Package deactivated" : "Package deleted" });
           fetchTreatments();
-        } catch { setToast({ message: "Failed to delete", type: "error" }); }
+        } catch { showFlash({ type: "error", title: "Error", message: "Failed to delete" }); }
         finally { setConfirmLoading(false); setConfirmDialog(prev => ({ ...prev, open: false })); }
       },
     });
   }
-
-  // Toast auto-dismiss
-  useEffect(() => {
-    if (!toast) return;
-    const timer = setTimeout(() => setToast(null), 3000);
-    return () => clearTimeout(timer);
-  }, [toast]);
 
   if (!mounted) {
     return (
@@ -378,13 +371,6 @@ export default function TreatmentsPage() {
     <div className="p-6 md:p-8 yoda-fade-in">
       {/* Confirm Dialog */}
       <ConfirmDialog open={confirmDialog.open} title={confirmDialog.title} message={confirmDialog.message} confirmLabel={confirmDialog.confirmLabel} variant={confirmDialog.variant} loading={confirmLoading} onConfirm={confirmDialog.onConfirm} onCancel={() => { setConfirmDialog(prev => ({ ...prev, open: false })); setConfirmLoading(false); }} />
-      {/* Toast */}
-      {toast && (
-        <div className="fixed top-5 right-5 z-[200] px-4 py-3 rounded shadow-lg yoda-slide-in" style={{ background: toast.type === "success" ? "#e8f5e9" : "#ffebee", color: toast.type === "success" ? "#2e7d32" : "var(--red)", border: `1px solid ${toast.type === "success" ? "#a5d6a7" : "#ef9a9a"}` }}>
-          <p className="text-[15px] font-semibold">{toast.message}</p>
-        </div>
-      )}
-
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>

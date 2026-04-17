@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useFlash } from "@/components/FlashCardProvider";
 import { useParams, useRouter } from "next/navigation";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -146,7 +147,7 @@ export default function StaffLeavePage() {
   const [form, setForm] = useState<LeaveForm>(EMPTY_FORM);
   const [formError, setFormError] = useState("");
   const [saving, setSaving] = useState(false);
-  const [toast, setToast] = useState<{ msg: string; type: "ok" | "err" } | null>(null);
+  const { showFlash } = useFlash();
   const [calMonth, setCalMonth] = useState(new Date().getMonth());
   const [calYear, setCalYear] = useState(new Date().getFullYear());
   const [view, setView] = useState<"list" | "calendar">("list");
@@ -159,10 +160,6 @@ export default function StaffLeavePage() {
   const [reassignResult, setReassignResult] = useState<{ reassigned: number; failed: number; errors: Array<{ appointmentId: string; error: string }> } | null>(null);
   const [autoAssigningLeave, setAutoAssigningLeave] = useState(false);
 
-  const showToast = (msg: string, type: "ok" | "err" = "ok") => {
-    setToast({ msg, type });
-    setTimeout(() => setToast(null), 3000);
-  };
 
   // ─── Fetch staff info ──────────────────────────────────────────────────
   useEffect(() => {
@@ -264,7 +261,7 @@ export default function StaffLeavePage() {
         return;
       }
 
-      showToast(editingId ? "Leave updated" : "Leave created");
+      showFlash({ type: "success", title: "Success", message: editingId ? "Leave updated" : "Leave created" });
       closeForm();
       fetchLeaves();
 
@@ -298,13 +295,13 @@ export default function StaffLeavePage() {
     try {
       const res = await fetch(`/api/staff/${id}/leave/${leaveId}`, { method: "DELETE" });
       if (res.ok) {
-        showToast("Leave deleted");
+        showFlash({ type: "success", title: "Success", message: "Leave deleted" });
         fetchLeaves();
       } else {
-        showToast("Failed to delete", "err");
+        showFlash({ type: "error", title: "Error", message: "Failed to delete" });
       }
     } catch {
-      showToast("Network error", "err");
+      showFlash({ type: "error", title: "Error", message: "Network error" });
     }
   };
 
@@ -344,20 +341,6 @@ export default function StaffLeavePage() {
   // ─── Render ───────────────────────────────────────────────────────────
   return (
     <div className="p-6 md:p-8 yoda-fade-in">
-      {/* Toast */}
-      {toast && (
-        <div
-          className="fixed top-5 right-5 z-[200] px-4 py-3 rounded shadow-lg yoda-slide-in"
-          style={{
-            background: toast.type === "ok" ? "#e8f5e9" : "#ffebee",
-            color: toast.type === "ok" ? "#2e7d32" : "var(--red)",
-            border: `1px solid ${toast.type === "ok" ? "#a5d6a7" : "#ef9a9a"}`,
-          }}
-        >
-          <p className="text-[15px] font-semibold">{toast.msg}</p>
-        </div>
-      )}
-
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
@@ -691,9 +674,9 @@ export default function StaffLeavePage() {
                     const assigned = Object.keys(newAssignments).length;
                     const unassigned = affectedAppts.length - assigned;
                     if (unassigned > 0) {
-                      showToast(`Auto-assigned ${assigned}. ${unassigned} need manual handling.`, "err");
+                      showFlash({ type: "error", title: "Error", message: `Auto-assigned ${assigned}. ${unassigned} need manual handling.` });
                     } else {
-                      showToast(`Auto-assigned all ${assigned} appointments`);
+                      showFlash({ type: "success", title: "Success", message: `Auto-assigned all ${assigned} appointments` });
                     }
                   }}
                   disabled={autoAssigningLeave}
@@ -816,7 +799,7 @@ export default function StaffLeavePage() {
                 onClick={async () => {
                   const toReassign = Object.entries(reassignAssignments).filter(([, v]) => v);
                   if (toReassign.length === 0) {
-                    showToast("No appointments assigned to a doctor", "err");
+                    showFlash({ type: "error", title: "Error", message: "No appointments assigned to a doctor" });
                     return;
                   }
                   setReassignLoading(true);
@@ -846,7 +829,7 @@ export default function StaffLeavePage() {
                   setReassignResult({ reassigned: totalR, failed: totalF, errors: allErr });
                   setReassignLoading(false);
                   if (totalR > 0) {
-                    showToast(`Reassigned ${totalR} appointments`);
+                    showFlash({ type: "success", title: "Success", message: `Reassigned ${totalR} appointments` });
                     // Remove reassigned from list
                     const reassignedIds = new Set(toReassign.map(([id]) => id));
                     setAffectedAppts((prev) => prev.filter((a) => !reassignedIds.has(a.id)));

@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import InventoryTabs from "@/components/InventoryTabs";
 import BarcodeScanner from "@/components/BarcodeScanner";
+import { useFlash } from "@/components/FlashCardProvider";
 import { cardStyle, btnPrimary, inputStyle, chipBase } from "@/lib/styles";
 import { formatDateTime } from "@/lib/formatters";
 
@@ -106,9 +107,8 @@ export default function StockAuditPage() {
   // Scan mode state
   const [scanMode, setScanMode] = useState(false);
   const [highlightedItemId, setHighlightedItemId] = useState<string | null>(null);
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const { showFlash } = useFlash();
   const rowRefs = useRef<Record<string, HTMLTableRowElement | null>>({});
-  const toastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Branch-aware state
   const [branches, setBranches] = useState<BranchOption[]>([]);
@@ -247,7 +247,7 @@ export default function StockAuditPage() {
     }
 
     if (entries.length === 0) {
-      setToast({ message: "No physical counts entered. Please enter at least one count.", type: "error" });
+      showFlash({ type: "error", title: "Error", message: "No physical counts entered. Please enter at least one count." });
       return;
     }
 
@@ -304,11 +304,11 @@ export default function StockAuditPage() {
         }
       } else {
         const err = await res.json();
-        setToast({ message: `Audit failed: ${err.error || "Unknown error"}`, type: "error" });
+        showFlash({ type: "error", title: "Error", message: `Audit failed: ${err.error || "Unknown error"}` });
       }
     } catch (err) {
       // Submission failed
-      setToast({ message: "Failed to submit audit. Please try again.", type: "error" });
+      showFlash({ type: "error", title: "Error", message: "Failed to submit audit. Please try again." });
     } finally {
       setSubmitting(false);
       setSubmitProgress(0);
@@ -324,10 +324,8 @@ export default function StockAuditPage() {
 
   // Show toast notification
   const showToast = useCallback((message: string, type: "success" | "error") => {
-    if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
-    setToast({ message, type });
-    toastTimeoutRef.current = setTimeout(() => setToast(null), 4000);
-  }, []);
+    showFlash({ type, title: type === "success" ? "Success" : "Error", message });
+  }, [showFlash]);
 
   // Handle barcode scan
   const handleBarcodeScan = useCallback(async (code: string) => {
@@ -387,51 +385,9 @@ export default function StockAuditPage() {
     }
   }, [scanMode]);
 
-  // Cleanup toast timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
-    };
-  }, []);
 
   return (
     <div className="p-6 md:p-8 yoda-fade-in">
-      {/* Toast Notification */}
-      {toast && (
-        <div
-          className="fixed top-6 right-6 z-50 px-5 py-3 rounded-lg text-[14px] font-semibold flex items-center gap-2 shadow-lg"
-          style={{
-            background: toast.type === "success" ? "var(--green, #43a047)" : "var(--red, #e53935)",
-            color: "white",
-            animation: "slideInRight 0.3s ease",
-          }}
-        >
-          {toast.type === "success" ? (
-            <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-          ) : (
-            <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          )}
-          {toast.message}
-          <button onClick={() => setToast(null)} className="ml-2 opacity-80 hover:opacity-100">
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-      )}
-
-      {/* Toast animation */}
-      <style jsx>{`
-        @keyframes slideInRight {
-          from { transform: translateX(100%); opacity: 0; }
-          to { transform: translateX(0); opacity: 1; }
-        }
-      `}</style>
-
       {/* ── Header ──────────────────────────────────────────────── */}
       <div className="mb-6">
         <h1 className="text-[24px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>Inventory</h1>

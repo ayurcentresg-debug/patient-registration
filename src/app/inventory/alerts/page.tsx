@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import InventoryTabs from "@/components/InventoryTabs";
-import Toast from "@/components/Toast";
+import { useFlash } from "@/components/FlashCardProvider";
 import { cardStyle } from "@/lib/styles";
 import { formatDate } from "@/lib/formatters";
 
@@ -106,7 +106,7 @@ export default function StockAlertsPage() {
   const [error, setError] = useState<string | null>(null);
   const [alerts, setAlerts] = useState<AlertsData>({ lowStock: [], expiringSoon: [], expiring90: [], expired: [], outOfStock: [] });
   const [expanded, setExpanded] = useState<Record<string, boolean>>({ lowStock: true, expiringSoon: true, expiring90: false, expired: true, outOfStock: true });
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const { showFlash } = useFlash();
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   // Branch filter
@@ -174,10 +174,10 @@ export default function StockAlertsPage() {
         body: JSON.stringify({ type: "expired", quantity: item.currentStock, notes: "Marked expired from alerts" }),
       });
       if (!res.ok) throw new Error("Failed");
-      setToast({ message: `${item.name} marked as expired`, type: "success" });
+      showFlash({ type: "success", title: "Success", message: `${item.name} marked as expired` });
       fetchAlerts();
     } catch {
-      setToast({ message: "Failed to mark item as expired", type: "error" });
+      showFlash({ type: "error", title: "Error", message: "Failed to mark item as expired" });
     } finally {
       setActionLoading(null);
     }
@@ -195,10 +195,10 @@ export default function StockAlertsPage() {
         body: JSON.stringify(body),
       });
       if (!res.ok) throw new Error("Failed");
-      setToast({ message: `${item.name} written off successfully`, type: "success" });
+      showFlash({ type: "success", title: "Success", message: `${item.name} written off successfully` });
       fetchAlerts();
     } catch {
-      setToast({ message: "Failed to write off item", type: "error" });
+      showFlash({ type: "error", title: "Error", message: "Failed to write off item" });
     } finally {
       setActionLoading(null);
     }
@@ -243,15 +243,12 @@ export default function StockAlertsPage() {
       });
       if (!res.ok) throw new Error("Failed");
       const data = await res.json();
-      setToast({
-        message: `Written off ${data.writtenOff} item(s) successfully`,
-        type: "success",
-      });
+      showFlash({ type: "success", title: "Success", message: `Written off ${data.writtenOff} item(s) successfully` });
       setConfirmOpen(false);
       setSelectedExpired(new Set());
       fetchAlerts();
     } catch {
-      setToast({ message: "Failed to write off expired items", type: "error" });
+      showFlash({ type: "error", title: "Error", message: "Failed to write off expired items" });
     } finally {
       setBulkWriteOffLoading(false);
     }
@@ -264,12 +261,9 @@ export default function StockAlertsPage() {
       const res = await fetch("/api/inventory/expiry-check", { method: "POST" });
       if (!res.ok) throw new Error("Failed");
       const data = await res.json();
-      setToast({
-        message: `Expiry check complete: ${data.warnings} warning(s), ${data.expired} expired notification(s) created`,
-        type: "success",
-      });
+      showFlash({ type: "success", title: "Success", message: `Expiry check complete: ${data.warnings} warning(s), ${data.expired} expired notification(s) created` });
     } catch {
-      setToast({ message: "Failed to run expiry check", type: "error" });
+      showFlash({ type: "error", title: "Error", message: "Failed to run expiry check" });
     } finally {
       setExpiryCheckLoading(false);
     }
@@ -338,7 +332,6 @@ export default function StockAlertsPage() {
 
   return (
     <div className="p-6 md:p-8 yoda-fade-in">
-      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       <ConfirmDialog
         open={confirmOpen}
         title="Confirm Bulk Write-Off"

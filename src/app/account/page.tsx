@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/components/AuthProvider";
+import { useFlash } from "@/components/FlashCardProvider";
 import { validatePassword, PASSWORD_RULES } from "@/lib/country-data";
 
 // ─── Styles ────────────────────────────────────────────────────────────────
@@ -59,7 +60,7 @@ export default function MyAccountPage() {
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const { showFlash } = useFlash();
 
   // Profile
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -83,8 +84,7 @@ export default function MyAccountPage() {
   useEffect(() => { setMounted(true); }, []);
 
   const showToast = (message: string, type: "success" | "error") => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 4000);
+    showFlash({ type, title: type === "success" ? "Success" : "Error", message });
   };
 
   const fetchProfile = useCallback(async () => {
@@ -178,19 +178,6 @@ export default function MyAccountPage() {
           <h1 style={{ fontSize: 26, fontWeight: 800, color: "var(--grey-900)", margin: 0 }}>My Account</h1>
           <p style={{ fontSize: 14, color: "var(--grey-600)", marginTop: 4 }}>Manage your profile and security settings</p>
         </div>
-
-        {/* Toast */}
-        {toast && (
-          <div style={{
-            position: "fixed", top: 24, right: 24, zIndex: 9999,
-            padding: "12px 20px", borderRadius: 10, fontSize: 14, fontWeight: 600,
-            backgroundColor: toast.type === "success" ? "#d1f2e0" : "#fecaca",
-            color: toast.type === "success" ? "#14532d" : "#991b1b",
-            boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
-          }}>
-            {toast.message}
-          </div>
-        )}
 
         {/* Tabs */}
         <div style={{ display: "flex", gap: 4, marginBottom: 24 }}>

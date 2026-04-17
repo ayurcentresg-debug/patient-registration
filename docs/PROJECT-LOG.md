@@ -1737,4 +1737,80 @@ Rewired Payroll tab to use **SalaryConfig** table as single source of truth (Opt
 
 ---
 
-*Last updated: 16 April 2026 (Session 20)*
+### Session 21 — 17 Apr 2026 — Global FlashCard & ConfirmDialog System
+
+#### 1. FlashCard Component (Ayurvedic-themed Notifications)
+- **Requested by:** User (shared wireframe: 280×408px card with illustration, heading, message, CTA)
+- **What:** Replace the old simple Toast with beautiful flash notifications matching brand
+- **Implementation:**
+  - New `src/components/FlashCard.tsx` with 4 variants: success, error, warning, info
+  - 60% of card is a gradient illustration area
+  - Pure SVG illustrations (no external deps): checkmarks, leaves, sparkles, wilted leaves, triangle, info circle
+  - CSS animations: slide-up entry, scale spring, pulse rings, floating petals
+  - Backdrop blur overlay, ESC to close, click-outside to close
+  - Auto-dismiss: 5s for success/info, manual for error/warning
+  - Optional action CTA button (e.g. "View Patient" on success)
+
+#### 2. FlashCardProvider (Global Context)
+- **What:** Context-based provider so any page can trigger flash notifications without local state
+- **Files:** `src/components/FlashCardProvider.tsx`
+- **API:**
+  ```tsx
+  const { showFlash } = useFlash();
+  showFlash({ type: "success", title: "Saved", message: "Patient updated" });
+  ```
+- Mounted in `LayoutShell.tsx` across all layout branches (public, super-admin, doctor, main)
+
+#### 3. ConfirmDialog Upgrade (Promise-based + Ayurvedic style)
+- **What:** Upgraded existing ConfirmDialog to match FlashCard visual style + added Promise-based hook
+- **Files:** `src/components/ConfirmDialog.tsx`
+- **API (backward compatible):**
+  ```tsx
+  // Old API still works
+  <ConfirmDialog open={open} title="..." onConfirm={...} onCancel={...} />
+
+  // New Promise-based API
+  const confirm = useConfirm();
+  const ok = await confirm({ title: "Delete?", message: "...", type: "danger" });
+  if (ok) { deleteThing(); }
+  ```
+- 3 variants: danger (red shield), warning (amber triangle), default (green info circle)
+- Same illustration/gradient styling as FlashCard for consistency
+
+#### 4. Toast → FlashCard Migration (49 files)
+- **What:** Replaced every `Toast` + `setToast` usage across the codebase with `useFlash()`
+- **Files migrated:**
+  - Patients: new, [id]
+  - Appointments: page, new
+  - Doctor consult: [id]
+  - Prescriptions
+  - Billing: [id], new
+  - Packages: [id], new
+  - Subscription
+  - Inventory: [id], new, import, alerts, stock-audit, suppliers, transfers/[id], transfers/new, purchase-orders/[id], purchase-orders/new (10 files)
+  - Admin: settings, merge, staff, staff/[id], staff/[id]/hr, staff/[id]/payroll, staff/[id]/documents, staff/[id]/leave, staff/reassign, branches, payroll, commission, ket, audit-log, import, treatments, treatments/plans, treatments/plans/new, treatments/plans/[id], treatments/progress (20 files)
+  - Communications: page, bulk, reminders, templates
+  - Doctors: [id], new
+  - Therapists: [id], new
+  - Account, Security
+- **Pattern replaced:**
+  ```tsx
+  // OLD
+  const [toast, setToast] = useState<{...}>(null);
+  setToast({ message: "Saved", type: "success" });
+  {toast && <Toast ... />}
+
+  // NEW
+  const { showFlash } = useFlash();
+  showFlash({ type: "success", title: "Success", message: "Saved" });
+  // No JSX needed — provider renders globally
+  ```
+
+### Verification
+- `npx tsc --noEmit` — zero errors
+- `npm run build` — compiled successfully
+- 0 remaining `setToast` or `import Toast` references in src/app
+
+---
+
+*Last updated: 17 April 2026 (Session 21)*

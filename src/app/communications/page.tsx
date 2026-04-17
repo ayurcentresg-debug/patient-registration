@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import CommunicationTabs from "@/components/CommunicationTabs";
+import { useFlash } from "@/components/FlashCardProvider";
 import { PageGuide } from "@/components/HelpTip";
 import { TablePageSkeleton } from "@/components/Skeleton";
 import { cardStyle, inputStyle } from "@/lib/styles";
@@ -90,13 +91,7 @@ export default function MessagesPage() {
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Toast
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
-
-  const showToast = useCallback((message: string, type: "success" | "error") => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
-  }, []);
+  const { showFlash } = useFlash();
 
   useEffect(() => {
     Promise.all([
@@ -161,13 +156,13 @@ export default function MessagesPage() {
         setCommunications((prev) => [{ ...comm, patient: { firstName: pat?.firstName || "", lastName: pat?.lastName || "" } }, ...prev]);
         setMessage(""); setSubject(""); setSelectedPatient(""); setSelectedTemplate(""); setPreviewText("");
         setShowCompose(false);
-        showToast("Message sent successfully", "success");
+        showFlash({ type: "success", title: "Success", message: "Message sent successfully" });
       } else {
         const err = await res.json();
-        showToast(err.error || "Failed to send message", "error");
+        showFlash({ type: "error", title: "Error", message: err.error || "Failed to send message" });
       }
     } catch {
-      showToast("Failed to send message", "error");
+      showFlash({ type: "error", title: "Error", message: "Failed to send message" });
     }
     setSending(false);
   }
@@ -219,20 +214,6 @@ export default function MessagesPage() {
   return (
     <div className="p-6 md:p-8 yoda-fade-in">
       <CommunicationTabs />
-
-      {/* Toast */}
-      {toast && (
-        <div
-          className="fixed top-4 right-4 z-50 px-4 py-3 text-[15px] font-semibold text-white yoda-slide-in"
-          style={{
-            background: toast.type === "success" ? "var(--green)" : "var(--red)",
-            borderRadius: "var(--radius)",
-            boxShadow: "var(--shadow-lg)",
-          }}
-        >
-          {toast.message}
-        </div>
-      )}
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">

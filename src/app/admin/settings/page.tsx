@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useFlash } from "@/components/FlashCardProvider";
 import AdminTabs from "@/components/AdminTabs";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -79,7 +80,7 @@ export default function ClinicSettingsPage() {
   const [settings, setSettings] = useState<ClinicSettingsData>(DEFAULT_SETTINGS);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const { showFlash } = useFlash();
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -122,12 +123,6 @@ export default function ClinicSettingsPage() {
 
   useEffect(() => { fetchSettings(); }, [fetchSettings]);
 
-  useEffect(() => {
-    if (!toast) return;
-    const timer = setTimeout(() => setToast(null), 3500);
-    return () => clearTimeout(timer);
-  }, [toast]);
-
   const handleSave = () => {
     setSaving(true);
     // Map frontend field names to API field names
@@ -161,8 +156,8 @@ export default function ClinicSettingsPage() {
         if (!r.ok) throw new Error("Failed to save settings");
         return r.json();
       })
-      .then(() => setToast({ message: "Clinic settings saved successfully", type: "success" }))
-      .catch(() => setToast({ message: "Failed to save settings. Please try again.", type: "error" }))
+      .then(() => showFlash({ type: "success", title: "Success", message: "Clinic settings saved successfully" }))
+      .catch(() => showFlash({ type: "error", title: "Error", message: "Failed to save settings. Please try again." }))
       .finally(() => setSaving(false));
   };
 
@@ -173,11 +168,11 @@ export default function ClinicSettingsPage() {
   // Resize image to max 512x512 and compress to JPEG/PNG data URL
   const handleLogoUpload = async (file: File) => {
     if (!file.type.startsWith("image/")) {
-      setToast({ message: "Please select an image file (PNG, JPG, SVG)", type: "error" });
+      showFlash({ type: "error", title: "Error", message: "Please select an image file (PNG, JPG, SVG)" });
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      setToast({ message: "Image too large. Max 5MB.", type: "error" });
+      showFlash({ type: "error", title: "Error", message: "Image too large. Max 5MB." });
       return;
     }
     // For SVG, store as-is (already tiny)
@@ -185,7 +180,7 @@ export default function ClinicSettingsPage() {
       const text = await file.text();
       const dataUrl = `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(text)))}`;
       setSettings(prev => ({ ...prev, logoUrl: dataUrl }));
-      setToast({ message: "Logo uploaded. Click Save Changes to apply.", type: "success" });
+      showFlash({ type: "success", title: "Success", message: "Logo uploaded. Click Save Changes to apply." });
       return;
     }
     // For raster images: resize via canvas to max 512x512, export PNG
@@ -208,7 +203,7 @@ export default function ClinicSettingsPage() {
         ctx.drawImage(img, 0, 0, w, h);
         const dataUrl = canvas.toDataURL("image/png");
         setSettings(prev => ({ ...prev, logoUrl: dataUrl }));
-        setToast({ message: "Logo uploaded. Click Save Changes to apply.", type: "success" });
+        showFlash({ type: "success", title: "Success", message: "Logo uploaded. Click Save Changes to apply." });
       };
       img.src = e.target?.result as string;
     };
@@ -217,7 +212,7 @@ export default function ClinicSettingsPage() {
 
   const removeLogo = () => {
     setSettings(prev => ({ ...prev, logoUrl: "" }));
-    setToast({ message: "Logo removed. Click Save Changes to apply.", type: "success" });
+    showFlash({ type: "success", title: "Success", message: "Logo removed. Click Save Changes to apply." });
   };
 
   const toggleDay = (dayKey: string) => {
@@ -241,13 +236,6 @@ export default function ClinicSettingsPage() {
 
   return (
     <div className="p-6 md:p-8 yoda-fade-in">
-      {/* Toast */}
-      {toast && (
-        <div className="fixed top-5 right-5 z-[200] px-4 py-3 rounded shadow-lg yoda-slide-in" style={{ background: toast.type === "success" ? "#e8f5e9" : "#ffebee", color: toast.type === "success" ? "#2e7d32" : "var(--red)", border: `1px solid ${toast.type === "success" ? "#a5d6a7" : "#ef9a9a"}` }}>
-          <p className="text-[15px] font-semibold">{toast.message}</p>
-        </div>
-      )}
-
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>

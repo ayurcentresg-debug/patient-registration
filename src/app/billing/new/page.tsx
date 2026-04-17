@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { SectionNote } from "@/components/HelpTip";
-import Toast from "@/components/Toast";
+import { useFlash } from "@/components/FlashCardProvider";
 import { cardStyle, btnPrimary, inputStyle, chipBase } from "@/lib/styles";
 import { formatCurrencyExact as formatCurrency } from "@/lib/formatters";
 
@@ -115,7 +115,7 @@ export default function NewInvoicePage() {
 
   const [mounted, setMounted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const { showFlash } = useFlash();
 
   // Patient selection
   const [patientMode, setPatientMode] = useState<"existing" | "walkin">("existing");
@@ -366,7 +366,7 @@ export default function NewInvoicePage() {
     }
     // No variants — add directly
     if (med.currentStock <= 0) {
-      setToast({ message: `${med.name} is out of stock`, type: "error" });
+      showFlash({ type: "error", title: "Error", message: `${med.name} is out of stock` });
       return;
     }
     const packLabel = med.packing ? ` · ${med.packing}` : "";
@@ -378,7 +378,7 @@ export default function NewInvoicePage() {
 
   function addMedicineVariant(med: MedicineResult, variant: MedicineVariant) {
     if (variant.currentStock <= 0) {
-      setToast({ message: `${med.name} (${variant.packing}) is out of stock`, type: "error" });
+      showFlash({ type: "error", title: "Error", message: `${med.name} (${variant.packing}) is out of stock` });
       return;
     }
     setItems((prev) => [...prev, {
@@ -401,7 +401,7 @@ export default function NewInvoicePage() {
 
   function addMedicineBase(med: MedicineResult) {
     if (med.currentStock <= 0) {
-      setToast({ message: `${med.name} (${med.packing}) is out of stock`, type: "error" });
+      showFlash({ type: "error", title: "Error", message: `${med.name} (${med.packing}) is out of stock` });
       return;
     }
     const packLabel = med.packing ? ` · ${med.packing}` : "";
@@ -429,15 +429,15 @@ export default function NewInvoicePage() {
   // ─── Submit ───────────────────────────────────────────────────────────────
   async function handleSubmit() {
     if (items.length === 0) {
-      setToast({ message: "Add at least one item to the invoice", type: "error" });
+      showFlash({ type: "error", title: "Error", message: "Add at least one item to the invoice" });
       return;
     }
     if (patientMode === "existing" && !selectedPatient) {
-      setToast({ message: "Please select a patient", type: "error" });
+      showFlash({ type: "error", title: "Error", message: "Please select a patient" });
       return;
     }
     if (patientMode === "walkin" && !walkInName.trim()) {
-      setToast({ message: "Please enter patient name", type: "error" });
+      showFlash({ type: "error", title: "Error", message: "Please enter patient name" });
       return;
     }
 
@@ -477,10 +477,10 @@ export default function NewInvoicePage() {
       }
 
       const invoice = await res.json();
-      setToast({ message: "Invoice created successfully!", type: "success" });
+      showFlash({ type: "success", title: "Success", message: "Invoice created successfully!" });
       setTimeout(() => router.push(`/billing/${invoice.id}`), 1200);
     } catch (e) {
-      setToast({ message: e instanceof Error ? e.message : "Failed to create invoice", type: "error" });
+      showFlash({ type: "error", title: "Error", message: e instanceof Error ? e.message : "Failed to create invoice" });
     } finally {
       setSubmitting(false);
     }
@@ -502,8 +502,6 @@ export default function NewInvoicePage() {
 
   return (
     <div className="p-6 md:p-8 yoda-fade-in">
-      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-
       {/* ── Header ──────────────────────────────────────────────── */}
       <div className="flex items-center gap-3 mb-6">
         <Link href="/billing" className="w-8 h-8 flex items-center justify-center rounded-lg transition-colors" style={{ background: "var(--grey-100)", color: "var(--grey-600)" }}>

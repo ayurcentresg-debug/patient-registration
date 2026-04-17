@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import Link from "next/link";
 import InventoryTabs from "@/components/InventoryTabs";
-import Toast from "@/components/Toast";
+import { useFlash } from "@/components/FlashCardProvider";
 import { cardStyle, btnPrimary, inputStyle } from "@/lib/styles";
 
 // ─── YODA Design Tokens ─────────────────────────────────────────────────────
@@ -131,7 +131,7 @@ interface ImportResult {
 export default function InventoryImportPage() {
   const [mounted, setMounted] = useState(false);
   const [phase, setPhase] = useState<ImportPhase>("upload");
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const { showFlash } = useFlash();
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -151,7 +151,7 @@ export default function InventoryImportPage() {
   const processFile = useCallback((file: File) => {
     const ext = file.name.split(".").pop()?.toLowerCase();
     if (ext !== "csv" && ext !== "txt") {
-      setToast({ message: "Please upload a .csv file. Excel (.xlsx) files should be exported as CSV first.", type: "error" });
+      showFlash({ type: "error", title: "Error", message: "Please upload a .csv file. Excel (.xlsx) files should be exported as CSV first." });
       return;
     }
 
@@ -161,13 +161,13 @@ export default function InventoryImportPage() {
     reader.onload = (e) => {
       const text = e.target?.result as string;
       if (!text || !text.trim()) {
-        setToast({ message: "File appears to be empty.", type: "error" });
+        showFlash({ type: "error", title: "Error", message: "File appears to be empty." });
         return;
       }
 
       const parsed = parseCSV(text);
       if (parsed.length < 2) {
-        setToast({ message: "File must have a header row and at least one data row.", type: "error" });
+        showFlash({ type: "error", title: "Error", message: "File must have a header row and at least one data row." });
         return;
       }
 
@@ -184,7 +184,7 @@ export default function InventoryImportPage() {
       setPhase("preview");
     };
     reader.onerror = () => {
-      setToast({ message: "Failed to read file.", type: "error" });
+      showFlash({ type: "error", title: "Error", message: "Failed to read file." });
     };
     reader.readAsText(file);
   }, []);
@@ -247,17 +247,17 @@ export default function InventoryImportPage() {
     // Validate mapping has required fields
     const mappedKeys = Object.values(columnMapping);
     if (!mappedKeys.includes("name")) {
-      setToast({ message: "Please map the Name column (required).", type: "error" });
+      showFlash({ type: "error", title: "Error", message: "Please map the Name column (required)." });
       return;
     }
     if (!mappedKeys.includes("category")) {
-      setToast({ message: "Please map the Category column (required).", type: "error" });
+      showFlash({ type: "error", title: "Error", message: "Please map the Category column (required)." });
       return;
     }
 
     const allItems = buildItems();
     if (allItems.length === 0) {
-      setToast({ message: "No items to import.", type: "error" });
+      showFlash({ type: "error", title: "Error", message: "No items to import." });
       return;
     }
 
@@ -354,8 +354,6 @@ export default function InventoryImportPage() {
 
   return (
     <div className="p-6 md:p-8 yoda-fade-in">
-      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-
       {/* ── Back Link ─────────────────────────────────────────────── */}
       <Link href="/inventory" className="inline-flex items-center gap-1 text-[15px] font-semibold hover:underline mb-4" style={{ color: "var(--blue-500)" }}>
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>

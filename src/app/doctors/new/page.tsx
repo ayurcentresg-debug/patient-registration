@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import Toast from "@/components/Toast";
+import { useFlash } from "@/components/FlashCardProvider";
 import { cardStyle, inputStyle } from "@/lib/styles";
 
 // ─── Constants ──────────────────────────────────────────────────────────────
@@ -65,7 +65,7 @@ function getDefaultSchedule(): WeeklySchedule {
 export default function NewDoctorPage() {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const { showFlash } = useFlash();
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -132,7 +132,7 @@ export default function NewDoctorPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!validate()) {
-      setToast({ message: "Please fix the errors below", type: "error" });
+      showFlash({ type: "error", title: "Error", message: "Please fix the errors below" });
       return;
     }
 
@@ -162,11 +162,11 @@ export default function NewDoctorPage() {
         throw new Error(data.error || `Server error (${res.status})`);
       }
 
-      setToast({ message: "Doctor added successfully", type: "success" });
+      showFlash({ type: "success", title: "Success", message: "Doctor added successfully" });
       setTimeout(() => router.push("/doctors"), 1200);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Failed to save doctor";
-      setToast({ message, type: "error" });
+      showFlash({ type: "error", title: "Error", message });
     } finally {
       setSaving(false);
     }
@@ -174,8 +174,6 @@ export default function NewDoctorPage() {
 
   return (
     <div className="p-6 md:p-8 yoda-fade-in">
-      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-
       {/* ── Header ──────────────────────────────────────────────── */}
       <div className="flex items-center gap-3 mb-6">
         <Link

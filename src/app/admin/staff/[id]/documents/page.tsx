@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
+import { useFlash } from "@/components/FlashCardProvider";
 import { useParams, useRouter } from "next/navigation";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -126,6 +127,7 @@ function isImageType(mimeType: string) {
 export default function StaffDocumentsPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const { showFlash } = useFlash();
 
   const [staffMember, setStaffMember] = useState<StaffMember | null>(null);
   const [documents, setDocuments] = useState<StaffDocument[]>([]);
@@ -136,14 +138,8 @@ export default function StaffDocumentsPage() {
   const [form, setForm] = useState<DocForm>(EMPTY_FORM);
   const [formError, setFormError] = useState("");
   const [saving, setSaving] = useState(false);
-  const [toast, setToast] = useState<{ msg: string; type: "ok" | "err" } | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const showToast = (msg: string, type: "ok" | "err" = "ok") => {
-    setToast({ msg, type });
-    setTimeout(() => setToast(null), 3000);
-  };
 
   // ─── Fetch staff info ──────────────────────────────────────────────────
   useEffect(() => {
@@ -256,7 +252,7 @@ export default function StaffDocumentsPage() {
           setSaving(false);
           return;
         }
-        showToast("Document updated");
+        showFlash({ type: "success", title: "Success", message: "Document updated" });
         closeForm();
         fetchDocuments();
       } catch {
@@ -298,7 +294,7 @@ export default function StaffDocumentsPage() {
         setSaving(false);
         return;
       }
-      showToast("Document uploaded");
+      showFlash({ type: "success", title: "Success", message: "Document uploaded" });
       closeForm();
       fetchDocuments();
     } catch {
@@ -315,13 +311,13 @@ export default function StaffDocumentsPage() {
         method: "DELETE",
       });
       if (res.ok) {
-        showToast("Document deleted");
+        showFlash({ type: "success", title: "Success", message: "Document deleted" });
         fetchDocuments();
       } else {
-        showToast("Failed to delete", "err");
+        showFlash({ type: "error", title: "Error", message: "Failed to delete" });
       }
     } catch {
-      showToast("Network error", "err");
+      showFlash({ type: "error", title: "Error", message: "Network error" });
     }
   };
 
@@ -333,33 +329,19 @@ export default function StaffDocumentsPage() {
         body: JSON.stringify({ isVerified: !doc.isVerified }),
       });
       if (res.ok) {
-        showToast(doc.isVerified ? "Verification removed" : "Document verified");
+        showFlash({ type: "success", title: "Success", message: doc.isVerified ? "Verification removed" : "Document verified" });
         fetchDocuments();
       } else {
-        showToast("Failed to update", "err");
+        showFlash({ type: "error", title: "Error", message: "Failed to update" });
       }
     } catch {
-      showToast("Network error", "err");
+      showFlash({ type: "error", title: "Error", message: "Network error" });
     }
   };
 
   // ─── Render ───────────────────────────────────────────────────────────
   return (
     <div className="p-6 md:p-8 yoda-fade-in">
-      {/* Toast */}
-      {toast && (
-        <div
-          className="fixed top-5 right-5 z-[200] px-4 py-3 rounded shadow-lg yoda-slide-in"
-          style={{
-            background: toast.type === "ok" ? "#e8f5e9" : "#ffebee",
-            color: toast.type === "ok" ? "#2e7d32" : "var(--red)",
-            border: `1px solid ${toast.type === "ok" ? "#a5d6a7" : "#ef9a9a"}`,
-          }}
-        >
-          <p className="text-[15px] font-semibold">{toast.msg}</p>
-        </div>
-      )}
-
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>

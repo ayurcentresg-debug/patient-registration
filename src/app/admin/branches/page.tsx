@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useFlash } from "@/components/FlashCardProvider";
 import AdminTabs from "@/components/AdminTabs";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -92,7 +93,7 @@ export default function BranchesPage() {
   const [mounted, setMounted] = useState(false);
   const [branches, setBranches] = useState<Branch[]>([]);
   const [loading, setLoading] = useState(true);
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const { showFlash } = useFlash();
 
   // Modal state
   const [showModal, setShowModal] = useState(false);
@@ -115,12 +116,6 @@ export default function BranchesPage() {
   }, []);
 
   useEffect(() => { fetchBranches(); }, [fetchBranches]);
-
-  useEffect(() => {
-    if (!toast) return;
-    const timer = setTimeout(() => setToast(null), 3500);
-    return () => clearTimeout(timer);
-  }, [toast]);
 
   const openAddModal = () => {
     setEditingId(null);
@@ -147,7 +142,7 @@ export default function BranchesPage() {
 
   const handleSave = () => {
     if (!form.name.trim() || !form.code.trim()) {
-      setToast({ message: "Branch name and code are required", type: "error" });
+      showFlash({ type: "error", title: "Error", message: "Branch name and code are required" });
       return;
     }
     setSaving(true);
@@ -164,11 +159,11 @@ export default function BranchesPage() {
         return r.json();
       })
       .then(() => {
-        setToast({ message: editingId ? "Branch updated successfully" : "Branch created successfully", type: "success" });
+        showFlash({ type: "success", title: "Success", message: editingId ? "Branch updated successfully" : "Branch created successfully" });
         setShowModal(false);
         fetchBranches();
       })
-      .catch(() => setToast({ message: "Failed to save branch. Please try again.", type: "error" }))
+      .catch(() => showFlash({ type: "error", title: "Error", message: "Failed to save branch. Please try again." }))
       .finally(() => setSaving(false));
   };
 
@@ -212,13 +207,6 @@ export default function BranchesPage() {
 
   return (
     <div className="p-6 md:p-8 yoda-fade-in">
-      {/* Toast */}
-      {toast && (
-        <div className="fixed top-5 right-5 z-[200] px-4 py-3 rounded shadow-lg yoda-slide-in" style={{ background: toast.type === "success" ? "#e8f5e9" : "#ffebee", color: toast.type === "success" ? "#2e7d32" : "var(--red)", border: `1px solid ${toast.type === "success" ? "#a5d6a7" : "#ef9a9a"}` }}>
-          <p className="text-[15px] font-semibold">{toast.message}</p>
-        </div>
-      )}
-
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>

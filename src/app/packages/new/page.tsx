@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import Toast from "@/components/Toast";
+import { useFlash } from "@/components/FlashCardProvider";
 import { cardStyle, btnPrimary, inputStyle } from "@/lib/styles";
 import { formatCurrency, formatDateLong as formatDateDisplay } from "@/lib/formatters";
 
@@ -95,7 +95,7 @@ function StepIndicator({ current, labels }: { current: Step; labels: string[] })
 export default function SellPackagePage() {
   const router = useRouter();
   const [step, setStep] = useState<Step>(1);
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const { showFlash } = useFlash();
   const [submitting, setSubmitting] = useState(false);
   const [clinicName, setClinicName] = useState("");
 
@@ -288,10 +288,10 @@ export default function SellPackagePage() {
         throw new Error(data.error || "Failed to create package");
       }
       const created = await res.json();
-      setToast({ message: "Package sold successfully!", type: "success" });
+      showFlash({ type: "success", title: "Success", message: "Package sold successfully!" });
       setTimeout(() => router.push(`/packages/${created.id || ""}`), 1500);
     } catch (err) {
-      setToast({ message: err instanceof Error ? err.message : "Failed to sell package", type: "error" });
+      showFlash({ type: "error", title: "Error", message: err instanceof Error ? err.message : "Failed to sell package" });
       setSubmitting(false);
     }
   }
@@ -311,9 +311,6 @@ export default function SellPackagePage() {
 
   return (
     <div className="p-6 md:p-8 yoda-fade-in">
-      {/* Toast */}
-      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-
       {/* ── Header ──────────────────────────────────────────────── */}
       <div className="flex items-center gap-3 mb-6">
         <Link

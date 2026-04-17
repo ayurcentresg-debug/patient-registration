@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
+import { useFlash } from "@/components/FlashCardProvider";
 import { TablePageSkeleton } from "@/components/Skeleton";
 import { cardStyle, inputStyle } from "@/lib/styles";
 import { formatDateShort as formatDate } from "@/lib/formatters";
@@ -65,6 +66,7 @@ function relativeTime(dateStr: string): string {
 }
 
 export default function PrescriptionsPage() {
+  const { showFlash } = useFlash();
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [loading, setLoading] = useState(true);
@@ -80,12 +82,9 @@ export default function PrescriptionsPage() {
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Toast
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const showToast = useCallback((message: string, type: "success" | "error") => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
-  }, []);
+    showFlash({ type, title: type === "success" ? "Success" : "Error", message });
+  }, [showFlash]);
 
   const fetchPrescriptions = useCallback(async () => {
     try {
@@ -260,14 +259,6 @@ export default function PrescriptionsPage() {
 
   return (
     <div className="p-6 md:p-8 yoda-fade-in">
-      {/* Toast */}
-      {toast && (
-        <div className="fixed top-4 right-4 z-50 px-4 py-3 text-[15px] font-semibold text-white yoda-slide-in"
-          style={{ background: toast.type === "success" ? "var(--green)" : "var(--red)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-lg)" }}>
-          {toast.message}
-        </div>
-      )}
-
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>

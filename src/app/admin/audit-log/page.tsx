@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useFlash } from "@/components/FlashCardProvider";
 import AdminTabs from "@/components/AdminTabs";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -64,7 +65,7 @@ export default function AuditLogPage() {
   // Expandable details
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const { showFlash } = useFlash();
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -95,12 +96,6 @@ export default function AuditLogPage() {
     return () => clearTimeout(timeout);
   }, [fetchEntries]);
 
-  useEffect(() => {
-    if (!toast) return;
-    const timer = setTimeout(() => setToast(null), 3500);
-    return () => clearTimeout(timer);
-  }, [toast]);
-
   // Reset page when filters change
   useEffect(() => { setPage(1); }, [search, actionFilter, entityFilter, userFilter, dateFrom, dateTo]);
 
@@ -118,13 +113,6 @@ export default function AuditLogPage() {
 
   return (
     <div className="p-6 md:p-8 yoda-fade-in">
-      {/* Toast */}
-      {toast && (
-        <div className="fixed top-5 right-5 z-[200] px-4 py-3 rounded shadow-lg yoda-slide-in" style={{ background: toast.type === "success" ? "#e8f5e9" : "#ffebee", color: toast.type === "success" ? "#2e7d32" : "var(--red)", border: `1px solid ${toast.type === "success" ? "#a5d6a7" : "#ef9a9a"}` }}>
-          <p className="text-[15px] font-semibold">{toast.message}</p>
-        </div>
-      )}
-
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-[24px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>Audit Log</h1>

@@ -6,7 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import BarcodeScanner from "@/components/BarcodeScanner";
 import { useAuth } from "@/components/AuthProvider";
-import Toast from "@/components/Toast";
+import { useFlash } from "@/components/FlashCardProvider";
 import { cardStyle, inputStyle } from "@/lib/styles";
 import { formatDate, formatDateTime } from "@/lib/formatters";
 
@@ -95,7 +95,7 @@ export default function TransferDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [transfer, setTransfer] = useState<StockTransfer | null>(null);
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const { showFlash } = useFlash();
   const [actionLoading, setActionLoading] = useState(false);
   // Confirm dialog
   const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; title: string; message: string; confirmLabel: string; variant: "danger" | "warning" | "default"; onConfirm: () => void }>({ open: false, title: "", message: "", confirmLabel: "Confirm", variant: "default", onConfirm: () => {} });
@@ -172,11 +172,11 @@ export default function TransferDetailPage() {
             const err = await res.json().catch(() => ({}));
             throw new Error(err.error || "Failed to ship transfer");
           }
-          setToast({ message: "Transfer shipped successfully", type: "success" });
+          showFlash({ type: "success", title: "Success", message: "Transfer shipped successfully" });
           fetchTransfer();
         } catch (e: unknown) {
           const msg = e instanceof Error ? e.message : "Failed to ship transfer";
-          setToast({ message: msg, type: "error" });
+          showFlash({ type: "error", title: "Error", message: msg });
         } finally {
           setActionLoading(false);
           setConfirmLoading(false);
@@ -207,11 +207,11 @@ export default function TransferDetailPage() {
             const err = await res.json().catch(() => ({}));
             throw new Error(err.error || "Failed to cancel transfer");
           }
-          setToast({ message: "Transfer cancelled", type: "success" });
+          showFlash({ type: "success", title: "Success", message: "Transfer cancelled" });
           fetchTransfer();
         } catch (e: unknown) {
           const msg = e instanceof Error ? e.message : "Failed to cancel transfer";
-          setToast({ message: msg, type: "error" });
+          showFlash({ type: "error", title: "Error", message: msg });
         } finally {
           setActionLoading(false);
           setConfirmLoading(false);
@@ -225,7 +225,7 @@ export default function TransferDetailPage() {
   async function handleSaveTemplate() {
     if (!transfer) return;
     if (!templateName.trim()) {
-      setToast({ message: "Please enter a template name", type: "error" });
+      showFlash({ type: "error", title: "Error", message: "Please enter a template name" });
       return;
     }
     setSavingTemplate(true);
@@ -250,12 +250,12 @@ export default function TransferDetailPage() {
         const err = await res.json().catch(() => ({}));
         throw new Error(err.error || "Failed to save template");
       }
-      setToast({ message: `Template saved: ${templateName.trim()}`, type: "success" });
+      showFlash({ type: "success", title: "Success", message: `Template saved: ${templateName.trim()}` });
       setShowTemplateModal(false);
       setTemplateName("");
       setTemplateDesc("");
     } catch (e) {
-      setToast({ message: e instanceof Error ? e.message : "Failed to save template", type: "error" });
+      showFlash({ type: "error", title: "Error", message: e instanceof Error ? e.message : "Failed to save template" });
     } finally {
       setSavingTemplate(false);
     }
@@ -292,13 +292,13 @@ export default function TransferDetailPage() {
     }
 
     if (!matchedItem) {
-      setToast({ message: `Item not found in this transfer: ${code}`, type: "error" });
+      showFlash({ type: "error", title: "Error", message: `Item not found in this transfer: ${code}` });
       return;
     }
 
     const remaining = matchedItem.quantitySent - matchedItem.quantityReceived;
     if (remaining <= 0) {
-      setToast({ message: `${matchedItem.itemName} is already fully received`, type: "error" });
+      showFlash({ type: "error", title: "Error", message: `${matchedItem.itemName} is already fully received` });
       return;
     }
 
@@ -313,7 +313,7 @@ export default function TransferDetailPage() {
     setHighlightedItemId(matchedItem.id);
     setTimeout(() => setHighlightedItemId(null), 1500);
 
-    setToast({ message: `Scanned: ${matchedItem.itemName}`, type: "success" });
+    showFlash({ type: "success", title: "Success", message: `Scanned: ${matchedItem.itemName}` });
   }, [transfer]);
 
   // ─── Receive Items ────────────────────────────────────────────────────────
@@ -333,7 +333,7 @@ export default function TransferDetailPage() {
         });
 
       if (items.length === 0) {
-        setToast({ message: "Please enter quantities to receive", type: "error" });
+        showFlash({ type: "error", title: "Error", message: "Please enter quantities to receive" });
         setActionLoading(false);
         return;
       }
@@ -347,12 +347,12 @@ export default function TransferDetailPage() {
         const err = await res.json().catch(() => ({}));
         throw new Error(err.error || "Failed to receive items");
       }
-      setToast({ message: "Items received successfully", type: "success" });
+      showFlash({ type: "success", title: "Success", message: "Items received successfully" });
       setShowReceive(false);
       fetchTransfer();
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "Failed to receive items";
-      setToast({ message: msg, type: "error" });
+      showFlash({ type: "error", title: "Error", message: msg });
     } finally {
       setActionLoading(false);
     }
@@ -405,8 +405,6 @@ export default function TransferDetailPage() {
       `}</style>
 
       <div className="p-6 md:p-8 yoda-fade-in print-area">
-        {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-
         {/* ── Back Button ──────────────────────────────────────────── */}
         <Link href="/inventory/transfers" className="inline-flex items-center gap-1 text-[15px] font-semibold hover:underline mb-4 no-print" style={{ color: "var(--blue-500)" }}>
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useFlash } from "@/components/FlashCardProvider";
 import Link from "next/link";
 import AdminTabs from "@/components/AdminTabs";
 import { PageGuide } from "@/components/HelpTip";
@@ -81,7 +82,7 @@ export default function StaffPage() {
   const [loading, setLoading] = useState(true);
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
-  const [toast, setToast] = useState<{ msg: string; type: "ok" | "err" } | null>(null);
+  const { showFlash } = useFlash();
   const [passwordModal, setPasswordModal] = useState<{ id: string; name: string } | null>(null);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -92,11 +93,6 @@ export default function StaffPage() {
   const [onLeaveIds, setOnLeaveIds] = useState<Set<string>>(new Set());
   const [showImport, setShowImport] = useState(false);
   const [resendingId, setResendingId] = useState<string | null>(null);
-
-  const showToast = (msg: string, type: "ok" | "err" = "ok") => {
-    setToast({ msg, type });
-    setTimeout(() => setToast(null), 3000);
-  };
 
   const fetchStaff = useCallback(async () => {
     try {
@@ -140,7 +136,7 @@ export default function StaffPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status: newStatus, isActive: newStatus === "active" }),
     });
-    showToast(`${s.name} ${newStatus === "active" ? "activated" : "deactivated"}`);
+    showFlash({ type: "success", title: "Success", message: `${s.name} ${newStatus === "active" ? "activated" : "deactivated"}` });
     fetchStaff();
   };
 
@@ -150,14 +146,14 @@ export default function StaffPage() {
     try {
       const res = await fetch(`/api/staff/${s.id}/resend-invite`, { method: "POST" });
       if (res.ok) {
-        showToast(`Invite resent to ${s.email}`);
+        showFlash({ type: "success", title: "Success", message: `Invite resent to ${s.email}` });
         fetchStaff();
       } else {
         const data = await res.json();
-        showToast(data.error || "Failed to resend invite", "err");
+        showFlash({ type: "error", title: "Error", message: data.error || "Failed to resend invite" });
       }
     } catch {
-      showToast("Network error", "err");
+      showFlash({ type: "error", title: "Error", message: "Network error" });
     } finally {
       setResendingId(null);
     }
@@ -190,7 +186,7 @@ export default function StaffPage() {
         const data = await res.json();
         setPasswordError(data.error || "Failed to set password");
       } else {
-        showToast(`Password set for ${passwordModal.name}`);
+        showFlash({ type: "success", title: "Success", message: `Password set for ${passwordModal.name}` });
         setPasswordModal(null);
       }
     } catch {
@@ -207,20 +203,6 @@ export default function StaffPage() {
   // ─── Render ───────────────────────────────────────────────────────────
   return (
     <div className="p-6 md:p-8 yoda-fade-in">
-      {/* Toast */}
-      {toast && (
-        <div
-          className="fixed top-5 right-5 z-[200] px-4 py-3 rounded shadow-lg yoda-slide-in"
-          style={{
-            background: toast.type === "ok" ? "#e8f5e9" : "#ffebee",
-            color: toast.type === "ok" ? "#2e7d32" : "var(--red)",
-            border: `1px solid ${toast.type === "ok" ? "#a5d6a7" : "#ef9a9a"}`,
-          }}
-        >
-          <p className="text-[15px] font-semibold">{toast.msg}</p>
-        </div>
-      )}
-
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
@@ -616,7 +598,7 @@ export default function StaffPage() {
       {showImport && (
         <BulkImportModal
           onClose={() => setShowImport(false)}
-          onComplete={() => { setShowImport(false); fetchStaff(); showToast("Bulk import completed"); }}
+          onComplete={() => { setShowImport(false); fetchStaff(); showFlash({ type: "success", title: "Success", message: "Bulk import completed" }); }}
         />
       )}
     </div>

@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import Toast from "@/components/Toast";
+import { useFlash } from "@/components/FlashCardProvider";
 import { cardStyle, btnPrimary, inputStyle, chipBase } from "@/lib/styles";
 import { formatCurrencyExact as formatCurrency, formatDate, formatDateLong } from "@/lib/formatters";
 
@@ -108,7 +108,7 @@ export default function PackageDetailPage() {
   const [pkg, setPkg] = useState<PackageDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const { showFlash } = useFlash();
 
   // Tab state
   const initialTab = (searchParams.get("tab") as TabId) || "sessions";
@@ -304,7 +304,7 @@ export default function PackageDetailPage() {
         const data = await res.json();
         throw new Error(data.error || "Failed to record session");
       }
-      setToast({ message: "Session recorded successfully!", type: "success" });
+      showFlash({ type: "success", title: "Success", message: "Session recorded successfully!" });
       setShowSessionModal(false);
       setSessionDate(getTodayString());
       setSessionDoctorId("");
@@ -313,7 +313,7 @@ export default function PackageDetailPage() {
       fetchSessions();
       fetchPackage();
     } catch (err) {
-      setToast({ message: err instanceof Error ? err.message : "Failed to record session", type: "error" });
+      showFlash({ type: "error", title: "Error", message: err instanceof Error ? err.message : "Failed to record session" });
     } finally {
       setSessionSubmitting(false);
     }
@@ -351,14 +351,14 @@ export default function PackageDetailPage() {
         const data = await res.json();
         throw new Error(data.error || "Failed to add share");
       }
-      setToast({ message: "Share added successfully!", type: "success" });
+      showFlash({ type: "success", title: "Success", message: "Share added successfully!" });
       setShowShareModal(false);
       setSharePatientSearch("");
       setShareSelectedPatient(null);
       setShareRelation("Family");
       fetchShares();
     } catch (err) {
-      setToast({ message: err instanceof Error ? err.message : "Failed to add share", type: "error" });
+      showFlash({ type: "error", title: "Error", message: err instanceof Error ? err.message : "Failed to add share" });
     } finally {
       setShareSubmitting(false);
     }
@@ -369,10 +369,10 @@ export default function PackageDetailPage() {
     try {
       const res = await fetch(`/api/patient-packages/${packageId}/shares/${shareId}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Failed to remove share");
-      setToast({ message: "Share removed", type: "success" });
+      showFlash({ type: "success", title: "Success", message: "Share removed" });
       fetchShares();
     } catch {
-      setToast({ message: "Failed to remove share", type: "error" });
+      showFlash({ type: "error", title: "Error", message: "Failed to remove share" });
     }
   }
 
@@ -399,12 +399,12 @@ export default function PackageDetailPage() {
         const data = await res.json();
         throw new Error(data.error || "Failed to process refund");
       }
-      setToast({ message: "Refund processed successfully!", type: "success" });
+      showFlash({ type: "success", title: "Success", message: "Refund processed successfully!" });
       setShowRefundModal(false);
       fetchPackage();
       fetchPayments();
     } catch (err) {
-      setToast({ message: err instanceof Error ? err.message : "Failed to process refund", type: "error" });
+      showFlash({ type: "error", title: "Error", message: err instanceof Error ? err.message : "Failed to process refund" });
     } finally {
       setRefundSubmitting(false);
     }
@@ -453,9 +453,6 @@ export default function PackageDetailPage() {
 
   return (
     <div className="p-6 md:p-8 yoda-fade-in">
-      {/* Toast */}
-      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-
       {/* ── Header ──────────────────────────────────────────────── */}
       <div className="flex items-center gap-3 mb-6">
         <Link
@@ -644,7 +641,7 @@ export default function PackageDetailPage() {
               <button
                 onClick={() => {
                   // Could enable sharing via API
-                  setToast({ message: "Please edit package details to enable sharing", type: "error" });
+                  showFlash({ type: "error", title: "Error", message: "Please edit package details to enable sharing" });
                 }}
                 className="inline-flex items-center gap-2 px-4 py-2 text-[15px] font-semibold transition-colors"
                 style={{ borderRadius: "var(--radius-sm)", border: "1px solid var(--blue-500)", color: "var(--blue-500)", background: "var(--white)" }}

@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { validateName } from "@/lib/validation";
-import Toast from "@/components/Toast";
+import { useFlash } from "@/components/FlashCardProvider";
 import { cardStyle } from "@/lib/styles";
 
 const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
@@ -202,6 +202,7 @@ function DuplicateWarning({ field, match, severity, onOverride, onGoToPatient }:
 export default function NewPatientPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { showFlash } = useFlash();
 
   // Pre-fill from walk-in appointment data
   const walkinName = searchParams.get("walkinName") || "";
@@ -217,7 +218,6 @@ export default function NewPatientPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [calculatedAge, setCalculatedAge] = useState<string>("");
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const [dobMode, setDobMode] = useState<"dob" | "age">("dob");
   const [selectedConditions, setSelectedConditions] = useState<string[]>([]);
   const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
@@ -565,13 +565,13 @@ export default function NewPatientPage() {
     if (duplicates.nricId && !duplicateOverrides.nricId) {
       const el = document.querySelector('[name="nricId"]');
       if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
-      setToast({ message: "Please resolve the NRIC duplicate warning before saving.", type: "error" });
+      showFlash({ type: "error", title: "Error", message: "Please resolve the NRIC duplicate warning before saving." });
       return;
     }
     if (duplicates.phone && !duplicateOverrides.phone) {
       const el = document.querySelector('[name="phone"]');
       if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
-      setToast({ message: "Please resolve the phone number duplicate warning before saving.", type: "error" });
+      showFlash({ type: "error", title: "Error", message: "Please resolve the phone number duplicate warning before saving." });
       return;
     }
 
@@ -634,22 +634,19 @@ export default function NewPatientPage() {
       }
 
       setSubmitted(true);
-      setToast({ message: `Patient ${patient.firstName} ${patient.lastName} registered successfully! (ID: ${patient.patientIdNumber})`, type: "success" });
+      showFlash({ type: "success", title: "Success", message: `Patient ${patient.firstName} ${patient.lastName} registered successfully! (ID: ${patient.patientIdNumber})` });
       // Short delay so user sees the success toast
       setTimeout(() => router.push(`/patients/${patient.id}`), 800);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to register patient. Please try again.";
       setError(message);
-      setToast({ message, type: "error" });
+      showFlash({ type: "error", title: "Error", message });
       setSaving(false);
     }
   }
 
   return (
     <div className="p-4 md:p-8 yoda-fade-in">
-      {/* Toast */}
-      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <div>

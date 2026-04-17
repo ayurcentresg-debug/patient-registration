@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { PageGuide } from "@/components/HelpTip";
 import { downloadCSV } from "@/lib/csv-export";
-import Toast from "@/components/Toast";
+import { useFlash } from "@/components/FlashCardProvider";
 import { inputStyle } from "@/lib/styles";
 
 /* ─── Types ─── */
@@ -930,6 +930,7 @@ function QuickBookModal({
 
 /* ═══════════════════════════════════════════════════════════════════════════ */
 export default function AppointmentsPage() {
+  const { showFlash } = useFlash();
   const [mounted, setMounted] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<ViewMode>("Day");
@@ -937,7 +938,6 @@ export default function AppointmentsPage() {
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [selectedDoctor, setSelectedDoctor] = useState<string>("all");
   const [loading, setLoading] = useState(true);
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const [popup, setPopup] = useState<{ apt: Appointment; x: number; y: number } | null>(null);
   const [bookModal, setBookModal] = useState<{ date: Date; time: string } | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -1058,11 +1058,11 @@ export default function AppointmentsPage() {
         body: JSON.stringify({ status }),
       });
       if (res.ok) {
-        setToast({ message: `Status updated to ${status}`, type: "success" });
+        showFlash({ type: "success", title: "Success", message: `Status updated to ${status}` });
         fetchAppointments();
       }
     } catch {
-      setToast({ message: "Failed to update status", type: "error" });
+      showFlash({ type: "error", title: "Error", message: "Failed to update status" });
     }
   }
 
@@ -1127,8 +1127,6 @@ export default function AppointmentsPage() {
 
   return (
     <div className="flex flex-col yoda-fade-in" style={{ background: "var(--background)", minHeight: "100vh" }}>
-      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-
       {/* Quick Book Modal */}
       {bookModal && (
         <QuickBookModal
@@ -1138,7 +1136,7 @@ export default function AppointmentsPage() {
           onClose={() => setBookModal(null)}
           onBooked={() => {
             setBookModal(null);
-            setToast({ message: "Appointment booked successfully!", type: "success" });
+            showFlash({ type: "success", title: "Success", message: "Appointment booked successfully!" });
             fetchAppointments();
           }}
         />
@@ -1591,7 +1589,7 @@ export default function AppointmentsPage() {
                     <button
                       onClick={() => {
                         updateStatus(apt.id, "scheduled");
-                        setToast({ message: "Rescheduled — update the time in details", type: "success" });
+                        showFlash({ type: "success", title: "Success", message: "Rescheduled — update the time in details" });
                       }}
                       className="px-1.5 py-0.5 rounded text-[9px] font-bold"
                       style={{ background: "#fff3e0", color: "#e65100" }}

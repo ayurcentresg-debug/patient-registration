@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import Toast from "@/components/Toast";
+import { useFlash } from "@/components/FlashCardProvider";
 import { cardStyle, inputStyle } from "@/lib/styles";
 import { formatCurrency } from "@/lib/formatters";
 
@@ -59,7 +59,7 @@ export default function NewPurchaseOrderPage() {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [branches, setBranches] = useState<Branch[]>([]);
   const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const { showFlash } = useFlash();
   const [submitting, setSubmitting] = useState(false);
 
   // Form state
@@ -232,15 +232,15 @@ export default function NewPurchaseOrderPage() {
 
   async function handleSubmit(asDraft: boolean) {
     if (!supplierId && !newSupplierName) {
-      setToast({ message: "Please select or enter a supplier", type: "error" });
+      showFlash({ type: "error", title: "Error", message: "Please select or enter a supplier" });
       return;
     }
     if (lineItems.length === 0) {
-      setToast({ message: "Please add at least one item", type: "error" });
+      showFlash({ type: "error", title: "Error", message: "Please add at least one item" });
       return;
     }
     if (lineItems.some((li) => !li.inventoryItemId)) {
-      setToast({ message: "Please select an inventory item for each line", type: "error" });
+      showFlash({ type: "error", title: "Error", message: "Please select an inventory item for each line" });
       return;
     }
 
@@ -267,10 +267,10 @@ export default function NewPurchaseOrderPage() {
 
       if (!res.ok) throw new Error("Failed to create purchase order");
       const data = await res.json();
-      setToast({ message: `Purchase order ${asDraft ? "saved as draft" : "submitted"} successfully`, type: "success" });
+      showFlash({ type: "success", title: "Success", message: `Purchase order ${asDraft ? "saved as draft" : "submitted"} successfully` });
       setTimeout(() => router.push(`/inventory/purchase-orders/${data.id || ""}`), 500);
     } catch {
-      setToast({ message: "Failed to create purchase order", type: "error" });
+      showFlash({ type: "error", title: "Error", message: "Failed to create purchase order" });
     } finally {
       setSubmitting(false);
     }
@@ -292,8 +292,6 @@ export default function NewPurchaseOrderPage() {
 
   return (
     <div className="p-6 md:p-8 yoda-fade-in">
-      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-
       {/* ── Back Button ──────────────────────────────────────────── */}
       <Link href="/inventory/purchase-orders" className="inline-flex items-center gap-1 text-[15px] font-semibold hover:underline mb-4" style={{ color: "var(--blue-500)" }}>
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>

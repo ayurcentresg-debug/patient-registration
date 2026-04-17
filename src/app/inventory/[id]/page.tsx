@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import Toast from "@/components/Toast";
+import { useFlash } from "@/components/FlashCardProvider";
 import { cardStyle, inputStyle, chipBase } from "@/lib/styles";
 import { formatDateShort as formatDate, formatDateTime } from "@/lib/formatters";
 
@@ -440,7 +440,7 @@ export default function InventoryDetailPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const { showFlash } = useFlash();
 
   // Edit mode
   const [editMode, setEditMode] = useState(false);
@@ -570,11 +570,11 @@ export default function InventoryDetailPage() {
       };
       const res = await fetch(`/api/inventory/${id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
       if (!res.ok) throw new Error("Failed to update");
-      setToast({ message: "Item updated successfully!", type: "success" });
+      showFlash({ type: "success", title: "Success", message: "Item updated successfully!" });
       setEditMode(false);
       fetchItem();
     } catch {
-      setToast({ message: "Failed to update item", type: "error" });
+      showFlash({ type: "error", title: "Error", message: "Failed to update item" });
     } finally {
       setSaving(false);
     }
@@ -592,7 +592,7 @@ export default function InventoryDetailPage() {
 
   async function submitStockAction() {
     if (!actionQty || isNaN(Number(actionQty)) || Number(actionQty) <= 0) {
-      setToast({ message: "Please enter a valid quantity", type: "error" });
+      showFlash({ type: "error", title: "Error", message: "Please enter a valid quantity" });
       return;
     }
     setActionSubmitting(true);
@@ -611,11 +611,11 @@ export default function InventoryDetailPage() {
       }
       const res = await fetch(`/api/inventory/${id}/transactions`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
       if (!res.ok) throw new Error("Failed");
-      setToast({ message: "Stock updated successfully!", type: "success" });
+      showFlash({ type: "success", title: "Success", message: "Stock updated successfully!" });
       setActiveAction(null);
       fetchItem();
     } catch {
-      setToast({ message: "Failed to update stock", type: "error" });
+      showFlash({ type: "error", title: "Error", message: "Failed to update stock" });
     } finally {
       setActionSubmitting(false);
     }
@@ -627,10 +627,10 @@ export default function InventoryDetailPage() {
     try {
       const res = await fetch(`/api/inventory/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Failed");
-      setToast({ message: "Item deleted", type: "success" });
+      showFlash({ type: "success", title: "Success", message: "Item deleted" });
       setTimeout(() => router.push("/inventory"), 1000);
     } catch {
-      setToast({ message: "Failed to delete item", type: "error" });
+      showFlash({ type: "error", title: "Error", message: "Failed to delete item" });
       setDeleting(false);
     }
   }
@@ -683,8 +683,6 @@ export default function InventoryDetailPage() {
 
   return (
     <div className="p-6 md:p-8 yoda-fade-in">
-      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-
       {/* ── Back Link ─────────────────────────────────────────────── */}
       <Link href="/inventory" className="inline-flex items-center gap-1 text-[15px] font-semibold hover:underline mb-4" style={{ color: "var(--blue-500)" }}>
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>

@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
-import Toast from "@/components/Toast";
+import { useFlash } from "@/components/FlashCardProvider";
 import { cardStyle, inputStyle } from "@/lib/styles";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -58,7 +58,7 @@ function NewTransferPageInner() {
   const [branches, setBranches] = useState<Branch[]>([]);
   const [branchStock, setBranchStock] = useState<BranchStockItem[]>([]);
   const [branchStockLoading, setBranchStockLoading] = useState(false);
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const { showFlash } = useFlash();
   const [submitting, setSubmitting] = useState(false);
 
   // Form state
@@ -151,7 +151,7 @@ function NewTransferPageInner() {
           .catch(() => {});
       })
       .catch(() => {
-        setToast({ message: "Failed to load template", type: "error" });
+        showFlash({ type: "error", title: "Error", message: "Failed to load template" });
         setTemplateLoaded(true);
       });
   }, [templateId, templateLoaded, branches]);
@@ -202,30 +202,30 @@ function NewTransferPageInner() {
 
   async function handleSubmit() {
     if (!fromBranchId) {
-      setToast({ message: "Please select a source branch", type: "error" });
+      showFlash({ type: "error", title: "Error", message: "Please select a source branch" });
       return;
     }
     if (!toBranchId) {
-      setToast({ message: "Please select a destination branch", type: "error" });
+      showFlash({ type: "error", title: "Error", message: "Please select a destination branch" });
       return;
     }
     if (fromBranchId === toBranchId) {
-      setToast({ message: "Source and destination branches must be different", type: "error" });
+      showFlash({ type: "error", title: "Error", message: "Source and destination branches must be different" });
       return;
     }
     if (lineItems.length === 0) {
-      setToast({ message: "Please add at least one item", type: "error" });
+      showFlash({ type: "error", title: "Error", message: "Please add at least one item" });
       return;
     }
 
     // Validate quantities
     for (const li of lineItems) {
       if (li.quantitySent <= 0) {
-        setToast({ message: `Quantity must be greater than 0 for "${li.itemName}"`, type: "error" });
+        showFlash({ type: "error", title: "Error", message: `Quantity must be greater than 0 for "${li.itemName}"` });
         return;
       }
       if (li.quantitySent > li.availableStock) {
-        setToast({ message: `Quantity exceeds available stock for "${li.itemName}" (available: ${li.availableStock})`, type: "error" });
+        showFlash({ type: "error", title: "Error", message: `Quantity exceeds available stock for "${li.itemName}" (available: ${li.availableStock})` });
         return;
       }
     }
@@ -254,10 +254,10 @@ function NewTransferPageInner() {
       }
 
       const data = await res.json();
-      setToast({ message: "Transfer created successfully", type: "success" });
+      showFlash({ type: "success", title: "Success", message: "Transfer created successfully" });
       setTimeout(() => router.push(`/inventory/transfers/${data.id || ""}`), 500);
     } catch (err) {
-      setToast({ message: err instanceof Error ? err.message : "Failed to create transfer", type: "error" });
+      showFlash({ type: "error", title: "Error", message: err instanceof Error ? err.message : "Failed to create transfer" });
     } finally {
       setSubmitting(false);
     }
@@ -282,8 +282,6 @@ function NewTransferPageInner() {
 
   return (
     <div className="p-6 md:p-8 yoda-fade-in">
-      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-
       {/* ── Back Button ──────────────────────────────────────────── */}
       <Link href="/inventory/transfers" className="inline-flex items-center gap-1 text-[15px] font-semibold hover:underline mb-4" style={{ color: "var(--blue-500)" }}>
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>

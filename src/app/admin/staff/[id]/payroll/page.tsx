@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, useCallback } from "react";
+import { useFlash } from "@/components/FlashCardProvider";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { calculateStatutory, getMOMSalaryBreakdown, isPartIVCovered, MOM_PART4_CAP_NON_WORKMAN, MOM_PART4_CAP_WORKMAN } from "@/lib/payroll-rules";
@@ -182,6 +183,7 @@ export default function StaffPayrollPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const id = params?.id;
+  const { showFlash } = useFlash();
 
   const [staff, setStaff] = useState<Staff | null>(null);
   const [salaryConfig, setSalaryConfig] = useState<SalaryConfigData | null>(null);
@@ -189,13 +191,7 @@ export default function StaffPayrollPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [toast, setToast] = useState<{ msg: string; type: "ok" | "err" } | null>(null);
   const [showBankAccount, setShowBankAccount] = useState(false);
-
-  const showToast = (msg: string, type: "ok" | "err" = "ok") => {
-    setToast({ msg, type });
-    setTimeout(() => setToast(null), 3000);
-  };
 
   const fetchData = useCallback(async () => {
     if (!id) return;
@@ -286,7 +282,7 @@ export default function StaffPayrollPage() {
   const handleSave = async () => {
     if (!form || !id) return;
     if (!form.basicSalary || Number(form.basicSalary) <= 0) {
-      showToast("Basic salary is required", "err");
+      showFlash({ type: "error", title: "Error", message: "Basic salary is required" });
       return;
     }
     setSaving(true);
@@ -323,11 +319,11 @@ export default function StaffPayrollPage() {
       }
       const saved = await res.json();
       setSalaryConfig(saved);
-      showToast("Payroll details saved");
+      showFlash({ type: "success", title: "Success", message: "Payroll details saved" });
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Failed to save payroll";
       setError(msg);
-      showToast(msg, "err");
+      showFlash({ type: "error", title: "Error", message: msg });
     } finally {
       setSaving(false);
     }
@@ -904,22 +900,6 @@ export default function StaffPayrollPage() {
         </button>
       </div>
 
-      {/* Toast */}
-      {toast && (
-        <div
-          className="fixed bottom-6 right-6 px-4 py-3 text-[14px] font-semibold"
-          style={{
-            background: toast.type === "ok" ? "#ecfdf5" : "#fef2f2",
-            color: toast.type === "ok" ? "#047857" : "#b91c1c",
-            border: `1px solid ${toast.type === "ok" ? "#a7f3d0" : "#fecaca"}`,
-            borderRadius: "var(--radius-sm)",
-            boxShadow: "var(--shadow-card)",
-            zIndex: 50,
-          }}
-        >
-          {toast.msg}
-        </div>
-      )}
     </div>
   );
 }

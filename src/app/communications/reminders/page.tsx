@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import CommunicationTabs from "@/components/CommunicationTabs";
+import { useFlash } from "@/components/FlashCardProvider";
 import { cardStyle, inputStyle } from "@/lib/styles";
 
 const CHANNEL_COLORS: Record<string, string> = { whatsapp: "#25D366", email: "#3b82f6", sms: "#8b5cf6" };
@@ -116,12 +117,7 @@ export default function RemindersPage() {
   const [saving, setSaving] = useState(false);
   const [autoScheduling, setAutoScheduling] = useState(false);
 
-  // Toast
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
-  const showToast = useCallback((message: string, type: "success" | "error") => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
-  }, []);
+  const { showFlash } = useFlash();
 
   const fetchReminders = useCallback(async () => {
     try {
@@ -136,11 +132,11 @@ export default function RemindersPage() {
       const data = await res.json();
       setReminders(data.data || data);
     } catch {
-      showToast("Failed to load reminders", "error");
+      showFlash({ type: "error", title: "Error", message: "Failed to load reminders" });
     } finally {
       setLoading(false);
     }
-  }, [filterStatus, filterType, dateFrom, dateTo, showToast]);
+  }, [filterStatus, filterType, dateFrom, dateTo, showFlash]);
 
   useEffect(() => { fetchReminders(); }, [fetchReminders]);
 
@@ -172,13 +168,13 @@ export default function RemindersPage() {
       const res = await fetch("/api/reminders/auto-schedule", { method: "POST" });
       const data = await res.json();
       if (res.ok) {
-        showToast(`Auto-scheduled ${data.scheduled || data.created || 0} reminders (${data.skipped} skipped)`, "success");
+        showFlash({ type: "success", title: "Success", message: `Auto-scheduled ${data.scheduled || data.created || 0} reminders (${data.skipped} skipped)` });
         fetchReminders();
       } else {
-        showToast(data.error || "Failed to auto-schedule", "error");
+        showFlash({ type: "error", title: "Error", message: data.error || "Failed to auto-schedule" });
       }
     } catch {
-      showToast("Failed to auto-schedule", "error");
+      showFlash({ type: "error", title: "Error", message: "Failed to auto-schedule" });
     }
     setAutoScheduling(false);
   }
@@ -191,14 +187,14 @@ export default function RemindersPage() {
         body: JSON.stringify({ reminderId }),
       });
       if (res.ok) {
-        showToast("Reminder sent", "success");
+        showFlash({ type: "success", title: "Success", message: "Reminder sent" });
         fetchReminders();
       } else {
         const data = await res.json();
-        showToast(data.error || "Failed to send", "error");
+        showFlash({ type: "error", title: "Error", message: data.error || "Failed to send" });
       }
     } catch {
-      showToast("Failed to send reminder", "error");
+      showFlash({ type: "error", title: "Error", message: "Failed to send reminder" });
     }
   }
 
@@ -206,10 +202,10 @@ export default function RemindersPage() {
     try {
       // We don't have a dedicated cancel endpoint, but we can update status via a workaround
       // For now, just show a message
-      showToast("Reminder cancelled", "success");
+      showFlash({ type: "success", title: "Success", message: "Reminder cancelled" });
       setReminders((prev) => prev.map((r) => r.id === reminderId ? { ...r, status: "cancelled" } : r));
     } catch {
-      showToast("Failed to cancel", "error");
+      showFlash({ type: "error", title: "Error", message: "Failed to cancel" });
     }
   }
 
@@ -231,16 +227,16 @@ export default function RemindersPage() {
         }),
       });
       if (res.ok) {
-        showToast("Reminder scheduled", "success");
+        showFlash({ type: "success", title: "Success", message: "Reminder scheduled" });
         setShowSchedule(false);
         setFormPatient(""); setFormMessage(""); setFormTemplate(""); setFormDate(""); setFormTime("");
         fetchReminders();
       } else {
         const data = await res.json();
-        showToast(data.error || "Failed to schedule", "error");
+        showFlash({ type: "error", title: "Error", message: data.error || "Failed to schedule" });
       }
     } catch {
-      showToast("Failed to schedule reminder", "error");
+      showFlash({ type: "error", title: "Error", message: "Failed to schedule reminder" });
     }
     setSaving(false);
   }
@@ -282,13 +278,6 @@ export default function RemindersPage() {
   return (
     <div className="p-6 md:p-8 yoda-fade-in">
       <CommunicationTabs />
-
-      {/* Toast */}
-      {toast && (
-        <div className="fixed top-4 right-4 z-50 px-4 py-3 text-[15px] font-semibold text-white yoda-slide-in" style={{ background: toast.type === "success" ? "var(--green)" : "var(--red)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-lg)" }}>
-          {toast.message}
-        </div>
-      )}
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">

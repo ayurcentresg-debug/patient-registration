@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import InventoryTabs from "@/components/InventoryTabs";
-import Toast from "@/components/Toast";
+import { useFlash } from "@/components/FlashCardProvider";
 import { cardStyle, inputStyle } from "@/lib/styles";
 import { formatCurrency } from "@/lib/formatters";
 
@@ -43,7 +43,7 @@ export default function SuppliersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const { showFlash } = useFlash();
   const [actionLoading, setActionLoading] = useState(false);
 
   // Form state
@@ -95,7 +95,7 @@ export default function SuppliersPage() {
 
   async function handleSave() {
     if (!form.name.trim()) {
-      setToast({ message: "Supplier name is required", type: "error" });
+      showFlash({ type: "error", title: "Error", message: "Supplier name is required" });
       return;
     }
 
@@ -109,11 +109,11 @@ export default function SuppliersPage() {
         body: JSON.stringify(form),
       });
       if (!res.ok) throw new Error("Failed");
-      setToast({ message: `Supplier ${editingId ? "updated" : "added"} successfully`, type: "success" });
+      showFlash({ type: "success", title: "Success", message: `Supplier ${editingId ? "updated" : "added"} successfully` });
       closeForm();
       fetchSuppliers();
     } catch {
-      setToast({ message: `Failed to ${editingId ? "update" : "add"} supplier`, type: "error" });
+      showFlash({ type: "error", title: "Error", message: `Failed to ${editingId ? "update" : "add"} supplier` });
     } finally {
       setActionLoading(false);
     }
@@ -129,10 +129,10 @@ export default function SuppliersPage() {
         body: JSON.stringify({ ...supplier, status: newStatus }),
       });
       if (!res.ok) throw new Error("Failed");
-      setToast({ message: `Supplier ${newStatus === "active" ? "activated" : "deactivated"}`, type: "success" });
+      showFlash({ type: "success", title: "Success", message: `Supplier ${newStatus === "active" ? "activated" : "deactivated"}` });
       fetchSuppliers();
     } catch {
-      setToast({ message: "Failed to update supplier status", type: "error" });
+      showFlash({ type: "error", title: "Error", message: "Failed to update supplier status" });
     } finally {
       setActionLoading(false);
     }
@@ -153,8 +153,6 @@ export default function SuppliersPage() {
 
   return (
     <div className="p-6 md:p-8 yoda-fade-in">
-      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-
       {/* ── Header ──────────────────────────────────────────────── */}
       <div className="mb-6">
         <h1 className="text-[24px] font-bold tracking-tight" style={{ color: "var(--grey-900)" }}>Inventory</h1>

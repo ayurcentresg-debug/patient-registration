@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import Toast from "@/components/Toast";
+import { useFlash } from "@/components/FlashCardProvider";
 import { cardStyle, btnPrimary, inputStyle } from "@/lib/styles";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -99,8 +99,8 @@ function StepIndicator({ current, labels }: { current: Step; labels: string[] })
 // ═══════════════════════════════════════════════════════════════════════════════
 export default function BookAppointmentPage() {
   const router = useRouter();
+  const { showFlash } = useFlash();
   const [step, setStep] = useState<Step>(1);
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   // Step 1: Patient
@@ -290,10 +290,10 @@ export default function BookAppointmentPage() {
         const data = await res.json();
         throw new Error(data.error || "Failed to book appointment");
       }
-      setToast({ message: "Appointment booked successfully!", type: "success" });
+      showFlash({ type: "success", title: "Success", message: "Appointment booked successfully!" });
       setTimeout(() => router.push("/appointments"), 1500);
     } catch (err) {
-      setToast({ message: err instanceof Error ? err.message : "Failed to book appointment", type: "error" });
+      showFlash({ type: "error", title: "Error", message: err instanceof Error ? err.message : "Failed to book appointment" });
       setSubmitting(false);
     }
   }
@@ -302,9 +302,6 @@ export default function BookAppointmentPage() {
 
   return (
     <div className="p-6 md:p-8 yoda-fade-in">
-      {/* Toast */}
-      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-
       {/* ── Header ──────────────────────────────────────────────── */}
       <div className="flex items-center gap-3 mb-6">
         <Link

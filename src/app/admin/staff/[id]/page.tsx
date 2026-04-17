@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useFlash } from "@/components/FlashCardProvider";
 import { useParams, useRouter } from "next/navigation";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -233,12 +234,8 @@ export default function StaffDetailPage() {
   // Resend invite
   const [resending, setResending] = useState(false);
 
-  // Toast
-  const [toast, setToast] = useState<{ msg: string; type: "ok" | "err" } | null>(null);
-  const showToast = (msg: string, type: "ok" | "err" = "ok") => {
-    setToast({ msg, type });
-    setTimeout(() => setToast(null), 3000);
-  };
+  // Flash
+  const { showFlash } = useFlash();
 
   // ─── Fetch staff ──────────────────────────────────────────────────────
   const fetchStaff = useCallback(async () => {
@@ -323,7 +320,7 @@ export default function StaffDetailPage() {
         setFormError(err.error || "Save failed");
         return;
       }
-      showToast("Staff member updated successfully");
+      showFlash({ type: "success", title: "Success", message: "Staff member updated successfully" });
       setEditing(false);
       setForm(null);
       fetchStaff();
@@ -357,7 +354,7 @@ export default function StaffDetailPage() {
         setPasswordError(err.error || "Failed to set password.");
         return;
       }
-      showToast("Password updated successfully");
+      showFlash({ type: "success", title: "Success", message: "Password updated successfully" });
       setShowPasswordModal(false);
       setNewPassword("");
       setConfirmPassword("");
@@ -378,13 +375,13 @@ export default function StaffDetailPage() {
         body: JSON.stringify({ status: "invite_pending" }),
       });
       if (res.ok) {
-        showToast("Invite resent successfully");
+        showFlash({ type: "success", title: "Success", message: "Invite resent successfully" });
         fetchStaff();
       } else {
-        showToast("Failed to resend invite", "err");
+        showFlash({ type: "error", title: "Error", message: "Failed to resend invite" });
       }
     } catch {
-      showToast("Network error", "err");
+      showFlash({ type: "error", title: "Error", message: "Network error" });
     } finally {
       setResending(false);
     }
@@ -531,20 +528,6 @@ export default function StaffDetailPage() {
 
   return (
     <div className="p-6 md:p-8 yoda-fade-in">
-      {/* Toast */}
-      {toast && (
-        <div
-          className="fixed top-5 right-5 z-[200] px-4 py-3 rounded shadow-lg yoda-slide-in"
-          style={{
-            background: toast.type === "ok" ? "#e8f5e9" : "#ffebee",
-            color: toast.type === "ok" ? "#2e7d32" : "var(--red)",
-            border: `1px solid ${toast.type === "ok" ? "#a5d6a7" : "#ef9a9a"}`,
-          }}
-        >
-          <p className="text-[15px] font-semibold">{toast.msg}</p>
-        </div>
-      )}
-
       {/* Password Modal */}
       {showPasswordModal && (
         <div style={{ position: "fixed", inset: 0, zIndex: 150, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.35)" }}>

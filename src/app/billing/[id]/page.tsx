@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
-import Toast from "@/components/Toast";
+import { useFlash } from "@/components/FlashCardProvider";
 import { cardStyle, inputStyle, chipBase } from "@/lib/styles";
 import { formatCurrencyExact as formatCurrency, formatDate } from "@/lib/formatters";
 
@@ -198,7 +198,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
   const [invoice, setInvoice] = useState<InvoiceDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const { showFlash } = useFlash();
   const [clinicSettings, setClinicSettings] = useState<ClinicSettings | null>(null);
 
   // Payment form
@@ -293,7 +293,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
     e.preventDefault();
     const amount = parseFloat(payAmount);
     if (!amount || amount <= 0) {
-      setToast({ message: "Enter a valid amount", type: "error" });
+      showFlash({ type: "error", title: "Error", message: "Enter a valid amount" });
       return;
     }
     setSubmittingPayment(true);
@@ -304,12 +304,12 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
     })
       .then((r) => { if (!r.ok) throw new Error("Failed to record payment"); return r.json(); })
       .then(() => {
-        setToast({ message: "Payment recorded successfully", type: "success" });
+        showFlash({ type: "success", title: "Success", message: "Payment recorded successfully" });
         setPayReference("");
         setPayNotes("");
         fetchInvoice();
       })
-      .catch((e) => setToast({ message: e.message, type: "error" }))
+      .catch((e) => showFlash({ type: "error", title: "Error", message: e.message }))
       .finally(() => setSubmittingPayment(false));
   }
 
@@ -323,11 +323,11 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
     })
       .then((r) => { if (!r.ok) throw new Error("Failed to cancel invoice"); return r.json(); })
       .then(() => {
-        setToast({ message: "Invoice cancelled", type: "success" });
+        showFlash({ type: "success", title: "Success", message: "Invoice cancelled" });
         setShowCancelConfirm(false);
         fetchInvoice();
       })
-      .catch((e) => setToast({ message: e.message, type: "error" }))
+      .catch((e) => showFlash({ type: "error", title: "Error", message: e.message }))
       .finally(() => setCancelling(false));
   }
 
@@ -336,7 +336,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
     e.preventDefault();
     const amount = parseFloat(claimAmount);
     if (!claimProviderId || !amount || amount <= 0) {
-      setToast({ message: "Select provider and enter valid amount", type: "error" });
+      showFlash({ type: "error", title: "Error", message: "Select provider and enter valid amount" });
       return;
     }
     setSubmittingClaim(true);
@@ -353,7 +353,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
     })
       .then((r) => { if (!r.ok) throw new Error("Failed to submit claim"); return r.json(); })
       .then(() => {
-        setToast({ message: "Insurance claim submitted", type: "success" });
+        showFlash({ type: "success", title: "Success", message: "Insurance claim submitted" });
         setShowClaimForm(false);
         setClaimProviderId("");
         setClaimAmount("");
@@ -361,7 +361,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
         setClaimNotes("");
         fetchClaims();
       })
-      .catch((e) => setToast({ message: e.message, type: "error" }))
+      .catch((e) => showFlash({ type: "error", title: "Error", message: e.message }))
       .finally(() => setSubmittingClaim(false));
   }
 
@@ -374,10 +374,10 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
     })
       .then((r) => { if (!r.ok) throw new Error("Failed to update claim"); return r.json(); })
       .then(() => {
-        setToast({ message: `Claim marked as ${formatStatusLabel(newStatus)}`, type: "success" });
+        showFlash({ type: "success", title: "Success", message: `Claim marked as ${formatStatusLabel(newStatus)}` });
         fetchClaims();
       })
-      .catch((e) => setToast({ message: e.message, type: "error" }));
+      .catch((e) => showFlash({ type: "error", title: "Error", message: e.message }));
   }
 
   // ─── Issue Credit Note ────────────────────────────────────────────────
@@ -391,7 +391,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
       }))
       .filter((x) => x.amount > 0);
     if (!cnReason.trim() || selectedItems.length === 0) {
-      setToast({ message: "Provide reason and select at least one item", type: "error" });
+      showFlash({ type: "error", title: "Error", message: "Provide reason and select at least one item" });
       return;
     }
     setSubmittingCreditNote(true);
@@ -407,7 +407,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
     })
       .then((r) => { if (!r.ok) throw new Error("Failed to issue credit note"); return r.json(); })
       .then(() => {
-        setToast({ message: "Credit note created", type: "success" });
+        showFlash({ type: "success", title: "Success", message: "Credit note created" });
         setShowCreditNoteForm(false);
         setCnReason("");
         setCnSelectedItems({});
@@ -415,7 +415,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
         fetchCreditNotes();
         fetchInvoice();
       })
-      .catch((e) => setToast({ message: e.message, type: "error" }))
+      .catch((e) => showFlash({ type: "error", title: "Error", message: e.message }))
       .finally(() => setSubmittingCreditNote(false));
   }
 
@@ -428,14 +428,14 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
     })
       .then((r) => { if (!r.ok) throw new Error("Failed to update credit note"); return r.json(); })
       .then(() => {
-        setToast({ message: `Credit note ${action} successful`, type: "success" });
+        showFlash({ type: "success", title: "Success", message: `Credit note ${action} successful` });
         setRefundModal(null);
         setRefundMethod("Cash");
         setRefundReference("");
         fetchCreditNotes();
         fetchInvoice();
       })
-      .catch((e) => setToast({ message: e.message, type: "error" }));
+      .catch((e) => showFlash({ type: "error", title: "Error", message: e.message }));
   }
 
   // ─── Open Claim Form (fetch providers) ─────────────────────────────────
@@ -549,9 +549,6 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
     <>
       {/* Print styles */}
       <style dangerouslySetInnerHTML={{ __html: printStyles }} />
-
-      {/* Toast */}
-      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
       {/* Cancel confirmation dialog */}
       {showCancelConfirm && (

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useFlash } from "@/components/FlashCardProvider";
 import AdminTabs from "@/components/AdminTabs";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -160,12 +161,6 @@ function formatPeriodLabel(period: string) {
 
 export default function PayrollPage() {
   const [activeTab, setActiveTab] = useState<"payroll" | "salary" | "reports">("payroll");
-  const [toast, setToast] = useState<{ msg: string; type: "ok" | "err" } | null>(null);
-
-  const showToast = (msg: string, type: "ok" | "err" = "ok") => {
-    setToast({ msg, type });
-    setTimeout(() => setToast(null), 3000);
-  };
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -203,18 +198,8 @@ export default function PayrollPage() {
         })}
       </div>
 
-      {/* Toast */}
-      {toast && (
-        <div
-          className="fixed top-6 right-6 z-50 px-5 py-3 rounded-lg shadow-lg text-white text-[15px] font-semibold"
-          style={{ background: toast.type === "ok" ? "var(--green)" : "#ef4444" }}
-        >
-          {toast.msg}
-        </div>
-      )}
-
-      {activeTab === "payroll" && <PayrollTab showToast={showToast} />}
-      {activeTab === "salary" && <SalarySetupTab showToast={showToast} />}
+      {activeTab === "payroll" && <PayrollTab />}
+      {activeTab === "salary" && <SalarySetupTab />}
       {activeTab === "reports" && <ReportsTab />}
     </div>
   );
@@ -224,7 +209,8 @@ export default function PayrollPage() {
 // Payroll Tab
 // ═══════════════════════════════════════════════════════════════════════════
 
-function PayrollTab({ showToast }: { showToast: (m: string, t: "ok" | "err") => void }) {
+function PayrollTab() {
+  const { showFlash } = useFlash();
   const [period, setPeriod] = useState(getCurrentPeriod());
   const [payrolls, setPayrolls] = useState<PayrollRecord[]>([]);
   const [loading, setLoading] = useState(false);
@@ -265,13 +251,13 @@ function PayrollTab({ showToast }: { showToast: (m: string, t: "ok" | "err") => 
       if (res.ok) {
         const data = await res.json();
         setPayrolls(data);
-        showToast(`Generated payroll for ${data.length} staff`, "ok");
+        showFlash({ type: "success", title: "Success", message: `Generated payroll for ${data.length} staff` });
       } else {
         const err = await res.json();
-        showToast(err.error || "Failed to generate", "err");
+        showFlash({ type: "error", title: "Error", message: err.error || "Failed to generate" });
       }
     } catch {
-      showToast("Failed to generate payroll", "err");
+      showFlash({ type: "error", title: "Error", message: "Failed to generate payroll" });
     } finally {
       setGenerating(false);
     }
@@ -285,14 +271,14 @@ function PayrollTab({ showToast }: { showToast: (m: string, t: "ok" | "err") => 
         body: JSON.stringify(data),
       });
       if (res.ok) {
-        showToast("Updated successfully", "ok");
+        showFlash({ type: "success", title: "Success", message: "Updated successfully" });
         fetchPayrolls();
       } else {
         const err = await res.json();
-        showToast(err.error || "Failed to update", "err");
+        showFlash({ type: "error", title: "Error", message: err.error || "Failed to update" });
       }
     } catch {
-      showToast("Failed to update", "err");
+      showFlash({ type: "error", title: "Error", message: "Failed to update" });
     }
   };
 
@@ -300,7 +286,7 @@ function PayrollTab({ showToast }: { showToast: (m: string, t: "ok" | "err") => 
     const fromStatus = status === "confirmed" ? "draft" : "confirmed";
     const eligible = payrolls.filter((p) => p.status === fromStatus);
     if (!eligible.length) {
-      showToast(`No ${fromStatus} records to update`, "err");
+      showFlash({ type: "error", title: "Error", message: `No ${fromStatus} records to update` });
       return;
     }
     setBulkLoading(true);
@@ -312,10 +298,10 @@ function PayrollTab({ showToast }: { showToast: (m: string, t: "ok" | "err") => 
           body: JSON.stringify({ status }),
         });
       }
-      showToast(`${eligible.length} records marked as ${status}`, "ok");
+      showFlash({ type: "success", title: "Success", message: `${eligible.length} records marked as ${status}` });
       fetchPayrolls();
     } catch {
-      showToast("Bulk action failed", "err");
+      showFlash({ type: "error", title: "Error", message: "Bulk action failed" });
     } finally {
       setBulkLoading(false);
     }
@@ -331,12 +317,12 @@ function PayrollTab({ showToast }: { showToast: (m: string, t: "ok" | "err") => 
       });
       const data = await res.json();
       if (res.ok) {
-        showToast(`Payslip emailed to ${data.sentTo}`, "ok");
+        showFlash({ type: "success", title: "Success", message: `Payslip emailed to ${data.sentTo}` });
       } else {
-        showToast(data.error || "Failed to email payslip", "err");
+        showFlash({ type: "error", title: "Error", message: data.error || "Failed to email payslip" });
       }
     } catch {
-      showToast("Failed to email payslip", "err");
+      showFlash({ type: "error", title: "Error", message: "Failed to email payslip" });
     } finally {
       setEmailingId(null);
     }
@@ -344,7 +330,7 @@ function PayrollTab({ showToast }: { showToast: (m: string, t: "ok" | "err") => 
 
   const handleBulkEmail = async () => {
     if (!payrolls.length) {
-      showToast("No payroll records to email", "err");
+      showFlash({ type: "error", title: "Error", message: "No payroll records to email" });
       return;
     }
     if (!confirm(`Email payslips to all ${payrolls.length} staff for ${formatPeriodLabel(period)}?`)) return;
@@ -357,12 +343,12 @@ function PayrollTab({ showToast }: { showToast: (m: string, t: "ok" | "err") => 
       });
       const data = await res.json();
       if (res.ok) {
-        showToast(`Emailed ${data.sent} payslips (${data.failed} failed, ${data.noEmail} no email)`, data.failed > 0 ? "err" : "ok");
+        showFlash({ type: data.failed > 0 ? "error" : "success", title: data.failed > 0 ? "Error" : "Success", message: `Emailed ${data.sent} payslips (${data.failed} failed, ${data.noEmail} no email)` });
       } else {
-        showToast(data.error || "Bulk email failed", "err");
+        showFlash({ type: "error", title: "Error", message: data.error || "Bulk email failed" });
       }
     } catch {
-      showToast("Bulk email failed", "err");
+      showFlash({ type: "error", title: "Error", message: "Bulk email failed" });
     } finally {
       setBulkEmailing(false);
     }
@@ -728,7 +714,8 @@ function PayrollTab({ showToast }: { showToast: (m: string, t: "ok" | "err") => 
 // Salary Setup Tab
 // ═══════════════════════════════════════════════════════════════════════════
 
-function SalarySetupTab({ showToast }: { showToast: (m: string, t: "ok" | "err") => void }) {
+function SalarySetupTab() {
+  const { showFlash } = useFlash();
   const [configs, setConfigs] = useState<SalaryConfig[]>([]);
   const [allStaff, setAllStaff] = useState<StaffMember[]>([]);
   const [loading, setLoading] = useState(true);
@@ -802,7 +789,7 @@ function SalarySetupTab({ showToast }: { showToast: (m: string, t: "ok" | "err")
 
   const handleSave = async () => {
     if (!editingUserId || !formBaseSalary) {
-      showToast("Base salary is required", "err");
+      showFlash({ type: "error", title: "Error", message: "Base salary is required" });
       return;
     }
     setSaving(true);
@@ -826,15 +813,15 @@ function SalarySetupTab({ showToast }: { showToast: (m: string, t: "ok" | "err")
         }),
       });
       if (res.ok) {
-        showToast("Salary config saved", "ok");
+        showFlash({ type: "success", title: "Success", message: "Salary config saved" });
         setEditingUserId(null);
         fetchData();
       } else {
         const err = await res.json();
-        showToast(err.error || "Failed to save", "err");
+        showFlash({ type: "error", title: "Error", message: err.error || "Failed to save" });
       }
     } catch {
-      showToast("Failed to save", "err");
+      showFlash({ type: "error", title: "Error", message: "Failed to save" });
     } finally {
       setSaving(false);
     }
@@ -845,11 +832,11 @@ function SalarySetupTab({ showToast }: { showToast: (m: string, t: "ok" | "err")
     try {
       const res = await fetch(`/api/admin/payroll/salary-config/${configId}`, { method: "DELETE" });
       if (res.ok) {
-        showToast("Config deactivated", "ok");
+        showFlash({ type: "success", title: "Success", message: "Config deactivated" });
         fetchData();
       }
     } catch {
-      showToast("Failed to deactivate", "err");
+      showFlash({ type: "error", title: "Error", message: "Failed to deactivate" });
     }
   };
 

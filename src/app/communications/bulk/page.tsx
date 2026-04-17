@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import CommunicationTabs from "@/components/CommunicationTabs";
+import { useFlash } from "@/components/FlashCardProvider";
 import { cardStyle, inputStyle } from "@/lib/styles";
 
 const CHANNEL_COLORS: Record<string, string> = { whatsapp: "#25D366", email: "#3b82f6", sms: "#8b5cf6" };
@@ -38,17 +39,11 @@ export default function BulkSendPage() {
   const [sendProgress, setSendProgress] = useState(0);
   const [sendResults, setSendResults] = useState<{ sent: number; failed: number; failedList: string[] } | null>(null);
 
-  // Toast
   // Clinic settings
   const [clinicEmail, setClinicEmail] = useState("");
   const [clinicName, setClinicName] = useState("");
 
-  // Toast
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
-  const showToast = useCallback((msg: string, type: "success" | "error") => {
-    setToast({ message: msg, type });
-    setTimeout(() => setToast(null), 3000);
-  }, []);
+  const { showFlash } = useFlash();
 
   useEffect(() => {
     fetch("/api/patients?all=true")
@@ -112,11 +107,11 @@ export default function BulkSendPage() {
     if (filter === "upcoming") {
       // Select all patients (simulated - would filter by upcoming appointments)
       setSelectedIds(new Set(patients.slice(0, Math.min(patients.length, 10)).map((p) => p.id)));
-      showToast("Selected patients with upcoming appointments (simulated)", "success");
+      showFlash({ type: "success", title: "Success", message: "Selected patients with upcoming appointments (simulated)" });
     }
     if (filter === "outstanding") {
       setSelectedIds(new Set(patients.slice(0, Math.min(patients.length, 5)).map((p) => p.id)));
-      showToast("Selected patients with outstanding payments (simulated)", "success");
+      showFlash({ type: "success", title: "Success", message: "Selected patients with outstanding payments (simulated)" });
     }
     if (filter === "birthday") {
       const thisMonth = new Date().getMonth();
@@ -125,7 +120,7 @@ export default function BulkSendPage() {
         return false;
       });
       if (birthdayPatients.length === 0) {
-        showToast("No birthday patients found this month", "error");
+        showFlash({ type: "error", title: "Error", message: "No birthday patients found this month" });
       }
       setSelectedIds(new Set(birthdayPatients.map((p) => p.id)));
     }
@@ -212,13 +207,6 @@ export default function BulkSendPage() {
   return (
     <div className="p-6 md:p-8 yoda-fade-in">
       <CommunicationTabs />
-
-      {/* Toast */}
-      {toast && (
-        <div className="fixed top-4 right-4 z-50 px-4 py-3 text-[15px] font-semibold text-white yoda-slide-in" style={{ background: toast.type === "success" ? "var(--green)" : "var(--red)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-lg)" }}>
-          {toast.message}
-        </div>
-      )}
 
       {/* Header */}
       <div className="mb-6">

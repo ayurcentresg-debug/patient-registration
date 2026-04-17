@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useFlash } from "@/components/FlashCardProvider";
 import { useSearchParams } from "next/navigation";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -76,14 +77,9 @@ export default function ReassignPage() {
   const [bulkTargetId, setBulkTargetId] = useState("");
   const [reassigning, setReassigning] = useState(false);
   const [result, setResult] = useState<{ reassigned: number; failed: number; errors: Array<{ appointmentId: string; error: string }> } | null>(null);
-  const [toast, setToast] = useState<{ msg: string; type: "ok" | "err" } | null>(null);
+  const { showFlash } = useFlash();
   const [autoAssigning, setAutoAssigning] = useState(false);
   const [leaves, setLeaves] = useState<Array<{ startDate: string; endDate: string }>>([]);
-
-  const showToast = (msg: string, type: "ok" | "err" = "ok") => {
-    setToast({ msg, type });
-    setTimeout(() => setToast(null), 3000);
-  };
 
   // Fetch staff list
   useEffect(() => {
@@ -146,10 +142,10 @@ export default function ReassignPage() {
         setAppointments(data);
       } else {
         setAppointments([]);
-        showToast("Failed to fetch appointments", "err");
+        showFlash({ type: "error", title: "Error", message: "Failed to fetch appointments" });
       }
     } catch {
-      showToast("Network error", "err");
+      showFlash({ type: "error", title: "Error", message: "Network error" });
     } finally {
       setLoading(false);
     }
@@ -216,9 +212,9 @@ export default function ReassignPage() {
     const assigned = Object.keys(newAssignments).length;
     const unassigned = displayAppointments.length - assigned;
     if (unassigned > 0) {
-      showToast(`Auto-assigned ${assigned} appointments. ${unassigned} need manual handling.`, "err");
+      showFlash({ type: "error", title: "Error", message: `Auto-assigned ${assigned} appointments. ${unassigned} need manual handling.` });
     } else {
-      showToast(`Auto-assigned all ${assigned} appointments`);
+      showFlash({ type: "success", title: "Success", message: `Auto-assigned all ${assigned} appointments` });
     }
   };
 
@@ -242,7 +238,7 @@ export default function ReassignPage() {
     }
 
     if (toReassign.length === 0) {
-      showToast("No appointments selected for reassignment", "err");
+      showFlash({ type: "error", title: "Error", message: "No appointments selected for reassignment" });
       return;
     }
 
@@ -286,12 +282,12 @@ export default function ReassignPage() {
     setReassigning(false);
 
     if (totalReassigned > 0) {
-      showToast(`Reassigned ${totalReassigned} appointments`);
+      showFlash({ type: "success", title: "Success", message: `Reassigned ${totalReassigned} appointments` });
       // Refresh
       fetchAppointments();
     }
     if (totalFailed > 0) {
-      showToast(`${totalFailed} appointments failed to reassign`, "err");
+      showFlash({ type: "error", title: "Error", message: `${totalFailed} appointments failed to reassign` });
     }
   };
 
@@ -316,20 +312,6 @@ export default function ReassignPage() {
 
   return (
     <div className="p-6 md:p-8 yoda-fade-in">
-      {/* Toast */}
-      {toast && (
-        <div
-          className="fixed top-5 right-5 z-[200] px-4 py-3 rounded shadow-lg yoda-slide-in"
-          style={{
-            background: toast.type === "ok" ? "#e8f5e9" : "#ffebee",
-            color: toast.type === "ok" ? "#2e7d32" : "var(--red)",
-            border: `1px solid ${toast.type === "ok" ? "#a5d6a7" : "#ef9a9a"}`,
-          }}
-        >
-          <p className="text-[15px] font-semibold">{toast.msg}</p>
-        </div>
-      )}
-
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>

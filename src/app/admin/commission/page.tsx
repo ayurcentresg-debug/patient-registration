@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useFlash } from "@/components/FlashCardProvider";
 import AdminTabs from "@/components/AdminTabs";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -91,12 +92,6 @@ function formatPeriodLabel(period: string) {
 
 export default function CommissionPage() {
   const [activeTab, setActiveTab] = useState<"payouts" | "rules" | "history">("payouts");
-  const [toast, setToast] = useState<{ msg: string; type: "ok" | "err" } | null>(null);
-
-  const showToast = (msg: string, type: "ok" | "err" = "ok") => {
-    setToast({ msg, type });
-    setTimeout(() => setToast(null), 3000);
-  };
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -134,18 +129,8 @@ export default function CommissionPage() {
         })}
       </div>
 
-      {/* Toast */}
-      {toast && (
-        <div
-          className="fixed top-6 right-6 z-50 px-5 py-3 rounded-lg shadow-lg text-white text-[15px] font-semibold"
-          style={{ background: toast.type === "ok" ? "var(--green)" : "#ef4444" }}
-        >
-          {toast.msg}
-        </div>
-      )}
-
-      {activeTab === "payouts" && <PayoutsTab showToast={showToast} />}
-      {activeTab === "rules" && <RulesTab showToast={showToast} />}
+      {activeTab === "payouts" && <PayoutsTab />}
+      {activeTab === "rules" && <RulesTab />}
       {activeTab === "history" && <HistoryTab />}
     </div>
   );
@@ -155,7 +140,8 @@ export default function CommissionPage() {
 // Payouts Tab
 // ═══════════════════════════════════════════════════════════════════════════
 
-function PayoutsTab({ showToast }: { showToast: (m: string, t: "ok" | "err") => void }) {
+function PayoutsTab() {
+  const { showFlash } = useFlash();
   const [period, setPeriod] = useState(getCurrentPeriod());
   const [payouts, setPayouts] = useState<Payout[]>([]);
   const [loading, setLoading] = useState(false);
@@ -191,14 +177,14 @@ function PayoutsTab({ showToast }: { showToast: (m: string, t: "ok" | "err") => 
         body: JSON.stringify({ period }),
       });
       if (res.ok) {
-        showToast("Commissions calculated successfully", "ok");
+        showFlash({ type: "success", title: "Success", message: "Commissions calculated successfully" });
         fetchPayouts();
       } else {
         const err = await res.json();
-        showToast(err.error || "Calculation failed", "err");
+        showFlash({ type: "error", title: "Error", message: err.error || "Calculation failed" });
       }
     } catch {
-      showToast("Calculation failed", "err");
+      showFlash({ type: "error", title: "Error", message: "Calculation failed" });
     } finally {
       setCalculating(false);
     }
@@ -207,7 +193,7 @@ function PayoutsTab({ showToast }: { showToast: (m: string, t: "ok" | "err") => 
   async function handleAdjustment(payoutId: string) {
     const adj = parseFloat(adjValue);
     if (isNaN(adj)) {
-      showToast("Enter a valid number", "err");
+      showFlash({ type: "error", title: "Error", message: "Enter a valid number" });
       return;
     }
     try {
@@ -217,13 +203,13 @@ function PayoutsTab({ showToast }: { showToast: (m: string, t: "ok" | "err") => 
         body: JSON.stringify({ adjustments: adj }),
       });
       if (res.ok) {
-        showToast("Adjustment saved", "ok");
+        showFlash({ type: "success", title: "Success", message: "Adjustment saved" });
         setEditingAdj(null);
         setAdjValue("");
         fetchPayouts();
       }
     } catch {
-      showToast("Failed to save adjustment", "err");
+      showFlash({ type: "error", title: "Error", message: "Failed to save adjustment" });
     }
   }
 
@@ -235,11 +221,11 @@ function PayoutsTab({ showToast }: { showToast: (m: string, t: "ok" | "err") => 
         body: JSON.stringify({ status }),
       });
       if (res.ok) {
-        showToast(`Payout ${status}`, "ok");
+        showFlash({ type: "success", title: "Success", message: `Payout ${status}` });
         fetchPayouts();
       }
     } catch {
-      showToast("Failed to update status", "err");
+      showFlash({ type: "error", title: "Error", message: "Failed to update status" });
     }
   }
 
@@ -258,15 +244,10 @@ function PayoutsTab({ showToast }: { showToast: (m: string, t: "ok" | "err") => 
           })
         )
       );
-      showToast(
-        action === "approved"
-          ? `${targets.length} payouts approved`
-          : `${targets.length} payouts marked as paid`,
-        "ok"
-      );
+      showFlash({ type: "success", title: "Success", message: action === "approved" ? `${targets.length} payouts approved` : `${targets.length} payouts marked as paid` });
       fetchPayouts();
     } catch {
-      showToast("Bulk action failed", "err");
+      showFlash({ type: "error", title: "Error", message: "Bulk action failed" });
     } finally {
       setBulkLoading(false);
     }
@@ -558,7 +539,8 @@ function PayoutsTab({ showToast }: { showToast: (m: string, t: "ok" | "err") => 
 // Rules Tab
 // ═══════════════════════════════════════════════════════════════════════════
 
-function RulesTab({ showToast }: { showToast: (m: string, t: "ok" | "err") => void }) {
+function RulesTab() {
+  const { showFlash } = useFlash();
   const [rules, setRules] = useState<CommissionRule[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -631,7 +613,7 @@ function RulesTab({ showToast }: { showToast: (m: string, t: "ok" | "err") => vo
   async function handleSave() {
     const value = parseFloat(formValue);
     if (isNaN(value) || value < 0) {
-      showToast("Enter a valid positive value", "err");
+      showFlash({ type: "error", title: "Error", message: "Enter a valid positive value" });
       return;
     }
 
@@ -661,15 +643,15 @@ function RulesTab({ showToast }: { showToast: (m: string, t: "ok" | "err") => vo
       });
 
       if (res.ok) {
-        showToast(editingId ? "Rule updated" : "Rule created", "ok");
+        showFlash({ type: "success", title: "Success", message: editingId ? "Rule updated" : "Rule created" });
         resetForm();
         fetchRules();
       } else {
         const err = await res.json();
-        showToast(err.error || "Failed to save rule", "err");
+        showFlash({ type: "error", title: "Error", message: err.error || "Failed to save rule" });
       }
     } catch {
-      showToast("Failed to save rule", "err");
+      showFlash({ type: "error", title: "Error", message: "Failed to save rule" });
     } finally {
       setSaving(false);
     }
@@ -680,11 +662,11 @@ function RulesTab({ showToast }: { showToast: (m: string, t: "ok" | "err") => vo
     try {
       const res = await fetch(`/api/admin/commission/rules/${id}`, { method: "DELETE" });
       if (res.ok) {
-        showToast("Rule deactivated", "ok");
+        showFlash({ type: "success", title: "Success", message: "Rule deactivated" });
         fetchRules();
       }
     } catch {
-      showToast("Failed to delete rule", "err");
+      showFlash({ type: "error", title: "Error", message: "Failed to delete rule" });
     }
   }
 

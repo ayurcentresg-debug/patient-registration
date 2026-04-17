@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useFlash } from "@/components/FlashCardProvider";
 import { useRouter } from "next/navigation";
 import AdminTabs from "@/components/AdminTabs";
 import TreatmentTabs from "@/components/TreatmentTabs";
@@ -44,7 +45,7 @@ export default function NewTreatmentPlanPage() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const { showFlash } = useFlash();
 
   // ─── Form state ───────────────────────────────────────────────────────────
   const [name, setName] = useState("");
@@ -71,13 +72,6 @@ export default function NewTreatmentPlanPage() {
   const [milestones, setMilestones] = useState<MilestoneItem[]>([]);
 
   useEffect(() => { setMounted(true); }, []);
-
-  // Toast auto-dismiss
-  useEffect(() => {
-    if (!toast) return;
-    const timer = setTimeout(() => setToast(null), 3000);
-    return () => clearTimeout(timer);
-  }, [toast]);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -147,12 +141,12 @@ export default function NewTreatmentPlanPage() {
 
   // ─── Submit ───────────────────────────────────────────────────────────────
   async function handleSubmit(status: "active" | "draft") {
-    if (!name.trim()) { setToast({ message: "Plan name is required", type: "error" }); return; }
-    if (!patientId) { setToast({ message: "Please select a patient", type: "error" }); return; }
-    if (!doctorName.trim()) { setToast({ message: "Doctor name is required", type: "error" }); return; }
+    if (!name.trim()) { showFlash({ type: "error", title: "Error", message: "Plan name is required" }); return; }
+    if (!patientId) { showFlash({ type: "error", title: "Error", message: "Please select a patient" }); return; }
+    if (!doctorName.trim()) { showFlash({ type: "error", title: "Error", message: "Doctor name is required" }); return; }
 
     const validItems = items.filter(it => it.treatmentName.trim());
-    if (validItems.length === 0) { setToast({ message: "Add at least one treatment item", type: "error" }); return; }
+    if (validItems.length === 0) { showFlash({ type: "error", title: "Error", message: "Add at least one treatment item" }); return; }
 
     setSubmitting(true);
     try {
@@ -189,10 +183,10 @@ export default function NewTreatmentPlanPage() {
         throw new Error(err.error || "Failed to create plan");
       }
 
-      setToast({ message: status === "draft" ? "Draft saved successfully" : "Treatment plan created", type: "success" });
+      showFlash({ type: "success", title: "Success", message: status === "draft" ? "Draft saved successfully" : "Treatment plan created" });
       setTimeout(() => router.push("/admin/treatments/plans"), 600);
     } catch (err) {
-      setToast({ message: err instanceof Error ? err.message : "Something went wrong", type: "error" });
+      showFlash({ type: "error", title: "Error", message: err instanceof Error ? err.message : "Something went wrong" });
     } finally {
       setSubmitting(false);
     }
@@ -213,13 +207,6 @@ export default function NewTreatmentPlanPage() {
   // ═════════════════════════════════════════════════════════════════════════════
   return (
     <div className="p-6 md:p-8 yoda-fade-in">
-      {/* Toast */}
-      {toast && (
-        <div className="fixed top-5 right-5 z-[200] px-4 py-3 rounded shadow-lg yoda-slide-in" style={{ background: toast.type === "success" ? "#e8f5e9" : "#ffebee", color: toast.type === "success" ? "#2e7d32" : "var(--red)", border: `1px solid ${toast.type === "success" ? "#a5d6a7" : "#ef9a9a"}` }}>
-          <p className="text-[15px] font-semibold">{toast.message}</p>
-        </div>
-      )}
-
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>

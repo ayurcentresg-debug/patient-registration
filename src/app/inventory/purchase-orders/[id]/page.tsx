@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import BarcodeScanner from "@/components/BarcodeScanner";
-import Toast from "@/components/Toast";
+import { useFlash } from "@/components/FlashCardProvider";
 import { cardStyle } from "@/lib/styles";
 import { formatCurrency, formatDate } from "@/lib/formatters";
 
@@ -76,7 +76,7 @@ export default function PurchaseOrderDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [order, setOrder] = useState<PurchaseOrder | null>(null);
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const { showFlash } = useFlash();
   const [actionLoading, setActionLoading] = useState(false);
   // Confirm dialog
   const [confirmDialog, setConfirmDialog] = useState<{ open: boolean; title: string; message: string; confirmLabel: string; variant: "danger" | "warning" | "default"; onConfirm: () => void }>({ open: false, title: "", message: "", confirmLabel: "Confirm", variant: "default", onConfirm: () => {} });
@@ -132,10 +132,10 @@ export default function PurchaseOrderDetailPage() {
         body: JSON.stringify({ action }),
       });
       if (!res.ok) throw new Error("Failed");
-      setToast({ message: `Purchase order ${action === "submit" ? "submitted" : action === "cancel" ? "cancelled" : action === "complete" ? "marked complete" : action + "d"} successfully`, type: "success" });
+      showFlash({ type: "success", title: "Success", message: `Purchase order ${action === "submit" ? "submitted" : action === "cancel" ? "cancelled" : action === "complete" ? "marked complete" : action + "d"} successfully` });
       fetchOrder();
     } catch {
-      setToast({ message: `Failed to ${action} purchase order`, type: "error" });
+      showFlash({ type: "error", title: "Error", message: `Failed to ${action} purchase order` });
     } finally {
       setActionLoading(false);
     }
@@ -154,10 +154,10 @@ export default function PurchaseOrderDetailPage() {
         try {
           const res = await fetch(`/api/purchase-orders/${id}`, { method: "DELETE" });
           if (!res.ok) throw new Error("Failed");
-          setToast({ message: "Purchase order deleted", type: "success" });
+          showFlash({ type: "success", title: "Success", message: "Purchase order deleted" });
           setTimeout(() => router.push("/inventory/purchase-orders"), 500);
         } catch {
-          setToast({ message: "Failed to delete purchase order", type: "error" });
+          showFlash({ type: "error", title: "Error", message: "Failed to delete purchase order" });
         } finally {
           setActionLoading(false);
           setConfirmLoading(false);
@@ -198,13 +198,13 @@ export default function PurchaseOrderDetailPage() {
     }
 
     if (!matchedItem) {
-      setToast({ message: `Item not found in this PO: ${code}`, type: "error" });
+      showFlash({ type: "error", title: "Error", message: `Item not found in this PO: ${code}` });
       return;
     }
 
     const remaining = matchedItem.quantity - matchedItem.receivedQty;
     if (remaining <= 0) {
-      setToast({ message: `${matchedItem.itemName} is already fully received`, type: "error" });
+      showFlash({ type: "error", title: "Error", message: `${matchedItem.itemName} is already fully received` });
       return;
     }
 
@@ -219,7 +219,7 @@ export default function PurchaseOrderDetailPage() {
     setHighlightedItemId(matchedItem.id);
     setTimeout(() => setHighlightedItemId(null), 1500);
 
-    setToast({ message: `Scanned: ${matchedItem.itemName}`, type: "success" });
+    showFlash({ type: "success", title: "Success", message: `Scanned: ${matchedItem.itemName}` });
   }, [order]);
 
   async function handleReceiveItems() {
@@ -230,7 +230,7 @@ export default function PurchaseOrderDetailPage() {
         .map(([itemId, receivedQty]) => ({ itemId, receivedQty }));
 
       if (items.length === 0) {
-        setToast({ message: "Please enter quantities to receive", type: "error" });
+        showFlash({ type: "error", title: "Error", message: "Please enter quantities to receive" });
         setActionLoading(false);
         return;
       }
@@ -241,11 +241,11 @@ export default function PurchaseOrderDetailPage() {
         body: JSON.stringify({ items }),
       });
       if (!res.ok) throw new Error("Failed");
-      setToast({ message: "Items received successfully", type: "success" });
+      showFlash({ type: "success", title: "Success", message: "Items received successfully" });
       setShowReceive(false);
       fetchOrder();
     } catch {
-      setToast({ message: "Failed to receive items", type: "error" });
+      showFlash({ type: "error", title: "Error", message: "Failed to receive items" });
     } finally {
       setActionLoading(false);
     }
@@ -286,8 +286,6 @@ export default function PurchaseOrderDetailPage() {
 
   return (
     <div className="p-6 md:p-8 yoda-fade-in">
-      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-
       {/* ── Back Button ──────────────────────────────────────────── */}
       <Link href="/inventory/purchase-orders" className="inline-flex items-center gap-1 text-[15px] font-semibold hover:underline mb-4" style={{ color: "var(--blue-500)" }}>
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>

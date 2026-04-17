@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useFlash } from "@/components/FlashCardProvider";
 import AdminTabs from "@/components/AdminTabs";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -124,12 +125,7 @@ export default function KETPage() {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState<KETForm>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
-  const [toast, setToast] = useState<{ msg: string; type: "ok" | "err" } | null>(null);
-
-  const showToast = (msg: string, type: "ok" | "err") => {
-    setToast({ msg, type });
-    setTimeout(() => setToast(null), 3000);
-  };
+  const { showFlash } = useFlash();
 
   const fetchKETs = useCallback(async () => {
     setLoading(true);
@@ -160,7 +156,7 @@ export default function KETPage() {
           fixedDeductions: JSON.parse(data.fixedDeductions || "[]"),
         });
       }
-    } catch { showToast("Failed to prefill", "err"); }
+    } catch { showFlash({ type: "error", title: "Error", message: "Failed to prefill" }); }
   };
 
   const openNew = () => {
@@ -174,8 +170,8 @@ export default function KETPage() {
   };
 
   const handleSave = async () => {
-    if (!form.userId) { showToast("Select a staff member", "err"); return; }
-    if (!form.employeeName) { showToast("Employee name is required", "err"); return; }
+    if (!form.userId) { showFlash({ type: "error", title: "Error", message: "Select a staff member" }); return; }
+    if (!form.employeeName) { showFlash({ type: "error", title: "Error", message: "Employee name is required" }); return; }
     setSaving(true);
     try {
       const payload = {
@@ -189,14 +185,14 @@ export default function KETPage() {
         body: JSON.stringify(payload),
       });
       if (res.ok) {
-        showToast("KET saved successfully", "ok");
+        showFlash({ type: "success", title: "Success", message: "KET saved successfully" });
         setShowForm(false);
         fetchKETs();
       } else {
         const err = await res.json();
-        showToast(err.error || "Failed to save", "err");
+        showFlash({ type: "error", title: "Error", message: err.error || "Failed to save" });
       }
-    } catch { showToast("Failed to save", "err"); }
+    } catch { showFlash({ type: "error", title: "Error", message: "Failed to save" }); }
     finally { setSaving(false); }
   };
 
@@ -207,16 +203,16 @@ export default function KETPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: "issued", issuedDate: new Date().toISOString() }),
       });
-      if (res.ok) { showToast("KET issued", "ok"); fetchKETs(); }
-    } catch { showToast("Failed to issue", "err"); }
+      if (res.ok) { showFlash({ type: "success", title: "Success", message: "KET issued" }); fetchKETs(); }
+    } catch { showFlash({ type: "error", title: "Error", message: "Failed to issue" }); }
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this KET?")) return;
     try {
       const res = await fetch(`/api/admin/ket/${id}`, { method: "DELETE" });
-      if (res.ok) { showToast("KET deleted", "ok"); fetchKETs(); }
-    } catch { showToast("Failed to delete", "err"); }
+      if (res.ok) { showFlash({ type: "success", title: "Success", message: "KET deleted" }); fetchKETs(); }
+    } catch { showFlash({ type: "error", title: "Error", message: "Failed to delete" }); }
   };
 
   const addAllowance = () => setForm({ ...form, fixedAllowances: [...form.fixedAllowances, { item: "", amount: 0 }] });
@@ -251,13 +247,6 @@ export default function KETPage() {
     return (
       <div>
         <AdminTabs />
-        {/* Toast */}
-        {toast && (
-          <div className="fixed top-4 right-4 z-50 px-5 py-3 rounded-lg font-semibold text-[14px] shadow-lg"
-            style={{ background: toast.type === "ok" ? "#d1fae5" : "#fef2f2", color: toast.type === "ok" ? "#065f46" : "#dc2626" }}>
-            {toast.msg}
-          </div>
-        )}
 
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-[20px] font-bold" style={{ color: "var(--grey-900)" }}>Generate Key Employment Terms</h2>
@@ -469,14 +458,6 @@ export default function KETPage() {
   return (
     <div>
       <AdminTabs />
-      {/* Toast */}
-      {toast && (
-        <div className="fixed top-4 right-4 z-50 px-5 py-3 rounded-lg font-semibold text-[14px] shadow-lg"
-          style={{ background: toast.type === "ok" ? "#d1fae5" : "#fef2f2", color: toast.type === "ok" ? "#065f46" : "#dc2626" }}>
-          {toast.msg}
-        </div>
-      )}
-
       <div className="flex items-center justify-between mb-4">
         <div>
           <h2 className="text-[22px] font-bold" style={{ color: "var(--grey-900)" }}>Key Employment Terms (KET)</h2>

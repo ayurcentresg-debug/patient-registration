@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { SectionNote } from "@/components/HelpTip";
-import Toast from "@/components/Toast";
+import { useFlash } from "@/components/FlashCardProvider";
 import { cardStyle, inputStyle } from "@/lib/styles";
 
 // ─── Constants ──────────────────────────────────────────────────────────────
@@ -62,7 +62,7 @@ export default function NewInventoryItemPage() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const { showFlash } = useFlash();
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -147,11 +147,11 @@ export default function NewInventoryItemPage() {
         throw new Error(data.error || `Server error (${res.status})`);
       }
 
-      setToast({ message: "Inventory item added successfully!", type: "success" });
+      showFlash({ type: "success", title: "Success", message: "Inventory item added successfully!" });
       setTimeout(() => router.push("/inventory"), 1200);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Failed to save";
-      setToast({ message, type: "error" });
+      showFlash({ type: "error", title: "Error", message });
     } finally {
       setSaving(false);
     }
@@ -168,8 +168,6 @@ export default function NewInventoryItemPage() {
 
   return (
     <div className="p-6 md:p-8 yoda-fade-in">
-      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-
       {/* ── Back Link ─────────────────────────────────────────────── */}
       <Link href="/inventory" className="inline-flex items-center gap-1 text-[15px] font-semibold hover:underline mb-4" style={{ color: "var(--blue-500)" }}>
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>

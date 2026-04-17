@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import Toast from "@/components/Toast";
+import { useFlash } from "@/components/FlashCardProvider";
 import { cardStyle, inputStyle, chipBase } from "@/lib/styles";
 import { formatDate } from "@/lib/formatters";
 
@@ -98,7 +98,7 @@ export default function DoctorDetailPage() {
   const [doctor, setDoctor] = useState<Doctor | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const { showFlash } = useFlash();
 
   // Edit mode
   const [editing, setEditing] = useState(false);
@@ -209,7 +209,7 @@ export default function DoctorDetailPage() {
   // ─── Update doctor ───────────────────────────────────────────────────
   async function handleSave() {
     if (!validate()) {
-      setToast({ message: "Please fix the errors below", type: "error" });
+      showFlash({ type: "error", title: "Error", message: "Please fix the errors below" });
       return;
     }
 
@@ -241,10 +241,10 @@ export default function DoctorDetailPage() {
       const updated = await res.json();
       setDoctor(updated);
       setEditing(false);
-      setToast({ message: "Doctor updated successfully", type: "success" });
+      showFlash({ type: "success", title: "Success", message: "Doctor updated successfully" });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Failed to update doctor";
-      setToast({ message, type: "error" });
+      showFlash({ type: "error", title: "Error", message });
     } finally {
       setSaving(false);
     }
@@ -259,11 +259,11 @@ export default function DoctorDetailPage() {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || `Server error (${res.status})`);
       }
-      setToast({ message: "Doctor deleted successfully", type: "success" });
+      showFlash({ type: "success", title: "Success", message: "Doctor deleted successfully" });
       setTimeout(() => router.push("/doctors"), 1200);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Failed to delete doctor";
-      setToast({ message, type: "error" });
+      showFlash({ type: "error", title: "Error", message });
       setShowDeleteConfirm(false);
     } finally {
       setDeleting(false);
@@ -302,8 +302,6 @@ export default function DoctorDetailPage() {
 
   return (
     <div className="p-6 md:p-8 yoda-fade-in">
-      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-
       {/* ── Delete Confirmation Modal ──────────────────────────── */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.4)" }}>

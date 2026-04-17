@@ -6,7 +6,7 @@ import Link from "next/link";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { DetailPageSkeleton } from "@/components/Skeleton";
 import { validateName } from "@/lib/validation";
-import Toast from "@/components/Toast";
+import { useFlash } from "@/components/FlashCardProvider";
 import { cardStyle, inputStyle } from "@/lib/styles";
 import { formatCurrency, formatDate } from "@/lib/formatters";
 
@@ -154,13 +154,13 @@ const sidebarNav = [
 export default function PatientDetailPage() {
   const { id } = useParams();
   const router = useRouter();
+  const { showFlash } = useFlash();
   const [mounted, setMounted] = useState(false);
   const [patient, setPatient] = useState<Patient | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [clinicName, setClinicName] = useState("");
   const [activeSection, setActiveSection] = useState("profile");
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const [editing, setEditing] = useState(false);
   const [editData, setEditData] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
@@ -359,7 +359,7 @@ export default function PatientDetailPage() {
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
   const moreMenuRef = useRef<HTMLDivElement>(null);
 
-  const showToast = useCallback((message: string, type: "success" | "error") => setToast({ message, type }), []);
+  const showToast = useCallback((message: string, type: "success" | "error") => showFlash({ type, title: type === "success" ? "Success" : "Error", message }), [showFlash]);
 
   const fetchPatient = useCallback(async () => {
     setLoading(true); setError(null);
@@ -1477,7 +1477,6 @@ export default function PatientDetailPage() {
 
   return (
     <div className="yoda-fade-in flex flex-col" style={{ minHeight: "100vh" }}>
-      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       <ConfirmDialog
         open={confirmDialog.open}
         title={confirmDialog.title}

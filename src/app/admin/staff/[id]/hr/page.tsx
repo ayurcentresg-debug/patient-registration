@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useFlash } from "@/components/FlashCardProvider";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -133,12 +134,7 @@ export default function StaffHrPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [toast, setToast] = useState<{ msg: string; type: "ok" | "err" } | null>(null);
-
-  const showToast = (msg: string, type: "ok" | "err" = "ok") => {
-    setToast({ msg, type });
-    setTimeout(() => setToast(null), 3000);
-  };
+  const { showFlash } = useFlash();
 
   const fetchStaff = useCallback(async () => {
     if (!id) return;
@@ -209,11 +205,11 @@ export default function StaffHrPage() {
       }
       const saved = await res.json();
       setStaff((s) => (s ? { ...s, ...saved } : s));
-      showToast("HR details saved");
+      showFlash({ type: "success", title: "Success", message: "HR details saved" });
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Failed to save HR details";
       setError(msg);
-      showToast(msg, "err");
+      showFlash({ type: "error", title: "Error", message: msg });
     } finally {
       setSaving(false);
     }
@@ -489,22 +485,6 @@ export default function StaffHrPage() {
         </button>
       </div>
 
-      {/* Toast */}
-      {toast && (
-        <div
-          className="fixed bottom-6 right-6 px-4 py-3 text-[14px] font-semibold"
-          style={{
-            background: toast.type === "ok" ? "#ecfdf5" : "#fef2f2",
-            color: toast.type === "ok" ? "#047857" : "#b91c1c",
-            border: `1px solid ${toast.type === "ok" ? "#a7f3d0" : "#fecaca"}`,
-            borderRadius: "var(--radius-sm)",
-            boxShadow: "var(--shadow-card)",
-            zIndex: 50,
-          }}
-        >
-          {toast.msg}
-        </div>
-      )}
     </div>
   );
 }

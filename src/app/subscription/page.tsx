@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useFlash } from "@/components/FlashCardProvider";
 
 const cardStyle: React.CSSProperties = {
   background: "var(--white)",
@@ -52,7 +53,7 @@ export default function SubscriptionPage() {
   const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [sub, setSub] = useState<SubscriptionData | null>(null);
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const { showFlash } = useFlash();
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -78,19 +79,6 @@ export default function SubscriptionPage() {
           <h1 style={{ fontSize: 26, fontWeight: 800, color: "var(--grey-900)", margin: 0 }}>Subscription & Billing</h1>
           <p style={{ fontSize: 14, color: "var(--grey-600)", marginTop: 4 }}>Manage your plan, view usage, and billing information</p>
         </div>
-
-        {/* Toast */}
-        {toast && (
-          <div style={{
-            position: "fixed", top: 24, right: 24, zIndex: 9999,
-            padding: "12px 20px", borderRadius: 10, fontSize: 14, fontWeight: 600,
-            backgroundColor: toast.type === "success" ? "#d1f2e0" : "#fecaca",
-            color: toast.type === "success" ? "#14532d" : "#991b1b",
-            boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
-          }}>
-            {toast.message}
-          </div>
-        )}
 
         {loading ? (
           <div style={{ ...cardStyle, padding: 40, textAlign: "center" }}>

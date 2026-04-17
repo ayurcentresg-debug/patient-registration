@@ -4,7 +4,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import AdminTabs from "@/components/AdminTabs";
 import ConfirmDialog from "@/components/ConfirmDialog";
-import Toast from "@/components/Toast";
+import { useFlash } from "@/components/FlashCardProvider";
 import { cardStyle } from "@/lib/styles";
 import { formatDate } from "@/lib/formatters";
 
@@ -189,7 +189,7 @@ const confidenceColors: Record<string, { bg: string; text: string; border: strin
 export default function MergeDuplicatesPage() {
   const [duplicates, setDuplicates] = useState<DuplicateGroup[]>([]);
   const [loading, setLoading] = useState(true);
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+  const { showFlash } = useFlash();
 
   // Manual search state
   const [manualSearch1, setManualSearch1] = useState("");
@@ -256,7 +256,7 @@ export default function MergeDuplicatesPage() {
 
   function startManualCompare() {
     if (!manualPicked1 || !manualPicked2) return;
-    if (manualPicked1.id === manualPicked2.id) { setToast({ message: "Cannot merge a patient with itself", type: "error" }); return; }
+    if (manualPicked1.id === manualPicked2.id) { showFlash({ type: "error", title: "Error", message: "Cannot merge a patient with itself" }); return; }
     const group: DuplicateGroup = {
       patients: [manualPicked1, manualPicked2],
       matchType: "Manual Selection",
@@ -306,7 +306,7 @@ export default function MergeDuplicatesPage() {
       setSelectedMedicalHistory(allMedical);
 
     } catch {
-      setToast({ message: "Failed to load patient details", type: "error" });
+      showFlash({ type: "error", title: "Error", message: "Failed to load patient details" });
       setComparing(false);
     }
     finally { setLoadingCompare(false); }
@@ -369,7 +369,7 @@ export default function MergeDuplicatesPage() {
             throw new Error(data.error || "Merge failed");
           }
           const result = await res.json();
-          setToast({ message: `Merged successfully. ${result.recordsTransferred} records transferred.`, type: "success" });
+          showFlash({ type: "success", title: "Success", message: `Merged successfully. ${result.recordsTransferred} records transferred.` });
           setComparing(false);
           setPatientA(null);
           setPatientB(null);
@@ -377,7 +377,7 @@ export default function MergeDuplicatesPage() {
           setManualPicked2(null);
           fetchDuplicates();
         } catch (e) {
-          setToast({ message: e instanceof Error ? e.message : "Merge failed", type: "error" });
+          showFlash({ type: "error", title: "Error", message: e instanceof Error ? e.message : "Merge failed" });
         }
         finally {
           setMerging(false);
@@ -435,7 +435,7 @@ export default function MergeDuplicatesPage() {
     return (
       <div className="p-4 md:p-6 yoda-fade-in">
         <AdminTabs />
-        {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+
         <ConfirmDialog
           open={confirmDialog.open} title={confirmDialog.title} message={confirmDialog.message}
           confirmLabel={confirmDialog.confirmLabel} variant={confirmDialog.variant} loading={confirmLoading}
@@ -655,8 +655,6 @@ export default function MergeDuplicatesPage() {
   return (
     <div className="p-4 md:p-6 yoda-fade-in">
       <AdminTabs />
-      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
-
       <div className="flex items-center justify-between mb-5">
         <div>
           <h1 className="text-[22px] font-bold" style={{ color: "var(--grey-900)" }}>Merge Duplicates</h1>

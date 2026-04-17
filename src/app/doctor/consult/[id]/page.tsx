@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { useFlash } from "@/components/FlashCardProvider";
 
 interface ConsultData {
   appointment: {
@@ -42,11 +43,11 @@ function fmtDateTime(d: string) { return new Date(d).toLocaleDateString("en-SG",
 export default function ConsultPage() {
   const { id } = useParams();
   const router = useRouter();
+  const { showFlash } = useFlash();
   const [data, setData] = useState<ConsultData | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"vitals" | "notes" | "prescription" | "history">("vitals");
   const [saving, setSaving] = useState(false);
-  const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
 
   // Vitals form
   const [vitals, setVitals] = useState({ bloodPressureSys: "", bloodPressureDia: "", pulse: "", temperature: "", weight: "", height: "", oxygenSaturation: "", respiratoryRate: "", notes: "" });
@@ -79,8 +80,7 @@ export default function ConsultPage() {
   useEffect(() => { fetchData(); }, [fetchData]);
 
   function showToast(msg: string, type: "success" | "error" = "success") {
-    setToast({ msg, type });
-    setTimeout(() => setToast(null), 3000);
+    showFlash({ type, title: type === "success" ? "Success" : "Error", message: msg });
   }
 
   async function saveVitals() {
@@ -222,20 +222,6 @@ export default function ConsultPage() {
 
   return (
     <div style={{ minHeight: "100vh", background: "#f9fafb" }}>
-      {/* Toast */}
-      {toast && (
-        <div style={{
-          position: "fixed", top: 16, left: "50%", transform: "translateX(-50%)", zIndex: 100,
-          padding: "10px 20px", borderRadius: 10, fontSize: 14, fontWeight: 600,
-          background: toast.type === "success" ? "#ecfdf5" : "#fef2f2",
-          color: toast.type === "success" ? "#059669" : "#dc2626",
-          border: `1px solid ${toast.type === "success" ? "#bbf7d0" : "#fecaca"}`,
-          boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-        }}>
-          {toast.msg}
-        </div>
-      )}
-
       {/* Header */}
       <header style={{ background: "#14532d", padding: "16px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 50 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
