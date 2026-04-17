@@ -1343,21 +1343,7 @@ export default function Sidebar() {
               {clinicInitials || "·"}
             </div>
           )}
-          <div
-            className="ml-3 overflow-hidden whitespace-nowrap"
-            style={{
-              opacity: expanded ? 1 : 0,
-              transition: "opacity 0.15s ease",
-              flex: 1,
-              minWidth: 0,
-            }}
-          >
-            <h1 className="text-[15px] font-bold text-white" style={{ letterSpacing: "0.5px", overflow: "hidden", textOverflow: "ellipsis" }}>
-              {clinicName || "\u00A0"}
-            </h1>
-            <p className="text-[11px] font-medium" style={{ color: "rgba(255,255,255,0.45)" }}>Clinic admin</p>
-          </div>
-
+          {/* Clinic name/subtitle removed to eliminate overlap with mobile header */}
         </div>
 
         {/* Search Bar (sidebar collapsed: icon only) */}
