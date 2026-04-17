@@ -1,0 +1,289 @@
+/* =================================================================
+   AyurGate Design Tokens — v1.0
+   Generated from Brand Style Guide (Stages 1, 2, 7)
+   April 2026
+
+   Usage: imported in globals.css
+   Do NOT hardcode hex in components — use these tokens.
+   ================================================================= */
+
+/* ─── LIGHT MODE (default) ─────────────────────────────────────── */
+:root {
+  /* ======================================================
+     COLOR PRIMITIVES — raw scales
+     Never use directly in components; use semantic roles below.
+     ====================================================== */
+
+  /* Teal scale — PRIMARY BRAND */
+  --ag-teal-900: #063B3D;  /* Email header bg, pressed state */
+  --ag-teal-800: #0A5D60;  /* Hover on primary, accessible links */
+  --ag-teal-700: #0D7377;  /* PRIMARY — nav, CTAs, active */
+  --ag-teal-600: #119CA0;  /* Hover states */
+  --ag-teal-500: #17C0C4;  /* Decorative only — fails WCAG on white */
+  --ag-teal-100: #E0F4F5;  /* Selected row tint, tag fills */
+  --ag-teal-50:  #F0FAFB;  /* Lightest surface tint */
+
+  /* Saffron scale — HERITAGE ACCENT */
+  --ag-saffron-900: #6B3A00;  /* Pressed saffron */
+  --ag-saffron-700: #8F5200;  /* Accessible saffron text (AA) */
+  --ag-saffron-600: #B5740A;  /* ACCENT — badges, highlights */
+  --ag-saffron-400: #D4960E;  /* Hover accent */
+  --ag-saffron-100: #FAF0D7;  /* Warm tint surfaces */
+  --ag-saffron-50:  #FEFBF3;  /* Subtlest warm tint */
+
+  /* Neutral scale — warm-tinted grays */
+  --ag-neutral-950: #0F0E0C;  /* Ultra-dark for dark-mode inversion */
+  --ag-neutral-900: #1A1917;  /* Body copy — NEVER pure black */
+  --ag-neutral-700: #3D3B37;  /* Heavy headings */
+  --ag-neutral-500: #6C6A65;  /* Secondary / meta text (4.6:1 AA) */
+  --ag-neutral-300: #B2B0AB;  /* Placeholders, disabled */
+  --ag-neutral-200: #D4D1CA;  /* Borders, dividers */
+  --ag-neutral-100: #ECEAE4;  /* Subtle separators */
+  --ag-neutral-50:  #F7F6F2;  /* Page background — NEVER pure white */
+  --ag-neutral-0:   #FFFFFF;  /* Card/modal surface only */
+
+  /* ======================================================
+     SEMANTIC ROLES — use these in components
+     ====================================================== */
+
+  /* Surfaces */
+  --ag-bg-page:             var(--ag-neutral-50);
+  --ag-bg-card:             var(--ag-neutral-0);
+  --ag-bg-sidebar:          var(--ag-teal-700);
+  --ag-bg-sidebar-active:   var(--ag-teal-800);
+  --ag-bg-selected:         var(--ag-teal-100);
+  --ag-bg-accent-surface:   var(--ag-saffron-100);
+  --ag-bg-hover:            var(--ag-neutral-50);
+
+  /* Text */
+  --ag-text-primary:        var(--ag-neutral-900);
+  --ag-text-secondary:      var(--ag-neutral-500);
+  --ag-text-placeholder:    var(--ag-neutral-300);
+  --ag-text-on-brand:       var(--ag-neutral-0);
+  --ag-text-link:           var(--ag-teal-800);
+  --ag-text-accent:         var(--ag-saffron-700);
+
+  /* Borders */
+  --ag-border-default:      var(--ag-neutral-200);
+  --ag-border-subtle:       var(--ag-neutral-100);
+  --ag-border-focus:        var(--ag-teal-700);
+  --ag-border-error:        #DC2626;
+
+  /* Interactive */
+  --ag-interactive-bg:      var(--ag-teal-700);
+  --ag-interactive-hover:   var(--ag-teal-800);
+  --ag-interactive-press:   var(--ag-teal-900);
+  --ag-accent:              var(--ag-saffron-600);
+  --ag-accent-hover:        var(--ag-saffron-400);
+
+  /* Status — Success */
+  --ag-success-text:        #14532D;
+  --ag-success-icon:        #16A34A;
+  --ag-success-bg:          #DCFCE7;
+  --ag-success-tint:        #F0FDF4;
+
+  /* Status — Warning */
+  --ag-warning-text:        #7C2D12;
+  --ag-warning-icon:        #D97706;
+  --ag-warning-bg:          #FEF3C7;
+  --ag-warning-tint:        #FFFBEB;
+
+  /* Status — Error */
+  --ag-error-text:          #7F1D1D;
+  --ag-error-icon:          #DC2626;
+  --ag-error-bg:            #FEE2E2;
+  --ag-error-tint:          #FFF5F5;
+
+  /* Status — Info */
+  --ag-info-text:           #1E3A5F;
+  --ag-info-icon:           #2563EB;
+  --ag-info-bg:             #DBEAFE;
+  --ag-info-tint:           #EFF6FF;
+
+  /* Module accent colors (categorical — no semantic meaning) */
+  --ag-module-appointments:   #3B5E8C;
+  --ag-module-prescriptions:  #4A6B52;
+  --ag-module-inventory:      #6B4E82;
+  --ag-module-billing:        #7A5230;
+  --ag-module-reports:        #3E5F6E;
+
+  /* ======================================================
+     TYPOGRAPHY
+     ====================================================== */
+
+  --ag-font-heading: 'Satoshi', 'DM Sans', ui-sans-serif, system-ui, sans-serif;
+  --ag-font-body:    'Inter', ui-sans-serif, system-ui, sans-serif;
+  --ag-font-mono:    'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+
+  /* Weights */
+  --ag-weight-regular:  400;
+  --ag-weight-medium:   500;
+  --ag-weight-bold:     700;
+
+  /* Type scale (px — base 16px) */
+  --ag-text-display:   32px;
+  --ag-text-h1:        24px;
+  --ag-text-h2:        20px;
+  --ag-text-h3:        16px;
+  --ag-text-h4:        14px;
+  --ag-text-body:      14px;
+  --ag-text-body-sm:   13px;
+  --ag-text-label:     12px;
+  --ag-text-caption:   11px;
+
+  /* Line heights */
+  --ag-leading-tight:    1.2;   /* display, h1, h2 */
+  --ag-leading-snug:     1.35;  /* h3, h4, card headings */
+  --ag-leading-normal:   1.5;   /* body copy */
+  --ag-leading-relaxed:  1.6;   /* long-form prose */
+
+  /* Letter spacing */
+  --ag-tracking-tight:   -0.02em;  /* display, large headings */
+  --ag-tracking-normal:  0em;      /* body, UI labels */
+  --ag-tracking-wide:    0.04em;   /* all-caps labels */
+  --ag-tracking-wider:   0.08em;   /* small all-caps badges */
+
+  /* ======================================================
+     SPACING — 4px base grid
+     ====================================================== */
+  --ag-space-1:  4px;
+  --ag-space-2:  8px;
+  --ag-space-3:  12px;
+  --ag-space-4:  16px;
+  --ag-space-5:  20px;
+  --ag-space-6:  24px;
+  --ag-space-8:  32px;
+  --ag-space-10: 40px;
+  --ag-space-12: 48px;
+  --ag-space-16: 64px;
+
+  /* ======================================================
+     BORDER RADIUS
+     ====================================================== */
+  --ag-radius-xs:   4px;   /* badges, tiny pills */
+  --ag-radius-sm:   6px;   /* buttons, inputs */
+  --ag-radius-md:   8px;   /* cards, panels */
+  --ag-radius-lg:   12px;  /* modals, large surfaces */
+  --ag-radius-xl:   16px;  /* hero cards */
+  --ag-radius-full: 9999px;/* pills, avatars */
+
+  /* ======================================================
+     ELEVATION (SHADOWS)
+     ====================================================== */
+  --ag-shadow-flat: none;
+  --ag-shadow-dp1:  0 1px 3px rgba(26, 25, 23, 0.08);
+  --ag-shadow-dp2:  0 4px 12px rgba(26, 25, 23, 0.10);
+  --ag-shadow-dp4:  0 8px 24px rgba(26, 25, 23, 0.14);
+
+  /* ======================================================
+     MOTION (Stage 7)
+     ====================================================== */
+  --ag-duration-fast:     100ms;  /* button press, toggle */
+  --ag-duration-base:     150ms;  /* hover, focus ring */
+  --ag-duration-slow:     300ms;  /* panel open, dropdown */
+  --ag-duration-loading:  600ms;  /* skeleton shimmer */
+
+  --ag-ease-standard:  ease;
+  --ag-ease-enter:     ease-out;
+  --ag-ease-exit:      ease-in;
+  --ag-ease-spring:    cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* ======================================================
+     COMPONENT TOKENS
+     ====================================================== */
+
+  /* Button */
+  --ag-btn-height-xs:  28px;
+  --ag-btn-height-sm:  32px;
+  --ag-btn-height-md:  36px;
+  --ag-btn-height-lg:  44px;
+  --ag-btn-height-xl:  52px;
+  --ag-btn-radius:     var(--ag-radius-sm);
+  --ag-btn-padding-x:  16px;
+  --ag-btn-font-size:  13px;
+  --ag-btn-min-width:  80px;
+
+  /* Input */
+  --ag-input-height:   40px;
+  --ag-input-radius:   var(--ag-radius-sm);
+  --ag-input-padding-x: 12px;
+  --ag-input-border-width: 1px;
+  --ag-input-font-size: 14px;
+
+  /* Card */
+  --ag-card-radius:        var(--ag-radius-md);
+  --ag-card-padding-compact:  16px;
+  --ag-card-padding-default:  20px;
+  --ag-card-padding-spacious: 24px;
+  --ag-card-border:        1px solid var(--ag-border-default);
+
+  /* Badge */
+  --ag-badge-height:   20px;
+  --ag-badge-radius:   var(--ag-radius-full);
+  --ag-badge-padding-x: 8px;
+  --ag-badge-font-size: 11px;
+
+  /* Table */
+  --ag-table-row-compact:   40px;
+  --ag-table-row-default:   48px;
+  --ag-table-row-spacious:  56px;
+  --ag-table-header-bg:     var(--ag-neutral-100);
+
+  /* Sidebar */
+  --ag-sidebar-width-collapsed: 64px;
+  --ag-sidebar-width-expanded:  220px;
+
+  /* Focus ring */
+  --ag-focus-ring: 0 0 0 2px var(--ag-teal-700);
+  --ag-focus-ring-offset: 1px;
+
+  /* Numeric rendering for data tables */
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+/* ─── DARK MODE ────────────────────────────────────────────────── */
+[data-theme="dark"] {
+  /* Dark theme surfaces */
+  --ag-bg-page:             #0F1110;
+  --ag-bg-card:             #181C1B;
+  --ag-bg-sidebar:          #181C1B;
+  --ag-bg-sidebar-active:   #1F2422;
+  --ag-bg-selected:         rgba(23, 192, 196, 0.12);
+  --ag-bg-accent-surface:   rgba(212, 150, 14, 0.10);
+  --ag-bg-hover:            rgba(255, 255, 255, 0.04);
+
+  /* Dark theme text */
+  --ag-text-primary:        #E8E6E1;
+  --ag-text-secondary:      #9A9892;
+  --ag-text-placeholder:    #5C5A56;
+  --ag-text-on-brand:       #FFFFFF;
+  --ag-text-link:           var(--ag-teal-500);
+  --ag-text-accent:         var(--ag-saffron-400);
+
+  /* Dark theme borders */
+  --ag-border-default:      #2E3532;
+  --ag-border-subtle:       #242927;
+  --ag-border-focus:        var(--ag-teal-500);
+
+  /* Dark theme interactive */
+  --ag-interactive-bg:      var(--ag-teal-500);
+  --ag-interactive-hover:   var(--ag-teal-600);
+  --ag-interactive-press:   var(--ag-teal-800);
+  --ag-accent:              var(--ag-saffron-400);
+  --ag-accent-hover:        var(--ag-saffron-600);
+
+  /* Dark theme shadows — darker */
+  --ag-shadow-dp1: 0 1px 3px rgba(0, 0, 0, 0.40);
+  --ag-shadow-dp2: 0 4px 12px rgba(0, 0, 0, 0.45);
+  --ag-shadow-dp4: 0 8px 24px rgba(0, 0, 0, 0.55);
+}
+
+/* ─── REDUCED MOTION (WCAG 2.3.3) ──────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

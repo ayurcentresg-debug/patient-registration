@@ -1,35 +1,55 @@
 @import "tailwindcss";
 
 /* ========================================
-   YODA DESIGN SYSTEM — CSS Variables
+   AYURGATE BRAND TOKENS (Stage 1, 2, 7)
+   Import comes first so legacy YODA vars can alias them.
+   ======================================== */
+@import "../styles/tokens.css";
+
+/* ========================================
+   FONT LOADING — Satoshi + Inter
+   Satoshi: self-hosted from Fontshare
+   Inter: Google Fonts (variable)
+   ======================================== */
+
+/* Satoshi — from Fontshare CDN (free, MIT-style license) */
+@import url('https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap');
+
+/* Inter variable — from Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* ========================================
+   YODA DESIGN SYSTEM — Legacy compatibility layer
+   These old variables now alias to the new --ag-* brand tokens.
+   Existing components keep working; new components use --ag-* directly.
    ======================================== */
 :root {
-  /* Primary — Forest Green */
-  --blue-500: #2d6a4f;
-  --blue-600: #256b48;
-  --blue-700: #1b5e3a;
-  --blue-800: #14532d;
-  --blue-50: #f0faf4;
-  --blue-100: #d1f2e0;
-  --blue-200: #a7d7be;
+  /* Primary — now aliases brand teal from tokens.css */
+  --blue-500: var(--ag-teal-700);   /* #0D7377 primary */
+  --blue-600: var(--ag-teal-800);   /* hover */
+  --blue-700: var(--ag-teal-800);   /* hover (legacy alias) */
+  --blue-800: var(--ag-teal-900);   /* pressed */
+  --blue-50:  var(--ag-teal-50);
+  --blue-100: var(--ag-teal-100);
+  --blue-200: var(--ag-teal-100);
 
-  /* Accent — Earthy Gold */
-  --accent: #b68d40;
-  --accent-light: #faf3e6;
+  /* Accent — Saffron from brand guide */
+  --accent:       var(--ag-saffron-600);   /* #B5740A */
+  --accent-light: var(--ag-saffron-100);
 
-  /* Neutrals — Warm Linen tones */
-  --black: #1a1c1b;
-  --grey-900: #1e2a24;
-  --grey-800: #374840;
-  --grey-700: #4a5d52;
-  --grey-600: #6b7f73;
-  --grey-500: #9baa9f;
-  --grey-400: #c8d1cb;
-  --grey-300: #dfe5e1;
-  --grey-200: #eef1ef;
-  --grey-100: #f5f7f6;
-  --grey-50: #f8faf9;
-  --white: #ffffff;
+  /* Neutrals — warm-tinted per brand guide */
+  --black:    var(--ag-neutral-900);
+  --grey-900: var(--ag-neutral-900);
+  --grey-800: var(--ag-neutral-700);
+  --grey-700: var(--ag-neutral-700);
+  --grey-600: var(--ag-neutral-500);
+  --grey-500: var(--ag-neutral-500);
+  --grey-400: var(--ag-neutral-300);
+  --grey-300: var(--ag-neutral-200);
+  --grey-200: var(--ag-neutral-100);
+  --grey-100: var(--ag-neutral-100);
+  --grey-50:  var(--ag-neutral-50);
+  --white:    var(--ag-neutral-0);
 
   /* Semantic */
   --green: #059669;
@@ -41,53 +61,53 @@
   --purple: #7c3aed;
   --purple-light: #f5f3ff;
 
-  /* Shadows — natural tones */
-  --shadow-sm: 0 1px 2px rgba(30, 42, 36, 0.06);
-  --shadow-card: 0 1px 10px rgba(30, 42, 36, 0.05);
-  --shadow-md: 0 5px 20px rgba(30, 42, 36, 0.07);
-  --shadow-blue: 0 1px 4px rgba(45, 106, 79, 0.12);
-  --shadow-lg: 0 8px 30px rgba(30, 42, 36, 0.1);
+  /* Shadows — mapped to brand elevation tokens */
+  --shadow-sm:    var(--ag-shadow-dp1);
+  --shadow-card:  var(--ag-shadow-dp1);
+  --shadow-md:    var(--ag-shadow-dp2);
+  --shadow-blue:  0 1px 4px rgba(13, 115, 119, 0.15);
+  --shadow-lg:    var(--ag-shadow-dp4);
 
-  /* Layout */
-  --background: #f8f6f2;
-  --foreground: #374840;
-  --sidebar-width: 64px;
-  --sidebar-bg: #1b3a2d;
-  --radius: 8px;
-  --radius-sm: 5px;
-  --radius-pill: 100px;
+  /* Layout — mapped to brand tokens */
+  --background:     var(--ag-bg-page);
+  --foreground:     var(--ag-text-primary);
+  --sidebar-width:  var(--ag-sidebar-width-collapsed);
+  --sidebar-bg:     var(--ag-bg-sidebar);        /* teal-700 #0D7377 */
+  --radius:         var(--ag-radius-md);         /* 8px */
+  --radius-sm:      var(--ag-radius-sm);         /* 6px */
+  --radius-pill:    var(--ag-radius-full);
 }
 
 /* ========================================
    DARK MODE OVERRIDES
    ======================================== */
 [data-theme="dark"] {
-  /* Primary — Forest Green (brighter for dark bg) */
-  --blue-500: #4ade80;
-  --blue-600: #3dcc72;
-  --blue-700: #2db85e;
-  --blue-800: #22c55e;
-  --blue-50: rgba(74, 222, 128, 0.08);
-  --blue-100: rgba(74, 222, 128, 0.15);
-  --blue-200: rgba(74, 222, 128, 0.25);
+  /* Primary — brand teal (brighter for dark bg) — alias */
+  --blue-500: var(--ag-teal-500);   /* #17C0C4 */
+  --blue-600: var(--ag-teal-600);
+  --blue-700: var(--ag-teal-700);
+  --blue-800: var(--ag-teal-800);
+  --blue-50:  rgba(23, 192, 196, 0.08);
+  --blue-100: rgba(23, 192, 196, 0.15);
+  --blue-200: rgba(23, 192, 196, 0.25);
 
-  /* Accent — Earthy Gold */
-  --accent: #d4a94e;
-  --accent-light: rgba(212, 169, 78, 0.1);
+  /* Accent — Saffron */
+  --accent:       var(--ag-saffron-400);
+  --accent-light: rgba(212, 150, 14, 0.10);
 
-  /* Neutrals — inverted */
-  --black: #f5f7f6;
-  --grey-900: #f0f2f1;
-  --grey-800: #d8ddd9;
-  --grey-700: #b8c0bb;
-  --grey-600: #95a19a;
-  --grey-500: #6b7f73;
-  --grey-400: #3d4f45;
-  --grey-300: #2a3830;
-  --grey-200: #1e2b24;
-  --grey-100: #172019;
-  --grey-50: #131a16;
-  --white: #0f1512;
+  /* Neutrals — dark theme (inverted) */
+  --black:    var(--ag-text-primary);
+  --grey-900: var(--ag-text-primary);
+  --grey-800: #D8DDD9;
+  --grey-700: #B8C0BB;
+  --grey-600: var(--ag-text-secondary);
+  --grey-500: var(--ag-text-secondary);
+  --grey-400: var(--ag-text-placeholder);
+  --grey-300: var(--ag-border-default);
+  --grey-200: var(--ag-border-subtle);
+  --grey-100: var(--ag-bg-card);
+  --grey-50:  var(--ag-bg-page);
+  --white:    var(--ag-bg-page);
 
   /* Semantic */
   --green: #34d399;
@@ -99,23 +119,25 @@
   --purple: #a78bfa;
   --purple-light: rgba(167, 139, 250, 0.1);
 
-  /* Shadows — darker */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-card: 0 1px 10px rgba(0, 0, 0, 0.2);
-  --shadow-md: 0 5px 20px rgba(0, 0, 0, 0.3);
-  --shadow-blue: 0 1px 4px rgba(74, 222, 128, 0.15);
-  --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.4);
+  /* Shadows — dark mode */
+  --shadow-sm: var(--ag-shadow-dp1);
+  --shadow-card: var(--ag-shadow-dp1);
+  --shadow-md: var(--ag-shadow-dp2);
+  --shadow-blue: 0 1px 4px rgba(23, 192, 196, 0.20);
+  --shadow-lg: var(--ag-shadow-dp4);
 
   /* Layout */
-  --background: #0f1512;
-  --foreground: #d8ddd9;
-  --sidebar-bg: #0a0f0c;
+  --background: var(--ag-bg-page);
+  --foreground: var(--ag-text-primary);
+  --sidebar-bg:  var(--ag-bg-sidebar);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-sans: var(--ag-font-body);
+  --font-heading: var(--ag-font-heading);
+  --font-mono: var(--ag-font-mono);
 }
 
 /* ========================================
@@ -127,12 +149,18 @@
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  font-size: 14px;
-  line-height: 1.45;
-  letter-spacing: -0.01em;
+  background: var(--ag-bg-page);
+  color: var(--ag-text-primary);
+  font-family: var(--ag-font-body);
+  font-size: var(--ag-text-body);
+  line-height: var(--ag-leading-normal);
+  letter-spacing: var(--ag-tracking-normal);
+}
+
+/* Headings use Satoshi per brand guide */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--ag-font-heading);
+  font-weight: var(--ag-weight-bold);
 }
 
 /* ========================================
