@@ -368,9 +368,7 @@ export default function Sidebar() {
               {clinicInitials}
             </div>
           )}
-          <span style={{ color: "#fff", fontSize: 14, fontWeight: 700, letterSpacing: "0.3px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 140 }}>
-            {clinicName}
-          </span>
+          {/* Clinic name removed from mobile header — only logo shows to prevent duplicates */}
           <div style={{ marginLeft: 4 }}>
             <BranchSelector />
           </div>
