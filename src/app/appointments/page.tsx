@@ -960,9 +960,19 @@ export default function AppointmentsPage() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // Fetch doctors
+  // Fetch doctors — defensive array guard
   useEffect(() => {
-    fetch("/api/doctors?status=active").then(r => r.json()).then(setDoctors).catch(() => {});
+    fetch("/api/doctors?status=active")
+      .then(r => (r.ok ? r.json() : []))
+      .then(data => {
+        const list = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.doctors)
+          ? data.doctors
+          : [];
+        setDoctors(list);
+      })
+      .catch(() => setDoctors([]));
   }, []);
 
   // Compute date range for fetch
@@ -986,7 +996,7 @@ export default function AppointmentsPage() {
     }
   }, [selectedDate, viewMode]);
 
-  // Fetch appointments
+  // Fetch appointments — defensive array guard
   const fetchAppointments = useCallback(async () => {
     setLoading(true);
     try {
@@ -995,9 +1005,18 @@ export default function AppointmentsPage() {
       const res = await fetch(`/api/appointments?${params}`);
       if (res.ok) {
         const data = await res.json();
-        setAppointments(data);
+        const list = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.appointments)
+          ? data.appointments
+          : [];
+        setAppointments(list);
+      } else {
+        setAppointments([]);
       }
-    } catch { /* ignore */ }
+    } catch {
+      setAppointments([]);
+    }
     setLoading(false);
   }, [dateRange, selectedDoctor]);
 
