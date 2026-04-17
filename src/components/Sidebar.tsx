@@ -693,28 +693,20 @@ export default function Sidebar() {
             transition: "padding-left 0.2s ease",
           }}
         >
-          {clinicLogoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={clinicLogoUrl}
-              alt={clinicName || "Clinic"}
-              className="flex-shrink-0"
-              style={{ width: 36, height: 36, borderRadius: 8, objectFit: "cover" }}
-            />
-          ) : (
-            <div
-              className="flex items-center justify-center rounded-lg text-white font-black flex-shrink-0"
-              style={{
-                width: 36,
-                height: 36,
-                backgroundColor: "#14532d",
-                fontSize: 12,
-                letterSpacing: "1px",
-              }}
-            >
-              {clinicInitials || "·"}
-            </div>
-          )}
+          {/* TEMP DIAGNOSTIC: logo removed so we can see where the 2nd AC is coming from */}
+          <div
+            className="flex items-center justify-center rounded-lg text-white font-black flex-shrink-0"
+            style={{
+              width: 36,
+              height: 36,
+              backgroundColor: "transparent",
+              border: "1px dashed rgba(255,255,255,0.3)",
+              fontSize: 10,
+              color: "rgba(255,255,255,0.3)",
+            }}
+          >
+            ·
+          </div>
           {/* Clinic name/subtitle removed to eliminate overlap with mobile header */}
         </div>
 
