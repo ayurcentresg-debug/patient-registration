@@ -150,24 +150,36 @@ export default function Sidebar() {
         fetch("/api/appointments/today"),
       ]);
 
+      // Helper: always returns an array, never an object
+      const toArray = <T,>(data: unknown, ...keys: string[]): T[] => {
+        if (Array.isArray(data)) return data as T[];
+        if (data && typeof data === "object") {
+          for (const k of keys) {
+            const v = (data as Record<string, unknown>)[k];
+            if (Array.isArray(v)) return v as T[];
+          }
+        }
+        return [];
+      };
+
       if (alertsRes.status === "fulfilled" && alertsRes.value.ok) {
         const data = await alertsRes.value.json();
-        setLowStockAlerts(Array.isArray(data) ? data : data.alerts || data.items || []);
+        setLowStockAlerts(toArray<AlertItem>(data, "alerts", "items"));
       }
 
       if (remindersRes.status === "fulfilled" && remindersRes.value.ok) {
         const data = await remindersRes.value.json();
-        setPendingReminders(Array.isArray(data) ? data : data.reminders || data.items || []);
+        setPendingReminders(toArray<ReminderItem>(data, "reminders", "items"));
       }
 
       if (notificationsRes.status === "fulfilled" && notificationsRes.value.ok) {
         const data = await notificationsRes.value.json();
-        setTransferNotifications(Array.isArray(data) ? data : data.notifications || []);
+        setTransferNotifications(toArray<NotificationItem>(data, "notifications", "items"));
       }
 
       if (appointmentsRes.status === "fulfilled" && appointmentsRes.value.ok) {
         const data = await appointmentsRes.value.json();
-        setTodayAppointments(Array.isArray(data) ? data : []);
+        setTodayAppointments(toArray(data, "appointments", "items"));
       }
     } catch {
       // Silently fail - notifications are non-critical
