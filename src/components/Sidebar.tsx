@@ -442,42 +442,9 @@ export default function Sidebar() {
           boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
         }}
       >
-        {/* Left: Clinic identity (logo or initials + clinic name) */}
+        {/* Left: Branch selector only (clinic identity is shown in sidebar) */}
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          {clinicLogoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={clinicLogoUrl}
-              alt={clinicName}
-              style={{ width: 32, height: 32, borderRadius: 8, objectFit: "cover", border: "1.5px solid rgba(255,255,255,0.15)", flexShrink: 0 }}
-            />
-          ) : (
-            <div
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 8,
-                backgroundColor: "#14532d",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "#fff",
-                fontSize: 12,
-                fontWeight: 900,
-                letterSpacing: "1px",
-                border: "1.5px solid rgba(255,255,255,0.15)",
-                flexShrink: 0,
-              }}
-            >
-              {clinicInitials}
-            </div>
-          )}
-          <span style={{ color: "#fff", fontSize: 16, fontWeight: 700, letterSpacing: "0.5px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 280 }}>
-            {clinicName}
-          </span>
-          <div style={{ marginLeft: 12 }}>
-            <BranchSelector />
-          </div>
+          <BranchSelector />
         </div>
 
         {/* Right: Search + Notifications */}
