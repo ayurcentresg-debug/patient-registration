@@ -16,11 +16,19 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
   const [mounted, setMounted] = useState(false);
   const pathname = usePathname() || "";
 
-  // Register service worker for PWA support
+  // Unregister any existing service worker + clear caches
+  // (was causing stale JS to be served — forcing fresh loads now)
   useEffect(() => {
     setMounted(true);
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("/sw.js").catch(() => {});
+      navigator.serviceWorker.getRegistrations().then((regs) => {
+        regs.forEach((r) => r.unregister());
+      }).catch(() => {});
+      if ("caches" in window) {
+        caches.keys().then((keys) => {
+          keys.forEach((k) => caches.delete(k));
+        }).catch(() => {});
+      }
     }
   }, []);
 
