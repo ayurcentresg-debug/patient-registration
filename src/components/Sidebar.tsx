@@ -432,6 +432,606 @@ export default function Sidebar() {
       </header>
 
 
+      {/* ============ DESKTOP TOP BAR (md+) — right of sidebar ============ */}
+      <header
+        className="hidden md:flex fixed top-0 right-0 z-40 items-center justify-between"
+        style={{
+          left: 64,
+          height: 56,
+          backgroundColor: "var(--sidebar-bg, #1b3a2d)",
+          padding: "0 20px",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+        }}
+      >
+        {/* Left: Branch selector only (clinic identity is shown in sidebar) */}
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <BranchSelector />
+        </div>
+
+        {/* Right: Search + Notifications */}
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          {/* Search */}
+          <div ref={searchRef} style={{ position: "relative" }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                backgroundColor: "rgba(255,255,255,0.1)",
+                borderRadius: 8,
+                padding: "0 12px",
+                height: 36,
+                width: searchTerm ? 260 : 200,
+                transition: "width 0.2s ease",
+              }}
+            >
+              <svg style={{ width: 16, height: 16, flexShrink: 0 }} fill="none" stroke="rgba(255,255,255,0.6)" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <input
+                type="text"
+                placeholder="Search patients, staff..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onFocus={() => { if (searchResults.length > 0) setSearchOpen(true); }}
+                style={{
+                  flex: 1,
+                  border: "none",
+                  outline: "none",
+                  background: "transparent",
+                  padding: "0 8px",
+                  fontSize: 13,
+                  color: "#fff",
+                }}
+              />
+              {searchTerm && (
+                <button onClick={() => { setSearchTerm(""); setSearchOpen(false); }} style={{ background: "none", border: "none", cursor: "pointer", padding: 2, display: "flex" }}>
+                  <svg style={{ width: 14, height: 14 }} fill="none" stroke="rgba(255,255,255,0.6)" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
+            </div>
+            {/* Desktop search results dropdown */}
+            {searchOpen && searchResults.length > 0 && (
+              <div style={{ position: "absolute", top: "calc(100% + 6px)", left: 0, right: 0, backgroundColor: "#fff", borderRadius: 10, boxShadow: "0 8px 32px rgba(0,0,0,0.18)", border: "1px solid #e5e7eb", zIndex: 100, overflow: "hidden" }}>
+                {searchResults.map((patient, idx) => {
+                  const isStaff = (patient as SearchResult & { _type?: string })._type === "staff";
+                  return (
+                  <button
+                    key={patient.id || idx}
+                    onClick={() => handleSearchResultClick(patient)}
+                    style={{ display: "flex", alignItems: "center", gap: 10, width: "100%", padding: "10px 14px", border: "none", backgroundColor: "transparent", cursor: "pointer", textAlign: "left", borderBottom: idx < searchResults.length - 1 ? "1px solid #f3f4f6" : "none" }}
+                    onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#f9fafb"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}
+                  >
+                    <div style={{ width: 28, height: 28, borderRadius: "50%", backgroundColor: isStaff ? "#dbeafe" : "#d1f2e0", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <svg style={{ width: 14, height: 14 }} fill="none" stroke={isStaff ? "#1e40af" : "#14532d"} viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 2, flex: 1, minWidth: 0 }}>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: "#111" }}>{getPatientDisplayName(patient)}</span>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        <span style={{ fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px", padding: "1px 6px", borderRadius: 4, backgroundColor: isStaff ? "#dbeafe" : "#d1f2e0", color: isStaff ? "#1e40af" : "#14532d" }}>
+                          {isStaff ? ((patient as SearchResult & { role?: string }).role || "Staff") : "Patient"}
+                        </span>
+                        {isStaff && (patient as SearchResult & { staffIdNumber?: string }).staffIdNumber && (
+                          <span style={{ fontSize: 11, color: "#6b7280" }}>{(patient as SearchResult & { staffIdNumber?: string }).staffIdNumber}</span>
+                        )}
+                        {!isStaff && (patient as SearchResult & { patientIdNumber?: string }).patientIdNumber && (
+                          <span style={{ fontSize: 11, color: "#6b7280" }}>{(patient as SearchResult & { patientIdNumber?: string }).patientIdNumber}</span>
+                        )}
+                      </div>
+                    </div>
+                  </button>
+                  );
+                })}
+              </div>
+            )}
+            {searchOpen && searchResults.length === 0 && searchTerm.trim() && !searchLoading && (
+              <div style={{ position: "absolute", top: "calc(100% + 6px)", left: 0, right: 0, backgroundColor: "#fff", borderRadius: 10, boxShadow: "0 8px 32px rgba(0,0,0,0.18)", border: "1px solid #e5e7eb", zIndex: 100, padding: 16, textAlign: "center", fontSize: 13, color: "#6b7280" }}>
+                No results found
+              </div>
+            )}
+          </div>
+
+          {/* Help / Support */}
+          <button
+            onClick={() => {
+              setHelpOpen(true);
+              if (!helpInfo) {
+                fetch("/api/clinic/subscription").then(r => r.ok ? r.json() : null).then(data => { if (data) setHelpInfo(data); }).catch(() => {});
+              }
+            }}
+            style={{
+              backgroundColor: "transparent",
+              border: "none",
+              cursor: "pointer",
+              padding: 8,
+              borderRadius: 8,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              transition: "background 0.15s",
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.1)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}
+            title="Help & support"
+            aria-label="Help and support"
+          >
+            <svg style={{ width: 20, height: 20 }} fill="none" stroke="rgba(255,255,255,0.9)" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093M12 17h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </button>
+
+          {/* Notifications Bell */}
+          <div ref={notifRef} style={{ position: "relative" }}>
+            <button
+              onClick={() => setNotifOpen(!notifOpen)}
+              style={{
+                backgroundColor: notifOpen ? "rgba(255,255,255,0.15)" : "transparent",
+                border: "none",
+                cursor: "pointer",
+                position: "relative",
+                padding: 8,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                borderRadius: 8,
+                transition: "background 0.15s",
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.1)"; }}
+              onMouseLeave={(e) => { if (!notifOpen) e.currentTarget.style.backgroundColor = "transparent"; }}
+              title="Notifications"
+            >
+              <svg style={{ width: 20, height: 20 }} fill="none" stroke="rgba(255,255,255,0.8)" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
+              {totalNotifCount > 0 && (
+                <span style={{ position: "absolute", top: 2, right: 2, backgroundColor: "#ef4444", color: "#fff", fontSize: 9, fontWeight: 700, borderRadius: 99, minWidth: 16, height: 16, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 4px" }}>
+                  {totalNotifCount > 99 ? "99+" : totalNotifCount}
+                </span>
+              )}
+            </button>
+
+            {/* Notification Dropdown */}
+            {notifOpen && (
+              <div style={{ position: "absolute", top: "calc(100% + 8px)", right: 0, width: 320, backgroundColor: "#fff", borderRadius: 12, boxShadow: "0 8px 32px rgba(0,0,0,0.18)", border: "1px solid #e5e7eb", zIndex: 100, overflow: "hidden" }}>
+                <div style={{ padding: "12px 16px 8px", borderBottom: "1px solid #e5e7eb", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: "#111" }}>Notifications</span>
+                  {totalNotifCount > 0 && (
+                    <span style={{ fontSize: 11, fontWeight: 600, color: "#6b7280", backgroundColor: "#f3f4f6", padding: "2px 8px", borderRadius: 99 }}>{totalNotifCount}</span>
+                  )}
+                </div>
+                <div style={{ maxHeight: 340, overflowY: "auto" }}>
+                  {notifLoading && totalNotifCount === 0 && (
+                    <div style={{ padding: "20px 16px", fontSize: 13, color: "#6b7280", textAlign: "center" }}>Loading...</div>
+                  )}
+                  {!notifLoading && totalNotifCount === 0 && (
+                    <div style={{ padding: "20px 16px", fontSize: 13, color: "#6b7280", textAlign: "center" }}>No new notifications</div>
+                  )}
+                  {lowStockAlerts.length > 0 && (
+                    <>
+                      <div style={{ padding: "8px 16px 4px", fontSize: 10, fontWeight: 700, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em" }}>Low Stock</div>
+                      {lowStockAlerts.slice(0, 5).map((alert, idx) => (
+                        <Link key={alert.id || idx} href="/inventory/alerts" onClick={() => setNotifOpen(false)}
+                          style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 16px", textDecoration: "none", borderBottom: "1px solid #f3f4f6" }}
+                          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#f9fafb"; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}>
+                          <div style={{ width: 28, height: 28, borderRadius: 6, backgroundColor: "#fef2f2", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                            <svg style={{ width: 14, height: 14 }} fill="none" stroke="#ef4444" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                          </div>
+                          <div style={{ minWidth: 0, flex: 1 }}>
+                            <div style={{ fontSize: 12, fontWeight: 600, color: "#111" }}>{alert.name || alert.itemName || "Item"}</div>
+                            <div style={{ fontSize: 11, color: "#6b7280" }}>{alert.message || `Stock: ${alert.currentStock ?? "?"}`}</div>
+                          </div>
+                        </Link>
+                      ))}
+                    </>
+                  )}
+                  {pendingReminders.length > 0 && (
+                    <>
+                      <div style={{ padding: "8px 16px 4px", fontSize: 10, fontWeight: 700, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em" }}>Reminders</div>
+                      {pendingReminders.slice(0, 5).map((r, idx) => (
+                        <Link key={r.id || idx} href="/communications" onClick={() => setNotifOpen(false)}
+                          style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 16px", textDecoration: "none", borderBottom: "1px solid #f3f4f6" }}
+                          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#f9fafb"; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}>
+                          <div style={{ width: 28, height: 28, borderRadius: 6, backgroundColor: "#fffbeb", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                            <svg style={{ width: 14, height: 14 }} fill="none" stroke="#f59e0b" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                          </div>
+                          <div style={{ minWidth: 0, flex: 1 }}>
+                            <div style={{ fontSize: 12, fontWeight: 600, color: "#111" }}>{r.patientName || r.type || "Reminder"}</div>
+                            <div style={{ fontSize: 11, color: "#6b7280" }}>{r.message || "Pending"}</div>
+                          </div>
+                        </Link>
+                      ))}
+                    </>
+                  )}
+                  {transferNotifications.length > 0 && (
+                    <>
+                      <div style={{ padding: "8px 16px 4px", fontSize: 10, fontWeight: 700, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em" }}>Transfers</div>
+                      {transferNotifications.slice(0, 5).map((n) => (
+                        <Link key={n.id} href={n.link || "/inventory/transfers"} onClick={() => { setNotifOpen(false); fetch("/api/notifications", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ids: [n.id] }) }).catch(() => {}); }}
+                          style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 16px", textDecoration: "none", borderBottom: "1px solid #f3f4f6" }}
+                          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#f9fafb"; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}>
+                          <div style={{ width: 28, height: 28, borderRadius: 6, backgroundColor: "var(--blue-50)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                            <svg style={{ width: 14, height: 14 }} fill="none" stroke="var(--blue-500)" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
+                          </div>
+                          <div style={{ minWidth: 0, flex: 1 }}>
+                            <div style={{ fontSize: 12, fontWeight: 600, color: "#111" }}>{n.title}</div>
+                            <div style={{ fontSize: 11, color: "#6b7280" }}>{getTimeAgo(n.createdAt)}</div>
+                          </div>
+                        </Link>
+                      ))}
+                    </>
+                  )}
+                  {upcomingAppointments.length > 0 && (
+                    <>
+                      <div style={{ padding: "8px 16px 4px", fontSize: 10, fontWeight: 700, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em" }}>Today&apos;s Appointments</div>
+                      {upcomingAppointments.slice(0, 5).map((appt, idx) => (
+                        <Link key={appt.id || idx} href="/appointments" onClick={() => setNotifOpen(false)}
+                          style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 16px", textDecoration: "none", borderBottom: "1px solid #f3f4f6" }}
+                          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#f9fafb"; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}>
+                          <div style={{ width: 28, height: 28, borderRadius: 6, backgroundColor: "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                            <svg style={{ width: 14, height: 14 }} fill="none" stroke="#16a34a" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                          </div>
+                          <div style={{ minWidth: 0, flex: 1 }}>
+                            <div style={{ fontSize: 12, fontWeight: 600, color: "#111" }}>
+                              {appt.patient ? `${appt.patient.firstName || ""} ${appt.patient.lastName || ""}`.trim() : "Patient"}
+                            </div>
+                            <div style={{ fontSize: 11, color: "#6b7280" }}>
+                              {appt.time ? appt.time.slice(0, 5) : ""}{appt.doctorRef ? ` - Dr. ${appt.doctorRef.name || ""}` : ""}{appt.status ? ` (${appt.status})` : ""}
+                            </div>
+                          </div>
+                        </Link>
+                      ))}
+                      {upcomingAppointments.length > 5 && (
+                        <div style={{ padding: "6px 16px", fontSize: 11, color: "#6b7280", textAlign: "center" }}>
+                          +{upcomingAppointments.length - 5} more appointments
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+                {totalNotifCount > 0 && (
+                  <div style={{ borderTop: "1px solid #e5e7eb", padding: "8px 16px", display: "flex", justifyContent: "space-between" }}>
+                    <Link href="/inventory/alerts" onClick={() => setNotifOpen(false)} style={{ fontSize: 12, fontWeight: 600, color: "#14532d", textDecoration: "none" }}>View all</Link>
+                    <button onClick={async () => { await fetch("/api/notifications", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ markAllRead: true }) }).catch(() => {}); setTransferNotifications([]); }}
+                      style={{ fontSize: 12, fontWeight: 600, color: "#6b7280", background: "none", border: "none", cursor: "pointer", padding: 0 }}>Mark all read</button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Account / Avatar Dropdown */}
+          <div ref={accountRef} style={{ position: "relative" }}>
+            <button
+              onClick={() => setAccountOpen(!accountOpen)}
+              style={{
+                backgroundColor: accountOpen ? "rgba(255,255,255,0.15)" : "transparent",
+                border: "none",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                padding: "4px 10px 4px 4px",
+                borderRadius: 24,
+                transition: "background 0.15s",
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.1)"; }}
+              onMouseLeave={(e) => { if (!accountOpen) e.currentTarget.style.backgroundColor = "transparent"; }}
+              title="Account menu"
+            >
+              {clinicLogoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={clinicLogoUrl}
+                  alt={clinicName}
+                  style={{ width: 32, height: 32, borderRadius: "50%", objectFit: "cover", border: "1.5px solid rgba(255,255,255,0.3)" }}
+                />
+              ) : (
+                <div
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: "50%",
+                    background: "linear-gradient(135deg,#14532d,#2d6a4f)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#fff",
+                    fontSize: 11,
+                    fontWeight: 800,
+                    letterSpacing: "0.5px",
+                    border: "1.5px solid rgba(255,255,255,0.3)",
+                  }}
+                >
+                  {clinicInitials}
+                </div>
+              )}
+              <svg style={{ width: 14, height: 14 }} fill="none" stroke="rgba(255,255,255,0.8)" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            {accountOpen && (
+              <div style={{ position: "absolute", top: "calc(100% + 8px)", right: 0, width: 280, backgroundColor: "#fff", borderRadius: 12, boxShadow: "0 8px 32px rgba(0,0,0,0.18)", border: "1px solid #e5e7eb", zIndex: 100, overflow: "hidden" }}>
+                {/* Header — user + clinic identity */}
+                <div style={{ padding: "14px 16px", borderBottom: "1px solid #e5e7eb", display: "flex", alignItems: "center", gap: 10 }}>
+                  {clinicLogoUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={clinicLogoUrl} alt={clinicName} style={{ width: 40, height: 40, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
+                  ) : (
+                    <div style={{ width: 40, height: 40, borderRadius: "50%", background: "linear-gradient(135deg,#14532d,#2d6a4f)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 13, fontWeight: 800, flexShrink: 0 }}>
+                      {clinicInitials}
+                    </div>
+                  )}
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: "#111", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{user?.name || "User"}</div>
+                    <div style={{ fontSize: 12, color: "#6b7280", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{user?.email || ""}</div>
+                    <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 2 }}>{clinicName}</div>
+                  </div>
+                </div>
+
+                {/* Primary links */}
+                <div style={{ padding: "6px 0" }}>
+                  <Link href="/admin/settings" onClick={() => setAccountOpen(false)}
+                    style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 16px", fontSize: 13, color: "#111", textDecoration: "none" }}
+                    onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#f9fafb"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}>
+                    <svg style={{ width: 16, height: 16 }} fill="none" stroke="#374151" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                    Account settings
+                  </Link>
+                  <Link href="/subscription" onClick={() => setAccountOpen(false)}
+                    style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 16px", fontSize: 13, color: "#111", textDecoration: "none" }}
+                    onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#f9fafb"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}>
+                    <svg style={{ width: 16, height: 16 }} fill="none" stroke="#374151" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>
+                    Subscription &amp; billing
+                  </Link>
+                  <Link href="/admin/settings#branding" onClick={() => setAccountOpen(false)}
+                    style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 16px", fontSize: 13, color: "#111", textDecoration: "none" }}
+                    onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#f9fafb"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}>
+                    <svg style={{ width: 16, height: 16 }} fill="none" stroke="#374151" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                    Clinic branding
+                  </Link>
+                  <Link href="/security" onClick={() => setAccountOpen(false)}
+                    style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 16px", fontSize: 13, color: "#111", textDecoration: "none" }}
+                    onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#f9fafb"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}>
+                    <svg style={{ width: 16, height: 16 }} fill="none" stroke="#374151" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                    Security
+                  </Link>
+                </div>
+
+                {/* Sign out */}
+                <div style={{ padding: "6px 0", borderTop: "1px solid #e5e7eb" }}>
+                  <button
+                    onClick={async () => { setAccountOpen(false); await logout(); router.push("/login"); }}
+                    style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 16px", fontSize: 13, color: "#dc2626", textDecoration: "none", border: "none", background: "transparent", cursor: "pointer", width: "100%", textAlign: "left", fontWeight: 600 }}
+                    onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#fef2f2"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; }}
+                  >
+                    <svg style={{ width: 16, height: 16 }} fill="none" stroke="#dc2626" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                    Sign out
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </header>
+
+      {/* ============ HELP & SUPPORT MODAL ============ */}
+      {helpOpen && (
+        <div
+          onClick={() => setHelpOpen(false)}
+          style={{
+            position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.5)",
+            zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 16
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              backgroundColor: "#fff", borderRadius: 14, width: "100%", maxWidth: 480,
+              boxShadow: "0 20px 60px rgba(0,0,0,0.3)", overflow: "hidden",
+              maxHeight: "90vh", display: "flex", flexDirection: "column"
+            }}
+          >
+            {/* Header */}
+            <div style={{ padding: "16px 20px", borderBottom: "1px solid #e5e7eb", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{ width: 36, height: 36, borderRadius: 8, background: "linear-gradient(135deg,#14532d,#2d6a4f)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <svg style={{ width: 18, height: 18 }} fill="none" stroke="#fff" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093M12 17h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                </div>
+                <div>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: "#111" }}>Help & Support</div>
+                  <div style={{ fontSize: 12, color: "#6b7280" }}>Account info and how to reach us</div>
+                </div>
+              </div>
+              <button onClick={() => setHelpOpen(false)} style={{ background: "none", border: "none", cursor: "pointer", padding: 4, color: "#6b7280" }} aria-label="Close">
+                <svg style={{ width: 20, height: 20 }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+
+            {/* Body — scrollable */}
+            <div style={{ padding: 20, overflowY: "auto" }}>
+              {/* Account section */}
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>Your account</div>
+                <div style={{ background: "#f9fafb", border: "1px solid #e5e7eb", borderRadius: 10, padding: 12 }}>
+                  {/* Customer ID */}
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 0" }}>
+                    <div>
+                      <div style={{ fontSize: 11, color: "#6b7280" }}>Customer ID</div>
+                      <div style={{ fontSize: 13, fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace", color: "#111", marginTop: 2 }}>{user?.clinicId || "—"}</div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        if (user?.clinicId) {
+                          navigator.clipboard.writeText(user.clinicId);
+                          setCopiedField("clinicId");
+                          setTimeout(() => setCopiedField(null), 1500);
+                        }
+                      }}
+                      style={{ background: "none", border: "1px solid #d1d5db", borderRadius: 6, padding: "4px 10px", fontSize: 11, fontWeight: 600, color: "#374151", cursor: "pointer" }}
+                    >
+                      {copiedField === "clinicId" ? "Copied!" : "Copy"}
+                    </button>
+                  </div>
+
+                  <div style={{ height: 1, background: "#e5e7eb", margin: "6px 0" }} />
+
+                  {/* Plan */}
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 0" }}>
+                    <div style={{ fontSize: 13, color: "#374151" }}>Plan</div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <span style={{
+                        padding: "2px 10px", borderRadius: 999, fontSize: 11, fontWeight: 700, textTransform: "capitalize",
+                        background: helpInfo?.plan === "trial" ? "#fef3c7" : helpInfo?.plan === "enterprise" ? "#dbeafe" : "#dcfce7",
+                        color: helpInfo?.plan === "trial" ? "#92400e" : helpInfo?.plan === "enterprise" ? "#1e40af" : "#166534",
+                      }}>{helpInfo?.plan || "—"}</span>
+                      {helpInfo?.plan === "trial" && typeof helpInfo?.trialDaysRemaining === "number" && (
+                        <span style={{ fontSize: 12, color: "#6b7280" }}>{helpInfo.trialDaysRemaining} days left</span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div style={{ height: 1, background: "#e5e7eb", margin: "6px 0" }} />
+
+                  {/* Status */}
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 0" }}>
+                    <div style={{ fontSize: 13, color: "#374151" }}>Status</div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: helpInfo?.status === "active" ? "#16a34a" : "#dc2626", textTransform: "capitalize" }}>
+                      {helpInfo?.status || "—"}
+                    </div>
+                  </div>
+
+                  <div style={{ height: 1, background: "#e5e7eb", margin: "6px 0" }} />
+
+                  {/* Logged in user */}
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 0" }}>
+                    <div style={{ fontSize: 13, color: "#374151" }}>Signed in as</div>
+                    <div style={{ fontSize: 12, color: "#6b7280", textAlign: "right" }}>
+                      <div style={{ color: "#111", fontWeight: 600 }}>{user?.email || "—"}</div>
+                      <div style={{ textTransform: "capitalize" }}>{user?.role || ""}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Support section */}
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>Get help</div>
+                <div style={{ display: "grid", gap: 8 }}>
+                  <a href="mailto:support@ayurgate.com?subject=Support%20request" style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", border: "1px solid #e5e7eb", borderRadius: 10, textDecoration: "none", color: "#111" }}>
+                    <div style={{ width: 32, height: 32, borderRadius: 8, background: "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <svg style={{ width: 16, height: 16 }} fill="none" stroke="#16a34a" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 13, fontWeight: 600 }}>Email support</div>
+                      <div style={{ fontSize: 12, color: "#6b7280" }}>support@ayurgate.com</div>
+                    </div>
+                  </a>
+
+                  <a href="https://www.ayurgate.com/help" target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", border: "1px solid #e5e7eb", borderRadius: 10, textDecoration: "none", color: "#111" }}>
+                    <div style={{ width: 32, height: 32, borderRadius: 8, background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <svg style={{ width: 16, height: 16 }} fill="none" stroke="#2563eb" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 13, fontWeight: 600 }}>Help Centre</div>
+                      <div style={{ fontSize: 12, color: "#6b7280" }}>Guides and how-tos</div>
+                    </div>
+                  </a>
+
+                  <Link href="/subscription" onClick={() => setHelpOpen(false)} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", border: "1px solid #e5e7eb", borderRadius: 10, textDecoration: "none", color: "#111" }}>
+                    <div style={{ width: 32, height: 32, borderRadius: 8, background: "#fef3c7", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <svg style={{ width: 16, height: 16 }} fill="none" stroke="#d97706" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 13, fontWeight: 600 }}>Subscription &amp; billing</div>
+                      <div style={{ fontSize: 12, color: "#6b7280" }}>Manage your plan</div>
+                    </div>
+                  </Link>
+                </div>
+              </div>
+
+              <div style={{ fontSize: 11, color: "#9ca3af", textAlign: "center", paddingTop: 8, borderTop: "1px solid #f3f4f6" }}>
+                Include your Customer ID when contacting support to speed things up.
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============ MOBILE SEARCH BAR (below header) ============ */}
+      {mobileSearchOpen && (
+        <div
+          className="md:hidden fixed left-0 right-0 z-40"
+          style={{ top: 56, backgroundColor: "#fff", padding: "8px 12px", boxShadow: "0 4px 12px rgba(0,0,0,0.1)", borderBottom: "1px solid var(--grey-200)" }}
+        >
+          <div style={{ display: "flex", alignItems: "center", backgroundColor: "var(--grey-100)", borderRadius: 8, padding: "0 12px", height: 40 }}>
+            <svg style={{ width: 18, height: 18, flexShrink: 0 }} fill="none" stroke="var(--grey-500)" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              ref={mobileSearchRef}
+              type="text"
+              placeholder="Search patients, staff..."
+              aria-label="Search patients and staff"
+              value={mobileSearchTerm}
+              onChange={(e) => setMobileSearchTerm(e.target.value)}
+              onFocus={() => { if (searchResults.length > 0) setSearchOpen(true); }}
+              style={{ flex: 1, border: "none", outline: "none", background: "transparent", padding: "0 10px", fontSize: 14, color: "var(--grey-900)" }}
+            />
+            {mobileSearchTerm && (
+              <button onClick={() => { setMobileSearchTerm(""); setSearchTerm(""); setSearchOpen(false); }} aria-label="Clear search" style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>
+                <svg style={{ width: 16, height: 16 }} fill="none" stroke="var(--grey-500)" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+          </div>
+          {/* Mobile search results */}
+          {searchOpen && searchResults.length > 0 && (
+            <div style={{ marginTop: 8, backgroundColor: "#fff", borderRadius: 8, border: "1px solid var(--grey-200)", overflow: "hidden", maxHeight: 280, overflowY: "auto" }}>
+              {searchResults.map((patient, idx) => {
+                const isStaff = (patient as SearchResult & { _type?: string })._type === "staff";
+                return (
+                <button
+                  key={patient.id || idx}
+                  onClick={() => handleSearchResultClick(patient)}
+                  style={{ display: "flex", alignItems: "center", gap: 10, width: "100%", padding: "12px", border: "none", backgroundColor: "transparent", cursor: "pointer", textAlign: "left", borderBottom: idx < searchResults.length - 1 ? "1px solid var(--grey-100)" : "none" }}
+                >
+                  <div style={{ width: 32, height: 32, borderRadius: "50%", backgroundColor: isStaff ? "#dbeafe" : "var(--blue-50)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <svg style={{ width: 16, height: 16 }} fill="none" stroke={isStaff ? "#1e40af" : "var(--blue-500)"} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 2, flex: 1, minWidth: 0 }}>
+                    <span style={{ fontSize: 14, fontWeight: 600, color: "var(--grey-900)" }}>{getPatientDisplayName(patient)}</span>
+                    <span style={{ fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px", padding: "1px 6px", borderRadius: 4, backgroundColor: isStaff ? "#dbeafe" : "#d1f2e0", color: isStaff ? "#1e40af" : "#14532d", alignSelf: "flex-start" }}>
+                      {isStaff ? ((patient as SearchResult & { role?: string }).role || "Staff") : "Patient"}
+                    </span>
+                  </div>
+                </button>
+                );
+              })}
+            </div>
+          )}
+          {searchOpen && searchResults.length === 0 && mobileSearchTerm.trim() && !searchLoading && (
+            <div style={{ marginTop: 8, padding: 16, textAlign: "center", fontSize: 13, color: "var(--grey-500)" }}>No results found</div>
+          )}
+        </div>
+      )}
+
+
       {/* ============ MOBILE SLIDE-OUT MENU ============ */}
       {mobileMenuOpen && (
         <>
