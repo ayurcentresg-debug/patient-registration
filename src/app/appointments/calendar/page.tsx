@@ -334,26 +334,45 @@ export default function CalendarPage() {
       const res = await fetch(`/api/appointments?${params}`);
       if (res.ok) {
         const data = await res.json();
-        setAppointments(data.appointments || data);
+        // Defensive: always set to an array, never an object
+        const list = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.appointments)
+          ? data.appointments
+          : [];
+        setAppointments(list);
+      } else {
+        setAppointments([]);
       }
-    } catch {}
+    } catch {
+      setAppointments([]);
+    }
     setLoading(false);
   }, [dateRange]);
 
   // Fetch doctors
   useEffect(() => {
     fetch("/api/doctors")
-      .then((r) => r.json())
-      .then((data) => setDoctors(Array.isArray(data) ? data : data.doctors || []))
-      .catch(() => {});
+      .then((r) => (r.ok ? r.json() : []))
+      .then((data) => {
+        // Defensive: always set to an array
+        const list = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.doctors)
+          ? data.doctors
+          : [];
+        setDoctors(list);
+      })
+      .catch(() => setDoctors([]));
   }, []);
 
   useEffect(() => {
     fetchAppointments();
   }, [fetchAppointments]);
 
-  // Filter appointments
+  // Filter appointments — defensive: ensure appointments is always an array
   const filteredAppointments = useMemo(() => {
+    if (!Array.isArray(appointments)) return [];
     return appointments.filter((a) => {
       if (filterDoctor !== "all" && a.doctorId !== filterDoctor) return false;
       if (filterStatus !== "all" && a.status !== filterStatus) return false;
