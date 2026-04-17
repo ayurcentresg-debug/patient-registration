@@ -57,6 +57,7 @@ const PUBLIC_PATHS = [
   "/trial-expired",
   "/portal/login",
   "/api/portal/auth",
+  "/design-system",  // design system reference page (no auth)
   "/review",
   "/api/public/feedback",
   "/api/admin/features",

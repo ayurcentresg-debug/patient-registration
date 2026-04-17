@@ -38,13 +38,15 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
   const isBookingPage = pathname.startsWith("/book");
   const isDoctorPortal = pathname.startsWith("/doctor");
   const isSuperAdmin = pathname.startsWith("/super-admin");
+  const isDesignSystem = pathname.startsWith("/design-system");
   // Public CME pages (not /cme/admin) — have their own layout
   const isPublicCme = pathname.startsWith("/cme") && !pathname.startsWith("/cme/admin");
 
   // All public pages — no auth, no sidebar
   const isPublicPage =
     isLandingPage || isLoginPage || isInvitePage || isRegisterPage ||
-    isPricingPage || isOnboardingPage || isBookingPage || isPublicCme;
+    isPricingPage || isOnboardingPage || isBookingPage || isPublicCme ||
+    isDesignSystem;
 
   // Super admin pages have their own layout
   if (isSuperAdmin) {
