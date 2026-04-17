@@ -7,6 +7,7 @@ import { PatientListSkeleton } from "@/components/Skeleton";
 import { downloadCSV } from "@/lib/csv-export";
 import { cardStyle, btnPrimary, chipBase } from "@/lib/styles";
 import { formatDate } from "@/lib/formatters";
+import { EmptyState, Button } from "@/components/ui";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface Patient {
@@ -309,30 +310,34 @@ export default function PatientsPage() {
       {loading ? (
         <PatientListSkeleton />
       ) : filteredAndSorted.length === 0 ? (
-        /* ── Empty State ─────────────────────────────────────────── */
-        <div className="text-center py-16">
-          <div className="w-14 h-14 mx-auto mb-4 flex items-center justify-center" style={{ background: "var(--grey-100)", borderRadius: "var(--radius-pill)" }}>
-            <svg className="w-7 h-7" style={{ color: "var(--grey-400)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-          </div>
-          <p className="text-[16px] font-semibold" style={{ color: "var(--grey-700)" }}>
-            {search || statusFilter !== "all" || genderFilter !== "all" ? "No patients match your filters" : "No patients found"}
-          </p>
-          {(search || statusFilter !== "all" || genderFilter !== "all") ? (
-            <button
-              onClick={() => { setSearch(""); setStatusFilter("all"); setGenderFilter("all"); }}
-              className="text-[14px] font-semibold mt-2 hover:underline"
-              style={{ color: "var(--blue-500)" }}
-            >
-              Clear all filters
-            </button>
-          ) : (
-            <Link href="/patients/new" className="text-[14px] font-semibold mt-2 inline-block hover:underline" style={{ color: "var(--blue-500)" }}>
-              Register your first patient
-            </Link>
-          )}
-        </div>
+        /* ── Empty State (brand-guide compliant) ─────────────────── */
+        (search || statusFilter !== "all" || genderFilter !== "all") ? (
+          <EmptyState
+            iconChar="P"
+            moduleColor="var(--ag-interactive-bg)"
+            title="No patients match your filters"
+            description="Try clearing your search or filters to see more patients."
+            primaryAction={
+              <Button
+                variant="secondary"
+                onClick={() => { setSearch(""); setStatusFilter("all"); setGenderFilter("all"); }}
+              >
+                Clear all filters
+              </Button>
+            }
+          />
+        ) : (
+          <EmptyState
+            iconChar="P"
+            moduleColor="var(--ag-interactive-bg)"
+            title="No Patients Yet"
+            description="Register your first patient to start managing their care records."
+            primaryAction={
+              <Link href="/patients/new"><Button>+ Register Patient</Button></Link>
+            }
+            secondaryLink={{ label: "Import from CSV", href: "/admin/import" }}
+          />
+        )
       ) : (
         <>
           {/* ── Desktop Table ─────────────────────────────────────── */}
