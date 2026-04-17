@@ -442,9 +442,42 @@ export default function Sidebar() {
           boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
         }}
       >
-        {/* Left: Branch selector only (clinic identity is shown in sidebar) */}
+        {/* Left: Clinic identity (logo + name) + Branch selector */}
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <BranchSelector />
+          {clinicLogoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={clinicLogoUrl}
+              alt={clinicName}
+              style={{ width: 32, height: 32, borderRadius: 8, objectFit: "cover", border: "1.5px solid rgba(255,255,255,0.15)", flexShrink: 0 }}
+            />
+          ) : (
+            <div
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 8,
+                backgroundColor: "#14532d",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "#fff",
+                fontSize: 12,
+                fontWeight: 900,
+                letterSpacing: "1px",
+                border: "1.5px solid rgba(255,255,255,0.15)",
+                flexShrink: 0,
+              }}
+            >
+              {clinicInitials}
+            </div>
+          )}
+          <span style={{ color: "#fff", fontSize: 16, fontWeight: 700, letterSpacing: "0.5px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 280 }}>
+            {clinicName}
+          </span>
+          <div style={{ marginLeft: 12 }}>
+            <BranchSelector />
+          </div>
         </div>
 
         {/* Right: Search + Notifications */}
@@ -1343,21 +1376,7 @@ export default function Sidebar() {
               {clinicInitials || "·"}
             </div>
           )}
-          <div
-            className="ml-3 overflow-hidden whitespace-nowrap"
-            style={{
-              opacity: expanded ? 1 : 0,
-              transition: "opacity 0.15s ease",
-              flex: 1,
-              minWidth: 0,
-            }}
-          >
-            <h1 className="text-[15px] font-bold text-white" style={{ letterSpacing: "0.5px", overflow: "hidden", textOverflow: "ellipsis" }}>
-              {clinicName || "\u00A0"}
-            </h1>
-            <p className="text-[11px] font-medium" style={{ color: "rgba(255,255,255,0.45)" }}>Clinic admin</p>
-          </div>
-
+          {/* Clinic name/subtitle removed — shown in top bar to avoid overlap when sidebar expands */}
         </div>
 
         {/* Search Bar (sidebar collapsed: icon only) */}

@@ -1,6 +1,6 @@
 // AYUR GATE Service Worker — caches app shell for fast repeat loads
 // Bump CACHE_NAME on every meaningful release so old caches are evicted in activate().
-const CACHE_NAME = "ayurgate-v3-2026-04-17";
+const CACHE_NAME = "ayurgate-v4-2026-04-17";
 
 const PRECACHE_URLS = [
   "/dashboard",
