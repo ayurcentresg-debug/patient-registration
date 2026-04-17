@@ -341,34 +341,7 @@ export default function Sidebar() {
               )}
             </svg>
           </button>
-          {clinicLogoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={clinicLogoUrl}
-              alt={clinicName}
-              style={{ width: 30, height: 30, borderRadius: 7, objectFit: "cover", flexShrink: 0 }}
-            />
-          ) : (
-            <div
-              style={{
-                width: 30,
-                height: 30,
-                borderRadius: 7,
-                backgroundColor: "#14532d",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "#fff",
-                fontSize: 11,
-                fontWeight: 900,
-                letterSpacing: "1px",
-                flexShrink: 0,
-              }}
-            >
-              {clinicInitials}
-            </div>
-          )}
-          {/* Clinic name removed from mobile header — only logo shows to prevent duplicates */}
+          {/* Clinic logo removed from mobile header to eliminate all duplicates */}
           <div style={{ marginLeft: 4 }}>
             <BranchSelector />
           </div>
