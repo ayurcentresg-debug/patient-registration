@@ -949,33 +949,8 @@ export default function Sidebar() {
           </div>
         </nav>
 
-        {/* Branch Selector + Dark mode toggle + Logout */}
+        {/* Dark mode toggle + Logout */}
         <div style={{ padding: expanded ? "0 10px 8px" : "0 8px 8px" }}>
-          {/* Branch Selector — visible only when sidebar is expanded */}
-          {expanded && (
-            <div style={{ marginBottom: 8 }}>
-              <BranchSelector />
-            </div>
-          )}
-          {/* Building icon when collapsed (hover sidebar to see branch selector) */}
-          {!expanded && (
-            <div
-              title="Hover to switch branch"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                height: 44,
-                color: "rgba(255,255,255,0.55)",
-                marginBottom: 6,
-              }}
-            >
-              <svg style={{ width: 22, height: 22 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-              </svg>
-            </div>
-          )}
-
           {/* Dark Mode Toggle */}
           <button
             onClick={toggleTheme}
