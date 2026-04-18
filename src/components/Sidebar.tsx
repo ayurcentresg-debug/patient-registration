@@ -429,14 +429,6 @@ export default function Sidebar() {
               </div>
             )}
 
-            {/* Branch Selector inside the drawer */}
-            <div style={{ padding: "12px 18px", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.45)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8 }}>
-                Branch
-              </div>
-              <BranchSelector />
-            </div>
-
             {/* All nav items */}
             <div style={{ padding: "12px 10px" }}>
               {filteredNavItems.map((item) => {
