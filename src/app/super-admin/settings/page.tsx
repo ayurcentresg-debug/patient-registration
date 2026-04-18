@@ -431,8 +431,118 @@ export default function SettingsPage() {
             <ResultBanner section="branding" />
           </div>
 
+          {/* ═══════════════════ Demo Data ═══════════════════ */}
+          <DemoSeedSection />
+
         </div>
       </div>
+    </div>
+  );
+}
+
+// ─── Demo Seed Section (one-click populate demo clinic) ────────────────
+
+function DemoSeedSection() {
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<null | {
+    ok: boolean;
+    alreadyExists?: boolean;
+    email?: string;
+    password?: string;
+    message?: string;
+    error?: string;
+  }>(null);
+
+  async function handleSeed() {
+    if (!confirm("Create demo clinic with sample data?\n\nThis creates:\n• Demo Clinic Singapore\n• 9 staff (2 doctors, 5 therapists, 1 receptionist, 1 admin)\n• 7 patients (family + individuals)\n• 10 appointments, 15 inventory items, 3 invoices\n\nIdempotent — running twice does nothing if it already exists.")) return;
+    setLoading(true);
+    setResult(null);
+    try {
+      const res = await fetch("/api/super-admin/seed-demo", { method: "POST" });
+      const data = await res.json();
+      if (res.ok) setResult(data);
+      else setResult({ ok: false, error: data.error || data.details || "Seed failed" });
+    } catch (e) {
+      setResult({ ok: false, error: e instanceof Error ? e.message : "Network error" });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div style={{ marginTop: 32, padding: 24, background: "#fff", borderRadius: 12, border: "1px solid #e5e7eb" }}>
+      <h2 style={{ margin: "0 0 8px", fontSize: 18, fontWeight: 700, color: "#111827" }}>
+        🌱 Demo Clinic
+      </h2>
+      <p style={{ margin: "0 0 20px", fontSize: 13, color: "#6b7280" }}>
+        Create a fully-populated demo clinic to test all features. Credentials will be shown below after seeding.
+      </p>
+      <button
+        onClick={handleSeed}
+        disabled={loading}
+        style={{
+          padding: "10px 20px",
+          fontSize: 14,
+          fontWeight: 600,
+          color: "#fff",
+          background: loading ? "#9ca3af" : "#2d6a4f",
+          border: "none",
+          borderRadius: 8,
+          cursor: loading ? "wait" : "pointer",
+        }}
+      >
+        {loading ? "Seeding…" : "🌱 Seed Demo Clinic"}
+      </button>
+
+      {result && (
+        <div
+          style={{
+            marginTop: 20,
+            padding: 16,
+            borderRadius: 8,
+            background: result.ok ? "#f0fdf4" : "#fef2f2",
+            border: `1px solid ${result.ok ? "#bbf7d0" : "#fecaca"}`,
+          }}
+        >
+          {result.ok ? (
+            <>
+              <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: "#14532d" }}>
+                {result.alreadyExists ? "✓ Demo clinic already exists" : "✓ Demo clinic created!"}
+              </p>
+              <p style={{ margin: "8px 0 12px", fontSize: 13, color: "#166534" }}>
+                {result.message}
+              </p>
+              <div
+                style={{
+                  padding: 12,
+                  background: "#fff",
+                  borderRadius: 6,
+                  fontSize: 13,
+                  fontFamily: "monospace",
+                  border: "1px solid #d1fae5",
+                }}
+              >
+                <div>📧 Email: <strong>{result.email}</strong></div>
+                <div>🔑 Password: <strong>{result.password}</strong></div>
+                <div style={{ marginTop: 8 }}>
+                  <a href="/login" target="_blank" style={{ color: "#2d6a4f", fontWeight: 600 }}>
+                    Open login page →
+                  </a>
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: "#991b1b" }}>
+                ✗ Seed failed
+              </p>
+              <p style={{ margin: "4px 0 0", fontSize: 13, color: "#b91c1c", fontFamily: "monospace" }}>
+                {result.error}
+              </p>
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 }
