@@ -78,7 +78,10 @@ export function HelpTip({ text, position = "top", size = 15, color = "var(--grey
   );
 }
 
-// ─── PageGuide: Dismissible getting-started banner ──────────────────────────
+// ─── PageGuide: Floating help button (bottom-right) + slide-over panel ──────
+// First visit to a page: panel auto-opens with the guide.
+// After closing once: collapses to a small "?" button bottom-right.
+// Click "?" any time to re-open.
 interface GuideStep {
   icon: string;
   title: string;
@@ -93,89 +96,177 @@ interface PageGuideProps {
 }
 
 export function PageGuide({ storageKey, title, subtitle, steps }: PageGuideProps) {
-  const [dismissed, setDismissed] = useState(true);
+  // Start closed to avoid hydration flash; open on mount if first visit.
+  const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const val = localStorage.getItem(`guide_dismissed_${storageKey}`);
-    setDismissed(val === "true");
+    setMounted(true);
+    const seen = localStorage.getItem(`guide_seen_${storageKey}`);
+    if (!seen) setOpen(true);
   }, [storageKey]);
 
-  function dismiss() {
-    localStorage.setItem(`guide_dismissed_${storageKey}`, "true");
-    setDismissed(true);
+  // Close on Escape
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") close(); };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  function close() {
+    localStorage.setItem(`guide_seen_${storageKey}`, "true");
+    setOpen(false);
   }
 
-  function reset() {
-    localStorage.removeItem(`guide_dismissed_${storageKey}`);
-    setDismissed(false);
+  function toggle() {
+    if (!open) {
+      setOpen(true);
+    } else {
+      close();
+    }
   }
 
-  if (dismissed) {
-    return (
-      <button
-        onClick={reset}
-        className="inline-flex items-center gap-2 text-[13px] font-semibold transition-all hover:shadow-md mb-3"
-        style={{
-          background: "linear-gradient(135deg, #eff6ff, #e0f2fe)",
-          color: "#2563eb",
-          padding: "8px 16px",
-          borderRadius: 10,
-          border: "1.5px solid #bfdbfe",
-        }}
-        title="Show getting started guide"
-      >
-        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
-        </svg>
-        Page Guide
-      </button>
-    );
-  }
+  if (!mounted) return null;
 
   return (
-    <div
-      className="mb-5 p-4 relative yoda-fade-in"
-      style={{
-        background: "linear-gradient(135deg, #f0f7ff 0%, #e8f4f8 100%)",
-        border: "1px solid var(--blue-200)",
-        borderRadius: "var(--radius)",
-      }}
-    >
+    <>
+      {/* Floating help button — always visible, bottom-right */}
       <button
-        onClick={dismiss}
-        className="absolute top-3 right-3 w-6 h-6 flex items-center justify-center rounded transition-colors hover:bg-white/50"
-        style={{ color: "var(--grey-500)" }}
-        aria-label="Dismiss guide"
+        onClick={toggle}
+        aria-label={open ? "Close page guide" : "Open page guide"}
+        title={open ? "Close page guide" : "Open page guide"}
+        style={{
+          position: "fixed",
+          bottom: 20,
+          right: 20,
+          zIndex: 90,
+          width: 48,
+          height: 48,
+          borderRadius: 9999,
+          border: "none",
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: open ? "var(--grey-900)" : "linear-gradient(135deg, #2563eb, #3b82f6)",
+          color: "#fff",
+          boxShadow: "0 4px 16px rgba(37, 99, 235, 0.35), 0 2px 6px rgba(0,0,0,0.12)",
+          transition: "transform 0.15s ease, background 0.2s ease",
+        }}
+        onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.06)"; }}
+        onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; }}
       >
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-        </svg>
+        {open ? (
+          <svg style={{ width: 22, height: 22 }} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.25}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        ) : (
+          <svg style={{ width: 24, height: 24 }} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.25}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093M12 17h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        )}
       </button>
 
-      <div className="flex items-center gap-2 mb-1">
-        <svg className="w-5 h-5" style={{ color: "var(--blue-500)" }} viewBox="0 0 20 20" fill="currentColor">
-          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clipRule="evenodd" />
-        </svg>
-        <h3 className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>{title}</h3>
-      </div>
-      {subtitle && <p className="text-[14px] mb-3 ml-7" style={{ color: "var(--grey-600)" }}>{subtitle}</p>}
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-3">
-        {steps.map((step, i) => (
+      {/* Slide-over panel */}
+      {open && (
+        <>
+          {/* Backdrop */}
           <div
-            key={i}
-            className="flex items-start gap-2.5 p-3"
-            style={{ background: "rgba(255,255,255,0.7)", borderRadius: "var(--radius-sm)", border: "1px solid rgba(0,0,0,0.05)" }}
+            onClick={close}
+            style={{
+              position: "fixed",
+              inset: 0,
+              background: "rgba(0,0,0,0.25)",
+              backdropFilter: "blur(2px)",
+              zIndex: 80,
+              animation: "guideFadeIn 0.2s ease-out",
+            }}
+          />
+
+          {/* Panel */}
+          <div
+            role="dialog"
+            aria-labelledby="guide-title"
+            style={{
+              position: "fixed",
+              bottom: 84,
+              right: 20,
+              width: "min(400px, calc(100vw - 40px))",
+              maxHeight: "min(70vh, 640px)",
+              background: "linear-gradient(135deg, #f0f7ff 0%, #e8f4f8 100%)",
+              border: "1px solid var(--blue-200)",
+              borderRadius: 16,
+              boxShadow: "0 20px 60px rgba(0,0,0,0.18), 0 6px 20px rgba(0,0,0,0.08)",
+              zIndex: 85,
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden",
+              animation: "guideSlideUp 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)",
+            }}
           >
-            <span className="text-[18px] flex-shrink-0 mt-0.5">{step.icon}</span>
-            <div>
-              <p className="text-[14px] font-bold" style={{ color: "var(--grey-900)" }}>{step.title}</p>
-              <p className="text-[13px] leading-relaxed mt-0.5" style={{ color: "var(--grey-600)" }}>{step.description}</p>
+            {/* Header */}
+            <div style={{ padding: "16px 44px 12px 20px", position: "relative", borderBottom: "1px solid rgba(59, 130, 246, 0.15)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <svg style={{ width: 20, height: 20, color: "var(--blue-500)", flexShrink: 0 }} viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clipRule="evenodd" />
+                </svg>
+                <h3 id="guide-title" style={{ margin: 0, fontSize: 16, fontWeight: 700, color: "var(--grey-900)" }}>{title}</h3>
+              </div>
+              {subtitle && <p style={{ margin: "4px 0 0 28px", fontSize: 13, color: "var(--grey-600)" }}>{subtitle}</p>}
+              <button
+                onClick={close}
+                aria-label="Close guide"
+                style={{
+                  position: "absolute", top: 12, right: 12, width: 28, height: 28,
+                  border: "none", background: "transparent", cursor: "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  borderRadius: 6, color: "var(--grey-500)",
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.6)"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+              >
+                <svg style={{ width: 16, height: 16 }} fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Steps (scrollable) */}
+            <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 10, overflowY: "auto" }}>
+              {steps.map((step, i) => (
+                <div
+                  key={i}
+                  style={{
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: 10,
+                    padding: 12,
+                    background: "rgba(255,255,255,0.7)",
+                    borderRadius: "var(--radius-sm)",
+                    border: "1px solid rgba(0,0,0,0.05)",
+                  }}
+                >
+                  <span style={{ fontSize: 18, flexShrink: 0, marginTop: 1 }}>{step.icon}</span>
+                  <div>
+                    <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "var(--grey-900)" }}>{step.title}</p>
+                    <p style={{ margin: "2px 0 0", fontSize: 12, lineHeight: 1.5, color: "var(--grey-600)" }}>{step.description}</p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
-        ))}
-      </div>
-    </div>
+
+          <style>{`
+            @keyframes guideFadeIn { from { opacity: 0; } to { opacity: 1; } }
+            @keyframes guideSlideUp {
+              from { opacity: 0; transform: translateY(20px) scale(0.96); }
+              to { opacity: 1; transform: translateY(0) scale(1); }
+            }
+          `}</style>
+        </>
+      )}
+    </>
   );
 }
 
