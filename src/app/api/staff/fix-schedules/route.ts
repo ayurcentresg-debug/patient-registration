@@ -34,7 +34,7 @@ export async function POST() {
       where: {
         clinicId,
         role: { in: ["doctor", "therapist"] },
-        OR: [{ schedule: "{}" }, { schedule: null }, { schedule: "" }],
+        OR: [{ schedule: "{}" }, { schedule: "" }],
       },
       select: { id: true, name: true, role: true },
     });
