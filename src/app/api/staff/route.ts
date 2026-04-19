@@ -185,7 +185,18 @@ export async function POST(request: NextRequest) {
         specialization: isClinical ? (specialization || null) : null,
         department: department || null,
         consultationFee: isClinical && consultationFee !== undefined ? Number(consultationFee) : null,
-        schedule: isClinical ? (schedule || "{}") : "{}",
+        // Default schedule: Mon–Sat 9am–6pm for doctors/therapists without explicit schedule
+        // Without this, they show in the doctor dropdown but have zero bookable slots
+        schedule: isClinical
+          ? (schedule || JSON.stringify({
+              monday:    [{ start: "09:00", end: "13:00" }, { start: "14:00", end: "18:00" }],
+              tuesday:   [{ start: "09:00", end: "13:00" }, { start: "14:00", end: "18:00" }],
+              wednesday: [{ start: "09:00", end: "13:00" }, { start: "14:00", end: "18:00" }],
+              thursday:  [{ start: "09:00", end: "13:00" }, { start: "14:00", end: "18:00" }],
+              friday:    [{ start: "09:00", end: "13:00" }, { start: "14:00", end: "18:00" }],
+              saturday:  [{ start: "09:00", end: "13:00" }],
+            }))
+          : "{}",
         slotDuration: isClinical && slotDuration ? Number(slotDuration) : 30,
         status: status || "active",
         dateOfJoining: dateOfJoining ? new Date(dateOfJoining) : null,

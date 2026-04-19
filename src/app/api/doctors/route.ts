@@ -92,7 +92,15 @@ export async function POST(request: NextRequest) {
         department,
         phone: phone || null,
         consultationFee: consultationFee !== undefined ? Number(consultationFee) : 0,
-        schedule: schedule || "{}",
+        // Default: Mon–Sat 9am–6pm if caller didn't provide a schedule
+        schedule: schedule || JSON.stringify({
+          monday:    [{ start: "09:00", end: "13:00" }, { start: "14:00", end: "18:00" }],
+          tuesday:   [{ start: "09:00", end: "13:00" }, { start: "14:00", end: "18:00" }],
+          wednesday: [{ start: "09:00", end: "13:00" }, { start: "14:00", end: "18:00" }],
+          thursday:  [{ start: "09:00", end: "13:00" }, { start: "14:00", end: "18:00" }],
+          friday:    [{ start: "09:00", end: "13:00" }, { start: "14:00", end: "18:00" }],
+          saturday:  [{ start: "09:00", end: "13:00" }],
+        }),
         slotDuration: slotDuration !== undefined ? Number(slotDuration) : 15,
         status: status || "active",
         staffIdNumber,
