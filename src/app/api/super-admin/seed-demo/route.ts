@@ -34,6 +34,16 @@ function daysFromNow(days: number): Date {
   return d;
 }
 
+// Default Mon–Sat 9am–6pm schedule so doctors/therapists are bookable in calendar
+const DEFAULT_SCHEDULE = JSON.stringify({
+  monday:    [{ start: "09:00", end: "13:00" }, { start: "14:00", end: "18:00" }],
+  tuesday:   [{ start: "09:00", end: "13:00" }, { start: "14:00", end: "18:00" }],
+  wednesday: [{ start: "09:00", end: "13:00" }, { start: "14:00", end: "18:00" }],
+  thursday:  [{ start: "09:00", end: "13:00" }, { start: "14:00", end: "18:00" }],
+  friday:    [{ start: "09:00", end: "13:00" }, { start: "14:00", end: "18:00" }],
+  saturday:  [{ start: "09:00", end: "13:00" }],
+});
+
 // ─── POST handler ──────────────────────────────────────────────────────
 
 export async function POST() {
@@ -48,6 +58,16 @@ export async function POST() {
     });
 
     if (existing) {
+      // Demo clinic already exists — patch any missing schedules on clinical staff
+      const patched = await prisma.user.updateMany({
+        where: {
+          clinicId: existing.id,
+          role: { in: ["doctor", "therapist"] },
+          OR: [{ schedule: "{}" }, { schedule: "" }],
+        },
+        data: { schedule: DEFAULT_SCHEDULE },
+      });
+
       return NextResponse.json({
         ok: true,
         alreadyExists: true,
@@ -56,7 +76,10 @@ export async function POST() {
         loginUrl: "/login",
         email: DEMO_CLINIC_EMAIL,
         password: DEMO_PASSWORD,
-        message: "Demo clinic already exists. Delete it from /super-admin/clinics first to re-seed.",
+        schedulesPatched: patched.count,
+        message: patched.count > 0
+          ? `Demo clinic exists. Fixed ${patched.count} staff with missing schedules — they're now bookable in the calendar.`
+          : "Demo clinic already exists and all staff have schedules. Delete from /super-admin/clinics to re-seed fresh.",
       });
     }
 
@@ -127,7 +150,7 @@ export async function POST() {
       },
     });
 
-    // ─── 3. Doctors ──────────────────────────────────────────────────
+    // ─── 3. Doctors (with default schedule) ──────────────────────────
     const [doc1, doc2] = await Promise.all([
       prisma.user.create({
         data: {
@@ -135,6 +158,7 @@ export async function POST() {
           phone: "+65 9111 2222", role: "doctor", password: pwHash, isActive: true,
           staffIdNumber: "D10001", residencyStatus: "singaporean", gender: "female",
           specialization: "Panchakarma", jobTitle: "Senior Ayurvedic Physician",
+          schedule: DEFAULT_SCHEDULE, consultationFee: 150, slotDuration: 30,
         },
       }),
       prisma.user.create({
@@ -143,17 +167,18 @@ export async function POST() {
           phone: "+65 9111 3333", role: "doctor", password: pwHash, isActive: true,
           staffIdNumber: "D10002", residencyStatus: "singaporean", gender: "male",
           specialization: "Kaya Chikitsa", jobTitle: "Ayurvedic Physician",
+          schedule: DEFAULT_SCHEDULE, consultationFee: 120, slotDuration: 30,
         },
       }),
     ]);
 
-    // ─── 4. Therapists (2 local + 3 foreign) ─────────────────────────
+    // ─── 4. Therapists (2 local + 3 foreign) — with default schedule ──
     await Promise.all([
-      prisma.user.create({ data: { clinicId: clinic.id, name: "Aisha Fernandez", email: "aisha@demo-clinic.sg", phone: "+65 9222 1111", role: "therapist", password: pwHash, isActive: true, staffIdNumber: "T10001", residencyStatus: "singaporean", gender: "female", jobTitle: "Senior Therapist" } }),
-      prisma.user.create({ data: { clinicId: clinic.id, name: "Lim Wei Jie", email: "weijie@demo-clinic.sg", phone: "+65 9222 2222", role: "therapist", password: pwHash, isActive: true, staffIdNumber: "T10002", residencyStatus: "pr", gender: "male", jobTitle: "Therapist" } }),
-      prisma.user.create({ data: { clinicId: clinic.id, name: "Meera Sharma", email: "meera@demo-clinic.sg", phone: "+65 9333 1111", role: "therapist", password: pwHash, isActive: true, staffIdNumber: "T10003", residencyStatus: "foreigner", gender: "female", jobTitle: "Ayurvedic Therapist" } }),
-      prisma.user.create({ data: { clinicId: clinic.id, name: "Ahmad Bin Ismail", email: "ahmad@demo-clinic.sg", phone: "+65 9333 2222", role: "therapist", password: pwHash, isActive: true, staffIdNumber: "T10004", residencyStatus: "foreigner", gender: "male", jobTitle: "Massage Therapist" } }),
-      prisma.user.create({ data: { clinicId: clinic.id, name: "Sushila Tamang", email: "sushila@demo-clinic.sg", phone: "+65 9333 3333", role: "therapist", password: pwHash, isActive: true, staffIdNumber: "T10005", residencyStatus: "foreigner", gender: "female", jobTitle: "Therapist" } }),
+      prisma.user.create({ data: { clinicId: clinic.id, name: "Aisha Fernandez", email: "aisha@demo-clinic.sg", phone: "+65 9222 1111", role: "therapist", password: pwHash, isActive: true, staffIdNumber: "T10001", residencyStatus: "singaporean", gender: "female", jobTitle: "Senior Therapist", schedule: DEFAULT_SCHEDULE, slotDuration: 60 } }),
+      prisma.user.create({ data: { clinicId: clinic.id, name: "Lim Wei Jie", email: "weijie@demo-clinic.sg", phone: "+65 9222 2222", role: "therapist", password: pwHash, isActive: true, staffIdNumber: "T10002", residencyStatus: "pr", gender: "male", jobTitle: "Therapist", schedule: DEFAULT_SCHEDULE, slotDuration: 60 } }),
+      prisma.user.create({ data: { clinicId: clinic.id, name: "Meera Sharma", email: "meera@demo-clinic.sg", phone: "+65 9333 1111", role: "therapist", password: pwHash, isActive: true, staffIdNumber: "T10003", residencyStatus: "foreigner", gender: "female", jobTitle: "Ayurvedic Therapist", schedule: DEFAULT_SCHEDULE, slotDuration: 60 } }),
+      prisma.user.create({ data: { clinicId: clinic.id, name: "Ahmad Bin Ismail", email: "ahmad@demo-clinic.sg", phone: "+65 9333 2222", role: "therapist", password: pwHash, isActive: true, staffIdNumber: "T10004", residencyStatus: "foreigner", gender: "male", jobTitle: "Massage Therapist", schedule: DEFAULT_SCHEDULE, slotDuration: 60 } }),
+      prisma.user.create({ data: { clinicId: clinic.id, name: "Sushila Tamang", email: "sushila@demo-clinic.sg", phone: "+65 9333 3333", role: "therapist", password: pwHash, isActive: true, staffIdNumber: "T10005", residencyStatus: "foreigner", gender: "female", jobTitle: "Therapist", schedule: DEFAULT_SCHEDULE, slotDuration: 60 } }),
     ]);
 
     await prisma.user.create({
