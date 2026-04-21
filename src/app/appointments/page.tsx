@@ -678,7 +678,11 @@ function QuickBookModal({
             )}
             {filteredPractitioners.length === 0 && (
               <p className="text-[13px] mt-1" style={{ color: "var(--red)" }}>
-                No {bookingFor === "consultation" ? "doctors" : "therapists"} available. Add one in the Admin panel first.
+                {doctors.length === 0
+                  ? `No ${bookingFor === "consultation" ? "clinical staff" : "therapists"} found. Either none exist yet, or all have been deactivated. Check /admin/staff.`
+                  : bookingFor === "consultation"
+                    ? `Clinical staff exist but no doctors are active. Go to /admin/permissions to reactivate a doctor.`
+                    : `Clinical staff exist but no therapists are active. Go to /admin/permissions to reactivate a therapist.`}
               </p>
             )}
             {/* Gender matching warning for therapy bookings */}
