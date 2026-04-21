@@ -272,6 +272,28 @@ export function getPasswordStrength(password: string): { score: number; label: s
   return { score: passed, label: "Very Strong", color: "#059669" };
 }
 
+// ─── Payroll availability ───────────────────────────────────
+// Only Singapore (CPF) and Malaysia (EPF, SOCSO, EIS) have built-in payroll
+// modules in AyurGate. Indian and other clinics typically use Tally/Zoho and
+// don't need our payroll tooling — we hide Payroll/KET/Commission tabs for them.
+
+export const PAYROLL_COUNTRIES: readonly string[] = ["Singapore", "Malaysia"] as const;
+
+export function isPayrollCountry(country: string | null | undefined): boolean {
+  if (!country) return false;
+  return PAYROLL_COUNTRIES.includes(country);
+}
+
+/** Routes that are only available in payroll-enabled countries. */
+export const PAYROLL_ROUTE_PREFIXES: readonly string[] = [
+  "/admin/payroll",
+  "/admin/ket",
+  "/admin/commission",
+  "/api/admin/payroll",
+  "/api/admin/ket",
+  "/api/admin/commission",
+] as const;
+
 // ─── Country-specific defaults ──────────────────────────────
 
 export function getCountryDefaults(country: string) {

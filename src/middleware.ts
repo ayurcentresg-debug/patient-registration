@@ -9,6 +9,7 @@ import {
   type RoleOverrides,
   type UserOverrides,
 } from "@/lib/permissions";
+import { isPayrollCountry, PAYROLL_ROUTE_PREFIXES } from "@/lib/country-data";
 
 if (!process.env.JWT_SECRET) {
   throw new Error("JWT_SECRET environment variable is required");
@@ -37,6 +38,7 @@ interface RbacEntry {
   role: string;
   rolePermissions: RoleOverrides;
   userPermissions: UserOverrides;
+  clinicCountry: string | null;
   fetchedAt: number;
 }
 const rbacCache = new Map<string, RbacEntry>();
@@ -63,6 +65,7 @@ async function getUserOverrides(
       role: data.role,
       rolePermissions: parseOverrides(data.rolePermissions),
       userPermissions: parseUserOverrides(data.userPermissions),
+      clinicCountry: data.clinicCountry ?? null,
       fetchedAt: Date.now(),
     };
     rbacCache.set(userId, entry);
@@ -397,7 +400,7 @@ export async function middleware(req: NextRequest) {
     }
 
     // ── RBAC: check module-level permissions with overrides ──────────────
-    // Load clinic + user overrides (cached 60s per user). Falls back to {}
+    // Load clinic + user overrides (cached 15s per user). Falls back to {}
     // on fetch failure, which means code defaults are used.
     const userId = payload.userId as string;
     const ovEntry = userId
@@ -405,6 +408,20 @@ export async function middleware(req: NextRequest) {
       : null;
     const roleOv = ovEntry?.rolePermissions || {};
     const userOv = ovEntry?.userPermissions || {};
+
+    // ── Country gating: payroll/KET/commission only for SG/MY clinics ────
+    if (
+      !isPayrollCountry(ovEntry?.clinicCountry ?? null) &&
+      PAYROLL_ROUTE_PREFIXES.some((p) => pathname.startsWith(p))
+    ) {
+      if (pathname.startsWith("/api/")) {
+        return NextResponse.json(
+          { error: "Payroll features are only available for Singapore and Malaysia clinics." },
+          { status: 403 }
+        );
+      }
+      return NextResponse.redirect(new URL("/admin/settings", req.url));
+    }
 
     const canAccessModule = (m: Parameters<typeof getUserEffectiveAccess>[1]) =>
       getUserEffectiveAccess(role, m, roleOv, userOv) !== "none";

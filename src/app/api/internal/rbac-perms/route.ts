@@ -26,14 +26,16 @@ export async function GET(req: NextRequest) {
 
   let rolePermissions: string | null = null;
   let userPermissions: string | null = null;
+  let clinicCountry: string | null = null;
 
   if (payload.clinicId) {
     try {
       const clinic = await prisma.clinic.findUnique({
         where: { id: payload.clinicId },
-        select: { rolePermissions: true },
+        select: { rolePermissions: true, country: true },
       });
       rolePermissions = clinic?.rolePermissions ?? null;
+      clinicCountry = clinic?.country ?? null;
     } catch { /* ignore — fall back to defaults */ }
   }
 
@@ -50,5 +52,6 @@ export async function GET(req: NextRequest) {
     role: payload.role,
     rolePermissions,
     userPermissions,
+    clinicCountry,
   });
 }

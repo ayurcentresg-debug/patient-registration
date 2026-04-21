@@ -10,6 +10,7 @@ interface User {
   email: string;
   role: string;
   clinicId: string;
+  clinicCountry?: string | null;
 }
 
 interface AuthContextType {
@@ -18,6 +19,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   rolePermissions: RoleOverrides;
   userPermissions: UserOverrides;
+  clinicCountry: string | null;
   refreshPermissions: () => Promise<void>;
 }
 
@@ -27,6 +29,7 @@ const AuthContext = createContext<AuthContextType>({
   logout: async () => {},
   rolePermissions: {},
   userPermissions: {},
+  clinicCountry: null,
   refreshPermissions: async () => {},
 });
 
@@ -38,6 +41,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
   const [user, setUser] = useState<User | null>(null);
   const [rolePermissions, setRolePermissions] = useState<RoleOverrides>({});
   const [userPermissions, setUserPermissions] = useState<UserOverrides>({});
+  const [clinicCountry, setClinicCountry] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
@@ -50,10 +54,12 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
         setUser(data.user);
         setRolePermissions(parseOverrides(data.rolePermissions));
         setUserPermissions(parseUserOverrides(data.userPermissions));
+        setClinicCountry(data.clinicCountry ?? data.user?.clinicCountry ?? null);
       } else {
         setUser(null);
         setRolePermissions({});
         setUserPermissions({});
+        setClinicCountry(null);
         if (pathname !== "/login") {
           router.push("/login");
         }
@@ -62,6 +68,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
       setUser(null);
       setRolePermissions({});
       setUserPermissions({});
+      setClinicCountry(null);
     } finally {
       setLoading(false);
     }
@@ -78,6 +85,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
         const data = await res.json();
         setRolePermissions(parseOverrides(data.rolePermissions));
         setUserPermissions(parseUserOverrides(data.userPermissions));
+        setClinicCountry(data.clinicCountry ?? data.user?.clinicCountry ?? null);
       }
     } catch {
       // ignore
@@ -89,6 +97,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     setUser(null);
     setRolePermissions({});
     setUserPermissions({});
+    setClinicCountry(null);
     router.push("/login");
   };
 
@@ -116,7 +125,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, logout, rolePermissions, userPermissions, refreshPermissions }}>
+    <AuthContext.Provider value={{ user, loading, logout, rolePermissions, userPermissions, clinicCountry, refreshPermissions }}>
       {children}
     </AuthContext.Provider>
   );

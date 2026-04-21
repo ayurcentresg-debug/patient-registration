@@ -2,22 +2,34 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@/components/AuthProvider";
+import { isPayrollCountry } from "@/lib/country-data";
 
-const TABS = [
+interface Tab {
+  href: string;
+  label: string;
+  /** If set, only shown when isPayrollCountry(country) is true. */
+  payrollOnly?: boolean;
+}
+
+const TABS: Tab[] = [
   { href: "/admin/settings", label: "Clinic Settings" },
   { href: "/admin/staff", label: "Staff" },
   { href: "/admin/permissions", label: "Permissions" },
   { href: "/admin/treatments", label: "Treatments" },
   { href: "/admin/branches", label: "Branches" },
-  { href: "/admin/commission", label: "Commission" },
-  { href: "/admin/payroll", label: "Payroll" },
-  { href: "/admin/ket", label: "KET" },
+  { href: "/admin/commission", label: "Commission", payrollOnly: true },
+  { href: "/admin/payroll", label: "Payroll", payrollOnly: true },
+  { href: "/admin/ket", label: "KET", payrollOnly: true },
   { href: "/admin/merge", label: "Merge Duplicates" },
   { href: "/admin/audit-log", label: "Audit Log" },
 ];
 
 export default function AdminTabs() {
   const pathname = usePathname();
+  const { clinicCountry } = useAuth();
+  const payrollEnabled = isPayrollCountry(clinicCountry);
+  const visibleTabs = TABS.filter((t) => !t.payrollOnly || payrollEnabled);
 
   function isActive(href: string) {
     return pathname === href || pathname.startsWith(href + "/");
@@ -31,7 +43,7 @@ export default function AdminTabs() {
         WebkitOverflowScrolling: "touch",
       }}
     >
-      {TABS.map((tab) => {
+      {visibleTabs.map((tab) => {
         const active = isActive(tab.href);
         return (
           <Link
