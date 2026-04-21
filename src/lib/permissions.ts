@@ -425,10 +425,14 @@ export const ROUTE_MODULE_MAP: [string, Module][] = [
 /**
  * Resolve a URL pathname to its module. Returns null if no mapping found
  * (meaning the route is accessible to all authenticated users).
+ *
+ * Matches by path SEGMENT — prefix "/api/doctor" matches "/api/doctor" or
+ * "/api/doctor/xyz" but NOT "/api/doctors/xyz". This prevents singular/plural
+ * collisions like /api/doctor (portal) vs /api/doctors (staff listing).
  */
 export function resolveModule(pathname: string): Module | null {
   for (const [prefix, module] of ROUTE_MODULE_MAP) {
-    if (pathname.startsWith(prefix)) return module;
+    if (pathname === prefix || pathname.startsWith(prefix + "/")) return module;
   }
   return null;
 }
