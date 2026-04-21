@@ -1,7 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 import { checkRateLimit } from "@/lib/rate-limit";
-import { resolveModule, canAccess } from "@/lib/permissions";
+import {
+  resolveModule,
+  getUserEffectiveAccess,
+  parseOverrides,
+  parseUserOverrides,
+  type RoleOverrides,
+  type UserOverrides,
+} from "@/lib/permissions";
 
 if (!process.env.JWT_SECRET) {
   throw new Error("JWT_SECRET environment variable is required");
@@ -22,6 +29,48 @@ const FEATURE_ROUTE_MAP: [string, string[]][] = [
 let cachedFlags: Record<string, boolean> | null = null;
 let cacheTime = 0;
 const CACHE_TTL = 60_000; // 60 seconds
+
+// Per-user RBAC override cache. Keyed by userId. 60s TTL.
+// Middleware fetches the user's own effective overrides so it can enforce
+// clinic-level role overrides + per-user overrides at request time.
+interface RbacEntry {
+  role: string;
+  rolePermissions: RoleOverrides;
+  userPermissions: UserOverrides;
+  fetchedAt: number;
+}
+const rbacCache = new Map<string, RbacEntry>();
+// Shorter TTL than feature-flag cache because permission changes are admin-
+// driven and users expect to see the effect quickly after a save. 15s keeps
+// DB pressure low while limiting the visible lag to one window.
+const RBAC_CACHE_TTL = 15_000;
+
+async function getUserOverrides(
+  baseUrl: string,
+  userId: string,
+  cookieHeader: string
+): Promise<RbacEntry | null> {
+  const cached = rbacCache.get(userId);
+  if (cached && Date.now() - cached.fetchedAt < RBAC_CACHE_TTL) return cached;
+  try {
+    const res = await fetch(`${baseUrl}/api/internal/rbac-perms`, {
+      headers: { cookie: cookieHeader },
+      cache: "no-store",
+    });
+    if (!res.ok) return cached || null;
+    const data = await res.json();
+    const entry: RbacEntry = {
+      role: data.role,
+      rolePermissions: parseOverrides(data.rolePermissions),
+      userPermissions: parseUserOverrides(data.userPermissions),
+      fetchedAt: Date.now(),
+    };
+    rbacCache.set(userId, entry);
+    return entry;
+  } catch {
+    return cached || null;
+  }
+}
 
 async function getFeatureFlags(baseUrl: string): Promise<Record<string, boolean>> {
   if (cachedFlags && Date.now() - cacheTime < CACHE_TTL) return cachedFlags;
@@ -65,6 +114,7 @@ const PUBLIC_PATHS = [
   "/privacy",
   "/api/auth/google",
   "/google-setup",
+  "/api/internal/rbac-perms",
 ];
 
 // Paths that require auth but are allowed during onboarding
@@ -346,10 +396,22 @@ export async function middleware(req: NextRequest) {
       return NextResponse.redirect(new URL("/dashboard", req.url));
     }
 
-    // ── RBAC: check module-level permissions ──────────────────────────────
+    // ── RBAC: check module-level permissions with overrides ──────────────
+    // Load clinic + user overrides (cached 60s per user). Falls back to {}
+    // on fetch failure, which means code defaults are used.
+    const userId = payload.userId as string;
+    const ovEntry = userId
+      ? await getUserOverrides(baseUrl, userId, req.headers.get("cookie") || "")
+      : null;
+    const roleOv = ovEntry?.rolePermissions || {};
+    const userOv = ovEntry?.userPermissions || {};
+
+    const canAccessModule = (m: Parameters<typeof getUserEffectiveAccess>[1]) =>
+      getUserEffectiveAccess(role, m, roleOv, userOv) !== "none";
+
     const module = resolveModule(pathname);
     if (module) {
-      if (!canAccess(role, module)) {
+      if (!canAccessModule(module)) {
         // Redirect to appropriate dashboard based on role
         if (pathname.startsWith("/api/")) {
           return NextResponse.json(
@@ -357,7 +419,7 @@ export async function middleware(req: NextRequest) {
             { status: 403 }
           );
         }
-        const hasDoctorPortal = canAccess(role, "doctor_portal");
+        const hasDoctorPortal = canAccessModule("doctor_portal");
         return NextResponse.redirect(
           new URL(hasDoctorPortal ? "/doctor" : "/dashboard", req.url)
         );
@@ -365,7 +427,7 @@ export async function middleware(req: NextRequest) {
     }
 
     // Doctor/therapist accessing root "/" or "/dashboard" → redirect to doctor portal
-    if (canAccess(role, "doctor_portal") && (pathname === "/" || pathname === "/dashboard")) {
+    if (canAccessModule("doctor_portal") && (pathname === "/" || pathname === "/dashboard")) {
       return NextResponse.redirect(new URL("/doctor", req.url));
     }
 
