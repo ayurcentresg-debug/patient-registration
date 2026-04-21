@@ -300,6 +300,7 @@ export function canDelete(role: string, module: Module): boolean {
 export const ROUTE_MODULE_MAP: [string, Module][] = [
   // UI routes
   ["/admin/staff", "staff_management"],
+  ["/admin/permissions", "staff_management"],
   ["/admin/payroll", "payroll"],
   ["/admin/commission", "commission"],
   ["/admin/branches", "branches"],
