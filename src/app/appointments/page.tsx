@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useState, useCallback, useMemo } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { PageGuide } from "@/components/HelpTip";
 import { downloadCSV } from "@/lib/csv-export";
 import { useFlash } from "@/components/FlashCardProvider";
+import WaitlistModal from "@/components/WaitlistModal";
 import { inputStyle } from "@/lib/styles";
 
 /* ─── Types ─── */
@@ -944,6 +946,16 @@ export default function AppointmentsPage() {
   const [loading, setLoading] = useState(true);
   const [popup, setPopup] = useState<{ apt: Appointment; x: number; y: number } | null>(null);
   const [bookModal, setBookModal] = useState<{ date: Date; time: string } | null>(null);
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const [waitlistOpen, setWaitlistOpen] = useState(false);
+
+  // Deep-link: /appointments?waitlist=open opens the modal automatically
+  useEffect(() => {
+    if (searchParams?.get("waitlist") === "open") {
+      setWaitlistOpen(true);
+    }
+  }, [searchParams]);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Appointment[]>([]);
 
@@ -1165,6 +1177,19 @@ export default function AppointmentsPage() {
         />
       )}
 
+      {/* Waitlist Modal — accessible via button + ?waitlist=open query param */}
+      {waitlistOpen && (
+        <WaitlistModal
+          onClose={() => {
+            setWaitlistOpen(false);
+            // Clear query param if present so the modal doesn't reopen on soft nav
+            if (searchParams?.get("waitlist") === "open") {
+              router.replace("/appointments");
+            }
+          }}
+        />
+      )}
+
       {/* ─── Getting Started Guide ─── */}
       <div className="px-4 pt-3">
         <PageGuide
@@ -1360,6 +1385,17 @@ export default function AppointmentsPage() {
           <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
           <span className="hidden sm:inline">+ add walk in appointment</span>
           <span className="sm:hidden">+ Walk-in</span>
+        </button>
+
+        {/* 📋 Waitlist button — opens WaitlistModal */}
+        <button
+          onClick={() => setWaitlistOpen(true)}
+          className="flex items-center gap-2 px-4 py-2 text-[13px] sm:text-[15px] font-semibold transition-colors whitespace-nowrap"
+          style={{ background: "#fff", color: "#2d6a4f", border: "1.5px solid #2d6a4f", borderRadius: 6 }}
+          title="View patients waiting for available slots"
+        >
+          <span>📋</span>
+          <span className="hidden sm:inline">Waitlist</span>
         </button>
       </div>
 

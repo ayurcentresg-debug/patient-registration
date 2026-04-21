@@ -392,7 +392,6 @@ export const ROUTE_MODULE_MAP: [string, Module][] = [
   ["/communications", "communications"],
   ["/cme", "cme"],
   ["/feedback", "feedback"],
-  ["/waitlist", "waitlist"],
   ["/security", "security"],
 
   // API routes
@@ -585,7 +584,6 @@ export function getVisibleNavItems(
     "/communications": a("communications"),
     "/cme/admin": a("cme"),
     "/feedback": a("feedback"),
-    "/waitlist": a("waitlist"),
     "/admin/import": a("import"),
     "/admin": a("admin_settings"),
     "/security": a("security"),
