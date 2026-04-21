@@ -18,7 +18,18 @@ export async function GET(request: NextRequest) {
       role: role ? role : { in: ["doctor", "therapist"] },
     };
 
-    if (status) where.status = status;
+    // Appointment dropdowns call this with ?status=active. We interpret that
+    // as "give me bookable doctors" and use isActive as the source of truth,
+    // because the UI only exposes a Deactivate/Reactivate toggle (no direct
+    // `status` editor). The legacy `status` column can drift if a user was
+    // invited before that control existed, leaving valid doctors invisible.
+    if (status === "active") {
+      where.isActive = true;
+    } else if (status === "inactive") {
+      where.isActive = false;
+    } else if (status) {
+      where.status = status;
+    }
     if (search) where.name = { contains: search };
 
     const staff = await db.user.findMany({

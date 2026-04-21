@@ -80,7 +80,15 @@ export async function PUT(
     if (body.schedule !== undefined) updateData.schedule = body.schedule;
     if (body.slotDuration !== undefined) updateData.slotDuration = Number(body.slotDuration);
     if (body.status !== undefined) updateData.status = body.status;
-    if (body.isActive !== undefined) updateData.isActive = body.isActive;
+    if (body.isActive !== undefined) {
+      updateData.isActive = body.isActive;
+      // Keep the legacy `status` column in sync unless the caller explicitly
+      // set a different status in the same request. Prevents doctors from
+      // being invisible in appointment dropdowns after reactivation.
+      if (body.status === undefined) {
+        updateData.status = body.isActive ? "active" : "inactive";
+      }
+    }
     if (body.permissionOverrides !== undefined) {
       // Accept either a parsed object or a stringified JSON
       if (body.permissionOverrides === null || body.permissionOverrides === "") {

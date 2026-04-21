@@ -233,7 +233,14 @@ export default function PermissionsPage() {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ isActive: !user.isActive }),
+        // Keep isActive + status in sync. status is legacy but several
+        // filters (e.g. /api/doctors?status=active) still hit it, and the
+        // edit form doesn't expose it — so the Deactivate/Reactivate button
+        // has to own both fields.
+        body: JSON.stringify({
+          isActive: !user.isActive,
+          status: !user.isActive ? "active" : "inactive",
+        }),
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
