@@ -5,14 +5,18 @@ import Link from "next/link";
 import AdminTabs from "@/components/AdminTabs";
 import { useFlash } from "@/components/FlashCardProvider";
 import { useConfirm } from "@/components/ConfirmDialog";
+import { useAuth } from "@/components/AuthProvider";
 import {
   ROLES,
   MODULES,
   ROLE_PERMISSIONS,
+  ACCESS_LEVELS,
   type Role,
   type Module,
   type AccessLevel,
+  type RoleOverrides,
   getVisibleNavItems,
+  getEffectiveAccess,
 } from "@/lib/permissions";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -97,8 +101,11 @@ export default function PermissionsPage() {
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
   const [busyUserId, setBusyUserId] = useState<string | null>(null);
+  const [editingRole, setEditingRole] = useState<Role | null>(null);
+  const [overrides, setOverrides] = useState<RoleOverrides>({});
   const { showFlash } = useFlash();
   const confirm = useConfirm();
+  const { refreshPermissions } = useAuth();
 
   const loadStaff = async () => {
     try {
@@ -112,9 +119,65 @@ export default function PermissionsPage() {
     }
   };
 
+  const loadOverrides = async () => {
+    try {
+      const res = await fetch("/api/admin/permissions", { credentials: "include" });
+      if (res.ok) {
+        const data = await res.json();
+        setOverrides(data.overrides || {});
+      }
+    } catch { /* ignore */ }
+  };
+
   useEffect(() => {
     loadStaff();
+    loadOverrides();
   }, []);
+
+  async function saveOverrides(role: Role, rolePerms: Partial<Record<Module, AccessLevel>>) {
+    // Merge this role's changes into existing overrides, then save whole object
+    const next: RoleOverrides = { ...overrides };
+    // Only keep entries that differ from defaults
+    const defaults = ROLE_PERMISSIONS[role];
+    const diffs: Partial<Record<Module, AccessLevel>> = {};
+    for (const mod of MODULES) {
+      const chosen = rolePerms[mod] ?? defaults[mod];
+      if (chosen !== defaults[mod]) diffs[mod] = chosen;
+    }
+    if (Object.keys(diffs).length === 0) {
+      delete next[role];
+    } else {
+      next[role] = diffs;
+    }
+
+    try {
+      const res = await fetch("/api/admin/permissions", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ overrides: next }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || `Failed (${res.status})`);
+      }
+      const data = await res.json();
+      setOverrides(data.overrides || {});
+      await refreshPermissions();
+      showFlash({
+        type: "success",
+        title: "Saved",
+        message: `Permissions for ${role} updated.`,
+      });
+      setEditingRole(null);
+    } catch (e) {
+      showFlash({
+        type: "error",
+        title: "Failed",
+        message: e instanceof Error ? e.message : "Could not save permissions",
+      });
+    }
+  }
 
   async function toggleActive(user: Staff) {
     const action = user.isActive ? "Deactivate" : "Reactivate";
@@ -203,12 +266,26 @@ export default function PermissionsPage() {
         >
           {ROLES.map((role) => {
             const meta = ROLE_META[role];
-            const perms = ROLE_PERMISSIONS[role];
+            // Effective perms = defaults merged with this role's overrides
+            const perms: Record<Module, AccessLevel> = { ...ROLE_PERMISSIONS[role] };
+            for (const mod of MODULES) {
+              perms[mod] = getEffectiveAccess(role, mod, overrides);
+            }
             const accessible = MODULES.filter((m) => perms[m] !== "none");
             const userCount = roleCounts[role] || 0;
+            const hasOverride = !!overrides[role] && Object.keys(overrides[role]!).length > 0;
 
             return (
-              <div key={role} style={{ ...cardStyle, padding: 16 }}>
+              <div key={role} style={{ ...cardStyle, padding: 16, position: "relative" }}>
+                {hasOverride && (
+                  <div
+                    className="absolute top-2 right-2 text-[9px] font-bold px-1.5 py-0.5 rounded"
+                    style={{ background: "#fef3c7", color: "#b45309", letterSpacing: "0.05em" }}
+                    title="This role has custom overrides for this clinic"
+                  >
+                    CUSTOM
+                  </div>
+                )}
                 {/* Role header */}
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-2.5">
@@ -236,6 +313,19 @@ export default function PermissionsPage() {
                 <p className="text-[12px] mb-3" style={{ color: "var(--grey-600)" }}>
                   {meta.desc}
                 </p>
+
+                <button
+                  onClick={() => setEditingRole(role)}
+                  className="w-full text-[12px] font-semibold mb-3 py-1.5"
+                  style={{
+                    background: "var(--blue-50)",
+                    color: "var(--blue-700)",
+                    border: "1px solid var(--blue-200)",
+                    borderRadius: "var(--radius-sm)",
+                  }}
+                >
+                  ✏ Edit permissions
+                </button>
 
                 {/* Mini sidebar preview */}
                 <div
@@ -340,7 +430,10 @@ export default function PermissionsPage() {
             {filteredStaff.map((user, idx) => {
               const isOpen = expandedUserId === user.id;
               const meta = ROLE_META[user.role as Role] || ROLE_META.staff;
-              const perms = ROLE_PERMISSIONS[user.role as Role] || ROLE_PERMISSIONS.staff;
+              const perms: Record<Module, AccessLevel> = { ...(ROLE_PERMISSIONS[user.role as Role] || ROLE_PERMISSIONS.staff) };
+              for (const mod of MODULES) {
+                perms[mod] = getEffectiveAccess(user.role, mod, overrides);
+              }
               const accessibleCount = MODULES.filter((m) => perms[m] !== "none").length;
 
               return (
@@ -486,18 +579,38 @@ export default function PermissionsPage() {
       </section>
 
       {/* ─── "View as" Modal (Option A) ─────────────────────────────────────── */}
-      {viewAs && <ViewAsModal name={viewAs.name} role={viewAs.role} onClose={() => setViewAs(null)} />}
+      {viewAs && (
+        <ViewAsModal
+          name={viewAs.name}
+          role={viewAs.role}
+          overrides={overrides}
+          onClose={() => setViewAs(null)}
+        />
+      )}
+
+      {/* ─── Role Matrix Editor Modal ───────────────────────────────────────── */}
+      {editingRole && (
+        <RoleMatrixEditor
+          role={editingRole}
+          overrides={overrides}
+          onClose={() => setEditingRole(null)}
+          onSave={(rp) => saveOverrides(editingRole, rp)}
+        />
+      )}
     </div>
   );
 }
 
 // ─── View As Modal ──────────────────────────────────────────────────────────
 
-function ViewAsModal({ name, role, onClose }: { name: string; role: string; onClose: () => void }) {
+function ViewAsModal({ name, role, overrides, onClose }: { name: string; role: string; overrides: RoleOverrides; onClose: () => void }) {
   const meta = ROLE_META[role as Role] || ROLE_META.staff;
-  const visibleNav = getVisibleNavItems(role);
+  const visibleNav = getVisibleNavItems(role, overrides);
   const visibleHrefs = Object.entries(visibleNav).filter(([, v]) => v).map(([h]) => h);
-  const perms = ROLE_PERMISSIONS[role as Role] || ROLE_PERMISSIONS.staff;
+  const perms: Record<Module, AccessLevel> = { ...(ROLE_PERMISSIONS[role as Role] || ROLE_PERMISSIONS.staff) };
+  for (const mod of MODULES) {
+    perms[mod] = getEffectiveAccess(role, mod, overrides);
+  }
 
   const hrefToLabel: Record<string, string> = {
     "/": "🏠 Dashboard",
@@ -732,6 +845,269 @@ function ViewAsModal({ name, role, onClose }: { name: string; role: string; onCl
         <style>{`
           @keyframes viewAsOverlayIn { from { opacity: 0 } to { opacity: 1 } }
           @keyframes viewAsCardIn {
+            from { opacity: 0; transform: translateY(30px) scale(0.94) }
+            to { opacity: 1; transform: translateY(0) scale(1) }
+          }
+        `}</style>
+      </div>
+    </div>
+  );
+}
+
+// ─── Role Matrix Editor ─────────────────────────────────────────────────────
+
+function RoleMatrixEditor({
+  role,
+  overrides,
+  onClose,
+  onSave,
+}: {
+  role: Role;
+  overrides: RoleOverrides;
+  onClose: () => void;
+  onSave: (rolePerms: Partial<Record<Module, AccessLevel>>) => void | Promise<void>;
+}) {
+  const meta = ROLE_META[role];
+  const defaults = ROLE_PERMISSIONS[role];
+
+  // Build initial perms = defaults + current overrides
+  const initialPerms: Record<Module, AccessLevel> = { ...defaults };
+  for (const mod of MODULES) {
+    initialPerms[mod] = getEffectiveAccess(role, mod, overrides);
+  }
+  const [perms, setPerms] = useState<Record<Module, AccessLevel>>(initialPerms);
+  const [saving, setSaving] = useState(false);
+
+  // Close on ESC
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", h);
+    return () => window.removeEventListener("keydown", h);
+  }, [onClose]);
+
+  const changedCount = MODULES.filter((m) => perms[m] !== defaults[m]).length;
+
+  async function handleSave() {
+    setSaving(true);
+    try {
+      await onSave(perms);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function resetToDefaults() {
+    setPerms({ ...defaults });
+  }
+
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: "fixed", inset: 0, zIndex: 260,
+        background: "rgba(0,0,0,0.45)",
+        backdropFilter: "blur(4px)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        padding: 16,
+        animation: "matrixOverlayIn 0.2s ease-out",
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: "100%",
+          maxWidth: 560,
+          maxHeight: "90vh",
+          background: "#fff",
+          borderRadius: 16,
+          boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
+          overflow: "hidden",
+          display: "flex",
+          flexDirection: "column",
+          animation: "matrixCardIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
+        }}
+      >
+        {/* Header */}
+        <div
+          style={{
+            padding: "18px 20px",
+            background: meta.bg,
+            borderBottom: "1px solid var(--grey-200)",
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+          }}
+        >
+          <div
+            style={{
+              width: 44, height: 44,
+              background: "#fff",
+              borderRadius: "50%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 22,
+            }}
+          >
+            {meta.emoji}
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 16, fontWeight: 700, color: meta.color }}>
+              Edit {meta.label} permissions
+            </div>
+            <div style={{ fontSize: 12, color: "var(--grey-600)" }}>
+              {changedCount === 0
+                ? "No changes yet"
+                : `${changedCount} change${changedCount === 1 ? "" : "s"} from defaults`}
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            style={{
+              border: "none", background: "transparent",
+              fontSize: 22, color: "var(--grey-500)",
+              cursor: "pointer", padding: 4,
+            }}
+            aria-label="Close"
+          >
+            ×
+          </button>
+        </div>
+
+        {/* Body */}
+        <div style={{ overflowY: "auto", padding: "16px 20px", flex: 1 }}>
+          <p style={{ fontSize: 12, color: "var(--grey-600)", margin: "0 0 12px" }}>
+            Pick an access level for each module. Click <b>Reset</b> to restore defaults.
+          </p>
+
+          {MODULES.map((mod) => {
+            const mm = MODULE_META[mod];
+            const current = perms[mod];
+            const def = defaults[mod];
+            const changed = current !== def;
+            return (
+              <div
+                key={mod}
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr auto",
+                  gap: 10,
+                  alignItems: "center",
+                  padding: "8px 10px",
+                  borderRadius: 6,
+                  background: changed ? "#fffbeb" : "transparent",
+                  border: changed ? "1px solid #fde68a" : "1px solid transparent",
+                  marginBottom: 4,
+                }}
+              >
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 14, fontWeight: 500, color: "var(--grey-900)" }}>
+                    <span style={{ marginRight: 6 }}>{mm.icon}</span>
+                    {mm.label}
+                    {changed && (
+                      <span style={{ fontSize: 10, color: "#b45309", fontWeight: 700, marginLeft: 6 }}>
+                        CHANGED
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ fontSize: 11, color: "var(--grey-500)", marginTop: 1 }}>
+                    Default: <b>{def}</b>
+                  </div>
+                </div>
+                <select
+                  value={current}
+                  onChange={(e) => setPerms((p) => ({ ...p, [mod]: e.target.value as AccessLevel }))}
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 600,
+                    padding: "6px 8px",
+                    border: `1px solid ${LEVEL_META[current].color}40`,
+                    borderRadius: 6,
+                    background: LEVEL_META[current].bg,
+                    color: LEVEL_META[current].color,
+                    textTransform: "uppercase",
+                    cursor: "pointer",
+                  }}
+                >
+                  {ACCESS_LEVELS.map((lvl) => (
+                    <option key={lvl} value={lvl}>
+                      {LEVEL_META[lvl].emoji} {LEVEL_META[lvl].label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Footer */}
+        <div
+          style={{
+            display: "flex", gap: 10,
+            padding: "14px 20px",
+            borderTop: "1px solid var(--grey-200)",
+            background: "var(--grey-50)",
+          }}
+        >
+          <button
+            onClick={resetToDefaults}
+            disabled={saving}
+            style={{
+              padding: "9px 14px",
+              border: "1px solid var(--grey-300)",
+              borderRadius: 8,
+              background: "#fff",
+              color: "var(--grey-700)",
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: saving ? "wait" : "pointer",
+              opacity: saving ? 0.5 : 1,
+            }}
+          >
+            Reset to defaults
+          </button>
+          <div style={{ flex: 1 }} />
+          <button
+            onClick={onClose}
+            disabled={saving}
+            style={{
+              padding: "9px 14px",
+              border: "1px solid var(--grey-300)",
+              borderRadius: 8,
+              background: "#fff",
+              color: "var(--grey-700)",
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: saving ? "wait" : "pointer",
+              opacity: saving ? 0.5 : 1,
+            }}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={saving || changedCount === 0}
+            style={{
+              padding: "9px 18px",
+              border: "none",
+              borderRadius: 8,
+              background: (saving || changedCount === 0) ? "var(--grey-300)" : "#2d6a4f",
+              color: "#fff",
+              fontSize: 13,
+              fontWeight: 700,
+              textTransform: "uppercase",
+              letterSpacing: "0.03em",
+              cursor: (saving || changedCount === 0) ? "not-allowed" : "pointer",
+              boxShadow: (saving || changedCount === 0) ? "none" : "0 2px 8px #2d6a4f40",
+            }}
+          >
+            {saving ? "Saving…" : "Save changes"}
+          </button>
+        </div>
+
+        <style>{`
+          @keyframes matrixOverlayIn { from { opacity: 0 } to { opacity: 1 } }
+          @keyframes matrixCardIn {
             from { opacity: 0; transform: translateY(30px) scale(0.94) }
             to { opacity: 1; transform: translateY(0) scale(1) }
           }

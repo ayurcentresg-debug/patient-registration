@@ -243,10 +243,47 @@ const LEVEL_RANK: Record<AccessLevel, number> = {
   none: 0,
 };
 
+// ─── Per-clinic overrides ────────────────────────────────────────────────────
+// Stored as JSON on Clinic.rolePermissions. Shape:
+//   { [role]: { [module]: AccessLevel } }
+// Missing entries fall back to ROLE_PERMISSIONS defaults.
+
+export type RoleOverrides = Partial<Record<Role, Partial<Record<Module, AccessLevel>>>>;
+
+/**
+ * Parse a JSON string of overrides. Returns {} on any error.
+ */
+export function parseOverrides(raw: string | null | undefined): RoleOverrides {
+  if (!raw) return {};
+  try {
+    const parsed = JSON.parse(raw);
+    if (typeof parsed !== "object" || parsed === null) return {};
+    return parsed as RoleOverrides;
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * Get the effective access level for a role+module, applying overrides first.
+ */
+export function getEffectiveAccess(
+  role: string,
+  module: Module,
+  overrides?: RoleOverrides
+): AccessLevel {
+  const override = overrides?.[role as Role]?.[module];
+  if (override) return override;
+  const permissions = ROLE_PERMISSIONS[role as Role];
+  if (!permissions) return "none";
+  return permissions[module] || "none";
+}
+
 // ─── Helper functions ────────────────────────────────────────────────────────
 
 /**
- * Get the access level a role has for a module.
+ * Get the access level a role has for a module (code defaults only).
+ * For override-aware checks, use getEffectiveAccess.
  */
 export function getAccessLevel(role: string, module: Module): AccessLevel {
   const permissions = ROLE_PERMISSIONS[role as Role];
@@ -385,28 +422,36 @@ export const PRESCRIBER_ROLES: string[] = ROLES.filter(
 /**
  * Given a user role, returns which nav item hrefs should be visible.
  * Used by Sidebar component to show/hide menu items.
+ * Accepts optional clinic-specific overrides.
  */
-export function getVisibleNavItems(role: string): Record<string, boolean> {
+export function getVisibleNavItems(
+  role: string,
+  overrides?: RoleOverrides
+): Record<string, boolean> {
+  const a = (m: Module) => getEffectiveAccess(role, m, overrides) !== "none";
+  const w = (m: Module) => {
+    const lv = getEffectiveAccess(role, m, overrides);
+    return lv === "full" || lv === "write" || lv === "own";
+  };
   return {
-    "/": canAccess(role, "dashboard") && !canAccess(role, "doctor_portal"),
-    "/onboarding/dashboard":
-      canAccess(role, "dashboard") && !canAccess(role, "doctor_portal"),
-    "/doctor": canAccess(role, "doctor_portal"),
-    "/patients": canAccess(role, "patients"),
-    "/patients/new": hasAccess(role, "patients", "write"),
-    "/appointments": canAccess(role, "appointments"),
-    "/appointments/calendar": canAccess(role, "appointments"),
-    "/packages": canAccess(role, "packages"),
-    "/prescriptions": canAccess(role, "prescriptions"),
-    "/inventory": canAccess(role, "inventory"),
-    "/billing": canAccess(role, "billing"),
-    "/reports": canAccess(role, "reports"),
-    "/communications": canAccess(role, "communications"),
-    "/cme/admin": canAccess(role, "cme"),
-    "/feedback": canAccess(role, "feedback"),
-    "/waitlist": canAccess(role, "waitlist"),
-    "/admin/import": canAccess(role, "import"),
-    "/admin": canAccess(role, "admin_settings"),
-    "/security": canAccess(role, "security"),
+    "/": a("dashboard") && !a("doctor_portal"),
+    "/onboarding/dashboard": a("dashboard") && !a("doctor_portal"),
+    "/doctor": a("doctor_portal"),
+    "/patients": a("patients"),
+    "/patients/new": w("patients"),
+    "/appointments": a("appointments"),
+    "/appointments/calendar": a("appointments"),
+    "/packages": a("packages"),
+    "/prescriptions": a("prescriptions"),
+    "/inventory": a("inventory"),
+    "/billing": a("billing"),
+    "/reports": a("reports"),
+    "/communications": a("communications"),
+    "/cme/admin": a("cme"),
+    "/feedback": a("feedback"),
+    "/waitlist": a("waitlist"),
+    "/admin/import": a("import"),
+    "/admin": a("admin_settings"),
+    "/security": a("security"),
   };
 }

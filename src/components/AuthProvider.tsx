@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import { parseOverrides, type RoleOverrides } from "@/lib/permissions";
 
 interface User {
   id: string;
@@ -15,12 +16,16 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   logout: () => Promise<void>;
+  rolePermissions: RoleOverrides;
+  refreshPermissions: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
   logout: async () => {},
+  rolePermissions: {},
+  refreshPermissions: async () => {},
 });
 
 export function useAuth() {
@@ -29,6 +34,7 @@ export function useAuth() {
 
 export default function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [rolePermissions, setRolePermissions] = useState<RoleOverrides>({});
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
@@ -39,14 +45,17 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
       if (res.ok) {
         const data = await res.json();
         setUser(data.user);
+        setRolePermissions(parseOverrides(data.rolePermissions));
       } else {
         setUser(null);
+        setRolePermissions({});
         if (pathname !== "/login") {
           router.push("/login");
         }
       }
     } catch {
       setUser(null);
+      setRolePermissions({});
     } finally {
       setLoading(false);
     }
@@ -56,9 +65,22 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     checkAuth();
   }, [checkAuth]);
 
+  const refreshPermissions = useCallback(async () => {
+    try {
+      const res = await fetch("/api/auth/me");
+      if (res.ok) {
+        const data = await res.json();
+        setRolePermissions(parseOverrides(data.rolePermissions));
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
   const logout = async () => {
     await fetch("/api/auth/logout", { method: "POST" });
     setUser(null);
+    setRolePermissions({});
     router.push("/login");
   };
 
@@ -86,7 +108,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, logout }}>
+    <AuthContext.Provider value={{ user, loading, logout, rolePermissions, refreshPermissions }}>
       {children}
     </AuthContext.Provider>
   );
