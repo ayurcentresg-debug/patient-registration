@@ -643,6 +643,9 @@ export default function PermissionsPage() {
         )}
       </section>
 
+      {/* ─── Section 3: Permission change history ─────────────────────────── */}
+      <PermissionHistorySection />
+
       {/* ─── "View as" Modal (Option A) ─────────────────────────────────────── */}
       {viewAs && (
         <ViewAsModal
@@ -1473,3 +1476,196 @@ function rankLevel(level: AccessLevel): number {
   return { full: 4, write: 3, view: 2, own: 1, none: 0 }[level];
 }
 
+// ─── Permission Change History ──────────────────────────────────────────────
+
+interface HistoryEntry {
+  id: string;
+  userId: string;
+  userName: string;
+  action: string;
+  entity: string;
+  entityId: string | null;
+  details: string | null;
+  createdAt: string;
+}
+
+interface PermDiff {
+  role?: string;
+  module: string;
+  from: string;
+  to: string;
+}
+
+interface PermDetails {
+  diffs?: PermDiff[];
+  changeCount?: number;
+  targetUserName?: string;
+  targetUserRole?: string;
+  rolesTouched?: string[];
+}
+
+function PermissionHistorySection() {
+  const [expanded, setExpanded] = useState(false);
+  const [entries, setEntries] = useState<HistoryEntry[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+
+  async function load() {
+    setLoading(true);
+    try {
+      const [r1, r2] = await Promise.all([
+        fetch("/api/audit-logs?entity=clinic_permissions&limit=50", { credentials: "include" }),
+        fetch("/api/audit-logs?entity=user_permissions&limit=50", { credentials: "include" }),
+      ]);
+      const d1 = r1.ok ? await r1.json() : { logs: [] };
+      const d2 = r2.ok ? await r2.json() : { logs: [] };
+      const merged: HistoryEntry[] = [...(d1.logs || []), ...(d2.logs || [])];
+      merged.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      setEntries(merged.slice(0, 50));
+      setLoaded(true);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    if (expanded && !loaded) load();
+  }, [expanded, loaded]);
+
+  function parseDetails(raw: string | null): PermDetails {
+    if (!raw) return {};
+    try { return JSON.parse(raw) as PermDetails; } catch { return {}; }
+  }
+
+  return (
+    <section className="mb-10" style={{ ...cardStyle, padding: 16 }}>
+      <button
+        onClick={() => setExpanded((v) => !v)}
+        className="w-full flex items-center justify-between"
+        style={{
+          border: "none",
+          background: "transparent",
+          padding: 0,
+          cursor: "pointer",
+          textAlign: "left",
+        }}
+      >
+        <div>
+          <h2 className="text-[17px] font-bold" style={{ color: "var(--grey-900)" }}>
+            📜 Permission change history
+          </h2>
+          <p className="text-[12px]" style={{ color: "var(--grey-500)" }}>
+            Who changed what and when. Most recent first.
+          </p>
+        </div>
+        <span style={{ fontSize: 20, color: "var(--grey-400)" }}>
+          {expanded ? "▾" : "▸"}
+        </span>
+      </button>
+
+      {expanded && (
+        <div style={{ marginTop: 16 }}>
+          {loading ? (
+            <div className="text-center py-6 text-[13px]" style={{ color: "var(--grey-500)" }}>
+              Loading…
+            </div>
+          ) : entries.length === 0 ? (
+            <div className="text-center py-6 text-[13px]" style={{ color: "var(--grey-500)" }}>
+              No permission changes recorded yet.
+            </div>
+          ) : (
+            <div>
+              <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
+                <button
+                  onClick={load}
+                  className="text-[12px] font-semibold px-2.5 py-1"
+                  style={{
+                    background: "var(--grey-50)",
+                    color: "var(--grey-700)",
+                    border: "1px solid var(--grey-300)",
+                    borderRadius: "var(--radius-sm)",
+                  }}
+                >
+                  ↻ Refresh
+                </button>
+              </div>
+
+              {entries.map((e) => {
+                const d = parseDetails(e.details);
+                const isUserScope = e.entity === "user_permissions";
+                return (
+                  <div
+                    key={e.id}
+                    style={{
+                      padding: "10px 12px",
+                      borderLeft: `3px solid ${isUserScope ? "#7c3aed" : "#2d6a4f"}`,
+                      background: "var(--grey-50)",
+                      borderRadius: 6,
+                      marginBottom: 8,
+                    }}
+                  >
+                    <div className="flex items-center gap-2 flex-wrap mb-1">
+                      <span
+                        className="text-[10px] font-bold uppercase px-2 py-0.5"
+                        style={{
+                          background: isUserScope ? "#faf5ff" : "#f0faf4",
+                          color: isUserScope ? "#7c3aed" : "#2d6a4f",
+                          borderRadius: 4,
+                          letterSpacing: "0.05em",
+                        }}
+                      >
+                        {isUserScope ? "🎯 User" : "🏛️ Role"}
+                      </span>
+                      <span className="text-[13px] font-semibold" style={{ color: "var(--grey-900)" }}>
+                        {e.userName}
+                      </span>
+                      <span className="text-[12px]" style={{ color: "var(--grey-600)" }}>
+                        {isUserScope ? (
+                          <>updated permissions for <b>{d.targetUserName || "user"}</b>{d.targetUserRole ? ` (${d.targetUserRole})` : ""}</>
+                        ) : (
+                          <>updated <b>role permissions</b></>
+                        )}
+                      </span>
+                      <span className="text-[11px] ml-auto" style={{ color: "var(--grey-500)" }}>
+                        {new Date(e.createdAt).toLocaleString()}
+                      </span>
+                    </div>
+
+                    {d.diffs && d.diffs.length > 0 ? (
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 4 }}>
+                        {d.diffs.map((diff, i) => (
+                          <span
+                            key={i}
+                            className="text-[11px]"
+                            style={{
+                              background: "#fff",
+                              border: "1px solid var(--grey-200)",
+                              padding: "2px 8px",
+                              borderRadius: 4,
+                              fontFamily: "ui-monospace, monospace",
+                            }}
+                          >
+                            {diff.role ? <span style={{ color: "#7c3aed" }}>{diff.role}.</span> : null}
+                            <span style={{ color: "var(--grey-800)" }}>{diff.module}</span>
+                            <span style={{ color: "var(--grey-400)" }}>: </span>
+                            <span style={{ color: "#dc2626" }}>{diff.from}</span>
+                            <span style={{ color: "var(--grey-400)" }}> → </span>
+                            <span style={{ color: "#15803d" }}>{diff.to}</span>
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-[11px]" style={{ color: "var(--grey-500)" }}>
+                        No diff details available.
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+    </section>
+  );
+}

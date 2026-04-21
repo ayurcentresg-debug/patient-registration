@@ -157,6 +157,39 @@ export async function PUT(
       entityId: id,
     });
 
+    // Dedicated audit entry for permission changes — makes it easy to filter
+    // by entity="user_permissions" and surface on the permissions history view.
+    if (body.permissionOverrides !== undefined) {
+      try {
+        const parse = (raw: string | null | undefined): Record<string, string> => {
+          if (!raw) return {};
+          try { const p = JSON.parse(raw); return (p && typeof p === "object") ? p : {}; } catch { return {}; }
+        };
+        const before = parse((existing as unknown as { permissionOverrides?: string | null }).permissionOverrides);
+        const after = parse((updateData.permissionOverrides ?? null) as string | null);
+        const touched = new Set([...Object.keys(before), ...Object.keys(after)]);
+        const diffs: Array<{ module: string; from: string; to: string }> = [];
+        for (const mod of touched) {
+          const f = before[mod] ?? "(inherit)";
+          const t = after[mod] ?? "(inherit)";
+          if (f !== t) diffs.push({ module: mod, from: f, to: t });
+        }
+        if (diffs.length > 0) {
+          await logAudit({
+            action: "update",
+            entity: "user_permissions",
+            entityId: id,
+            details: {
+              targetUserName: existing.name,
+              targetUserRole: existing.role,
+              diffs,
+              changeCount: diffs.length,
+            },
+          });
+        }
+      } catch { /* non-fatal */ }
+    }
+
     const { password: _, totpSecret: __, ...safe } = user as Record<string, unknown>;
     return NextResponse.json(safe);
   } catch (error) {

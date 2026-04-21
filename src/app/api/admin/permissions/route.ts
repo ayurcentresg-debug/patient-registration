@@ -59,19 +59,43 @@ export async function PUT(req: NextRequest) {
     }
   }
 
+  // Load existing overrides so we can compute a before/after diff for audit
+  const existingClinic = await prisma.clinic.findUnique({
+    where: { id: clinicId },
+    select: { rolePermissions: true },
+  });
+  const existing: RoleOverrides = parseOverrides(existingClinic?.rolePermissions);
+
   await prisma.clinic.update({
     where: { id: clinicId },
     data: { rolePermissions: JSON.stringify(cleaned) },
   });
 
-  try {
-    await logAudit({
-      action: "update",
-      entity: "clinic_permissions",
-      entityId: clinicId,
-      details: { rolesTouched: Object.keys(cleaned) },
-    });
-  } catch { /* non-fatal */ }
+  // Build a structured diff: { role, module, from, to } per changed cell.
+  // "from" / "to" reflect the stored override value ("(default)" when absent).
+  const diffs: Array<{ role: string; module: string; from: string; to: string }> = [];
+  const touchedRoles = new Set([...Object.keys(existing), ...Object.keys(cleaned)]);
+  for (const role of touchedRoles) {
+    const beforeMods = existing[role as keyof RoleOverrides] || {};
+    const afterMods = cleaned[role as keyof RoleOverrides] || {};
+    const touchedMods = new Set([...Object.keys(beforeMods), ...Object.keys(afterMods)]);
+    for (const mod of touchedMods) {
+      const from = beforeMods[mod as keyof typeof beforeMods] ?? "(default)";
+      const to = afterMods[mod as keyof typeof afterMods] ?? "(default)";
+      if (from !== to) diffs.push({ role, module: mod, from, to });
+    }
+  }
+
+  if (diffs.length > 0) {
+    try {
+      await logAudit({
+        action: "update",
+        entity: "clinic_permissions",
+        entityId: clinicId,
+        details: { diffs, changeCount: diffs.length },
+      });
+    } catch { /* non-fatal */ }
+  }
 
   return NextResponse.json({ success: true, overrides: cleaned });
 }
