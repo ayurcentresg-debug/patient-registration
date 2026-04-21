@@ -16,6 +16,7 @@ import {
   type AccessLevel,
   type RoleOverrides,
   type UserOverrides,
+  type PermissionTemplate,
   getVisibleNavItems,
   getEffectiveAccess,
   getUserEffectiveAccess,
@@ -1068,6 +1069,27 @@ function RoleMatrixEditor({
 
         {/* Body */}
         <div style={{ overflowY: "auto", padding: "16px 20px", flex: 1 }}>
+          <TemplateToolbar
+            scope="role"
+            onApply={(t) => {
+              setPerms((p) => {
+                const next = { ...p };
+                for (const [mod, lvl] of Object.entries(t.perms)) {
+                  next[mod as Module] = lvl as AccessLevel;
+                }
+                return next;
+              });
+            }}
+            captureCurrent={() => {
+              // Only include modules that differ from defaults
+              const out: Partial<Record<Module, AccessLevel>> = {};
+              for (const mod of MODULES) {
+                if (perms[mod] !== defaults[mod]) out[mod] = perms[mod];
+              }
+              return out;
+            }}
+          />
+
           <p style={{ fontSize: 12, color: "var(--grey-600)", margin: "0 0 12px" }}>
             Pick an access level for each module. Click <b>Reset</b> to restore defaults.
           </p>
@@ -1325,6 +1347,27 @@ function UserPermissionsEditor({
 
         {/* Body */}
         <div style={{ overflowY: "auto", padding: "14px 20px", flex: 1 }}>
+          <TemplateToolbar
+            scope="user"
+            onApply={(t) => {
+              setPicks((p) => {
+                const next = { ...p };
+                for (const [mod, lvl] of Object.entries(t.perms)) {
+                  next[mod as Module] = lvl as AccessLevel;
+                }
+                return next;
+              });
+            }}
+            captureCurrent={() => {
+              const out: Partial<Record<Module, AccessLevel>> = {};
+              for (const mod of MODULES) {
+                const v = picks[mod];
+                if (v !== null) out[mod] = v;
+              }
+              return out;
+            }}
+          />
+
           <p style={{ fontSize: 12, color: "var(--grey-600)", margin: "0 0 14px" }}>
             Leave a module on <b>&ldquo;(inherit)&rdquo;</b> to use the {meta.label} role default.
             Pick a specific level to override just for <b>{user.name}</b>. Overrides take precedence over role + clinic defaults.
@@ -1667,5 +1710,255 @@ function PermissionHistorySection() {
         </div>
       )}
     </section>
+  );
+}
+
+// ─── Template Toolbar (shared between Role + User editors) ──────────────────
+
+function TemplateToolbar({
+  scope,
+  onApply,
+  captureCurrent,
+}: {
+  scope: "role" | "user";
+  onApply: (tpl: PermissionTemplate) => void;
+  captureCurrent: () => Partial<Record<Module, AccessLevel>>;
+}) {
+  const [templates, setTemplates] = useState<PermissionTemplate[] | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [showSave, setShowSave] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newDesc, setNewDesc] = useState("");
+  const [saving, setSaving] = useState(false);
+  const { showFlash } = useFlash();
+  const confirm = useConfirm();
+
+  async function loadTemplates() {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/admin/permission-templates", { credentials: "include" });
+      if (res.ok) {
+        const data = await res.json();
+        setTemplates(data.templates || []);
+      } else {
+        setTemplates([]);
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    loadTemplates();
+  }, []);
+
+  const scoped = (templates || []).filter((t) => t.scope === scope);
+
+  async function handleApply(id: string) {
+    const t = scoped.find((x) => x.id === id);
+    if (!t) return;
+    onApply(t);
+    showFlash({
+      type: "info",
+      title: "Template applied",
+      message: `${t.name} — ${Object.keys(t.perms).length} modules set. Review and click Save to persist.`,
+      autoDismiss: 3000,
+    });
+  }
+
+  async function handleSaveAs() {
+    if (!newName.trim()) {
+      showFlash({ type: "warning", title: "Name required", message: "Give the template a name.", autoDismiss: 2500 });
+      return;
+    }
+    const perms = captureCurrent();
+    if (Object.keys(perms).length === 0) {
+      showFlash({ type: "warning", title: "Nothing to save", message: "No changes from defaults/inherit to capture.", autoDismiss: 2500 });
+      return;
+    }
+    setSaving(true);
+    try {
+      const res = await fetch("/api/admin/permission-templates", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ name: newName.trim(), description: newDesc.trim(), scope, perms }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || `Failed (${res.status})`);
+      }
+      await loadTemplates();
+      setShowSave(false);
+      setNewName("");
+      setNewDesc("");
+      showFlash({ type: "success", title: "Saved", message: `Template "${newName.trim()}" saved.`, autoDismiss: 3000 });
+    } catch (e) {
+      showFlash({ type: "error", title: "Failed", message: e instanceof Error ? e.message : "Could not save template" });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleDelete(t: PermissionTemplate) {
+    if (t.builtIn) return;
+    const ok = await confirm({
+      type: "danger",
+      title: `Delete template "${t.name}"?`,
+      message: "This cannot be undone. Users who already had it applied keep their settings.",
+      confirmLabel: "Delete",
+    });
+    if (!ok) return;
+    try {
+      const res = await fetch(`/api/admin/permission-templates?id=${encodeURIComponent(t.id)}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error(`Failed (${res.status})`);
+      await loadTemplates();
+      showFlash({ type: "success", title: "Deleted", message: `Template "${t.name}" removed.`, autoDismiss: 2500 });
+    } catch (e) {
+      showFlash({ type: "error", title: "Failed", message: e instanceof Error ? e.message : "Could not delete template" });
+    }
+  }
+
+  return (
+    <div
+      style={{
+        background: "#f8fafc",
+        border: "1px solid var(--grey-200)",
+        borderRadius: 8,
+        padding: "10px 12px",
+        marginBottom: 14,
+      }}
+    >
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className="text-[11px] font-bold uppercase" style={{ color: "var(--grey-500)", letterSpacing: "0.05em" }}>
+          📋 Templates
+        </span>
+
+        <select
+          value=""
+          onChange={(e) => {
+            if (e.target.value) handleApply(e.target.value);
+            e.target.value = "";
+          }}
+          disabled={loading || scoped.length === 0}
+          className="text-[13px]"
+          style={{
+            padding: "5px 8px",
+            border: "1px solid var(--grey-300)",
+            borderRadius: 6,
+            background: "#fff",
+            color: "var(--grey-800)",
+            minWidth: 200,
+            cursor: (loading || scoped.length === 0) ? "not-allowed" : "pointer",
+          }}
+        >
+          <option value="">
+            {loading ? "Loading…" : scoped.length === 0 ? "No templates yet" : "Apply a template…"}
+          </option>
+          {scoped.filter((t) => t.builtIn).length > 0 && (
+            <optgroup label="Built-in">
+              {scoped.filter((t) => t.builtIn).map((t) => (
+                <option key={t.id} value={t.id} title={t.description}>
+                  {t.name} ({Object.keys(t.perms).length} modules)
+                </option>
+              ))}
+            </optgroup>
+          )}
+          {scoped.filter((t) => !t.builtIn).length > 0 && (
+            <optgroup label="Custom">
+              {scoped.filter((t) => !t.builtIn).map((t) => (
+                <option key={t.id} value={t.id} title={t.description}>
+                  {t.name} ({Object.keys(t.perms).length} modules)
+                </option>
+              ))}
+            </optgroup>
+          )}
+        </select>
+
+        <button
+          onClick={() => setShowSave((v) => !v)}
+          className="text-[12px] font-semibold px-2.5 py-1"
+          style={{
+            background: showSave ? "#fef3c7" : "#faf5ff",
+            color: showSave ? "#b45309" : "#7c3aed",
+            border: `1px solid ${showSave ? "#fde68a" : "#e9d5ff"}`,
+            borderRadius: 6,
+            cursor: "pointer",
+          }}
+          title="Save current configuration as a reusable template"
+        >
+          {showSave ? "× Cancel" : "💾 Save as template"}
+        </button>
+
+        {scoped.filter((t) => !t.builtIn).length > 0 && (
+          <details style={{ marginLeft: "auto", fontSize: 11 }}>
+            <summary style={{ cursor: "pointer", color: "var(--grey-600)" }}>Manage custom…</summary>
+            <div style={{ marginTop: 6, display: "flex", flexDirection: "column", gap: 4 }}>
+              {scoped.filter((t) => !t.builtIn).map((t) => (
+                <div key={t.id} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <span style={{ fontSize: 11, color: "var(--grey-700)" }}>{t.name}</span>
+                  <button
+                    onClick={() => handleDelete(t)}
+                    style={{
+                      fontSize: 10, padding: "1px 6px",
+                      background: "#fef2f2", color: "#dc2626",
+                      border: "1px solid #fecaca", borderRadius: 4,
+                      cursor: "pointer",
+                    }}
+                  >
+                    Delete
+                  </button>
+                </div>
+              ))}
+            </div>
+          </details>
+        )}
+      </div>
+
+      {showSave && (
+        <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 6 }}>
+          <input
+            type="text"
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            placeholder="Template name (e.g. Senior Receptionist)"
+            style={{
+              fontSize: 13, padding: "6px 10px",
+              border: "1px solid var(--grey-300)", borderRadius: 6,
+            }}
+            autoFocus
+          />
+          <input
+            type="text"
+            value={newDesc}
+            onChange={(e) => setNewDesc(e.target.value)}
+            placeholder="Description (optional)"
+            style={{
+              fontSize: 12, padding: "6px 10px",
+              border: "1px solid var(--grey-300)", borderRadius: 6,
+            }}
+          />
+          <button
+            onClick={handleSaveAs}
+            disabled={saving}
+            className="text-[12px] font-bold"
+            style={{
+              padding: "6px 12px",
+              background: saving ? "var(--grey-300)" : "#7c3aed",
+              color: "#fff",
+              border: "none",
+              borderRadius: 6,
+              cursor: saving ? "wait" : "pointer",
+              alignSelf: "flex-start",
+            }}
+          >
+            {saving ? "Saving…" : "Save template"}
+          </button>
+        </div>
+      )}
+    </div>
   );
 }

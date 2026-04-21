@@ -452,6 +452,103 @@ export const PRESCRIBER_ROLES: string[] = ROLES.filter(
   (r) => canWrite(r, "prescriptions")
 );
 
+// ─── Built-in permission templates ───────────────────────────────────────────
+// Read-only presets shipped with the product. Each clinic sees these plus any
+// custom templates they create. Built-ins cannot be edited or deleted.
+
+export interface PermissionTemplate {
+  id: string;
+  name: string;
+  description: string;
+  scope: "role" | "user";
+  perms: Partial<Record<Module, AccessLevel>>;
+  builtIn?: boolean;
+}
+
+export const BUILTIN_TEMPLATES: PermissionTemplate[] = [
+  {
+    id: "builtin:senior-receptionist",
+    name: "Senior Receptionist",
+    description: "Full billing + reports + staff view. For experienced front-desk leads.",
+    scope: "user",
+    perms: {
+      billing: "full",
+      reports: "view",
+      staff_management: "view",
+      commission: "view",
+    },
+    builtIn: true,
+  },
+  {
+    id: "builtin:junior-doctor",
+    name: "Junior Doctor",
+    description: "Clinical access only — no inventory, no billing write.",
+    scope: "user",
+    perms: {
+      inventory: "none",
+      billing: "view",
+      packages: "view",
+    },
+    builtIn: true,
+  },
+  {
+    id: "builtin:locum-doctor",
+    name: "Locum Doctor",
+    description: "Temporary doctor — view-only on most things, own-scope on own work.",
+    scope: "user",
+    perms: {
+      patients: "view",
+      reports: "own",
+      commission: "own",
+      prescriptions: "write",
+    },
+    builtIn: true,
+  },
+  {
+    id: "builtin:billing-specialist",
+    name: "Billing Specialist",
+    description: "Full billing, packages, reports. No clinical write access.",
+    scope: "user",
+    perms: {
+      billing: "full",
+      packages: "full",
+      reports: "full",
+      prescriptions: "view",
+      inventory: "view",
+    },
+    builtIn: true,
+  },
+  {
+    id: "builtin:inventory-manager",
+    name: "Inventory Manager",
+    description: "Full inventory + reports. For stock-focused staff.",
+    scope: "user",
+    perms: {
+      inventory: "full",
+      reports: "view",
+      billing: "view",
+    },
+    builtIn: true,
+  },
+  {
+    id: "builtin:lockdown-role",
+    name: "Lockdown (view-only role)",
+    description: "Applied to a role: downgrades write/full to view across the board. Good for audits.",
+    scope: "role",
+    perms: {
+      patients: "view",
+      appointments: "view",
+      prescriptions: "view",
+      inventory: "view",
+      billing: "view",
+      packages: "view",
+      reports: "view",
+      communications: "view",
+    },
+    builtIn: true,
+  },
+];
+
 // ─── Sidebar visibility helper ───────────────────────────────────────────────
 
 /**

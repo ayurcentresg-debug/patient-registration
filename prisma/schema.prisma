@@ -43,11 +43,32 @@ model Clinic {
   // Missing entries fall back to code defaults in lib/permissions.ts
   rolePermissions    String?
 
+  permissionTemplates PermissionTemplate[]
+
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
   subscription    ClinicSubscription?
   onboarding      OnboardingProgress?
+}
+
+// ─── Permission Templates — reusable bundles of module→level overrides ──
+// Scope "role" = meant to be applied to a role (changes clinic rolePermissions)
+// Scope "user" = meant to be applied to a specific user's permissionOverrides
+// "perms" is a JSON string: { [module]: AccessLevel }
+model PermissionTemplate {
+  id          String   @id @default(cuid())
+  clinicId    String
+  clinic      Clinic   @relation(fields: [clinicId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  scope       String   // "role" | "user"
+  perms       String   // JSON: { [module]: AccessLevel }
+  createdBy   String?  // User.id of the admin who created it
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([clinicId, scope])
 }
 
 // ─── Onboarding / Activation Tracker ──────────────────────────────────────
