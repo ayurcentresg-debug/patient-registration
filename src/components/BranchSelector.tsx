@@ -63,9 +63,9 @@ export default function BranchSelector() {
       <button
         onClick={() => setOpen(!open)}
         style={{
-          backgroundColor: open ? "rgba(255,255,255,0.18)" : "rgba(255,255,255,0.08)",
-          border: "1px solid rgba(255,255,255,0.2)",
-          color: "#fff",
+          backgroundColor: open ? "#f3f4f6" : "#f9fafb",
+          border: "1px solid #d1d5db",
+          color: "#374151",
           cursor: "pointer",
           display: "flex",
           alignItems: "center",

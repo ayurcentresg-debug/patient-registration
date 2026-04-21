@@ -314,14 +314,16 @@ export default function Sidebar() {
       {/* ============ MOBILE TOP HEADER (< md) ============ */}
       <header
         className="md:hidden fixed top-0 left-0 right-0 z-50"
+        data-mobile-header="light"
         style={{
-          backgroundColor: "var(--sidebar-bg, #1b3a2d)",
+          backgroundColor: "#ffffff",
           height: 56,
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
           padding: "0 12px",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+          borderBottom: "1px solid #e5e7eb",
+          boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
         }}
       >
         {/* Left: Hamburger + Brand */}
@@ -331,7 +333,7 @@ export default function Sidebar() {
             aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
             style={{ background: "none", border: "none", cursor: "pointer", padding: 6, borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center" }}
           >
-            <svg style={{ width: 22, height: 22 }} fill="none" stroke="#fff" viewBox="0 0 24 24">
+            <svg style={{ width: 22, height: 22 }} fill="none" stroke="#374151" viewBox="0 0 24 24">
               {mobileMenuOpen ? (
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               ) : (
@@ -352,7 +354,7 @@ export default function Sidebar() {
             aria-label="Search patients"
             style={{ background: "none", border: "none", cursor: "pointer", padding: 8, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center" }}
           >
-            <svg style={{ width: 20, height: 20 }} fill="none" stroke="rgba(255,255,255,0.8)" viewBox="0 0 24 24">
+            <svg style={{ width: 20, height: 20 }} fill="none" stroke="#374151" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </button>
@@ -362,7 +364,7 @@ export default function Sidebar() {
               aria-label="View notifications"
               style={{ background: "none", border: "none", cursor: "pointer", padding: 8, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}
             >
-              <svg style={{ width: 20, height: 20 }} fill="none" stroke="rgba(255,255,255,0.8)" viewBox="0 0 24 24">
+              <svg style={{ width: 20, height: 20 }} fill="none" stroke="#374151" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
               </svg>
               {totalNotifCount > 0 && (
@@ -378,7 +380,7 @@ export default function Sidebar() {
             aria-label="Help and support"
             style={{ background: "none", border: "none", cursor: "pointer", padding: 8, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center" }}
           >
-            <svg style={{ width: 20, height: 20 }} fill="none" stroke="rgba(255,255,255,0.8)" viewBox="0 0 24 24">
+            <svg style={{ width: 20, height: 20 }} fill="none" stroke="#374151" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093M12 17h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </button>
@@ -390,9 +392,9 @@ export default function Sidebar() {
           >
             {clinicLogoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={clinicLogoUrl} alt="" style={{ width: 30, height: 30, borderRadius: 99, objectFit: "cover", border: "1.5px solid rgba(255,255,255,0.3)" }} />
+              <img src={clinicLogoUrl} alt="" style={{ width: 30, height: 30, borderRadius: 99, objectFit: "cover", border: "1.5px solid #e5e7eb" }} />
             ) : (
-              <div style={{ width: 30, height: 30, borderRadius: 99, background: "linear-gradient(135deg, #10b981, #059669)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 11, fontWeight: 700, border: "1.5px solid rgba(255,255,255,0.3)" }}>
+              <div style={{ width: 30, height: 30, borderRadius: 99, background: "linear-gradient(135deg, #10b981, #059669)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 11, fontWeight: 700, border: "1.5px solid #e5e7eb" }}>
                 {userInitials}
               </div>
             )}
