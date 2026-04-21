@@ -343,15 +343,6 @@ export default function Dashboard() {
               </div>
             </Link>
           )}
-          <Link href="/appointments/calendar" className="flex items-center gap-3 p-3 rounded-xl transition-all hover:shadow-md" style={{ background: "white", border: "1.5px solid #e5e7eb" }}>
-            <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "#fdf4ff" }}>
-              <svg className="w-4 h-4" fill="none" stroke="#9333ea" viewBox="0 0 24 24" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-            </div>
-            <div>
-              <p className="text-[13px] font-semibold" style={{ color: "#111827" }}>Calendar</p>
-              <p className="text-[11px]" style={{ color: "#9ca3af" }}>View schedule</p>
-            </div>
-          </Link>
           {isPharmacist && (
             <Link href="/inventory" className="flex items-center gap-3 p-3 rounded-xl transition-all hover:shadow-md" style={{ background: "white", border: "1.5px solid #e5e7eb" }}>
               <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: "#fff7ed" }}>

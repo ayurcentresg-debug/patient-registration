@@ -712,7 +712,6 @@ function ViewAsModal({
     "/patients": "👥 Patients",
     "/patients/new": "➕ Register Patient",
     "/appointments": "📅 Appointments",
-    "/appointments/calendar": "📅 Calendar",
     "/packages": "🎁 Packages",
     "/prescriptions": "📝 Prescriptions",
     "/inventory": "💊 Inventory",

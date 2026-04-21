@@ -573,7 +573,6 @@ export function getVisibleNavItems(
     "/patients": a("patients"),
     "/patients/new": w("patients"),
     "/appointments": a("appointments"),
-    "/appointments/calendar": a("appointments"),
     "/packages": a("packages"),
     "/prescriptions": a("prescriptions"),
     "/inventory": a("inventory"),
