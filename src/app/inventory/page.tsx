@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import InventoryTabs from "@/components/InventoryTabs";
-import { HelpTip, PageGuide, SectionNote } from "@/components/HelpTip";
+import { HelpTip, SectionNote } from "@/components/HelpTip";
 import { TablePageSkeleton } from "@/components/Skeleton";
 import { cardStyle, btnPrimary, chipBase } from "@/lib/styles";
 import { formatDate } from "@/lib/formatters";
@@ -318,21 +318,6 @@ export default function InventoryPage() {
 
       {/* ── Tabs ──────────────────────────────────────────────────── */}
       <InventoryTabs />
-
-      {/* ── Getting Started Guide ────────────────────────────────── */}
-      <PageGuide
-        storageKey="inventory"
-        title="Inventory Quick Guide"
-        subtitle="Manage your clinic's medicines, herbs, oils, and equipment in one place."
-        steps={[
-          { icon: "📦", title: "Add Items", description: "Click 'Add Item' to add new medicines or supplies. Each item gets a unique SKU automatically." },
-          { icon: "✅", title: "Bulk Status Update", description: "Use checkboxes to select items, then change status to Active, Inactive, or Discontinued in one click." },
-          { icon: "🔍", title: "Search & Filter", description: "Search by name/SKU, filter by category or status. Use 'Low Stock' and 'Expiring Soon' quick filters." },
-          { icon: "📊", title: "Stock Management", description: "Click any item to view details, adjust stock, record purchases, or view transaction history." },
-          { icon: "🏷️", title: "Status Meanings", description: "Active = in use, Inactive = temporarily unavailable, Discontinued = no longer stocked." },
-          { icon: "⚠️", title: "Alerts & Reorder", description: "Items turn red when stock falls below reorder level. Check 'Alerts' tab for all low-stock items." },
-        ]}
-      />
 
       {/* ── Stats Cards ──────────────────────────────────────────── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">

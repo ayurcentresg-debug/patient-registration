@@ -3,7 +3,6 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { PageGuide } from "@/components/HelpTip";
 import { downloadCSV } from "@/lib/csv-export";
 import { useFlash } from "@/components/FlashCardProvider";
 import WaitlistModal from "@/components/WaitlistModal";
@@ -1189,23 +1188,6 @@ export default function AppointmentsPage() {
           }}
         />
       )}
-
-      {/* ─── Getting Started Guide ─── */}
-      <div className="px-4 pt-3">
-        <PageGuide
-          storageKey="appointments"
-          title="Appointments Guide"
-          subtitle="Schedule, manage, and track patient appointments."
-          steps={[
-            { icon: "📅", title: "Book Appointment", description: "Click on any empty time slot in the calendar to quickly book an appointment. Or use the '+ New' button." },
-            { icon: "👁️", title: "View Modes", description: "Switch between Day, 5-Day, Week, and Month views using the toolbar buttons." },
-            { icon: "🔄", title: "Appointment Status", description: "Scheduled > Confirmed > In Progress > Completed. Click an appointment to change its status or cancel it." },
-            { icon: "🚶", title: "Walk-in Patients", description: "For walk-in patients without a registration, tick 'Walk-in' when booking — no patient record required." },
-            { icon: "👨‍⚕️", title: "Filter by Doctor", description: "Use the doctor sidebar (left) to filter appointments by specific doctor or therapist." },
-            { icon: "📊", title: "Status Summary", description: "The right sidebar shows today's appointment counts by status for a quick overview." },
-          ]}
-        />
-      </div>
 
       {/* ─── Toolbar Row 1: Date + Today + View Toggles + Nav + Schedule Title ─── */}
       <div className="flex items-center gap-0 border-b overflow-x-auto" style={{ background: "#f8f8f8", borderColor: "var(--grey-300)", height: 52 }}>

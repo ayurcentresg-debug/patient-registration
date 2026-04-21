@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import CommunicationTabs from "@/components/CommunicationTabs";
 import { useFlash } from "@/components/FlashCardProvider";
-import { PageGuide } from "@/components/HelpTip";
 import { TablePageSkeleton } from "@/components/Skeleton";
 import { cardStyle, inputStyle } from "@/lib/styles";
 
@@ -232,20 +231,6 @@ export default function MessagesPage() {
           New Message
         </button>
       </div>
-
-      <PageGuide
-        storageKey="communications"
-        title="Communications Guide"
-        subtitle="Send messages and reminders to patients via WhatsApp, SMS, or Email."
-        steps={[
-          { icon: "💬", title: "Send Message", description: "Click 'New Message' to send a WhatsApp, SMS, or Email to any patient. Select the patient and type." },
-          { icon: "📋", title: "Templates", description: "Go to Templates tab to create reusable message templates for appointment reminders, follow-ups, etc." },
-          { icon: "⏰", title: "Reminders", description: "Set up automatic appointment reminders in the Reminders tab. Choose timing (1 day before, 1 hour before)." },
-          { icon: "📢", title: "Bulk Messaging", description: "Use Bulk tab to send messages to multiple patients at once — great for announcements or promotions." },
-          { icon: "📊", title: "Delivery Status", description: "Track sent, delivered, and failed messages. Failed messages can be retried." },
-          { icon: "📱", title: "WhatsApp Integration", description: "WhatsApp messages require a connected business number. Contact admin to set up the integration." },
-        ]}
-      />
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">

@@ -4,7 +4,6 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import BillingTabs from "@/components/BillingTabs";
 import { downloadCSV } from "@/lib/csv-export";
-import { PageGuide } from "@/components/HelpTip";
 import { TablePageSkeleton } from "@/components/Skeleton";
 import { cardStyle, btnPrimary, chipBase } from "@/lib/styles";
 import { formatCurrency, formatDate } from "@/lib/formatters";
@@ -311,20 +310,6 @@ export default function BillingPage() {
           </Link>
         </div>
       </div>
-
-      <PageGuide
-        storageKey="billing"
-        title="Billing & Invoicing Guide"
-        subtitle="Create invoices, record payments, and track revenue."
-        steps={[
-          { icon: "🧾", title: "Create Invoice", description: "Click 'New Invoice' to create a bill. Select a patient, add consultation fees, medicines, or treatments as line items." },
-          { icon: "💳", title: "Record Payment", description: "Click any pending invoice to open it. Use 'Record Payment' to log cash, card, or UPI payments. Partial payments are supported." },
-          { icon: "🧾", title: "Invoice Status", description: "Draft = not sent, Pending = awaiting payment, Paid = fully paid, Partially Paid = balance remaining." },
-          { icon: "📦", title: "Package Billing", description: "Sell treatment packages from Billing > Packages tab. Package invoices are auto-linked to the treatment plan." },
-          { icon: "🏥", title: "Insurance Claims", description: "Manage insurance claims from the Insurance tab. Link claims to invoices for tracking." },
-          { icon: "📊", title: "Revenue Tracking", description: "The stats cards above show today's revenue, monthly revenue, and pending amounts at a glance." },
-        ]}
-      />
 
       {/* ── Stats Cards ──────────────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">

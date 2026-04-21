@@ -4,7 +4,6 @@ import { useEffect, useState, useCallback } from "react";
 import { useFlash } from "@/components/FlashCardProvider";
 import Link from "next/link";
 import AdminTabs from "@/components/AdminTabs";
-import { PageGuide } from "@/components/HelpTip";
 import { validatePassword, PASSWORD_RULES } from "@/lib/country-data";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -238,20 +237,6 @@ export default function StaffPage() {
       </div>
 
       <AdminTabs />
-
-      <PageGuide
-        storageKey="admin-staff"
-        title="Staff Management Guide"
-        subtitle="Add and manage all clinic staff — doctors, therapists, pharmacists, and receptionists."
-        steps={[
-          { icon: "➕", title: "Add Staff", description: "Click 'Add Staff' to register a new team member. Select their role (Doctor, Therapist, Pharmacist, Receptionist, Admin)." },
-          { icon: "🆔", title: "Staff IDs", description: "Each staff member gets a unique ID: D10001 (Doctor), T10001 (Therapist), P10001 (Pharmacist), R10001 (Receptionist), A10001 (Admin)." },
-          { icon: "📅", title: "Doctor Schedules", description: "For doctors and therapists, set their weekly schedule and slot duration. This controls available appointment slots." },
-          { icon: "📧", title: "Email Invites", description: "Toggle 'Send email invite' when adding staff. They'll receive a link to set their own password and log in." },
-          { icon: "🔒", title: "Roles & Permissions", description: "Admin = full access, Doctor/Therapist = clinical access, Receptionist = patient & booking access, Pharmacist = inventory access." },
-          { icon: "⚙️", title: "Edit or Deactivate", description: "Click any staff member to edit their details. Set status to Inactive to disable their login without deleting the record." },
-        ]}
-      />
 
       {/* Filters card */}
       <div className="p-4 mb-5" style={cardStyle}>

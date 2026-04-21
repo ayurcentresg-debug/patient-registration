@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
-import { PageGuide } from "@/components/HelpTip";
 import { PatientListSkeleton } from "@/components/Skeleton";
 import { downloadCSV } from "@/lib/csv-export";
 import { cardStyle, btnPrimary, chipBase } from "@/lib/styles";
@@ -238,20 +237,6 @@ export default function PatientsPage() {
           </Link>
         </div>
       </div>
-
-      <PageGuide
-        storageKey="patients"
-        title="Patient Management Guide"
-        subtitle="Register, track, and manage all your clinic patients."
-        steps={[
-          { icon: "➕", title: "Register New Patient", description: "Click 'Register Patient' to add a new patient. A unique Patient ID (e.g., P10001) is generated automatically." },
-          { icon: "📋", title: "Patient Profile", description: "Click any patient to view their full profile — appointments, clinical notes, prescriptions, billing, and more." },
-          { icon: "🔍", title: "Search & Filter", description: "Search by name, phone, or patient ID. Filter by status (Active/Inactive) or gender using the chips below." },
-          { icon: "📂", title: "Patient Sidebar Tabs", description: "Each patient has 3 sections: Patient (profile, appointments), EMR (clinical notes, prescriptions, vitals), and Billing (invoices, payments)." },
-          { icon: "💰", title: "Patient Billing", description: "Create invoices directly from a patient's profile using the Invoices tab > New Invoice button." },
-          { icon: "📱", title: "Communications", description: "Send SMS/WhatsApp reminders to patients from their Communications tab." },
-        ]}
-      />
 
       {/* ── Search + Filters Row ────────────────────────────────── */}
       <div className="mb-5 space-y-3">

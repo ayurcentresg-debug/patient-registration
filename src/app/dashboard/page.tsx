@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import StatsCard from "@/components/StatsCard";
-import { PageGuide } from "@/components/HelpTip";
 import { useAuth } from "@/components/AuthProvider";
 import dynamic from "next/dynamic";
 
@@ -356,20 +355,6 @@ export default function Dashboard() {
           )}
         </div>
       )}
-
-      <PageGuide
-        storageKey="dashboard"
-        title="Welcome to Your Clinic Dashboard"
-        subtitle="Here's a quick overview of how to get started with the system."
-        steps={[
-          { icon: "👤", title: "Register Patients", description: "Go to Patients > Add Patient to register new patients with their details, medical history, and insurance info." },
-          { icon: "📅", title: "Book Appointments", description: "Schedule appointments from the Appointments page. Select a doctor, time slot, and treatment type." },
-          { icon: "💊", title: "Manage Inventory", description: "Track medicines, herbs, and supplies in the Inventory section. Set reorder levels for automatic alerts." },
-          { icon: "💰", title: "Create Invoices", description: "Go to Billing > New Invoice to bill patients for consultations, treatments, and medicines." },
-          { icon: "👨‍⚕️", title: "Add Staff", description: "Set up doctors, therapists, and staff in the Admin section. Each gets a unique Staff ID." },
-          { icon: "📊", title: "Track Revenue", description: "This dashboard shows today's revenue, appointment stats, and trends. Data updates in real-time." },
-        ]}
-      />
 
       {/* ═══════ Setup Checklist ═══════ */}
       {setupChecklist && !setupChecklist.allComplete && !checklistDismissed && (

@@ -5,7 +5,6 @@ import { useFlash } from "@/components/FlashCardProvider";
 import AdminTabs from "@/components/AdminTabs";
 import TreatmentTabs from "@/components/TreatmentTabs";
 import ConfirmDialog from "@/components/ConfirmDialog";
-import { PageGuide } from "@/components/HelpTip";
 import { cardStyle, inputStyle, chipBase } from "@/lib/styles";
 import { formatCurrency } from "@/lib/formatters";
 
@@ -395,20 +394,6 @@ export default function TreatmentsPage() {
 
       <AdminTabs />
       <TreatmentTabs />
-
-      <PageGuide
-        storageKey="treatments"
-        title="Treatments & Packages Guide"
-        subtitle="Set up your clinic's Ayurveda treatments and session packages."
-        steps={[
-          { icon: "🌿", title: "Add Treatment", description: "Create treatments like Abhyangam, Shirodhara, etc. Set name, category, duration, and base price." },
-          { icon: "📦", title: "Create Packages", description: "For each treatment, add packages (e.g., 5 sessions, 10 sessions) with discounted pricing." },
-          { icon: "💰", title: "Pricing", description: "Set base price per session. Packages can have a discount % — the per-session price is calculated automatically." },
-          { icon: "📋", title: "Treatment Plans", description: "Go to Treatment Plans tab to create personalized plans for patients with scheduled sessions." },
-          { icon: "🏷️", title: "Categories", description: "Organize treatments: Panchakarma, Massage, Specialty, Consultation. Helps with filtering and reporting." },
-          { icon: "📊", title: "Track Progress", description: "Use Progress tab to track which sessions are completed across active treatment plans." },
-        ]}
-      />
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3 mb-5">
