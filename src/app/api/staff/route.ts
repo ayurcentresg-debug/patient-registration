@@ -90,6 +90,7 @@ export async function GET(request: NextRequest) {
         inviteExpiresAt: true,
         lastLogin: true,
         createdAt: true,
+        permissionOverrides: true,
         _count: { select: { appointments: true } },
       },
     });

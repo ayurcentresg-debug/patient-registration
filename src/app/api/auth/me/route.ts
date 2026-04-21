@@ -16,6 +16,7 @@ export async function GET(req: NextRequest) {
 
   // Load clinic-level role overrides (best-effort; don't fail auth if missing)
   let rolePermissions: string | null = null;
+  let userPermissions: string | null = null;
   if (payload.clinicId) {
     try {
       const clinic = await prisma.clinic.findUnique({
@@ -23,10 +24,15 @@ export async function GET(req: NextRequest) {
         select: { rolePermissions: true },
       });
       rolePermissions = clinic?.rolePermissions ?? null;
-    } catch {
-      // ignore
-    }
+    } catch { /* ignore */ }
   }
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: payload.userId },
+      select: { permissionOverrides: true },
+    });
+    userPermissions = user?.permissionOverrides ?? null;
+  } catch { /* ignore */ }
 
   return NextResponse.json({
     user: {
@@ -37,5 +43,6 @@ export async function GET(req: NextRequest) {
       clinicId: payload.clinicId || "",
     },
     rolePermissions,
+    userPermissions,
   });
 }

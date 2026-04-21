@@ -911,6 +911,12 @@ model User {
   inviteToken     String?   @unique // keep globally unique for invite links
   inviteExpiresAt DateTime?
 
+  // RBAC — per-user permission overrides (JSON)
+  // Shape: { [module]: accessLevel }
+  // Applied AFTER clinic-level role overrides, takes precedence over both.
+  // Missing modules fall back to clinic overrides → code defaults.
+  permissionOverrides String?
+
   // ─── HR / MOM KET fields (Key Employment Terms) ───
   // Working hours & rest
   dailyStartTime      String?  // e.g. "09:00" — HH:MM 24h

@@ -279,6 +279,41 @@ export function getEffectiveAccess(
   return permissions[module] || "none";
 }
 
+// ─── Per-user overrides ──────────────────────────────────────────────────────
+// Stored as JSON on User.permissionOverrides. Shape:
+//   { [module]: AccessLevel }
+// These take precedence over clinic role overrides and code defaults.
+
+export type UserOverrides = Partial<Record<Module, AccessLevel>>;
+
+export function parseUserOverrides(raw: string | null | undefined): UserOverrides {
+  if (!raw) return {};
+  try {
+    const parsed = JSON.parse(raw);
+    if (typeof parsed !== "object" || parsed === null) return {};
+    return parsed as UserOverrides;
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * Get the effective access level for a specific user+module, applying:
+ *   1. User-specific overrides (highest priority)
+ *   2. Clinic-level role overrides
+ *   3. Code defaults (lowest)
+ */
+export function getUserEffectiveAccess(
+  role: string,
+  module: Module,
+  clinicOverrides?: RoleOverrides,
+  userOverrides?: UserOverrides
+): AccessLevel {
+  const userOv = userOverrides?.[module];
+  if (userOv) return userOv;
+  return getEffectiveAccess(role, module, clinicOverrides);
+}
+
 // ─── Helper functions ────────────────────────────────────────────────────────
 
 /**
@@ -426,11 +461,12 @@ export const PRESCRIBER_ROLES: string[] = ROLES.filter(
  */
 export function getVisibleNavItems(
   role: string,
-  overrides?: RoleOverrides
+  overrides?: RoleOverrides,
+  userOverrides?: UserOverrides
 ): Record<string, boolean> {
-  const a = (m: Module) => getEffectiveAccess(role, m, overrides) !== "none";
+  const a = (m: Module) => getUserEffectiveAccess(role, m, overrides, userOverrides) !== "none";
   const w = (m: Module) => {
-    const lv = getEffectiveAccess(role, m, overrides);
+    const lv = getUserEffectiveAccess(role, m, overrides, userOverrides);
     return lv === "full" || lv === "write" || lv === "own";
   };
   return {

@@ -15,8 +15,11 @@ import {
   type Module,
   type AccessLevel,
   type RoleOverrides,
+  type UserOverrides,
   getVisibleNavItems,
   getEffectiveAccess,
+  getUserEffectiveAccess,
+  parseUserOverrides,
 } from "@/lib/permissions";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -29,6 +32,7 @@ interface Staff {
   isActive: boolean;
   staffIdNumber: string | null;
   lastLogin: string | null;
+  permissionOverrides?: string | null;
 }
 
 // ─── Display config ─────────────────────────────────────────────────────────
@@ -102,6 +106,7 @@ export default function PermissionsPage() {
   const [search, setSearch] = useState("");
   const [busyUserId, setBusyUserId] = useState<string | null>(null);
   const [editingRole, setEditingRole] = useState<Role | null>(null);
+  const [editingUser, setEditingUser] = useState<Staff | null>(null);
   const [overrides, setOverrides] = useState<RoleOverrides>({});
   const { showFlash } = useFlash();
   const confirm = useConfirm();
@@ -170,6 +175,36 @@ export default function PermissionsPage() {
         message: `Permissions for ${role} updated.`,
       });
       setEditingRole(null);
+    } catch (e) {
+      showFlash({
+        type: "error",
+        title: "Failed",
+        message: e instanceof Error ? e.message : "Could not save permissions",
+      });
+    }
+  }
+
+  async function saveUserOverrides(user: Staff, userOv: UserOverrides) {
+    try {
+      const res = await fetch(`/api/staff/${user.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ permissionOverrides: userOv }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || `Failed (${res.status})`);
+      }
+      // If editing self, refresh own permissions for live sidebar update
+      await refreshPermissions();
+      await loadStaff();
+      showFlash({
+        type: "success",
+        title: "Saved",
+        message: `Custom permissions for ${user.name} updated.`,
+      });
+      setEditingUser(null);
     } catch (e) {
       showFlash({
         type: "error",
@@ -430,9 +465,11 @@ export default function PermissionsPage() {
             {filteredStaff.map((user, idx) => {
               const isOpen = expandedUserId === user.id;
               const meta = ROLE_META[user.role as Role] || ROLE_META.staff;
+              const userOv = parseUserOverrides(user.permissionOverrides);
+              const hasUserOv = Object.keys(userOv).length > 0;
               const perms: Record<Module, AccessLevel> = { ...(ROLE_PERMISSIONS[user.role as Role] || ROLE_PERMISSIONS.staff) };
               for (const mod of MODULES) {
-                perms[mod] = getEffectiveAccess(user.role, mod, overrides);
+                perms[mod] = getUserEffectiveAccess(user.role, mod, overrides, userOv);
               }
               const accessibleCount = MODULES.filter((m) => perms[m] !== "none").length;
 
@@ -466,15 +503,43 @@ export default function PermissionsPage() {
                       </div>
                     </div>
                     <div
-                      className="text-[12px] font-bold px-2.5 py-1 rounded-full"
+                      className="text-[12px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1"
                       style={{ background: meta.bg, color: meta.color }}
                     >
                       {meta.label}
+                      {hasUserOv && (
+                        <span
+                          style={{
+                            background: "#fef3c7",
+                            color: "#b45309",
+                            fontSize: 9,
+                            padding: "1px 5px",
+                            borderRadius: 3,
+                            letterSpacing: "0.05em",
+                          }}
+                          title={`${Object.keys(userOv).length} custom override${Object.keys(userOv).length === 1 ? "" : "s"}`}
+                        >
+                          +{Object.keys(userOv).length}
+                        </span>
+                      )}
                     </div>
                     <div className="text-[12px] hidden sm:block" style={{ color: "var(--grey-500)" }}>
                       {accessibleCount} modules
                     </div>
                     <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                      <button
+                        onClick={() => setEditingUser(user)}
+                        className="text-[12px] font-semibold px-2.5 py-1.5"
+                        style={{
+                          background: hasUserOv ? "#fef3c7" : "#faf5ff",
+                          color: hasUserOv ? "#b45309" : "#7c3aed",
+                          border: `1px solid ${hasUserOv ? "#fde68a" : "#e9d5ff"}`,
+                          borderRadius: "var(--radius-sm)",
+                        }}
+                        title="Set custom permissions for this user only"
+                      >
+                        🎯 Custom
+                      </button>
                       <button
                         onClick={() => setViewAs({ name: user.name, role: user.role })}
                         className="text-[12px] font-semibold px-2.5 py-1.5"
@@ -584,6 +649,12 @@ export default function PermissionsPage() {
           name={viewAs.name}
           role={viewAs.role}
           overrides={overrides}
+          userOverrides={
+            (() => {
+              const u = staff.find((s) => s.name === viewAs.name && s.role === viewAs.role);
+              return u ? parseUserOverrides(u.permissionOverrides) : {};
+            })()
+          }
           onClose={() => setViewAs(null)}
         />
       )}
@@ -597,19 +668,37 @@ export default function PermissionsPage() {
           onSave={(rp) => saveOverrides(editingRole, rp)}
         />
       )}
+
+      {/* ─── User Permissions Editor Modal (Option 3) ───────────────────────── */}
+      {editingUser && (
+        <UserPermissionsEditor
+          user={editingUser}
+          clinicOverrides={overrides}
+          onClose={() => setEditingUser(null)}
+          onSave={(ov) => saveUserOverrides(editingUser, ov)}
+        />
+      )}
     </div>
   );
 }
 
 // ─── View As Modal ──────────────────────────────────────────────────────────
 
-function ViewAsModal({ name, role, overrides, onClose }: { name: string; role: string; overrides: RoleOverrides; onClose: () => void }) {
+function ViewAsModal({
+  name, role, overrides, userOverrides = {}, onClose,
+}: {
+  name: string;
+  role: string;
+  overrides: RoleOverrides;
+  userOverrides?: UserOverrides;
+  onClose: () => void;
+}) {
   const meta = ROLE_META[role as Role] || ROLE_META.staff;
-  const visibleNav = getVisibleNavItems(role, overrides);
+  const visibleNav = getVisibleNavItems(role, overrides, userOverrides);
   const visibleHrefs = Object.entries(visibleNav).filter(([, v]) => v).map(([h]) => h);
   const perms: Record<Module, AccessLevel> = { ...(ROLE_PERMISSIONS[role as Role] || ROLE_PERMISSIONS.staff) };
   for (const mod of MODULES) {
-    perms[mod] = getEffectiveAccess(role, mod, overrides);
+    perms[mod] = getUserEffectiveAccess(role, mod, overrides, userOverrides);
   }
 
   const hrefToLabel: Record<string, string> = {
@@ -1115,5 +1204,272 @@ function RoleMatrixEditor({
       </div>
     </div>
   );
+}
+
+// ─── User Permissions Editor (Option 3: per-user overrides) ─────────────────
+
+function UserPermissionsEditor({
+  user,
+  clinicOverrides,
+  onClose,
+  onSave,
+}: {
+  user: Staff;
+  clinicOverrides: RoleOverrides;
+  onClose: () => void;
+  onSave: (ov: UserOverrides) => void | Promise<void>;
+}) {
+  const meta = ROLE_META[user.role as Role] || ROLE_META.staff;
+  const existing = parseUserOverrides(user.permissionOverrides);
+  const roleDefaults: Record<Module, AccessLevel> = {} as Record<Module, AccessLevel>;
+  for (const mod of MODULES) {
+    roleDefaults[mod] = getEffectiveAccess(user.role, mod, clinicOverrides);
+  }
+
+  const [picks, setPicks] = useState<Record<Module, AccessLevel | null>>(() => {
+    const init: Record<Module, AccessLevel | null> = {} as Record<Module, AccessLevel | null>;
+    for (const mod of MODULES) {
+      init[mod] = existing[mod] ?? null;
+    }
+    return init;
+  });
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", h);
+    return () => window.removeEventListener("keydown", h);
+  }, [onClose]);
+
+  const overrideCount = MODULES.filter((m) => picks[m] !== null).length;
+
+  async function handleSave() {
+    const ov: UserOverrides = {};
+    for (const mod of MODULES) {
+      const v = picks[mod];
+      if (v !== null) ov[mod] = v;
+    }
+    setSaving(true);
+    try {
+      await onSave(ov);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function clearAll() {
+    const empty: Record<Module, AccessLevel | null> = {} as Record<Module, AccessLevel | null>;
+    for (const mod of MODULES) empty[mod] = null;
+    setPicks(empty);
+  }
+
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: "fixed", inset: 0, zIndex: 265,
+        background: "rgba(0,0,0,0.45)",
+        backdropFilter: "blur(4px)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        padding: 16,
+        animation: "userPermOverlayIn 0.2s ease-out",
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: "100%", maxWidth: 600, maxHeight: "90vh",
+          background: "#fff", borderRadius: 16,
+          boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
+          overflow: "hidden",
+          display: "flex", flexDirection: "column",
+          animation: "userPermCardIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
+        }}
+      >
+        {/* Header */}
+        <div
+          style={{
+            padding: "18px 20px",
+            background: "linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%)",
+            borderBottom: "1px solid var(--grey-200)",
+            display: "flex", alignItems: "center", gap: 12,
+          }}
+        >
+          <div
+            style={{
+              width: 44, height: 44, background: "#fff", borderRadius: "50%",
+              display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22,
+            }}
+          >
+            🎯
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 16, fontWeight: 700, color: "#7c3aed" }}>
+              Custom permissions — {user.name}
+            </div>
+            <div style={{ fontSize: 12, color: "var(--grey-600)" }}>
+              {meta.label} • {overrideCount === 0 ? "Uses role defaults" : `${overrideCount} custom override${overrideCount === 1 ? "" : "s"}`}
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            style={{ border: "none", background: "transparent", fontSize: 22, color: "var(--grey-500)", cursor: "pointer", padding: 4 }}
+            aria-label="Close"
+          >
+            ×
+          </button>
+        </div>
+
+        {/* Body */}
+        <div style={{ overflowY: "auto", padding: "14px 20px", flex: 1 }}>
+          <p style={{ fontSize: 12, color: "var(--grey-600)", margin: "0 0 14px" }}>
+            Leave a module on <b>&ldquo;(inherit)&rdquo;</b> to use the {meta.label} role default.
+            Pick a specific level to override just for <b>{user.name}</b>. Overrides take precedence over role + clinic defaults.
+          </p>
+
+          {MODULES.map((mod) => {
+            const mm = MODULE_META[mod];
+            const roleDefault = roleDefaults[mod];
+            const pick = picks[mod];
+            const hasOverride = pick !== null;
+            const effective = pick ?? roleDefault;
+
+            const grantsMore = hasOverride && pick !== null && rankLevel(pick) > rankLevel(roleDefault);
+            const grantsLess = hasOverride && pick !== null && rankLevel(pick) < rankLevel(roleDefault);
+
+            return (
+              <div
+                key={mod}
+                style={{
+                  display: "grid", gridTemplateColumns: "1fr auto",
+                  gap: 10, alignItems: "center",
+                  padding: "8px 10px", borderRadius: 6,
+                  background: hasOverride ? "#faf5ff" : "transparent",
+                  border: hasOverride ? "1px solid #e9d5ff" : "1px solid transparent",
+                  marginBottom: 4,
+                }}
+              >
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontSize: 14, fontWeight: 500, color: "var(--grey-900)" }}>
+                    <span style={{ marginRight: 6 }}>{mm.icon}</span>
+                    {mm.label}
+                    {grantsMore && (
+                      <span style={{ fontSize: 10, color: "#15803d", fontWeight: 700, marginLeft: 6 }}>
+                        +MORE
+                      </span>
+                    )}
+                    {grantsLess && (
+                      <span style={{ fontSize: 10, color: "#dc2626", fontWeight: 700, marginLeft: 6 }}>
+                        −LESS
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ fontSize: 11, color: "var(--grey-500)", marginTop: 1 }}>
+                    Role default: <b>{roleDefault}</b>
+                    {hasOverride && <> • Effective: <b style={{ color: LEVEL_META[effective].color }}>{effective}</b></>}
+                  </div>
+                </div>
+                <select
+                  value={pick ?? "__inherit__"}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setPicks((p) => ({ ...p, [mod]: val === "__inherit__" ? null : (val as AccessLevel) }));
+                  }}
+                  style={{
+                    fontSize: 13, fontWeight: 600,
+                    padding: "6px 8px",
+                    border: `1px solid ${hasOverride ? "#a855f7" : "var(--grey-300)"}`,
+                    borderRadius: 6,
+                    background: hasOverride ? LEVEL_META[effective].bg : "#fff",
+                    color: hasOverride ? LEVEL_META[effective].color : "var(--grey-600)",
+                    textTransform: "uppercase",
+                    cursor: "pointer",
+                    minWidth: 130,
+                  }}
+                >
+                  <option value="__inherit__">(inherit)</option>
+                  {ACCESS_LEVELS.map((lvl) => (
+                    <option key={lvl} value={lvl}>
+                      {LEVEL_META[lvl].emoji} {LEVEL_META[lvl].label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Footer */}
+        <div
+          style={{
+            display: "flex", gap: 10,
+            padding: "14px 20px",
+            borderTop: "1px solid var(--grey-200)",
+            background: "var(--grey-50)",
+          }}
+        >
+          <button
+            onClick={clearAll}
+            disabled={saving || overrideCount === 0}
+            style={{
+              padding: "9px 14px",
+              border: "1px solid var(--grey-300)",
+              borderRadius: 8,
+              background: "#fff", color: "var(--grey-700)",
+              fontSize: 13, fontWeight: 600,
+              cursor: (saving || overrideCount === 0) ? "not-allowed" : "pointer",
+              opacity: (saving || overrideCount === 0) ? 0.4 : 1,
+            }}
+          >
+            Clear all overrides
+          </button>
+          <div style={{ flex: 1 }} />
+          <button
+            onClick={onClose}
+            disabled={saving}
+            style={{
+              padding: "9px 14px",
+              border: "1px solid var(--grey-300)",
+              borderRadius: 8,
+              background: "#fff", color: "var(--grey-700)",
+              fontSize: 13, fontWeight: 600,
+              cursor: saving ? "wait" : "pointer",
+              opacity: saving ? 0.5 : 1,
+            }}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            style={{
+              padding: "9px 18px",
+              border: "none", borderRadius: 8,
+              background: saving ? "var(--grey-300)" : "#7c3aed",
+              color: "#fff",
+              fontSize: 13, fontWeight: 700,
+              textTransform: "uppercase", letterSpacing: "0.03em",
+              cursor: saving ? "not-allowed" : "pointer",
+              boxShadow: saving ? "none" : "0 2px 8px #7c3aed40",
+            }}
+          >
+            {saving ? "Saving…" : "Save overrides"}
+          </button>
+        </div>
+
+        <style>{`
+          @keyframes userPermOverlayIn { from { opacity: 0 } to { opacity: 1 } }
+          @keyframes userPermCardIn {
+            from { opacity: 0; transform: translateY(30px) scale(0.94) }
+            to { opacity: 1; transform: translateY(0) scale(1) }
+          }
+        `}</style>
+      </div>
+    </div>
+  );
+}
+
+function rankLevel(level: AccessLevel): number {
+  return { full: 4, write: 3, view: 2, own: 1, none: 0 }[level];
 }
 

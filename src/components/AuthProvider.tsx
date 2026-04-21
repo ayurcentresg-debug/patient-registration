@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { parseOverrides, type RoleOverrides } from "@/lib/permissions";
+import { parseOverrides, parseUserOverrides, type RoleOverrides, type UserOverrides } from "@/lib/permissions";
 
 interface User {
   id: string;
@@ -17,6 +17,7 @@ interface AuthContextType {
   loading: boolean;
   logout: () => Promise<void>;
   rolePermissions: RoleOverrides;
+  userPermissions: UserOverrides;
   refreshPermissions: () => Promise<void>;
 }
 
@@ -25,6 +26,7 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
   logout: async () => {},
   rolePermissions: {},
+  userPermissions: {},
   refreshPermissions: async () => {},
 });
 
@@ -35,6 +37,7 @@ export function useAuth() {
 export default function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [rolePermissions, setRolePermissions] = useState<RoleOverrides>({});
+  const [userPermissions, setUserPermissions] = useState<UserOverrides>({});
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
@@ -46,9 +49,11 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
         const data = await res.json();
         setUser(data.user);
         setRolePermissions(parseOverrides(data.rolePermissions));
+        setUserPermissions(parseUserOverrides(data.userPermissions));
       } else {
         setUser(null);
         setRolePermissions({});
+        setUserPermissions({});
         if (pathname !== "/login") {
           router.push("/login");
         }
@@ -56,6 +61,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     } catch {
       setUser(null);
       setRolePermissions({});
+      setUserPermissions({});
     } finally {
       setLoading(false);
     }
@@ -71,6 +77,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
       if (res.ok) {
         const data = await res.json();
         setRolePermissions(parseOverrides(data.rolePermissions));
+        setUserPermissions(parseUserOverrides(data.userPermissions));
       }
     } catch {
       // ignore
@@ -81,6 +88,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     await fetch("/api/auth/logout", { method: "POST" });
     setUser(null);
     setRolePermissions({});
+    setUserPermissions({});
     router.push("/login");
   };
 
@@ -108,7 +116,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, logout, rolePermissions, refreshPermissions }}>
+    <AuthContext.Provider value={{ user, loading, logout, rolePermissions, userPermissions, refreshPermissions }}>
       {children}
     </AuthContext.Provider>
   );

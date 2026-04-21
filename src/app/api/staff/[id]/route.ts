@@ -4,6 +4,10 @@ import { getClinicId, requireRole, ADMIN_ROLES, STAFF_ROLES } from "@/lib/get-cl
 import { getTenantPrisma } from "@/lib/tenant-db";
 import bcrypt from "bcryptjs";
 import { logAudit } from "@/lib/audit";
+import { MODULES, ACCESS_LEVELS } from "@/lib/permissions";
+
+const VALID_MODULES: string[] = [...MODULES];
+const VALID_ACCESS_LEVELS: string[] = [...ACCESS_LEVELS];
 
 // GET /api/staff/[id]
 export async function GET(
@@ -77,6 +81,28 @@ export async function PUT(
     if (body.slotDuration !== undefined) updateData.slotDuration = Number(body.slotDuration);
     if (body.status !== undefined) updateData.status = body.status;
     if (body.isActive !== undefined) updateData.isActive = body.isActive;
+    if (body.permissionOverrides !== undefined) {
+      // Accept either a parsed object or a stringified JSON
+      if (body.permissionOverrides === null || body.permissionOverrides === "") {
+        updateData.permissionOverrides = null;
+      } else if (typeof body.permissionOverrides === "string") {
+        try {
+          JSON.parse(body.permissionOverrides); // validate
+          updateData.permissionOverrides = body.permissionOverrides;
+        } catch {
+          return NextResponse.json({ error: "permissionOverrides: invalid JSON" }, { status: 400 });
+        }
+      } else if (typeof body.permissionOverrides === "object") {
+        // Basic shape validation
+        const cleaned: Record<string, string> = {};
+        for (const [mod, lvl] of Object.entries(body.permissionOverrides)) {
+          if (!VALID_MODULES.includes(mod)) continue;
+          if (typeof lvl !== "string" || !VALID_ACCESS_LEVELS.includes(lvl)) continue;
+          cleaned[mod] = lvl;
+        }
+        updateData.permissionOverrides = Object.keys(cleaned).length > 0 ? JSON.stringify(cleaned) : null;
+      }
+    }
     if (body.dateOfJoining !== undefined) updateData.dateOfJoining = body.dateOfJoining ? new Date(body.dateOfJoining) : null;
     if (body.lastWorkingDate !== undefined) updateData.lastWorkingDate = body.lastWorkingDate ? new Date(body.lastWorkingDate) : null;
     if (body.resignationDate !== undefined) updateData.resignationDate = body.resignationDate ? new Date(body.resignationDate) : null;

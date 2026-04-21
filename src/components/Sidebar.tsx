@@ -72,7 +72,7 @@ interface NotificationItem {
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, logout, rolePermissions } = useAuth();
+  const { user, logout, rolePermissions, userPermissions } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [expanded, setExpanded] = useState(false);
@@ -82,7 +82,7 @@ export default function Sidebar() {
   const mobileSearchRef = useRef<HTMLInputElement>(null);
 
   const userRole = user?.role || "staff";
-  const visibleNav = getVisibleNavItems(userRole, rolePermissions);
+  const visibleNav = getVisibleNavItems(userRole, rolePermissions, userPermissions);
   const filteredNavItems = navItems.filter((item) => visibleNav[item.href] !== false);
 
   // Search state
