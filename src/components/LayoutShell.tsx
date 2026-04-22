@@ -97,7 +97,10 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
               <StatusBanner />
               <div className="flex min-h-screen overflow-x-hidden">
                 <Sidebar />
-                <main className="flex-1 pt-14 md:pt-0 pb-20 md:pb-0 min-w-0 overflow-x-hidden max-w-full" role="main">{children}</main>
+                <main
+                  className="flex-1 pt-[calc(56px+env(safe-area-inset-top,0px))] md:pt-0 pb-20 md:pb-0 min-w-0 overflow-x-hidden max-w-full"
+                  role="main"
+                >{children}</main>
               </div>
             </ErrorBoundary>
           </ConfirmDialogProvider>

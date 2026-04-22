@@ -316,11 +316,13 @@ export default function Sidebar() {
         data-mobile-header="light"
         style={{
           backgroundColor: "#ffffff",
-          height: 56,
+          height: `calc(56px + env(safe-area-inset-top))`,
+          paddingTop: "env(safe-area-inset-top)",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          padding: "0 12px",
+          paddingLeft: 12,
+          paddingRight: 12,
           borderBottom: "1px solid #e5e7eb",
           boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
         }}
