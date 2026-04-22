@@ -8,7 +8,6 @@ import ThemeProvider from "@/components/ThemeProvider";
 import TrialBanner from "@/components/TrialBanner";
 import StatusBanner from "@/components/StatusBanner";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import EmailVerifyBanner from "@/components/EmailVerifyBanner";
 import { FlashCardProvider } from "@/components/FlashCardProvider";
 import { ConfirmDialogProvider } from "@/components/ConfirmDialog";
 
@@ -93,7 +92,6 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
             <ErrorBoundary>
               <TrialBanner />
               <StatusBanner />
-              <EmailVerifyBanner />
               <div className="flex min-h-screen overflow-x-hidden">
                 <Sidebar />
                 <main className="flex-1 pt-14 md:pt-0 pb-20 md:pb-0 min-w-0 overflow-x-hidden max-w-full" role="main">{children}</main>
