@@ -36,7 +36,10 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
   const isInvitePage = pathname.startsWith("/invite");
   const isRegisterPage = pathname === "/register";
   const isPricingPage = pathname === "/pricing";
-  const isOnboardingPage = pathname.startsWith("/onboarding");
+  // Only the initial onboarding wizard (/onboarding) is public — the Setup
+  // Guide (/onboarding/dashboard) is accessed from the sidebar after login
+  // and should use the normal authenticated layout.
+  const isOnboardingPage = pathname === "/onboarding";
   const isBookingPage = pathname.startsWith("/book");
   const isDoctorPortal = pathname.startsWith("/doctor");
   const isSuperAdmin = pathname.startsWith("/super-admin");
