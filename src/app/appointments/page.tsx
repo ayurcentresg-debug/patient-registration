@@ -1189,13 +1189,8 @@ export default function AppointmentsPage() {
         />
       )}
 
-      {/* ─── Toolbar Row 1: Date + Today + View Toggles + Nav + Schedule Title ─── */}
+      {/* ─── Toolbar Row 1: Date + Today + View Toggles + Nav + Export ─── */}
       <div className="flex items-center gap-0 border-b overflow-x-auto" style={{ background: "#f8f8f8", borderColor: "var(--grey-300)", height: 52 }}>
-        {/* Left nav arrow */}
-        <button onClick={() => navigate(-1)} className="h-full px-3 flex items-center justify-center transition-colors hover:bg-gray-200" style={{ borderRight: "1px solid var(--grey-300)" }}>
-          <svg className="w-4 h-4" fill="none" stroke="var(--grey-600)" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-        </button>
-
         {/* Date display with calendar icon */}
         <div className="h-full flex items-center gap-2 px-4" style={{ borderRight: "1px solid var(--grey-300)" }}>
           <svg className="w-4 h-4" fill="none" stroke="var(--grey-600)" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
