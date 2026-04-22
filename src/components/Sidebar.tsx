@@ -341,10 +341,8 @@ export default function Sidebar() {
               )}
             </svg>
           </button>
-          {/* Clinic logo removed from mobile header to eliminate all duplicates */}
-          <div style={{ marginLeft: 4 }}>
-            <BranchSelector />
-          </div>
+          {/* Clinic logo + BranchSelector moved to slide-out menu (avatar
+              was getting clipped on phones when branch name was long). */}
         </div>
 
         {/* Right: Search + Notifications */}
@@ -428,6 +426,13 @@ export default function Sidebar() {
                 <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", marginTop: 2, textTransform: "capitalize" }}>{user.role}</div>
               </div>
             )}
+
+            {/* Branch switcher — moved here from the mobile header. The
+                BranchSelector component returns null when the clinic has
+                0 branches, so on those clinics nothing renders here at all
+                (no empty stripe). On multi-branch clinics it shows a chip
+                that opens a dropdown for switching. */}
+            <BranchInMenuSlot />
 
             {/* All nav items */}
             <div style={{ padding: "12px 10px" }}>
@@ -1043,5 +1048,28 @@ export default function Sidebar() {
         `}</style>
       </div>) : null}
     </>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   BranchInMenuSlot — wraps BranchSelector with padding/border, but only
+   when the clinic actually has branches. Avoids an empty bordered stripe
+   in the mobile menu for clinics with 0 branches.
+   ───────────────────────────────────────────────────────────────────────── */
+function BranchInMenuSlot() {
+  const [hasBranches, setHasBranches] = useState(false);
+  useEffect(() => {
+    fetch("/api/branches?active=true")
+      .then((r) => (r.ok ? r.json() : []))
+      .then((data) => {
+        setHasBranches(Array.isArray(data) && data.length > 0);
+      })
+      .catch(() => setHasBranches(false));
+  }, []);
+  if (!hasBranches) return null;
+  return (
+    <div style={{ padding: "12px 18px", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+      <BranchSelector />
+    </div>
   );
 }
