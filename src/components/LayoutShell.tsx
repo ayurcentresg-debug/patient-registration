@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import Sidebar from "@/components/Sidebar";
-import TopBar from "@/components/TopBar";
 import AuthProvider from "@/components/AuthProvider";
 import ThemeProvider from "@/components/ThemeProvider";
 import TrialBanner from "@/components/TrialBanner";
@@ -97,8 +96,7 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
               <EmailVerifyBanner />
               <div className="flex min-h-screen overflow-x-hidden">
                 <Sidebar />
-                <TopBar />
-                <main className="flex-1 pt-14 pb-20 md:pb-0 min-w-0 overflow-x-hidden max-w-full" role="main">{children}</main>
+                <main className="flex-1 pt-14 md:pt-0 pb-20 md:pb-0 min-w-0 overflow-x-hidden max-w-full" role="main">{children}</main>
               </div>
             </ErrorBoundary>
           </ConfirmDialogProvider>
