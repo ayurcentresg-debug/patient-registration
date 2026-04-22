@@ -345,43 +345,10 @@ export default function Sidebar() {
               was getting clipped on phones when branch name was long). */}
         </div>
 
-        {/* Right: Search + Notifications */}
+        {/* Right: Avatar only (search/bell/help removed from mobile top bar
+             per clinic owner request — those actions are still accessible
+             via the slide-out menu's account dropdown). */}
         <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-          <button
-            onClick={() => { setMobileSearchOpen(!mobileSearchOpen); setMobileMenuOpen(false); }}
-            aria-label="Search patients"
-            style={{ background: "none", border: "none", cursor: "pointer", padding: 8, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center" }}
-          >
-            <svg style={{ width: 20, height: 20 }} fill="none" stroke="#374151" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-          </button>
-          <div ref={notifRef} style={{ position: "relative" }}>
-            <button
-              onClick={() => { setNotifOpen(!notifOpen); setMobileMenuOpen(false); setMobileSearchOpen(false); }}
-              aria-label="View notifications"
-              style={{ background: "none", border: "none", cursor: "pointer", padding: 8, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}
-            >
-              <svg style={{ width: 20, height: 20 }} fill="none" stroke="#374151" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-              </svg>
-              {totalNotifCount > 0 && (
-                <span style={{ position: "absolute", top: 4, right: 4, backgroundColor: "#ef4444", color: "#fff", fontSize: 8, fontWeight: 700, borderRadius: 99, minWidth: 14, height: 14, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 3px" }}>
-                  {totalNotifCount > 99 ? "99+" : totalNotifCount}
-                </span>
-              )}
-            </button>
-          </div>
-          {/* Help (mobile) */}
-          <button
-            onClick={() => { setHelpOpen(true); setMobileMenuOpen(false); setMobileSearchOpen(false); setNotifOpen(false); }}
-            aria-label="Help and support"
-            style={{ background: "none", border: "none", cursor: "pointer", padding: 8, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center" }}
-          >
-            <svg style={{ width: 20, height: 20 }} fill="none" stroke="#374151" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093M12 17h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </button>
           {/* Avatar (mobile) */}
           <button
             onClick={() => { setAccountOpen(!accountOpen); setMobileMenuOpen(false); setMobileSearchOpen(false); setNotifOpen(false); }}
