@@ -282,3 +282,54 @@ html, body {
 .mobile-overlay-fade {
   animation: fadeInOverlay 0.2s ease-out;
 }
+
+/* ============================================================
+   FIX: md: responsive Tailwind utilities (missing from build)
+   ============================================================ */
+@media (min-width: 768px) {
+  .md\:hidden { display: none !important; }
+  .md\:block { display: block !important; }
+  .md\:flex { display: flex !important; }
+  .md\:grid { display: grid !important; }
+  .md\:inline-flex { display: inline-flex !important; }
+  .md\:flex-col { flex-direction: column !important; }
+  .md\:flex-row { flex-direction: row !important; }
+  .md\:flex-1 { flex: 1 1 0% !important; }
+  .md\:flex-shrink-0 { flex-shrink: 0 !important; }
+  .md\:min-h-screen { min-height: 100vh !important; }
+  .md\:items-center { align-items: center !important; }
+  .md\:items-start { align-items: flex-start !important; }
+  .md\:items-end { align-items: flex-end !important; }
+  .md\:justify-between { justify-content: space-between !important; }
+  .md\:justify-center { justify-content: center !important; }
+  .md\:justify-end { justify-content: flex-end !important; }
+  .md\:gap-4 { gap: 1rem !important; }
+  .md\:gap-6 { gap: 1.5rem !important; }
+  .md\:gap-8 { gap: 2rem !important; }
+  .md\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .md\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+  .md\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+  .md\:grid-cols-5 { grid-template-columns: repeat(5, minmax(0, 1fr)) !important; }
+  .md\:p-6 { padding: 1.5rem !important; }
+  .md\:p-8 { padding: 2rem !important; }
+  .md\:pt-0 { padding-top: 0px !important; }
+  .md\:pt-2 { padding-top: 0.5rem !important; }
+  .md\:pb-0 { padding-bottom: 0px !important; }
+  .md\:px-6 { padding-left: 1.5rem !important; padding-right: 1.5rem !important; }
+  .md\:px-8 { padding-left: 2rem !important; padding-right: 2rem !important; }
+  .md\:py-4 { padding-top: 1rem !important; padding-bottom: 1rem !important; }
+  .md\:mt-0 { margin-top: 0px !important; }
+  .md\:mt-4 { margin-top: 1rem !important; }
+  .md\:w-40 { width: 10rem !important; }
+  .md\:w-64 { width: 16rem !important; }
+  .md\:w-auto { width: auto !important; }
+  .md\:w-full { width: 100% !important; }
+  .md\:max-w-none { max-width: none !important; }
+  .md\:text-right { text-align: right !important; }
+  .md\:text-left { text-align: left !important; }
+  .md\:text-\[28px\] { font-size: 28px !important; }
+  .md\:text-base { font-size: 1rem; line-height: 1.5rem !important; }
+  .md\:text-lg { font-size: 1.125rem; line-height: 1.75rem !important; }
+  .md\:text-xl { font-size: 1.25rem; line-height: 1.75rem !important; }
+  .md\:text-2xl { font-size: 1.5rem; line-height: 2rem !important; }
+}
