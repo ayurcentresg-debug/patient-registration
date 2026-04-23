@@ -311,18 +311,15 @@ export default function Sidebar() {
   return (
     <>
       {/* ============ MOBILE TOP HEADER (< md) ============ */}
+      {/* NOTE: flex/items/justify/padding live in className, not style,
+          so md:hidden's display:none wins on desktop without needing !important. */}
       <header
-        className="md:hidden fixed top-0 left-0 right-0 z-50"
+        className="md:hidden fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-3"
         data-mobile-header="light"
         style={{
           backgroundColor: "#ffffff",
           height: `calc(56px + env(safe-area-inset-top))`,
           paddingTop: "env(safe-area-inset-top)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          paddingLeft: 12,
-          paddingRight: 12,
           borderBottom: "1px solid #e5e7eb",
           boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
         }}
