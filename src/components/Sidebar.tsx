@@ -7,6 +7,7 @@ import { useAuth } from "@/components/AuthProvider";
 import { useTheme } from "@/components/ThemeProvider";
 import BranchSelector from "@/components/BranchSelector";
 import { getVisibleNavItems } from "@/lib/permissions";
+import MobileHeader from "@/components/MobileHeader";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1", mobileBottom: true },
@@ -310,93 +311,22 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* ============ MOBILE TOP HEADER (< md) ============ */}
-      {/* NOTE: flex/items/justify/padding live in className, not style,
-          so md:hidden's display:none wins on desktop without needing !important. */}
-      <header
-        className="md:hidden fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-3"
-        data-mobile-header="light"
-        style={{
-          backgroundColor: "#ffffff",
-          height: `calc(56px + env(safe-area-inset-top))`,
-          paddingTop: "env(safe-area-inset-top)",
-          borderBottom: "1px solid #e5e7eb",
-          boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
-        }}
-      >
-        {/* Left: Hamburger + Brand */}
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
-            style={{ background: "none", border: "none", cursor: "pointer", padding: 6, borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center" }}
-          >
-            <svg style={{ width: 22, height: 22 }} fill="none" stroke="#374151" viewBox="0 0 24 24">
-              {mobileMenuOpen ? (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              )}
-            </svg>
-          </button>
-          {/* Clinic logo + BranchSelector moved to slide-out menu (avatar
-              was getting clipped on phones when branch name was long). */}
-        </div>
-
-        {/* Right: Search + Notifications */}
-        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-          <button
-            onClick={() => { setMobileSearchOpen(!mobileSearchOpen); setMobileMenuOpen(false); }}
-            aria-label="Search patients"
-            style={{ background: "none", border: "none", cursor: "pointer", padding: 8, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center" }}
-          >
-            <svg style={{ width: 20, height: 20 }} fill="none" stroke="#374151" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-          </button>
-          <div ref={notifRef} style={{ position: "relative" }}>
-            <button
-              onClick={() => { setNotifOpen(!notifOpen); setMobileMenuOpen(false); setMobileSearchOpen(false); }}
-              aria-label="View notifications"
-              style={{ background: "none", border: "none", cursor: "pointer", padding: 8, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}
-            >
-              <svg style={{ width: 20, height: 20 }} fill="none" stroke="#374151" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-              </svg>
-              {totalNotifCount > 0 && (
-                <span style={{ position: "absolute", top: 4, right: 4, backgroundColor: "#ef4444", color: "#fff", fontSize: 8, fontWeight: 700, borderRadius: 99, minWidth: 14, height: 14, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 3px" }}>
-                  {totalNotifCount > 99 ? "99+" : totalNotifCount}
-                </span>
-              )}
-            </button>
-          </div>
-          {/* Help (mobile) */}
-          <button
-            onClick={() => { setHelpOpen(true); setMobileMenuOpen(false); setMobileSearchOpen(false); setNotifOpen(false); }}
-            aria-label="Help and support"
-            style={{ background: "none", border: "none", cursor: "pointer", padding: 8, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center" }}
-          >
-            <svg style={{ width: 20, height: 20 }} fill="none" stroke="#374151" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093M12 17h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </button>
-          {/* Avatar (mobile) */}
-          <button
-            onClick={() => { setAccountOpen(!accountOpen); setMobileMenuOpen(false); setMobileSearchOpen(false); setNotifOpen(false); }}
-            aria-label="Account menu"
-            style={{ background: "none", border: "none", cursor: "pointer", padding: 4, borderRadius: 99, display: "flex", alignItems: "center", justifyContent: "center", marginLeft: 4 }}
-          >
-            {clinicLogoUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={clinicLogoUrl} alt="" style={{ width: 30, height: 30, borderRadius: 99, objectFit: "cover", border: "1.5px solid #e5e7eb" }} />
-            ) : (
-              <div style={{ width: 30, height: 30, borderRadius: 99, background: "linear-gradient(135deg, #10b981, #059669)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 11, fontWeight: 700, border: "1.5px solid #e5e7eb" }}>
-                {userInitials}
-              </div>
-            )}
-          </button>
-        </div>
-      </header>
+      <MobileHeader
+          mobileMenuOpen={mobileMenuOpen}
+          setMobileMenuOpen={setMobileMenuOpen}
+          mobileSearchOpen={mobileSearchOpen}
+          setMobileSearchOpen={setMobileSearchOpen}
+          notifOpen={notifOpen}
+          setNotifOpen={setNotifOpen}
+          helpOpen={helpOpen}
+          setHelpOpen={setHelpOpen}
+          accountOpen={accountOpen}
+          setAccountOpen={setAccountOpen}
+          totalNotifCount={totalNotifCount}
+          clinicLogoUrl={clinicLogoUrl}
+          userInitials={userInitials}
+          notifRef={notifRef}
+        />
 
       {/* ============ MOBILE SLIDE-OUT MENU ============ */}
       {mobileMenuOpen && (
