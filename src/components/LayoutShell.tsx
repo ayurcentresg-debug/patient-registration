@@ -11,6 +11,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { FlashCardProvider } from "@/components/FlashCardProvider";
 import { ConfirmDialogProvider } from "@/components/ConfirmDialog";
 import TopBar from "@/components/TopBar";
+import EmailVerifyBanner from "@/components/EmailVerifyBanner";
 
 export default function LayoutShell({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
@@ -96,7 +97,8 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
             <ErrorBoundary>
               <TrialBanner />
               <StatusBanner />
-              <TopBar />
+              <EmailVerifyBanner />
+                <TopBar />
               <div className="flex min-h-screen overflow-x-hidden">
                 <Sidebar />
                 <main className="flex-1 pt-[var(--header-height,56px)] md:pt-[var(--header-height,56px)] pb-20 md:pb-0 min-w-0 overflow-x-hidden max-w-full" role="main">{children}</main>
