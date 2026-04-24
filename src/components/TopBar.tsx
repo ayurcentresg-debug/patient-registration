@@ -106,12 +106,12 @@ export default function TopBar() {
                                         }}
                                       >
                             {clinicName.slice(0, 2).toUpperCase()}
-                          </div>div>
+                          </div>
                       )}
                       <span style={{ fontWeight: 600, fontSize: 15, color: "#111827" }}>
                         {clinicName}
-                      </span>span>
-              </div>div>
+                      </span>
+              </div>
         
           {/* RIGHT: Notification Bell + Avatar */}
               <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
@@ -122,13 +122,13 @@ export default function TopBar() {
                                 >
                                 <svg style={{ width: 20, height: 20 }} fill="none" stroke="#374151" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                                </svg>svg>
+                                </svg>
                         {notifCount > 0 && (
                                               <span style={{ position: "absolute", top: 4, right: 4, backgroundColor: "#ef4444", color: "#fff", borderRadius: 99, fontSize: 9, fontWeight: 700, width: 14, height: 14, display: "flex", alignItems: "center", justifyContent: "center" }}>
                                                 {notifCount > 99 ? "99+" : notifCount}
-                                              </span>span>
+                                              </span>
                                 )}
-                      </button>button>
+                      </button>
               
                 {/* Avatar */}
                       <div ref={accountRef} style={{ position: "relative" }}>
@@ -143,22 +143,22 @@ export default function TopBar() {
                                                           ) : (
                                                             <div style={{ width: 30, height: 30, borderRadius: 99, background: "linear-gradient(135deg, #059669, #10b981)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 12, fontWeight: 700 }}>
                                                               {userInitials}
-                                                            </div>div>
+                                                            </div>
                                             )}
-                                </button>button>
+                                </button>
                       
                         {accountOpen && (
                             <div style={{ position: "absolute", top: "calc(100% + 8px)", right: 0, backgroundColor: "#fff", border: "1px solid #e5e7eb", borderRadius: 8, boxShadow: "0 4px 20px rgba(0,0,0,0.12)", minWidth: 180, zIndex: 60 }}>
                                           <div style={{ padding: "12px 16px", borderBottom: "1px solid #f3f4f6" }}>
-                                                          <p style={{ margin: 0, fontWeight: 600, fontSize: 14, color: "#111827" }}>{user?.name || "Account"}</p>p>
-                                                          <p style={{ margin: 0, fontSize: 12, color: "#6b7280" }}>{user?.email || ""}</p>p>
-                                          </div>div>
-                                          <a href="/account" style={{ display: "block", padding: "10px 16px", fontSize: 14, color: "#374151", textDecoration: "none" }}>My Account</a>a>
-                                          <a href="/api/auth/logout" style={{ display: "block", padding: "10px 16px", fontSize: 14, color: "#ef4444", textDecoration: "none", borderTop: "1px solid #f3f4f6" }}>Sign Out</a>a>
-                            </div>div>
+                                                          <p style={{ margin: 0, fontWeight: 600, fontSize: 14, color: "#111827" }}>{user?.name || "Account"}</p>
+                                                          <p style={{ margin: 0, fontSize: 12, color: "#6b7280" }}>{user?.email || ""}</p>
+                                          </div>
+                                          <a href="/account" style={{ display: "block", padding: "10px 16px", fontSize: 14, color: "#374151", textDecoration: "none" }}>My Account</a>
+                                          <a href="/api/auth/logout" style={{ display: "block", padding: "10px 16px", fontSize: 14, color: "#ef4444", textDecoration: "none", borderTop: "1px solid #f3f4f6" }}>Sign Out</a>
+                            </div>
                                 )}
-                      </div>div>
-              </div>div>
-        </header>header>
+                      </div>
+              </div>
+        </header>
       );
-}</header>
+}
