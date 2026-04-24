@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { downloadCSV } from "@/lib/csv-export";
@@ -933,6 +933,133 @@ function QuickBookModal({
   );
 }
 
+/* ─── Hover Info Panel (Sprint 1) ─── */
+function HoverPanel({ apt, x, y }: { apt: Appointment; x: number; y: number }) {
+  const name = getPatientName(apt);
+  const phone = apt.isWalkin ? apt.walkinPhone : null;
+  const statusColor = STATUS_COLORS[apt.status] || "#9baa9f";
+  // Auto-flip if near right/bottom edge
+  const panelWidth = 290;
+  const panelHeight = 220;
+  const left = x + panelWidth > window.innerWidth - 16 ? x - panelWidth - 12 : x + 14;
+  const top = y + panelHeight > window.innerHeight - 16 ? y - panelHeight - 6 : y + 6;
+
+  return (
+    <div
+      className="fixed z-[9999] yoda-fade-in pointer-events-none"
+      style={{
+        top, left, width: panelWidth,
+        background: "var(--white)",
+        border: "1px solid var(--grey-300)",
+        borderRadius: "var(--radius)",
+        boxShadow: "var(--shadow-lg)",
+        padding: 12,
+        fontSize: 12,
+      }}
+      role="tooltip"
+    >
+      <div className="flex items-center justify-between mb-2 pb-2 border-b" style={{ borderColor: "var(--grey-200)" }}>
+        <span className="font-bold text-[13px] truncate" style={{ color: "var(--grey-900)" }}>👤 {name}</span>
+        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded uppercase" style={{ background: `${statusColor}18`, color: statusColor }}>{apt.status}</span>
+      </div>
+      {phone && (
+        <div className="flex items-center gap-1.5 mb-1" style={{ color: "var(--grey-700)" }}>
+          <span>📞</span><span className="font-medium">{phone}</span>
+        </div>
+      )}
+      <div className="flex items-center gap-1.5 mb-1" style={{ color: "var(--grey-700)" }}>
+        <span>🕒</span>
+        <span>{formatTime12(apt.time)}{apt.endTime ? ` – ${formatTime12(apt.endTime)}` : ""} · {apt.duration || 30} min</span>
+      </div>
+      <div className="flex items-center gap-1.5 mb-1" style={{ color: "var(--grey-700)" }}>
+        <span>🩺</span><span>{apt.doctorRef?.name || apt.doctor}</span>
+      </div>
+      {apt.treatmentName && (
+        <div className="flex items-center gap-1.5 mb-1" style={{ color: "var(--grey-700)" }}>
+          <span>💊</span>
+          <span className="truncate">{apt.treatmentName}{apt.packageName ? ` · ${apt.packageName}` : ""}</span>
+        </div>
+      )}
+      {apt.reason && (
+        <div className="flex items-start gap-1.5 mb-1" style={{ color: "var(--grey-700)" }}>
+          <span>📝</span><span className="italic line-clamp-2">{apt.reason}</span>
+        </div>
+      )}
+      {apt.sessionPrice != null && (
+        <div className="flex items-center gap-1.5 mt-2 pt-2 border-t" style={{ color: "var(--grey-600)", borderColor: "var(--grey-200)" }}>
+          <span>💳</span><span>S${(apt.sessionPrice ?? 0).toFixed(2)}/session</span>
+        </div>
+      )}
+      {apt.isWalkin && (
+        <div className="text-[10px] font-bold mt-1.5 px-1.5 py-0.5 rounded inline-block" style={{ background: "#fff7ed", color: "#ea580c" }}>WALK-IN</div>
+      )}
+      <div className="text-[10px] mt-2 pt-1.5 border-t text-center" style={{ color: "var(--grey-400)", borderColor: "var(--grey-200)" }}>
+        Right-click for actions · Click to open
+      </div>
+    </div>
+  );
+}
+
+/* ─── Right-click Context Menu (Sprint 1) ─── */
+interface ContextMenuItem {
+  label: string;
+  icon: string;
+  onClick: () => void;
+  danger?: boolean;
+  divider?: boolean;
+}
+function ContextMenu({ x, y, items, onClose }: { x: number; y: number; items: ContextMenuItem[]; onClose: () => void }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) onClose();
+    };
+    const handleEsc = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("mousedown", handleClick);
+    document.addEventListener("keydown", handleEsc);
+    return () => {
+      document.removeEventListener("mousedown", handleClick);
+      document.removeEventListener("keydown", handleEsc);
+    };
+  }, [onClose]);
+
+  const menuWidth = 210;
+  const menuHeight = items.length * 36 + 8;
+  const left = x + menuWidth > window.innerWidth - 16 ? window.innerWidth - menuWidth - 16 : x;
+  const top = y + menuHeight > window.innerHeight - 16 ? window.innerHeight - menuHeight - 16 : y;
+
+  return (
+    <div
+      ref={ref}
+      className="fixed z-[9999] yoda-fade-in"
+      style={{
+        top, left, width: menuWidth,
+        background: "var(--white)",
+        border: "1px solid var(--grey-300)",
+        borderRadius: "var(--radius)",
+        boxShadow: "var(--shadow-lg)",
+        padding: 4,
+      }}
+      role="menu"
+    >
+      {items.map((item, i) => (
+        <div key={i}>
+          {item.divider && <div className="my-1 h-px" style={{ background: "var(--grey-200)" }} />}
+          <button
+            onClick={() => { item.onClick(); onClose(); }}
+            className="w-full flex items-center gap-2 px-3 py-2 rounded text-left text-[13px] transition-colors hover:bg-gray-100"
+            style={{ color: item.danger ? "var(--red)" : "var(--grey-800)" }}
+            role="menuitem"
+          >
+            <span className="w-4 text-center">{item.icon}</span>
+            <span className="font-medium">{item.label}</span>
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 /* ═══════════════════════════════════════════════════════════════════════════ */
 export default function AppointmentsPage() {
   const { showFlash } = useFlash();
@@ -958,7 +1085,36 @@ export default function AppointmentsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Appointment[]>([]);
 
+  // ─── Sprint 1: new state ─────────────────────────────────────────────
+  const [hoverApt, setHoverApt] = useState<{ apt: Appointment; x: number; y: number } | null>(null);
+  const [ctxMenu, setCtxMenu] = useState<{ apt: Appointment; x: number; y: number } | null>(null);
+  const [now, setNow] = useState(new Date());
+  const [showCancelled, setShowCancelled] = useState(true);
+  const [dynHourHeight, setDynHourHeight] = useState(72);
+  const gridRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => { setMounted(true); }, []);
+
+  // Current-time tick — updates the red now-line every 60s
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(id);
+  }, []);
+
+  // Fit-to-screen: measure available grid height, divide by 12 hours
+  useEffect(() => {
+    const measure = () => {
+      if (!gridRef.current) return;
+      const rect = gridRef.current.getBoundingClientRect();
+      // Reserve 48px for day header, leave a tiny buffer for scrollbar absence
+      const available = window.innerHeight - rect.top - 48 - 8;
+      const perHour = Math.max(48, Math.min(96, Math.floor(available / 12)));
+      setDynHourHeight(perHour);
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [mounted, viewMode]);
 
   // Search appointments with debounce
   useEffect(() => {
@@ -1056,6 +1212,23 @@ export default function AppointmentsPage() {
     return counts;
   }, [appointments]);
 
+  // ─── Sprint 1: top-of-page stat counts (Today / In-progress / Confirmed / Week) ─
+  const topStats = useMemo(() => {
+    const today = new Date();
+    const weekStart = getWeekStart(today);
+    const weekEnd = new Date(weekStart); weekEnd.setDate(weekEnd.getDate() + 6);
+    let todayCount = 0, inProgress = 0, confirmed = 0, weekCount = 0;
+    appointments.forEach(a => {
+      const d = new Date(a.date);
+      if (a.status === "cancelled") return;
+      if (isSameDay(d, today)) todayCount++;
+      if (a.status === "in-progress") inProgress++;
+      if (a.status === "confirmed") confirmed++;
+      if (d >= weekStart && d <= weekEnd) weekCount++;
+    });
+    return { todayCount, inProgress, confirmed, weekCount };
+  }, [appointments]);
+
   // Filter appointments for display
   const filteredAppointments = useMemo(() => {
     if (selectedDoctor === "all") return appointments;
@@ -1114,8 +1287,8 @@ export default function AppointmentsPage() {
     setBookModal({ date, time });
   }
 
-  // Hours for the timeline
-  const HOUR_HEIGHT = 72;
+  // Hours for the timeline — HOUR_HEIGHT is now dynamic (fits to viewport)
+  const HOUR_HEIGHT = dynHourHeight;
   const START_HOUR = 8;
   const END_HOUR = 20;
   const hours: number[] = [];
@@ -1147,7 +1320,9 @@ export default function AppointmentsPage() {
   function getAppointmentsForDate(date: Date) {
     return filteredAppointments.filter(a => {
       const ad = new Date(a.date);
-      return isSameDay(ad, date);
+      if (!isSameDay(ad, date)) return false;
+      if (!showCancelled && a.status === "cancelled") return false;
+      return true;
     });
   }
 
@@ -1188,6 +1363,26 @@ export default function AppointmentsPage() {
           }}
         />
       )}
+
+      {/* ─── Sprint 1: Top Stat Cards Row ─── */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 px-3 pt-3 pb-2">
+        {[
+          { label: "Today's Appointments", value: topStats.todayCount, color: "#2d6a4f", bg: "#f0faf4", icon: "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" },
+          { label: "In Progress",          value: topStats.inProgress, color: "#f97c00", bg: "#fff7ed", icon: "M13 10V3L4 14h7v7l9-11h-7z" },
+          { label: "Confirmed",            value: topStats.confirmed,  color: "#059669", bg: "#ecfdf5", icon: "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" },
+          { label: "This Week",            value: topStats.weekCount,  color: "#7c3aed", bg: "#f5f3ff", icon: "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" },
+        ].map(s => (
+          <div key={s.label} className="flex items-center gap-3 px-3 py-2 rounded-md" style={{ background: "var(--white)", border: "1px solid var(--grey-200)", boxShadow: "var(--shadow-sm)" }}>
+            <div className="w-9 h-9 rounded-md flex items-center justify-center flex-shrink-0" style={{ background: s.bg }}>
+              <svg className="w-4 h-4" fill="none" stroke={s.color} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={s.icon} /></svg>
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[11px] font-semibold uppercase tracking-wide truncate" style={{ color: "var(--grey-500)" }}>{s.label}</p>
+              <p className="text-[20px] font-bold leading-tight" style={{ color: s.color }}>{s.value}</p>
+            </div>
+          </div>
+        ))}
+      </div>
 
       {/* ─── Toolbar Row 1: Date + Today + View Toggles + Nav + Export ─── */}
       <div className="flex items-center gap-0 border-b border-t overflow-x-auto" style={{ background: "#f8f8f8", borderColor: "var(--grey-300)", height: 52, marginTop: 8 }}>
@@ -1241,6 +1436,17 @@ export default function AppointmentsPage() {
 
         {/* Spacer */}
         <div className="flex-1" />
+
+        {/* Sprint 1: Show cancelled toggle */}
+        <label className="h-full flex items-center gap-1.5 px-3 cursor-pointer select-none text-[13px] font-semibold whitespace-nowrap" style={{ borderRight: "1px solid var(--grey-300)", color: "var(--grey-700)" }}>
+          <input
+            type="checkbox"
+            checked={showCancelled}
+            onChange={(e) => setShowCancelled(e.target.checked)}
+            className="w-3.5 h-3.5"
+          />
+          Show Cancelled
+        </label>
 
         {/* Export CSV */}
         <button
@@ -1441,7 +1647,7 @@ export default function AppointmentsPage() {
         </div>
 
         {/* ─── Center: Calendar Grid ─── */}
-        <div className="flex-1 min-w-0 overflow-auto relative" style={{ background: "var(--white)" }}>
+        <div ref={gridRef} className="flex-1 min-w-0 overflow-auto relative" style={{ background: "var(--white)" }}>
           {loading && (
             <div className="absolute inset-0 flex items-center justify-center z-10" style={{ background: "rgba(255,255,255,0.7)" }}>
               <div className="w-6 h-6 border-2 rounded-full animate-spin" style={{ borderColor: "var(--grey-300)", borderTopColor: "var(--blue-500)" }} />
@@ -1526,11 +1732,15 @@ export default function AppointmentsPage() {
                       const height = Math.max((duration / 60) * HOUR_HEIGHT - 2, 22);
                       const color = getBlockColor(apt);
                       const name = getPatientName(apt);
+                      const isCancelled = apt.status === "cancelled";
+                      // Short appointments hide action icons for space
+                      const showActions = height >= 42;
+                      const phone = apt.isWalkin ? apt.walkinPhone : null;
 
                       return (
-                        <button
+                        <div
                           key={apt.id}
-                          className="absolute left-[4px] right-[4px] overflow-hidden text-left transition-all hover:opacity-90 hover:shadow-md cursor-pointer"
+                          className="absolute left-[4px] right-[4px] overflow-hidden text-left transition-all hover:shadow-md cursor-pointer group"
                           style={{
                             top,
                             height,
@@ -1543,20 +1753,84 @@ export default function AppointmentsPage() {
                             zIndex: 5,
                             borderLeft: `3px solid ${color.bg === "#f9a825" ? "#e88f00" : "rgba(0,0,0,0.15)"}`,
                             boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+                            // Sprint 1: cancelled = strikethrough + dim
+                            opacity: isCancelled ? 0.55 : 1,
+                            textDecoration: isCancelled ? "line-through" : "none",
                           }}
                           onClick={(e) => {
                             e.stopPropagation();
+                            setHoverApt(null);
                             setPopup({ apt, x: e.clientX, y: e.clientY });
                           }}
+                          onMouseEnter={(e) => setHoverApt({ apt, x: e.clientX, y: e.clientY })}
+                          onMouseMove={(e) => setHoverApt((prev) => (prev && prev.apt.id === apt.id ? { apt, x: e.clientX, y: e.clientY } : prev))}
+                          onMouseLeave={() => setHoverApt(null)}
+                          onContextMenu={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setHoverApt(null);
+                            setCtxMenu({ apt, x: e.clientX, y: e.clientY });
+                          }}
+                          role="button"
+                          tabIndex={0}
+                          aria-label={`${name} at ${formatTime12(apt.time)}, status ${apt.status}`}
                         >
-                          <div className="font-bold truncate">
-                            {formatTime12(apt.time)}{apt.endTime ? ` - ${formatTime12(apt.endTime)}` : ""}
-                            {apt.department ? ` (${apt.department})` : ""}
+                          <div className="font-bold truncate flex items-center justify-between gap-1">
+                            <span className="truncate">{formatTime12(apt.time)}{apt.endTime ? ` - ${formatTime12(apt.endTime)}` : ""}{apt.department ? ` (${apt.department})` : ""}</span>
+                            {/* Sprint 1: quick actions on hover — check-in + WhatsApp */}
+                            {showActions && !isCancelled && (
+                              <span className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0.5 flex-shrink-0">
+                                {apt.status !== "confirmed" && apt.status !== "completed" && (
+                                  <button
+                                    type="button"
+                                    onClick={(e) => { e.stopPropagation(); setHoverApt(null); updateStatus(apt.id, "confirmed"); }}
+                                    title="Check in (mark confirmed)"
+                                    aria-label="Check in patient"
+                                    className="w-4 h-4 flex items-center justify-center rounded text-[10px] font-bold hover:bg-white/30"
+                                    style={{ color: color.text }}
+                                  >✓</button>
+                                )}
+                                {phone && (
+                                  <a
+                                    href={`https://wa.me/${phone.replace(/[^0-9+]/g, "")}?text=${encodeURIComponent(`Hi ${name.split(" ")[0]}, reminder of your appointment on ${apt.date} at ${formatTime12(apt.time)}.`)}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    onClick={(e) => e.stopPropagation()}
+                                    title="Send WhatsApp reminder"
+                                    aria-label="Send WhatsApp reminder"
+                                    className="w-4 h-4 flex items-center justify-center rounded text-[10px] hover:bg-white/30"
+                                    style={{ color: color.text }}
+                                  >📱</a>
+                                )}
+                              </span>
+                            )}
                           </div>
                           <div className="truncate font-medium">{name}</div>
-                        </button>
+                        </div>
                       );
                     })}
+
+                    {/* Sprint 1: Red current-time indicator (only on today's column) */}
+                    {(() => {
+                      const nowMin = now.getHours() * 60 + now.getMinutes();
+                      const startMin = START_HOUR * 60;
+                      const endMin = END_HOUR * 60 + 60;
+                      if (!isSameDay(date, now) || nowMin < startMin || nowMin > endMin) return null;
+                      const nowTop = ((nowMin - startMin) / 60) * HOUR_HEIGHT + 48;
+                      return (
+                        <div
+                          className="absolute left-0 right-0 pointer-events-none"
+                          style={{ top: nowTop, zIndex: 4 }}
+                          aria-hidden="true"
+                        >
+                          <div
+                            className="absolute"
+                            style={{ left: -4, top: -4, width: 9, height: 9, borderRadius: "50%", background: "#dc2626", boxShadow: "0 0 0 2px rgba(220,38,38,0.2)" }}
+                          />
+                          <div style={{ height: 2, background: "#dc2626" }} />
+                        </div>
+                      );
+                    })()}
                   </div>
                 );
               })}
@@ -1707,6 +1981,47 @@ export default function AppointmentsPage() {
           </div>
         </div>
       </div>
+
+      {/* Sprint 1: Hover info panel (doesn't render while context menu open) */}
+      {hoverApt && !ctxMenu && !popup && (
+        <HoverPanel apt={hoverApt.apt} x={hoverApt.x} y={hoverApt.y} />
+      )}
+
+      {/* Sprint 1: Right-click context menu */}
+      {ctxMenu && (
+        <ContextMenu
+          x={ctxMenu.x}
+          y={ctxMenu.y}
+          onClose={() => setCtxMenu(null)}
+          items={[
+            { label: "Open Details", icon: "👁", onClick: () => setPopup({ apt: ctxMenu.apt, x: ctxMenu.x, y: ctxMenu.y }) },
+            { label: "Mark Confirmed", icon: "✓", onClick: () => updateStatus(ctxMenu.apt.id, "confirmed") },
+            { label: "Mark In-Progress", icon: "▶", onClick: () => updateStatus(ctxMenu.apt.id, "in-progress") },
+            { label: "Mark Completed", icon: "☑", onClick: () => updateStatus(ctxMenu.apt.id, "completed") },
+            { label: "Copy Phone", icon: "📋", divider: true, onClick: () => {
+              const p = ctxMenu.apt.isWalkin ? ctxMenu.apt.walkinPhone : null;
+              if (p) {
+                navigator.clipboard?.writeText(p);
+                showFlash({ type: "success", title: "Copied", message: `${p} copied to clipboard` });
+              } else {
+                showFlash({ type: "info", title: "No phone", message: "This appointment has no phone number" });
+              }
+            }},
+            { label: "Send WhatsApp", icon: "📱", onClick: () => {
+              const p = ctxMenu.apt.isWalkin ? ctxMenu.apt.walkinPhone : null;
+              const n = getPatientName(ctxMenu.apt);
+              if (p) {
+                const msg = `Hi ${n.split(" ")[0]}, reminder of your appointment on ${ctxMenu.apt.date} at ${formatTime12(ctxMenu.apt.time)}.`;
+                window.open(`https://wa.me/${p.replace(/[^0-9+]/g, "")}?text=${encodeURIComponent(msg)}`, "_blank");
+              } else {
+                showFlash({ type: "info", title: "No phone", message: "Cannot send reminder — no phone number" });
+              }
+            }},
+            { label: "Mark No-Show", icon: "✖", divider: true, onClick: () => updateStatus(ctxMenu.apt.id, "no-show") },
+            { label: "Cancel Appointment", icon: "🗑", danger: true, onClick: () => updateStatus(ctxMenu.apt.id, "cancelled") },
+          ]}
+        />
+      )}
 
       {/* ─── Appointment Detail Popup ─── */}
       {popup && (
