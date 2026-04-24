@@ -444,6 +444,7 @@ export default function SettingsPage() {
 
 function DemoSeedSection() {
   const [loading, setLoading] = useState(false);
+  const [patientSeedLoading, setPatientSeedLoading] = useState(false);
   const [result, setResult] = useState<null | {
     ok: boolean;
     alreadyExists?: boolean;
@@ -451,6 +452,9 @@ function DemoSeedSection() {
     password?: string;
     message?: string;
     error?: string;
+    summary?: string;
+    created?: string[];
+    skipped?: string[];
   }>(null);
 
   async function handleSeed() {
@@ -469,6 +473,22 @@ function DemoSeedSection() {
     }
   }
 
+  async function handleSeedPatientsOnly() {
+    if (!confirm("Additively add the 7 demo patients to Demo Clinic?\n\n• Menon family of 4 (Ravi, Lakshmi, Arjun, Priya)\n• Sarah Chen, Muhammad Hassan, Emily Tan\n\nSkips any that already exist by patient ID. Does NOT delete or modify existing patients.\n\nUse this if /seed-demo said 'already exists' but patients are missing.")) return;
+    setPatientSeedLoading(true);
+    setResult(null);
+    try {
+      const res = await fetch("/api/super-admin/seed-demo-patients", { method: "POST" });
+      const data = await res.json();
+      if (res.ok) setResult({ ok: true, message: data.summary, created: data.created, skipped: data.skipped });
+      else setResult({ ok: false, error: data.error || "Seed failed" });
+    } catch (e) {
+      setResult({ ok: false, error: e instanceof Error ? e.message : "Network error" });
+    } finally {
+      setPatientSeedLoading(false);
+    }
+  }
+
   return (
     <div style={{ marginTop: 32, padding: 24, background: "#fff", borderRadius: 12, border: "1px solid #e5e7eb" }}>
       <h2 style={{ margin: "0 0 8px", fontSize: 18, fontWeight: 700, color: "#111827" }}>
@@ -477,22 +497,41 @@ function DemoSeedSection() {
       <p style={{ margin: "0 0 20px", fontSize: 13, color: "#6b7280" }}>
         Create a fully-populated demo clinic to test all features. Credentials will be shown below after seeding.
       </p>
-      <button
-        onClick={handleSeed}
-        disabled={loading}
-        style={{
-          padding: "10px 20px",
-          fontSize: 14,
-          fontWeight: 600,
-          color: "#fff",
-          background: loading ? "#9ca3af" : "#2d6a4f",
-          border: "none",
-          borderRadius: 8,
-          cursor: loading ? "wait" : "pointer",
-        }}
-      >
-        {loading ? "Seeding…" : "🌱 Seed Demo Clinic"}
-      </button>
+      <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+        <button
+          onClick={handleSeed}
+          disabled={loading || patientSeedLoading}
+          style={{
+            padding: "10px 20px",
+            fontSize: 14,
+            fontWeight: 600,
+            color: "#fff",
+            background: (loading || patientSeedLoading) ? "#9ca3af" : "#2d6a4f",
+            border: "none",
+            borderRadius: 8,
+            cursor: loading ? "wait" : "pointer",
+          }}
+        >
+          {loading ? "Seeding…" : "🌱 Seed Demo Clinic"}
+        </button>
+        <button
+          onClick={handleSeedPatientsOnly}
+          disabled={loading || patientSeedLoading}
+          title="Use when clinic exists but 7 dummy patients are missing (e.g. after DB reset)"
+          style={{
+            padding: "10px 20px",
+            fontSize: 14,
+            fontWeight: 600,
+            color: "#14532d",
+            background: (loading || patientSeedLoading) ? "#f3f4f6" : "#f0fdf4",
+            border: "1.5px solid #bbf7d0",
+            borderRadius: 8,
+            cursor: patientSeedLoading ? "wait" : "pointer",
+          }}
+        >
+          {patientSeedLoading ? "Adding…" : "👥 Add 7 Demo Patients"}
+        </button>
+      </div>
 
       {result && (
         <div
