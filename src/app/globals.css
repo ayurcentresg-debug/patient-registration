@@ -4,6 +4,9 @@
    YODA DESIGN SYSTEM — CSS Variables
    ======================================== */
 :root {
+  /* Layout — Header Height */
+  --header-height: 56px;
+
   /* Primary — Forest Green */
   --blue-500: #2d6a4f;
   --blue-600: #256b48;
@@ -332,4 +335,11 @@ html, body {
   .md\:text-lg { font-size: 1.125rem; line-height: 1.75rem !important; }
   .md\:text-xl { font-size: 1.25rem; line-height: 1.75rem !important; }
   .md\:text-2xl { font-size: 1.5rem; line-height: 2rem !important; }
+}
+
+/* iOS safe-area notch support — adds notch height to header */
+@supports (padding-top: env(safe-area-inset-top)) {
+  :root {
+    --header-height: calc(56px + env(safe-area-inset-top));
+  }
 }
