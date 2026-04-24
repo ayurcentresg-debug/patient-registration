@@ -1751,8 +1751,12 @@ export default function AppointmentsPage() {
                             setHoverApt(null);
                             setPopup({ apt, x: e.clientX, y: e.clientY });
                           }}
-                          onMouseEnter={(e) => setHoverApt({ apt, x: e.clientX, y: e.clientY })}
-                          onMouseMove={(e) => setHoverApt((prev) => (prev && prev.apt.id === apt.id ? { apt, x: e.clientX, y: e.clientY } : prev))}
+                          onMouseEnter={(e) => {
+                            // Anchor tooltip to card's top-right corner, not cursor.
+                            // This prevents re-renders on every pixel of mouse movement.
+                            const r = e.currentTarget.getBoundingClientRect();
+                            setHoverApt({ apt, x: r.right, y: r.top });
+                          }}
                           onMouseLeave={() => setHoverApt(null)}
                           onContextMenu={(e) => {
                             e.preventDefault();
