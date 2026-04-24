@@ -23,7 +23,7 @@
  *   - slug                → auto-generated from name (if missing)
  */
 
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "../src/generated/prisma";
 
 const prisma = new PrismaClient();
 const DRY_RUN = process.env.DRY_RUN === "true";
