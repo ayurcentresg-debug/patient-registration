@@ -1633,17 +1633,6 @@ export default function AppointmentsPage() {
             })}
           </div>
 
-          {/* Quick book button */}
-          <div className="mt-auto border-t p-3" style={{ borderColor: "var(--grey-200)" }}>
-            <button
-              onClick={() => setBookModal({ date: selectedDate, time: "09:00" })}
-              className="flex items-center justify-center gap-2 w-full py-2 text-[14px] font-bold text-white"
-              style={{ background: "var(--blue-500)", borderRadius: "var(--radius-sm)" }}
-            >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-              Book Appointment
-            </button>
-          </div>
         </div>
 
         {/* ─── Center: Calendar Grid ─── */}
@@ -1845,16 +1834,6 @@ export default function AppointmentsPage() {
               <h2 className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>Today&apos;s Schedule</h2>
               <span className="text-[13px] font-bold px-2 py-0.5 rounded-full" style={{ background: "var(--blue-50)", color: "var(--blue-500)" }}>{todaysSchedule.length}</span>
             </div>
-
-            {/* Walk-in button */}
-            <button
-              onClick={() => setBookModal({ date: new Date(), time: minutesToTime(Math.ceil((new Date().getHours() * 60 + new Date().getMinutes()) / 15) * 15) })}
-              className="flex items-center justify-center gap-1.5 w-full py-2 mb-4 text-[14px] font-semibold rounded-md transition-colors hover:bg-gray-50"
-              style={{ border: "1px solid var(--grey-300)", color: "var(--grey-700)" }}
-            >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
-              Walk-in Appointment
-            </button>
 
             {/* Status summary cards - 3x2 grid */}
             <div className="grid grid-cols-3 gap-2">
