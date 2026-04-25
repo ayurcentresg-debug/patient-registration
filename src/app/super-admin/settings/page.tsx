@@ -446,6 +446,7 @@ function DemoSeedSection() {
   const [loading, setLoading] = useState(false);
   const [patientSeedLoading, setPatientSeedLoading] = useState(false);
   const [backfillLoading, setBackfillLoading] = useState(false);
+  const [resetPwLoading, setResetPwLoading] = useState(false);
   const [result, setResult] = useState<null | {
     ok: boolean;
     alreadyExists?: boolean;
@@ -487,6 +488,22 @@ function DemoSeedSection() {
       setResult({ ok: false, error: e instanceof Error ? e.message : "Network error" });
     } finally {
       setPatientSeedLoading(false);
+    }
+  }
+
+  async function handleResetPasswords() {
+    if (!confirm("Reset ALL demo clinic staff passwords to Demo2026!?\n\nThis affects:\n• Demo Admin\n• 2 doctors\n• 5 therapists\n• 1 receptionist\n\nUse this if logging in as demo@ayurgate.com (or any demo staff) is failing. Idempotent — safe to run repeatedly.")) return;
+    setResetPwLoading(true);
+    setResult(null);
+    try {
+      const res = await fetch("/api/super-admin/reset-demo-passwords", { method: "POST" });
+      const data = await res.json();
+      if (res.ok) setResult({ ok: true, message: data.summary });
+      else setResult({ ok: false, error: data.error || "Reset failed" });
+    } catch (e) {
+      setResult({ ok: false, error: e instanceof Error ? e.message : "Network error" });
+    } finally {
+      setResetPwLoading(false);
     }
   }
 
@@ -550,20 +567,37 @@ function DemoSeedSection() {
         </button>
         <button
           onClick={handleBackfillFamily}
-          disabled={loading || patientSeedLoading || backfillLoading}
+          disabled={loading || patientSeedLoading || backfillLoading || resetPwLoading}
           title="Heal one-way family links across all clinics — adds missing reverse rows so children see their parents and vice-versa"
           style={{
             padding: "10px 20px",
             fontSize: 14,
             fontWeight: 600,
             color: "#1e3a8a",
-            background: (loading || patientSeedLoading || backfillLoading) ? "#f3f4f6" : "#eff6ff",
+            background: (loading || patientSeedLoading || backfillLoading || resetPwLoading) ? "#f3f4f6" : "#eff6ff",
             border: "1.5px solid #bfdbfe",
             borderRadius: 8,
             cursor: backfillLoading ? "wait" : "pointer",
           }}
         >
           {backfillLoading ? "Healing…" : "🔁 Backfill Family Links"}
+        </button>
+        <button
+          onClick={handleResetPasswords}
+          disabled={loading || patientSeedLoading || backfillLoading || resetPwLoading}
+          title="Reset all demo clinic staff passwords back to Demo2026! — fixes 'invalid password' on login"
+          style={{
+            padding: "10px 20px",
+            fontSize: 14,
+            fontWeight: 600,
+            color: "#7c2d12",
+            background: (loading || patientSeedLoading || backfillLoading || resetPwLoading) ? "#f3f4f6" : "#fff7ed",
+            border: "1.5px solid #fed7aa",
+            borderRadius: 8,
+            cursor: resetPwLoading ? "wait" : "pointer",
+          }}
+        >
+          {resetPwLoading ? "Resetting…" : "🔑 Reset Demo Passwords"}
         </button>
       </div>
 
