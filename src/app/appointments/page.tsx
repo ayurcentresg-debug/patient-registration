@@ -1093,6 +1093,37 @@ export default function AppointmentsPage() {
   const [dynHourHeight, setDynHourHeight] = useState(72);
   const gridRef = useRef<HTMLDivElement>(null);
 
+  // ─── Sprint 1b: More menu / 24h / drag-drop / clipboard ─────────────
+  const [moreMenuOpen, setMoreMenuOpen] = useState(false);
+  const [is24Hour, setIs24Hour] = useState(false);
+  const [dragApt, setDragApt] = useState<Appointment | null>(null);
+  const [dragOver, setDragOver] = useState<{ dateKey: string; minutes: number } | null>(null);
+  const [clipboard, setClipboard] = useState<Appointment | null>(null);
+  const moreMenuRef = useRef<HTMLDivElement>(null);
+
+  // Close more menu on outside click + Esc
+  useEffect(() => {
+    if (!moreMenuOpen) return;
+    const handleClick = (e: MouseEvent) => {
+      if (moreMenuRef.current && !moreMenuRef.current.contains(e.target as Node)) setMoreMenuOpen(false);
+    };
+    const handleEsc = (e: KeyboardEvent) => { if (e.key === "Escape") setMoreMenuOpen(false); };
+    document.addEventListener("mousedown", handleClick);
+    document.addEventListener("keydown", handleEsc);
+    return () => {
+      document.removeEventListener("mousedown", handleClick);
+      document.removeEventListener("keydown", handleEsc);
+    };
+  }, [moreMenuOpen]);
+
+  // Esc clears clipboard (paste mode)
+  useEffect(() => {
+    if (!clipboard) return;
+    const handleEsc = (e: KeyboardEvent) => { if (e.key === "Escape") setClipboard(null); };
+    document.addEventListener("keydown", handleEsc);
+    return () => document.removeEventListener("keydown", handleEsc);
+  }, [clipboard]);
+
   useEffect(() => { setMounted(true); }, []);
 
   // Current-time tick — updates the red now-line every 60s
@@ -1280,17 +1311,110 @@ export default function AppointmentsPage() {
     return BLOCK_COLORS[idx % BLOCK_COLORS.length];
   }
 
-  // Click on empty calendar slot to book
+  // Click on empty calendar slot to book — or paste from clipboard if in paste mode
   function handleSlotClick(date: Date, hour: number, isHalf: boolean) {
     const minutes = hour * 60 + (isHalf ? 30 : 0);
     const time = minutesToTime(minutes);
+    if (clipboard) {
+      duplicateAppointment(clipboard, date, time);
+      return;
+    }
     setBookModal({ date, time });
+  }
+
+  // ─── Sprint 1b: drag-and-drop reschedule + duplicate helpers ──────────
+
+  function dateKey(d: Date) { return d.toISOString().slice(0, 10); }
+
+  function hasConflict(doctorId: string | null, date: Date, startMin: number, durationMin: number, excludeId?: string): Appointment | null {
+    if (!doctorId) return null;
+    const dKey = dateKey(date);
+    for (const a of appointments) {
+      if (a.id === excludeId) continue;
+      if (a.status === "cancelled") continue;
+      if (dateKey(new Date(a.date)) !== dKey) continue;
+      if ((a.doctorId || a.doctor) !== doctorId) continue;
+      const aStart = timeToMinutes(a.time);
+      const aEnd = aStart + (a.duration || 30);
+      const newEnd = startMin + durationMin;
+      // Overlap?
+      if (startMin < aEnd && newEnd > aStart) return a;
+    }
+    return null;
+  }
+
+  async function rescheduleAppointment(apt: Appointment, newDate: Date, newTime: string) {
+    const newStartMin = timeToMinutes(newTime);
+    const duration = apt.duration || 30;
+    const conflict = hasConflict(apt.doctorId || apt.doctor, newDate, newStartMin, duration, apt.id);
+    if (conflict) {
+      const cName = getPatientName(conflict);
+      showFlash({ type: "error", title: "Conflict", message: `Slot taken by ${cName} at ${formatTime12(conflict.time)}` });
+      return;
+    }
+    // Optimistic update
+    const newDateStr = dateKey(newDate);
+    const newEndTime = minutesToTime(newStartMin + duration);
+    const prev = appointments;
+    setAppointments(curr => curr.map(a => a.id === apt.id ? { ...a, date: newDateStr, time: newTime, endTime: newEndTime } : a));
+    try {
+      const res = await fetch(`/api/appointments/${apt.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ date: newDateStr, time: newTime, duration }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      showFlash({ type: "success", title: "Rescheduled", message: `${getPatientName(apt)} → ${formatTime12(newTime)}` });
+    } catch {
+      // Rollback
+      setAppointments(prev);
+      showFlash({ type: "error", title: "Failed", message: "Could not reschedule. Reverted." });
+    }
+  }
+
+  async function duplicateAppointment(source: Appointment, newDate: Date, newTime: string) {
+    const newStartMin = timeToMinutes(newTime);
+    const duration = source.duration || 30;
+    const conflict = hasConflict(source.doctorId || source.doctor, newDate, newStartMin, duration);
+    if (conflict) {
+      const cName = getPatientName(conflict);
+      showFlash({ type: "error", title: "Conflict", message: `Slot taken by ${cName} at ${formatTime12(conflict.time)}` });
+      return;
+    }
+    try {
+      const res = await fetch(`/api/appointments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          patientId: source.patientId,
+          doctorId: source.doctorId,
+          date: dateKey(newDate),
+          time: newTime,
+          duration,
+          type: source.type,
+          reason: source.reason,
+          notes: source.notes,
+          treatmentId: source.treatmentId,
+          isWalkin: source.isWalkin,
+          walkinName: source.walkinName,
+          walkinPhone: source.walkinPhone,
+          status: "scheduled",
+        }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      showFlash({ type: "success", title: "Duplicated", message: `${getPatientName(source)} booked at ${formatTime12(newTime)}` });
+      setClipboard(null);
+      fetchAppointments();
+    } catch {
+      showFlash({ type: "error", title: "Failed", message: "Could not duplicate appointment" });
+    }
   }
 
   // Hours for the timeline — HOUR_HEIGHT is now dynamic (fits to viewport)
   const HOUR_HEIGHT = dynHourHeight;
-  const START_HOUR = 8;
-  const END_HOUR = 20;
+  // Sprint 1b: 24h toggle
+  const START_HOUR = is24Hour ? 0 : 8;
+  const END_HOUR = is24Hour ? 23 : 20;
   const hours: number[] = [];
   for (let h = START_HOUR; h <= END_HOUR; h++) hours.push(h);
 
@@ -1362,6 +1486,20 @@ export default function AppointmentsPage() {
             }
           }}
         />
+      )}
+
+      {/* Sprint 1b: Paste-mode banner */}
+      {clipboard && (
+        <div className="px-3 py-2 flex items-center justify-between text-[13px] font-semibold yoda-fade-in" style={{ background: "#fef9c3", color: "#854d0e", borderBottom: "1px solid #fde68a" }}>
+          <span>📄 Paste mode — click any empty time slot to duplicate <strong>{getPatientName(clipboard)}</strong>&apos;s appointment</span>
+          <button
+            onClick={() => setClipboard(null)}
+            className="px-2 py-0.5 rounded text-[12px] font-bold hover:bg-yellow-200 transition-colors"
+            style={{ color: "#854d0e" }}
+          >
+            ✕ Cancel (Esc)
+          </button>
+        </div>
       )}
 
       {/* ─── Sprint 1: Top Stat Cards Row ─── */}
@@ -1437,16 +1575,60 @@ export default function AppointmentsPage() {
         {/* Spacer */}
         <div className="flex-1" />
 
-        {/* Sprint 1: Show cancelled toggle */}
-        <label className="h-full flex items-center gap-1.5 px-3 cursor-pointer select-none text-[13px] font-semibold whitespace-nowrap" style={{ borderRight: "1px solid var(--grey-300)", color: "var(--grey-700)" }}>
-          <input
-            type="checkbox"
-            checked={showCancelled}
-            onChange={(e) => setShowCancelled(e.target.checked)}
-            className="w-3.5 h-3.5"
-          />
-          Show Cancelled
-        </label>
+        {/* Sprint 1b: More menu (replaces inline Show Cancelled checkbox) */}
+        <div className="relative h-full" ref={moreMenuRef} style={{ borderRight: "1px solid var(--grey-300)" }}>
+          <button
+            onClick={() => setMoreMenuOpen(o => !o)}
+            className="h-full flex items-center gap-1.5 px-3 text-[13px] font-semibold transition-colors hover:bg-gray-200 whitespace-nowrap"
+            style={{ color: "var(--grey-700)" }}
+            aria-haspopup="menu"
+            aria-expanded={moreMenuOpen}
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+            More
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+          </button>
+          {moreMenuOpen && (
+            <div className="absolute top-full right-0 mt-1 w-[230px] yoda-fade-in" style={{ background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-lg)", padding: 4, zIndex: 50 }} role="menu">
+              <label className="flex items-center gap-2 px-3 py-2 rounded text-[13px] cursor-pointer hover:bg-gray-100" style={{ color: "var(--grey-800)" }}>
+                <input type="checkbox" checked={showCancelled} onChange={(e) => setShowCancelled(e.target.checked)} className="w-3.5 h-3.5" />
+                <span>Show Cancelled</span>
+              </label>
+              <label className="flex items-center gap-2 px-3 py-2 rounded text-[13px] cursor-pointer hover:bg-gray-100" style={{ color: "var(--grey-800)" }}>
+                <input type="checkbox" checked={is24Hour} onChange={(e) => setIs24Hour(e.target.checked)} className="w-3.5 h-3.5" />
+                <span>24 Hours</span>
+              </label>
+              <div className="my-1 h-px" style={{ background: "var(--grey-200)" }} />
+              <button
+                type="button"
+                onClick={() => { window.print(); setMoreMenuOpen(false); }}
+                className="w-full flex items-center gap-2 px-3 py-2 rounded text-left text-[13px] hover:bg-gray-100"
+                style={{ color: "var(--grey-800)" }}
+                role="menuitem"
+              >
+                <span className="w-4 text-center">🖨</span><span>Print Schedule</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => { fetchAppointments(); setMoreMenuOpen(false); showFlash({ type: "info", title: "Refreshed", message: "Appointments resynced" }); }}
+                className="w-full flex items-center gap-2 px-3 py-2 rounded text-left text-[13px] hover:bg-gray-100"
+                style={{ color: "var(--grey-800)" }}
+                role="menuitem"
+              >
+                <span className="w-4 text-center">🔄</span><span>Resync</span>
+              </button>
+              <Link
+                href="/doctors/new"
+                onClick={() => setMoreMenuOpen(false)}
+                className="w-full flex items-center gap-2 px-3 py-2 rounded text-left text-[13px] hover:bg-gray-100"
+                style={{ color: "var(--grey-800)" }}
+                role="menuitem"
+              >
+                <span className="w-4 text-center">➕</span><span>Add Doctor</span>
+              </Link>
+            </div>
+          )}
+        </div>
 
         {/* Export CSV */}
         <button
@@ -1689,29 +1871,70 @@ export default function AppointmentsPage() {
                       </span>
                     </div>
 
-                    {/* Clickable hour grid */}
-                    {hours.map(h => (
-                      <div key={h} style={{ height: HOUR_HEIGHT, borderBottom: "1px solid var(--grey-300)" }}>
-                        {/* Top half-hour — clickable */}
-                        <div
-                          className="cursor-pointer transition-colors"
-                          style={{ height: HOUR_HEIGHT / 2, borderBottom: "1px dashed var(--grey-200)" }}
-                          onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(45,106,79,0.04)")}
-                          onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-                          onClick={() => handleSlotClick(date, h, false)}
-                          title={`Book at ${formatTime12(minutesToTime(h * 60))}`}
-                        />
-                        {/* Bottom half-hour — clickable */}
-                        <div
-                          className="cursor-pointer transition-colors"
-                          style={{ height: HOUR_HEIGHT / 2 }}
-                          onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(45,106,79,0.04)")}
-                          onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-                          onClick={() => handleSlotClick(date, h, true)}
-                          title={`Book at ${formatTime12(minutesToTime(h * 60 + 30))}`}
-                        />
-                      </div>
-                    ))}
+                    {/* Clickable hour grid + Sprint 1b drop targets */}
+                    {hours.map(h => {
+                      // Highlight if this slot is the drop target during a drag
+                      const dKey = dateKey(date);
+                      const topMinutes = h * 60;
+                      const botMinutes = h * 60 + 30;
+                      const topActive = !!dragOver && dragOver.dateKey === dKey && dragOver.minutes === topMinutes;
+                      const botActive = !!dragOver && dragOver.dateKey === dKey && dragOver.minutes === botMinutes;
+                      // Cursor cue when in paste mode
+                      const slotCursor = clipboard ? "copy" : "pointer";
+                      return (
+                        <div key={h} style={{ height: HOUR_HEIGHT, borderBottom: "1px solid var(--grey-300)" }}>
+                          {/* Top half-hour */}
+                          <div
+                            className="transition-colors"
+                            style={{
+                              height: HOUR_HEIGHT / 2,
+                              borderBottom: "1px dashed var(--grey-200)",
+                              background: topActive ? "rgba(45,106,79,0.18)" : "transparent",
+                              outline: topActive ? "2px dashed #2d6a4f" : "none",
+                              cursor: slotCursor,
+                            }}
+                            onMouseEnter={(e) => { if (!dragApt && !topActive) e.currentTarget.style.background = "rgba(45,106,79,0.04)"; }}
+                            onMouseLeave={(e) => { if (!topActive) e.currentTarget.style.background = "transparent"; }}
+                            onClick={() => handleSlotClick(date, h, false)}
+                            onDragOver={(e) => { if (dragApt) { e.preventDefault(); e.dataTransfer.dropEffect = "move"; setDragOver({ dateKey: dKey, minutes: topMinutes }); } }}
+                            onDragLeave={() => { if (topActive) setDragOver(null); }}
+                            onDrop={(e) => {
+                              if (!dragApt) return;
+                              e.preventDefault();
+                              const apt = dragApt;
+                              setDragApt(null);
+                              setDragOver(null);
+                              rescheduleAppointment(apt, date, minutesToTime(topMinutes));
+                            }}
+                            title={clipboard ? `Paste here at ${formatTime12(minutesToTime(topMinutes))}` : `Book at ${formatTime12(minutesToTime(topMinutes))}`}
+                          />
+                          {/* Bottom half-hour */}
+                          <div
+                            className="transition-colors"
+                            style={{
+                              height: HOUR_HEIGHT / 2,
+                              background: botActive ? "rgba(45,106,79,0.18)" : "transparent",
+                              outline: botActive ? "2px dashed #2d6a4f" : "none",
+                              cursor: slotCursor,
+                            }}
+                            onMouseEnter={(e) => { if (!dragApt && !botActive) e.currentTarget.style.background = "rgba(45,106,79,0.04)"; }}
+                            onMouseLeave={(e) => { if (!botActive) e.currentTarget.style.background = "transparent"; }}
+                            onClick={() => handleSlotClick(date, h, true)}
+                            onDragOver={(e) => { if (dragApt) { e.preventDefault(); e.dataTransfer.dropEffect = "move"; setDragOver({ dateKey: dKey, minutes: botMinutes }); } }}
+                            onDragLeave={() => { if (botActive) setDragOver(null); }}
+                            onDrop={(e) => {
+                              if (!dragApt) return;
+                              e.preventDefault();
+                              const apt = dragApt;
+                              setDragApt(null);
+                              setDragOver(null);
+                              rescheduleAppointment(apt, date, minutesToTime(botMinutes));
+                            }}
+                            title={clipboard ? `Paste here at ${formatTime12(minutesToTime(botMinutes))}` : `Book at ${formatTime12(minutesToTime(botMinutes))}`}
+                          />
+                        </div>
+                      );
+                    })}
 
                     {/* Appointment blocks */}
                     {dayAppts.map(apt => {
@@ -1726,10 +1949,15 @@ export default function AppointmentsPage() {
                       const showActions = height >= 42;
                       const phone = apt.isWalkin ? apt.walkinPhone : null;
 
+                      // Sprint 1b drag/clipboard visual cues
+                      const isBeingDragged = dragApt?.id === apt.id;
+                      const isClipboardSource = clipboard?.id === apt.id;
+
                       return (
                         <div
                           key={apt.id}
-                          className="absolute left-[4px] right-[4px] overflow-hidden text-left transition-all hover:shadow-md cursor-pointer group"
+                          className="absolute left-[4px] right-[4px] overflow-hidden text-left transition-all hover:shadow-md cursor-grab active:cursor-grabbing group"
+                          draggable={!isCancelled}
                           style={{
                             top,
                             height,
@@ -1743,8 +1971,11 @@ export default function AppointmentsPage() {
                             borderLeft: `3px solid ${color.bg === "#f9a825" ? "#e88f00" : "rgba(0,0,0,0.15)"}`,
                             boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
                             // Sprint 1: cancelled = strikethrough + dim
-                            opacity: isCancelled ? 0.55 : 1,
+                            opacity: isCancelled ? 0.55 : (isBeingDragged ? 0.4 : 1),
                             textDecoration: isCancelled ? "line-through" : "none",
+                            // Sprint 1b: dashed outline = "this is on clipboard"
+                            outline: isClipboardSource ? "2px dashed #fbbf24" : "none",
+                            outlineOffset: isClipboardSource ? 2 : 0,
                           }}
                           onClick={(e) => {
                             e.stopPropagation();
@@ -1752,8 +1983,6 @@ export default function AppointmentsPage() {
                             setPopup({ apt, x: e.clientX, y: e.clientY });
                           }}
                           onMouseEnter={(e) => {
-                            // Anchor tooltip to card's top-right corner, not cursor.
-                            // This prevents re-renders on every pixel of mouse movement.
                             const r = e.currentTarget.getBoundingClientRect();
                             setHoverApt({ apt, x: r.right, y: r.top });
                           }}
@@ -1764,9 +1993,18 @@ export default function AppointmentsPage() {
                             setHoverApt(null);
                             setCtxMenu({ apt, x: e.clientX, y: e.clientY });
                           }}
+                          // Sprint 1b: drag-and-drop reschedule
+                          onDragStart={(e) => {
+                            if (isCancelled) { e.preventDefault(); return; }
+                            setHoverApt(null);
+                            setDragApt(apt);
+                            e.dataTransfer.effectAllowed = "move";
+                            try { e.dataTransfer.setData("text/plain", apt.id); } catch { /* ignore */ }
+                          }}
+                          onDragEnd={() => { setDragApt(null); setDragOver(null); }}
                           role="button"
                           tabIndex={0}
-                          aria-label={`${name} at ${formatTime12(apt.time)}, status ${apt.status}`}
+                          aria-label={`${name} at ${formatTime12(apt.time)}, status ${apt.status}, drag to reschedule`}
                         >
                           <div className="font-bold truncate flex items-center justify-between gap-1">
                             <span className="truncate">{formatTime12(apt.time)}{apt.endTime ? ` - ${formatTime12(apt.endTime)}` : ""}{apt.department ? ` (${apt.department})` : ""}</span>
@@ -1978,7 +2216,11 @@ export default function AppointmentsPage() {
           onClose={() => setCtxMenu(null)}
           items={[
             { label: "Open Details", icon: "👁", onClick: () => setPopup({ apt: ctxMenu.apt, x: ctxMenu.x, y: ctxMenu.y }) },
-            { label: "Mark Confirmed", icon: "✓", onClick: () => updateStatus(ctxMenu.apt.id, "confirmed") },
+            { label: "Duplicate Here…", icon: "📄", onClick: () => {
+              setClipboard(ctxMenu.apt);
+              showFlash({ type: "info", title: "Paste mode", message: "Click any empty slot to duplicate. Esc to cancel." });
+            }},
+            { label: "Mark Confirmed", icon: "✓", divider: true, onClick: () => updateStatus(ctxMenu.apt.id, "confirmed") },
             { label: "Mark In-Progress", icon: "▶", onClick: () => updateStatus(ctxMenu.apt.id, "in-progress") },
             { label: "Mark Completed", icon: "☑", onClick: () => updateStatus(ctxMenu.apt.id, "completed") },
             { label: "Copy Phone", icon: "📋", divider: true, onClick: () => {
