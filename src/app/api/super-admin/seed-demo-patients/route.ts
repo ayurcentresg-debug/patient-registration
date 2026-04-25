@@ -16,6 +16,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { isSuperAdmin } from "@/lib/super-admin-auth";
+import { createReciprocalLink } from "@/lib/family-reciprocal";
 
 const DEMO_CLINIC_EMAIL = "demo@ayurgate.com";
 
@@ -105,6 +106,7 @@ export async function POST() {
     ];
 
     let familyLinksCreated = 0;
+    let reciprocalsCreated = 0;
     for (const link of familyLinks) {
       const patientId = createdIds[link.patientKey];
       const linkedPatientId = createdIds[link.memberKey];
@@ -113,8 +115,15 @@ export async function POST() {
         where: { clinicId: clinic.id, patientId, linkedPatientId },
         select: { id: true },
       });
-      if (existingLink) continue;
-      await prisma.familyMember.create({
+      if (existingLink) {
+        // Even if forward exists, ensure reciprocal exists
+        const reverse = await createReciprocalLink(prisma, {
+          id: existingLink.id, patientId, linkedPatientId, relation: link.relation, clinicId: clinic.id,
+        });
+        if (reverse) reciprocalsCreated++;
+        continue;
+      }
+      const created = await prisma.familyMember.create({
         data: {
           clinicId: clinic.id,
           patientId,
@@ -126,6 +135,8 @@ export async function POST() {
         },
       });
       familyLinksCreated++;
+      const reverse = await createReciprocalLink(prisma, created);
+      if (reverse) reciprocalsCreated++;
     }
 
     return NextResponse.json({
@@ -135,7 +146,8 @@ export async function POST() {
       created,
       skipped,
       familyLinksCreated,
-      summary: `Created ${created.length} patient(s), skipped ${skipped.length} existing, linked ${familyLinksCreated} family relationship(s).`,
+      reciprocalsCreated,
+      summary: `Created ${created.length} patient(s), skipped ${skipped.length} existing, ${familyLinksCreated} forward family link(s), ${reciprocalsCreated} reverse link(s).`,
     });
   } catch (err) {
     console.error("seed-demo-patients error:", err);

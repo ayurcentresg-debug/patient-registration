@@ -445,6 +445,7 @@ export default function SettingsPage() {
 function DemoSeedSection() {
   const [loading, setLoading] = useState(false);
   const [patientSeedLoading, setPatientSeedLoading] = useState(false);
+  const [backfillLoading, setBackfillLoading] = useState(false);
   const [result, setResult] = useState<null | {
     ok: boolean;
     alreadyExists?: boolean;
@@ -489,6 +490,22 @@ function DemoSeedSection() {
     }
   }
 
+  async function handleBackfillFamily() {
+    if (!confirm("Heal one-way family links across ALL clinics?\n\nFor every linked relative (e.g. Ravi → Arjun as 'child'), the system will create the missing reverse row (Arjun → Ravi as 'parent') if it doesn't already exist.\n\nFree-text family members (no linked patient) are untouched. Idempotent — safe to run multiple times.")) return;
+    setBackfillLoading(true);
+    setResult(null);
+    try {
+      const res = await fetch("/api/super-admin/backfill-family-reciprocals", { method: "POST" });
+      const data = await res.json();
+      if (res.ok) setResult({ ok: true, message: data.summary });
+      else setResult({ ok: false, error: data.error || "Backfill failed" });
+    } catch (e) {
+      setResult({ ok: false, error: e instanceof Error ? e.message : "Network error" });
+    } finally {
+      setBackfillLoading(false);
+    }
+  }
+
   return (
     <div style={{ marginTop: 32, padding: 24, background: "#fff", borderRadius: 12, border: "1px solid #e5e7eb" }}>
       <h2 style={{ margin: "0 0 8px", fontSize: 18, fontWeight: 700, color: "#111827" }}>
@@ -516,20 +533,37 @@ function DemoSeedSection() {
         </button>
         <button
           onClick={handleSeedPatientsOnly}
-          disabled={loading || patientSeedLoading}
+          disabled={loading || patientSeedLoading || backfillLoading}
           title="Use when clinic exists but 7 dummy patients are missing (e.g. after DB reset)"
           style={{
             padding: "10px 20px",
             fontSize: 14,
             fontWeight: 600,
             color: "#14532d",
-            background: (loading || patientSeedLoading) ? "#f3f4f6" : "#f0fdf4",
+            background: (loading || patientSeedLoading || backfillLoading) ? "#f3f4f6" : "#f0fdf4",
             border: "1.5px solid #bbf7d0",
             borderRadius: 8,
             cursor: patientSeedLoading ? "wait" : "pointer",
           }}
         >
           {patientSeedLoading ? "Adding…" : "👥 Add 7 Demo Patients"}
+        </button>
+        <button
+          onClick={handleBackfillFamily}
+          disabled={loading || patientSeedLoading || backfillLoading}
+          title="Heal one-way family links across all clinics — adds missing reverse rows so children see their parents and vice-versa"
+          style={{
+            padding: "10px 20px",
+            fontSize: 14,
+            fontWeight: 600,
+            color: "#1e3a8a",
+            background: (loading || patientSeedLoading || backfillLoading) ? "#f3f4f6" : "#eff6ff",
+            border: "1.5px solid #bfdbfe",
+            borderRadius: 8,
+            cursor: backfillLoading ? "wait" : "pointer",
+          }}
+        >
+          {backfillLoading ? "Healing…" : "🔁 Backfill Family Links"}
         </button>
       </div>
 

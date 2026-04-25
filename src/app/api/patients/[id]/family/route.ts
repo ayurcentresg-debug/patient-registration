@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getClinicId } from "@/lib/get-clinic-id";
 import { getTenantPrisma } from "@/lib/tenant-db";
+import { createReciprocalLink, deleteReciprocalLink, syncReciprocalLink } from "@/lib/family-reciprocal";
 
 // GET /api/patients/:id/family — list family members
 export async function GET(
@@ -67,6 +68,15 @@ export async function POST(
       },
     });
 
+    // Create the reciprocal row (only if linkedPatientId is set; idempotent)
+    try {
+      await createReciprocalLink(db, member);
+    } catch (e) {
+      // Don't fail the user's add if reciprocal creation hits an issue —
+      // log and continue. Backfill endpoint can heal it later.
+      console.error("Reciprocal link creation failed:", e);
+    }
+
     return NextResponse.json(member, { status: 201 });
   } catch {
     return NextResponse.json({ error: "Failed to add family member" }, { status: 500 });
@@ -124,6 +134,14 @@ export async function PUT(
       data: updateData,
     });
 
+    // Sync reciprocal row to match (handles link change, relation change,
+    // link removal, and link addition).
+    try {
+      await syncReciprocalLink(db, updated, existing.linkedPatientId, existing.relation);
+    } catch (e) {
+      console.error("Reciprocal link sync failed:", e);
+    }
+
     return NextResponse.json(updated);
   } catch {
     return NextResponse.json({ error: "Failed to update family member" }, { status: 500 });
@@ -152,6 +170,13 @@ export async function DELETE(
     });
     if (!member) {
       return NextResponse.json({ error: "Family member not found" }, { status: 404 });
+    }
+
+    // Remove the reciprocal row first (if any) — best-effort
+    try {
+      await deleteReciprocalLink(db, member);
+    } catch (e) {
+      console.error("Reciprocal link deletion failed:", e);
     }
 
     await db.familyMember.delete({ where: { id: memberId } });
