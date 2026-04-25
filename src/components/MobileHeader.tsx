@@ -58,8 +58,8 @@ export default function MobileHeader({
                             boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
                   }}
                 >
-            {/* Left: Hamburger */}
-                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            {/* Left: Hamburger + Clinic logo (clinic brand always visible) */}
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                         <button
                                     onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                                     aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
@@ -73,7 +73,14 @@ export default function MobileHeader({
                                                 )}
                                   </svg>
                         </button>
-                  {/* Clinic logo + BranchSelector are in the slide-out drawer */}
+                  {clinicLogoUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={clinicLogoUrl} alt="Clinic" style={{ width: 30, height: 30, borderRadius: 6, objectFit: "cover" }} />
+                  ) : (
+                    <div style={{ width: 30, height: 30, borderRadius: 6, background: "#14532d", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 11, fontWeight: 700, letterSpacing: 0.5 }}>
+                      {(userInitials || "·")}
+                    </div>
+                  )}
                 </div>
           
             {/* Right: Search + Notifications + Help + Avatar */}
@@ -115,20 +122,15 @@ export default function MobileHeader({
                                   </svg>
                         </button>
                 
-                  {/* Avatar */}
+                  {/* Avatar — represents the LOGGED-IN USER (not the clinic) */}
                         <button
                                     onClick={() => { setAccountOpen(!accountOpen); setMobileMenuOpen(false); setMobileSearchOpen(false); }}
                                     aria-label="Account menu"
                                     style={{ background: "none", border: "none", cursor: "pointer", padding: 4, borderRadius: 99 }}
                                   >
-                          {clinicLogoUrl ? (
-                                                // eslint-disable-next-line @next/next/no-img-element
-                                                <img src={clinicLogoUrl} alt="" style={{ width: 30, height: 30, borderRadius: 99, objectFit: "cover" }} />
-                                              ) : (
-                                                <div style={{ width: 30, height: 30, borderRadius: 99, background: "linear-gradient(135deg, #059669, #10b981)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 12, fontWeight: 700 }}>
-                                                  {userInitials}
-                                                </div>
-                                  )}
+                          <div style={{ width: 30, height: 30, borderRadius: 99, background: "linear-gradient(135deg, #059669, #10b981)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 12, fontWeight: 700 }}>
+                            {userInitials || "U"}
+                          </div>
                         </button>
                 </div>
           </header>

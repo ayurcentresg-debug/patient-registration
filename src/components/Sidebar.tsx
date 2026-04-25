@@ -651,6 +651,14 @@ export default function Sidebar() {
           {/* Clinic name/subtitle removed to eliminate overlap with mobile header */}
         </div>
 
+        {/* Branch switcher — visible only when sidebar is expanded (hover).
+            BranchSelector returns null for clinics with 0 branches. */}
+        {expanded && (
+          <div style={{ padding: "10px 14px", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+            <BranchSelector />
+          </div>
+        )}
+
         {/* Search Bar (sidebar collapsed: icon only) */}
         <div
           ref={searchRef}
