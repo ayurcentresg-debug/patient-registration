@@ -546,29 +546,33 @@ function DemoSeedSection() {
           {result.ok ? (
             <>
               <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: "#14532d" }}>
-                {result.alreadyExists ? "✓ Demo clinic already exists" : "✓ Demo clinic created!"}
+                {result.email
+                  ? (result.alreadyExists ? "✓ Demo clinic already exists" : "✓ Demo clinic created!")
+                  : "✓ Done"}
               </p>
               <p style={{ margin: "8px 0 12px", fontSize: 13, color: "#166534" }}>
                 {result.message}
               </p>
-              <div
-                style={{
-                  padding: 12,
-                  background: "#fff",
-                  borderRadius: 6,
-                  fontSize: 13,
-                  fontFamily: "monospace",
-                  border: "1px solid #d1fae5",
-                }}
-              >
-                <div>📧 Email: <strong>{result.email}</strong></div>
-                <div>🔑 Password: <strong>{result.password}</strong></div>
-                <div style={{ marginTop: 8 }}>
-                  <a href="/login" target="_blank" style={{ color: "#2d6a4f", fontWeight: 600 }}>
-                    Open login page →
-                  </a>
+              {result.email && (
+                <div
+                  style={{
+                    padding: 12,
+                    background: "#fff",
+                    borderRadius: 6,
+                    fontSize: 13,
+                    fontFamily: "monospace",
+                    border: "1px solid #d1fae5",
+                  }}
+                >
+                  <div>📧 Email: <strong>{result.email}</strong></div>
+                  <div>🔑 Password: <strong>{result.password}</strong></div>
+                  <div style={{ marginTop: 8 }}>
+                    <a href="/login" target="_blank" style={{ color: "#2d6a4f", fontWeight: 600 }}>
+                      Open login page →
+                    </a>
+                  </div>
                 </div>
-              </div>
+              )}
             </>
           ) : (
             <>
