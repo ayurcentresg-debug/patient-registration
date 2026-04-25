@@ -651,13 +651,42 @@ export default function Sidebar() {
           {/* Clinic name/subtitle removed to eliminate overlap with mobile header */}
         </div>
 
-        {/* Branch switcher — visible only when sidebar is expanded (hover).
-            BranchSelector returns null for clinics with 0 branches. */}
-        {expanded && (
-          <div style={{ padding: "10px 14px", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+        {/* Branch switcher — always-visible. Compact icon when collapsed,
+            full chip when expanded. BranchSelector returns null when the
+            clinic has 0 branches, so this strip vanishes for those. */}
+        <div style={{
+          padding: expanded ? "10px 14px" : "10px 0",
+          borderBottom: "1px solid rgba(255,255,255,0.08)",
+          display: "flex",
+          justifyContent: "center",
+        }}>
+          {expanded ? (
             <BranchSelector />
-          </div>
-        )}
+          ) : (
+            <button
+              onClick={() => setExpanded(true)}
+              title="Switch branch — hover or click sidebar to expand"
+              aria-label="Switch branch"
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: 8,
+                background: "rgba(255,255,255,0.08)",
+                border: "none",
+                color: "#fff",
+                fontSize: 16,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <svg style={{ width: 18, height: 18 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+              </svg>
+            </button>
+          )}
+        </div>
 
         {/* Search Bar (sidebar collapsed: icon only) */}
         <div
