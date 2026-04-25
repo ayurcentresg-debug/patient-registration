@@ -1132,8 +1132,23 @@ export default function AppointmentsPage() {
   const [dragApt, setDragApt] = useState<Appointment | null>(null);
   const [dragOver, setDragOver] = useState<{ dateKey: string; minutes: number } | null>(null);
   const [clipboard, setClipboard] = useState<Appointment | null>(null);
+  // Sprint 1c: right sidebar toggle (default visible, persisted to localStorage)
+  const [sidebarVisible, setSidebarVisible] = useState(true);
   const moreMenuRef = useRef<HTMLDivElement>(null);
   const moreBtnRef = useRef<HTMLButtonElement>(null);
+
+  // Restore sidebar visibility preference on mount
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const saved = window.localStorage.getItem("appts-sidebar-visible");
+    if (saved === "false") setSidebarVisible(false);
+  }, []);
+
+  // Persist sidebar visibility on change
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem("appts-sidebar-visible", sidebarVisible ? "true" : "false");
+  }, [sidebarVisible]);
 
   // Close more menu on outside click + Esc
   useEffect(() => {
@@ -1725,12 +1740,28 @@ export default function AppointmentsPage() {
           Export
         </button>
 
-        {/* Schedule title on right */}
-        <div className="h-full flex items-center px-5" style={{ borderLeft: "1px solid var(--grey-300)" }}>
-          <span className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>
-            {selectedDate.toLocaleDateString("en-SG", { month: "short", day: "numeric" })}&apos;s Schedule
-          </span>
-        </div>
+        {/* Sprint 1c: Sidebar toggle (xl+ only — sidebar is hidden below xl anyway) */}
+        <button
+          onClick={() => setSidebarVisible(v => !v)}
+          className="hidden xl:flex h-full px-3 items-center justify-center transition-colors hover:bg-gray-200"
+          style={{ borderLeft: "1px solid var(--grey-300)" }}
+          title={sidebarVisible ? "Hide Today's Schedule sidebar" : "Show Today's Schedule sidebar"}
+          aria-label={sidebarVisible ? "Hide sidebar" : "Show sidebar"}
+        >
+          <svg className="w-4 h-4" fill="none" stroke="var(--grey-600)" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+              d={sidebarVisible ? "M14 5l7 7-7 7M5 12h16" : "M10 19l-7-7 7-7M3 12h16"} />
+          </svg>
+        </button>
+
+        {/* Schedule title on right (hidden when sidebar is hidden) */}
+        {sidebarVisible && (
+          <div className="h-full flex items-center px-5" style={{ borderLeft: "1px solid var(--grey-300)" }}>
+            <span className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>
+              {selectedDate.toLocaleDateString("en-SG", { month: "short", day: "numeric" })}&apos;s Schedule
+            </span>
+          </div>
+        )}
       </div>
 
       {/* ─── Toolbar Row 2: Search + Doctor filter + Walk-in button ─── */}
@@ -2017,9 +2048,11 @@ export default function AppointmentsPage() {
                       const isBeingDragged = dragApt?.id === apt.id;
                       const isClipboardSource = clipboard?.id === apt.id;
 
-                      // Side-by-side overlap layout
+                      // Side-by-side overlap layout — 12px gap so empty area
+                      // between cards is clickable for adding new appointments
                       const laneWidth = 100 / apt.totalLanes;
                       const leftPct = apt.lane * laneWidth;
+                      const cardGap = apt.totalLanes > 1 ? 12 : 4;
 
                       return (
                         <div
@@ -2029,8 +2062,8 @@ export default function AppointmentsPage() {
                           style={{
                             top,
                             height,
-                            left: `calc(${leftPct}% + 2px)`,
-                            width: `calc(${laneWidth}% - 4px)`,
+                            left: `calc(${leftPct}% + ${cardGap / 2}px)`,
+                            width: `calc(${laneWidth}% - ${cardGap}px)`,
                             background: apt.isWalkin ? `repeating-linear-gradient(135deg, ${color.bg}, ${color.bg} 4px, ${color.bg}dd 4px, ${color.bg}dd 8px)` : color.bg,
                             color: color.text,
                             borderRadius: 6,
@@ -2140,7 +2173,8 @@ export default function AppointmentsPage() {
         </div>
 
         {/* ─── Right Sidebar: Today's Schedule ─── */}
-        <div className="hidden xl:flex flex-col w-[300px] border-l overflow-y-auto flex-shrink-0" style={{ background: "var(--white)", borderColor: "var(--grey-200)" }}>
+        {sidebarVisible && (
+        <div className="hidden xl:flex flex-col w-[300px] border-l overflow-y-auto flex-shrink-0 appts-sidebar-scroll" style={{ background: "var(--white)", borderColor: "var(--grey-200)" }}>
           <div className="p-4 border-b" style={{ borderColor: "var(--grey-200)" }}>
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>Today&apos;s Schedule</h2>
@@ -2266,11 +2300,49 @@ export default function AppointmentsPage() {
                       </Link>
                     )}
                   </div>
+                  {/* Sprint 1c: Quick action buttons (visible on hover) */}
+                  {apt.status !== "cancelled" && apt.status !== "completed" && (
+                    <div className="ml-[56px] mt-1 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      {apt.status !== "confirmed" && (
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); updateStatus(apt.id, "confirmed"); }}
+                          title="Check in (mark confirmed)"
+                          className="px-1.5 py-0.5 rounded text-[10px] font-bold transition-colors"
+                          style={{ background: "#dcfce7", color: "#166534" }}
+                        >✓ Check-in</button>
+                      )}
+                      {apt.status !== "in-progress" && (
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); updateStatus(apt.id, "in-progress"); }}
+                          title="Mark session in progress"
+                          className="px-1.5 py-0.5 rounded text-[10px] font-bold transition-colors"
+                          style={{ background: "#fed7aa", color: "#9a3412" }}
+                        >▶ Start</button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); updateStatus(apt.id, "completed"); }}
+                        title="Mark completed (check out)"
+                        className="px-1.5 py-0.5 rounded text-[10px] font-bold transition-colors"
+                        style={{ background: "#dbeafe", color: "#1e40af" }}
+                      >☑ Done</button>
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); setClipboard(apt); showFlash({ type: "info", title: "Paste mode", message: "Click any empty slot to move this appointment." }); }}
+                        title="Move (duplicate to new slot)"
+                        className="px-1.5 py-0.5 rounded text-[10px] font-bold transition-colors"
+                        style={{ background: "#f3e8ff", color: "#6b21a8" }}
+                      >📅 Move</button>
+                    </div>
+                  )}
                 </div>
               ))
             )}
           </div>
         </div>
+        )}
       </div>
 
       {/* Sprint 1: Hover info panel (doesn't render while context menu open) */}

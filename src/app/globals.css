@@ -199,6 +199,28 @@ input[type="radio"] {
   display: none;
 }
 
+/* Sprint 1c: thicker more-visible scrollbar for appointments sidebar */
+.appts-sidebar-scroll,
+.appts-sidebar-scroll * {
+  scrollbar-width: auto;
+  scrollbar-color: var(--grey-500) transparent;
+}
+.appts-sidebar-scroll::-webkit-scrollbar,
+.appts-sidebar-scroll *::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+.appts-sidebar-scroll::-webkit-scrollbar-thumb,
+.appts-sidebar-scroll *::-webkit-scrollbar-thumb {
+  background: var(--grey-500);
+  border-radius: 100px;
+  border: 2px solid var(--white);
+}
+.appts-sidebar-scroll::-webkit-scrollbar-thumb:hover,
+.appts-sidebar-scroll *::-webkit-scrollbar-thumb:hover {
+  background: var(--grey-700);
+}
+
 /* Dark mode specific overrides */
 [data-theme="dark"] input:focus,
 [data-theme="dark"] select:focus,
