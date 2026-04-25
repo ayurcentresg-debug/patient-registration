@@ -149,6 +149,38 @@ function getPatientName(apt: Appointment): string {
   return "Unknown";
 }
 
+/**
+ * Lay out appointments side-by-side when they overlap in time.
+ * Each returned entry has `lane` (0-indexed column) and `totalLanes` (how
+ * many lanes its overlap chain occupies). Cards then position at:
+ *   left  = (lane / totalLanes) * 100%
+ *   width = (1 / totalLanes) * 100%
+ * Greedy lane assignment matches Google Calendar / Practo behavior.
+ */
+function layoutAppointments(appts: Appointment[]): Array<Appointment & { lane: number; totalLanes: number }> {
+  if (appts.length === 0) return [];
+  const indexed = appts.map(a => {
+    const start = timeToMinutes(a.time);
+    return { apt: a, start, end: start + (a.duration || 30) };
+  });
+  // Stable sort: by start, then longer-first so longer events take inner lanes
+  indexed.sort((a, b) => (a.start - b.start) || (b.end - b.start) - (a.end - a.start));
+  // Lane assignment: greedy — first lane whose last-end ≤ this start
+  const laneEnds: number[] = [];
+  const withLane = indexed.map(({ apt, start, end }) => {
+    let lane = laneEnds.findIndex(e => e <= start);
+    if (lane === -1) { lane = laneEnds.length; laneEnds.push(end); }
+    else { laneEnds[lane] = end; }
+    return { apt, start, end, lane };
+  });
+  // For each apt, totalLanes = 1 + max lane index across its overlap chain
+  return withLane.map(({ apt, start, end, lane }) => {
+    const overlapping = withLane.filter(o => o.start < end && o.end > start);
+    const totalLanes = Math.max(...overlapping.map(o => o.lane)) + 1;
+    return { ...apt, lane, totalLanes };
+  });
+}
+
 /* ─── Mini Calendar ─── */
 function MiniCalendar({ selectedDate, onSelect }: { selectedDate: Date; onSelect: (d: Date) => void }) {
   const [viewMonth, setViewMonth] = useState(new Date(selectedDate));
@@ -1936,8 +1968,8 @@ export default function AppointmentsPage() {
                       );
                     })}
 
-                    {/* Appointment blocks */}
-                    {dayAppts.map(apt => {
+                    {/* Appointment blocks — laid out side-by-side when overlapping */}
+                    {layoutAppointments(dayAppts).map(apt => {
                       const startMin = timeToMinutes(apt.time);
                       const duration = apt.duration || 30;
                       const top = ((startMin - START_HOUR * 60) / 60) * HOUR_HEIGHT + 48;
@@ -1953,14 +1985,20 @@ export default function AppointmentsPage() {
                       const isBeingDragged = dragApt?.id === apt.id;
                       const isClipboardSource = clipboard?.id === apt.id;
 
+                      // Side-by-side overlap layout
+                      const laneWidth = 100 / apt.totalLanes;
+                      const leftPct = apt.lane * laneWidth;
+
                       return (
                         <div
                           key={apt.id}
-                          className="absolute left-[4px] right-[4px] overflow-hidden text-left transition-all hover:shadow-md cursor-grab active:cursor-grabbing group"
+                          className="absolute overflow-hidden text-left transition-all hover:shadow-md cursor-grab active:cursor-grabbing group"
                           draggable={!isCancelled}
                           style={{
                             top,
                             height,
+                            left: `calc(${leftPct}% + 2px)`,
+                            width: `calc(${laneWidth}% - 4px)`,
                             background: apt.isWalkin ? `repeating-linear-gradient(135deg, ${color.bg}, ${color.bg} 4px, ${color.bg}dd 4px, ${color.bg}dd 8px)` : color.bg,
                             color: color.text,
                             borderRadius: 6,
