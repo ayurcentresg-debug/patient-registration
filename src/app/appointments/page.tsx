@@ -1127,17 +1127,23 @@ export default function AppointmentsPage() {
 
   // ─── Sprint 1b: More menu / 24h / drag-drop / clipboard ─────────────
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
+  const [moreMenuPos, setMoreMenuPos] = useState<{ top: number; right: number } | null>(null);
   const [is24Hour, setIs24Hour] = useState(false);
   const [dragApt, setDragApt] = useState<Appointment | null>(null);
   const [dragOver, setDragOver] = useState<{ dateKey: string; minutes: number } | null>(null);
   const [clipboard, setClipboard] = useState<Appointment | null>(null);
   const moreMenuRef = useRef<HTMLDivElement>(null);
+  const moreBtnRef = useRef<HTMLButtonElement>(null);
 
   // Close more menu on outside click + Esc
   useEffect(() => {
     if (!moreMenuOpen) return;
     const handleClick = (e: MouseEvent) => {
-      if (moreMenuRef.current && !moreMenuRef.current.contains(e.target as Node)) setMoreMenuOpen(false);
+      const t = e.target as Node;
+      // Don't close if click is inside the menu OR the button that toggles it
+      if (moreMenuRef.current?.contains(t)) return;
+      if (moreBtnRef.current?.contains(t)) return;
+      setMoreMenuOpen(false);
     };
     const handleEsc = (e: KeyboardEvent) => { if (e.key === "Escape") setMoreMenuOpen(false); };
     document.addEventListener("mousedown", handleClick);
@@ -1607,10 +1613,19 @@ export default function AppointmentsPage() {
         {/* Spacer */}
         <div className="flex-1" />
 
-        {/* Sprint 1b: More menu (replaces inline Show Cancelled checkbox) */}
-        <div className="relative h-full" ref={moreMenuRef} style={{ borderRight: "1px solid var(--grey-300)" }}>
+        {/* Sprint 1b: More menu — popover uses position:fixed to escape the
+            toolbar's overflow-x-auto (which clips overflow on both axes). */}
+        <div className="relative h-full" style={{ borderRight: "1px solid var(--grey-300)" }}>
           <button
-            onClick={() => setMoreMenuOpen(o => !o)}
+            ref={moreBtnRef}
+            onClick={() => {
+              if (moreMenuOpen) { setMoreMenuOpen(false); return; }
+              const r = moreBtnRef.current?.getBoundingClientRect();
+              if (r) {
+                setMoreMenuPos({ top: r.bottom + 4, right: window.innerWidth - r.right });
+              }
+              setMoreMenuOpen(true);
+            }}
             className="h-full flex items-center gap-1.5 px-3 text-[13px] font-semibold transition-colors hover:bg-gray-200 whitespace-nowrap"
             style={{ color: "var(--grey-700)" }}
             aria-haspopup="menu"
@@ -1620,8 +1635,22 @@ export default function AppointmentsPage() {
             More
             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
           </button>
-          {moreMenuOpen && (
-            <div className="absolute top-full right-0 mt-1 w-[230px] yoda-fade-in" style={{ background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: "var(--radius)", boxShadow: "var(--shadow-lg)", padding: 4, zIndex: 50 }} role="menu">
+          {moreMenuOpen && moreMenuPos && (
+            <div
+              ref={moreMenuRef}
+              className="fixed w-[230px] yoda-fade-in"
+              style={{
+                top: moreMenuPos.top,
+                right: moreMenuPos.right,
+                background: "var(--white)",
+                border: "1px solid var(--grey-300)",
+                borderRadius: "var(--radius)",
+                boxShadow: "var(--shadow-lg)",
+                padding: 4,
+                zIndex: 9999,
+              }}
+              role="menu"
+            >
               <label className="flex items-center gap-2 px-3 py-2 rounded text-[13px] cursor-pointer hover:bg-gray-100" style={{ color: "var(--grey-800)" }}>
                 <input type="checkbox" checked={showCancelled} onChange={(e) => setShowCancelled(e.target.checked)} className="w-3.5 h-3.5" />
                 <span>Show Cancelled</span>
