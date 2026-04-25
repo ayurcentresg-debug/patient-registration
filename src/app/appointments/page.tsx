@@ -1890,7 +1890,8 @@ export default function AppointmentsPage() {
                 const isToday = isSameDay(date, new Date());
                 return (
                   <div key={colIdx} className="flex-1 min-w-[120px] relative" style={{ borderRight: colIdx < viewDates.length - 1 ? "1px solid var(--grey-300)" : "none" }}>
-                    {/* Day header */}
+                    {/* Day header — hidden in Day view (date already shown in toolbar Row 1).
+                         Empty 48px spacer kept so appointment-block top calc (+48) still aligns. */}
                     <div
                       className="h-[48px] flex items-center justify-center sticky top-0 z-10 border-b"
                       style={{
@@ -1898,9 +1899,11 @@ export default function AppointmentsPage() {
                         borderColor: "var(--grey-300)",
                       }}
                     >
-                      <span className="text-[15px] font-bold" style={{ color: isToday ? "#2d6a4f" : "var(--grey-700)" }}>
-                        {["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][date.getDay()]} {date.getDate()}{date.getDate() === 1 || date.getDate() === 21 || date.getDate() === 31 ? "st" : date.getDate() === 2 || date.getDate() === 22 ? "nd" : date.getDate() === 3 || date.getDate() === 23 ? "rd" : "th"} {["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][date.getMonth()]}
-                      </span>
+                      {viewMode !== "Day" && (
+                        <span className="text-[15px] font-bold" style={{ color: isToday ? "#2d6a4f" : "var(--grey-700)" }}>
+                          {["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][date.getDay()]} {date.getDate()}{date.getDate() === 1 || date.getDate() === 21 || date.getDate() === 31 ? "st" : date.getDate() === 2 || date.getDate() === 22 ? "nd" : date.getDate() === 3 || date.getDate() === 23 ? "rd" : "th"} {["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][date.getMonth()]}
+                        </span>
+                      )}
                     </div>
 
                     {/* Clickable hour grid + Sprint 1b drop targets */}
