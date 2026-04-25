@@ -582,6 +582,112 @@ function DemoSeedSection() {
           )}
         </div>
       )}
+
+      <DemoCredentialsPanel />
+    </div>
+  );
+}
+
+// ─── All Demo Login Credentials Panel ──────────────────────────────────
+
+const DEMO_LOGINS: { role: string; name: string; email: string }[] = [
+  { role: "🏥 Clinic Admin", name: "Demo Admin",        email: "demo@ayurgate.com" },
+  { role: "👨‍⚕️ Doctor",        name: "Dr. Priya Nair",   email: "priya@demo-clinic.sg" },
+  { role: "👨‍⚕️ Doctor",        name: "Dr. Rajan Kumar",  email: "rajan@demo-clinic.sg" },
+  { role: "💆 Therapist",      name: "Aisha Fernandez",  email: "aisha@demo-clinic.sg" },
+  { role: "💆 Therapist",      name: "Lim Wei Jie",      email: "weijie@demo-clinic.sg" },
+  { role: "💆 Therapist",      name: "Meera Sharma",     email: "meera@demo-clinic.sg" },
+  { role: "💆 Therapist",      name: "Ahmad Bin Ismail", email: "ahmad@demo-clinic.sg" },
+  { role: "💆 Therapist",      name: "Sushila Tamang",   email: "sushila@demo-clinic.sg" },
+  { role: "📞 Receptionist",   name: "Tan Mei Ling",     email: "meiling@demo-clinic.sg" },
+];
+const DEMO_PASSWORD = "Demo2026!";
+
+function DemoCredentialsPanel() {
+  const [open, setOpen] = useState(false);
+  const [copied, setCopied] = useState<string | null>(null);
+
+  function copy(text: string, key: string) {
+    navigator.clipboard?.writeText(text);
+    setCopied(key);
+    setTimeout(() => setCopied(c => (c === key ? null : c)), 1500);
+  }
+
+  return (
+    <div style={{ marginTop: 24, paddingTop: 20, borderTop: "1px dashed #e5e7eb" }}>
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        style={{
+          padding: "8px 14px",
+          fontSize: 13,
+          fontWeight: 600,
+          color: "#1e3a8a",
+          background: open ? "#dbeafe" : "#eff6ff",
+          border: "1px solid #bfdbfe",
+          borderRadius: 6,
+          cursor: "pointer",
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 6,
+        }}
+      >
+        <span>{open ? "▼" : "▶"}</span>
+        <span>{open ? "Hide" : "Show"} all demo login credentials</span>
+        <span style={{ background: "#1e40af", color: "#fff", fontSize: 11, padding: "1px 6px", borderRadius: 10, marginLeft: 4 }}>
+          {DEMO_LOGINS.length}
+        </span>
+      </button>
+
+      {open && (
+        <div style={{ marginTop: 12, padding: 16, background: "#f9fafb", border: "1px solid #e5e7eb", borderRadius: 8 }}>
+          <p style={{ margin: "0 0 12px", fontSize: 13, color: "#4b5563" }}>
+            All staff use the same password: <code style={{ background: "#fff", padding: "2px 8px", borderRadius: 4, border: "1px solid #d1d5db", fontWeight: 700 }}>{DEMO_PASSWORD}</code>
+            <button
+              type="button"
+              onClick={() => copy(DEMO_PASSWORD, "pw")}
+              style={{ marginLeft: 8, padding: "2px 8px", fontSize: 11, fontWeight: 600, background: "#fff", border: "1px solid #d1d5db", borderRadius: 4, cursor: "pointer" }}
+            >
+              {copied === "pw" ? "✓ Copied" : "Copy"}
+            </button>
+          </p>
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", fontSize: 13, borderCollapse: "collapse" }}>
+              <thead>
+                <tr style={{ background: "#fff", borderBottom: "1.5px solid #e5e7eb" }}>
+                  <th style={{ padding: "8px 10px", textAlign: "left", fontWeight: 700, color: "#374151" }}>Role</th>
+                  <th style={{ padding: "8px 10px", textAlign: "left", fontWeight: 700, color: "#374151" }}>Name</th>
+                  <th style={{ padding: "8px 10px", textAlign: "left", fontWeight: 700, color: "#374151" }}>Email</th>
+                  <th style={{ padding: "8px 10px", textAlign: "left", fontWeight: 700, color: "#374151" }}>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {DEMO_LOGINS.map((u) => (
+                  <tr key={u.email} style={{ borderBottom: "1px solid #f3f4f6" }}>
+                    <td style={{ padding: "8px 10px" }}>{u.role}</td>
+                    <td style={{ padding: "8px 10px", fontWeight: 600, color: "#111827" }}>{u.name}</td>
+                    <td style={{ padding: "8px 10px", color: "#374151", fontFamily: "monospace", fontSize: 12 }}>{u.email}</td>
+                    <td style={{ padding: "8px 10px" }}>
+                      <button
+                        type="button"
+                        onClick={() => copy(u.email, u.email)}
+                        style={{ padding: "2px 8px", fontSize: 11, fontWeight: 600, background: "#fff", border: "1px solid #d1d5db", borderRadius: 4, cursor: "pointer", color: "#374151" }}
+                      >
+                        {copied === u.email ? "✓ Copied" : "Copy email"}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p style={{ margin: "12px 0 0", fontSize: 12, color: "#6b7280" }}>
+            🔑 Super Admin (this panel): <code style={{ background: "#fff", padding: "1px 6px", borderRadius: 3 }}>info@ayurgate.com</code> /{" "}
+            <code style={{ background: "#fff", padding: "1px 6px", borderRadius: 3 }}>Veda@2026</code> ·{" "}
+            Login URL: <a href="/login" target="_blank" style={{ color: "#1d4ed8", fontWeight: 600 }}>/login</a>
+          </p>
+        </div>
+      )}
     </div>
   );
 }
