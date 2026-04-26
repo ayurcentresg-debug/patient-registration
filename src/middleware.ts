@@ -155,8 +155,11 @@ const AUTH_RATE_LIMIT_PREFIXES = [
   "/api/portal/auth",
   "/api/invite/",
 ];
-const AUTH_RATE = { maxRequests: 10, windowMs: 60_000 };
-const API_RATE = { maxRequests: 100, windowMs: 60_000 };
+const AUTH_RATE = { maxRequests: 20, windowMs: 60_000 };
+// 100/min was too tight for normal app use — a single page load can fan out
+// to many API calls (sidebar, banner, dashboard widgets, etc.) and trip 429.
+// 500/min still guards against runaway loops while letting real users work.
+const API_RATE = { maxRequests: 500, windowMs: 60_000 };
 
 function clientIp(req: NextRequest): string {
   const xff = req.headers.get("x-forwarded-for");
