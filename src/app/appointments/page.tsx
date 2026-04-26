@@ -7,6 +7,7 @@ import { downloadCSV } from "@/lib/csv-export";
 import { useFlash } from "@/components/FlashCardProvider";
 import WaitlistModal from "@/components/WaitlistModal";
 import { inputStyle } from "@/lib/styles";
+import { useSelectedBranch } from "@/lib/use-selected-branch";
 
 /* ─── Types ─── */
 interface Appointment {
@@ -278,6 +279,9 @@ function QuickBookModal({
   const [selectedPatient, setSelectedPatient] = useState<PatientOption | null>(null);
   const [searchLoading, setSearchLoading] = useState(false);
 
+  // Multi-branch (Phase 3): tag the new appointment with the currently-selected branch
+  const bookingBranchId = useSelectedBranch();
+
   // Walk-in fields
   const [walkinName, setWalkinName] = useState("");
   const [walkinPhone, setWalkinPhone] = useState("");
@@ -403,6 +407,8 @@ function QuickBookModal({
         duration,
         doctor: selectedDoctor?.name || "",
         doctorId,
+        // Multi-branch (Phase 3): inherit from selected branch (or doctor's primary branch)
+        branchId: bookingBranchId || (selectedDoctor as Doctor & { branchId?: string })?.branchId || null,
         department: selectedDoctor?.department || null,
         type: aptType,
         reason: reason || null,
@@ -1134,6 +1140,8 @@ export default function AppointmentsPage() {
   const [clipboard, setClipboard] = useState<Appointment | null>(null);
   // Sprint 1c: right sidebar toggle (default visible, persisted to localStorage)
   const [sidebarVisible, setSidebarVisible] = useState(true);
+  // Multi-branch (Phase 2): filter calendar + doctors by selected branch
+  const selectedBranchId = useSelectedBranch();
   const moreMenuRef = useRef<HTMLDivElement>(null);
   const moreBtnRef = useRef<HTMLButtonElement>(null);
 
@@ -1215,9 +1223,12 @@ export default function AppointmentsPage() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // Fetch doctors — defensive array guard
+  // Fetch doctors — defensive array guard, refetched when branch changes
   useEffect(() => {
-    fetch("/api/doctors?status=active")
+    const url = selectedBranchId
+      ? `/api/doctors?status=active&branchId=${encodeURIComponent(selectedBranchId)}`
+      : "/api/doctors?status=active";
+    fetch(url)
       .then(r => (r.ok ? r.json() : []))
       .then(data => {
         const list = Array.isArray(data)
@@ -1228,7 +1239,7 @@ export default function AppointmentsPage() {
         setDoctors(list);
       })
       .catch(() => setDoctors([]));
-  }, []);
+  }, [selectedBranchId]);
 
   // Compute date range for fetch
   const dateRange = useMemo(() => {
@@ -1251,12 +1262,13 @@ export default function AppointmentsPage() {
     }
   }, [selectedDate, viewMode]);
 
-  // Fetch appointments — defensive array guard
+  // Fetch appointments — defensive array guard, refetched when branch changes
   const fetchAppointments = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams({ from: dateRange.from, to: dateRange.to });
       if (selectedDoctor !== "all") params.set("doctorId", selectedDoctor);
+      if (selectedBranchId) params.set("branchId", selectedBranchId);
       const res = await fetch(`/api/appointments?${params}`);
       if (res.ok) {
         const data = await res.json();
@@ -1273,7 +1285,7 @@ export default function AppointmentsPage() {
       setAppointments([]);
     }
     setLoading(false);
-  }, [dateRange, selectedDoctor]);
+  }, [dateRange, selectedDoctor, selectedBranchId]);
 
   useEffect(() => { if (mounted) fetchAppointments(); }, [mounted, fetchAppointments]);
 

@@ -13,10 +13,17 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get("status");
     const search = searchParams.get("search");
     const role = searchParams.get("role"); // "doctor" | "therapist"
+    // Multi-branch filter (Phase 2): when set, returns only doctors at that branch
+    // PLUS doctors with branchId=null (floating staff who serve all branches).
+    const branchId = searchParams.get("branchId");
 
     const where: Record<string, unknown> = {
       role: role ? role : { in: ["doctor", "therapist"] },
     };
+
+    if (branchId) {
+      where.OR = [{ branchId }, { branchId: null }];
+    }
 
     // Appointment dropdowns call this with ?status=active. We interpret that
     // as "give me bookable doctors" and use isActive as the source of truth,

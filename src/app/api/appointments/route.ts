@@ -25,6 +25,9 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get("status");
     const from = searchParams.get("from");
     const to = searchParams.get("to");
+    // Multi-branch filter (Phase 2): when set, returns only appointments for that branch.
+    // Special value "unassigned" returns rows with branchId=null (legacy data).
+    const branchId = searchParams.get("branchId");
 
     const search = searchParams.get("search");
     const limit = searchParams.get("limit");
@@ -34,6 +37,7 @@ export async function GET(request: NextRequest) {
     if (patientId) where.patientId = patientId;
     if (doctorId) where.doctorId = doctorId;
     if (status) where.status = status;
+    if (branchId) where.branchId = branchId === "unassigned" ? null : branchId;
 
     if (search) {
       where.OR = [
@@ -145,6 +149,7 @@ export async function POST(request: NextRequest) {
     }
 
     const commonData = {
+      branchId: body.branchId || null,  // multi-branch tag (Phase 1)
       doctorId: body.doctorId || null,
       date: appointmentDate,
       time: body.time,
