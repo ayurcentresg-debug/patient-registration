@@ -351,6 +351,23 @@ function QuickBookModal({
   const [loadingTreatments, setLoadingTreatments] = useState(false);
   const [walkinHasHistory, setWalkinHasHistory] = useState(false);
 
+  // Booking availability warnings (#H + #C enforcement) — debounced check
+  // when doctor / branch / date / time changes
+  const [availabilityWarnings, setAvailabilityWarnings] = useState<{ type: string; message: string }[]>([]);
+  useEffect(() => {
+    if (!doctorId && !bookingBranchId) { setAvailabilityWarnings([]); return; }
+    const params = new URLSearchParams({ date: toDateStr(date), time });
+    if (doctorId) params.set("doctorId", doctorId);
+    if (bookingBranchId) params.set("branchId", bookingBranchId);
+    const t = setTimeout(() => {
+      fetch(`/api/booking/availability?${params}`)
+        .then(r => (r.ok ? r.json() : { warnings: [] }))
+        .then(data => setAvailabilityWarnings(data.warnings || []))
+        .catch(() => setAvailabilityWarnings([]));
+    }, 250);
+    return () => clearTimeout(t);
+  }, [doctorId, bookingBranchId, date, time]);
+
   // Reset practitioner when booking type changes
   const selectedDoctor = doctors.find(d => d.id === doctorId);
 
@@ -983,6 +1000,21 @@ function QuickBookModal({
                   <span className="font-bold">S${displayPackageTotal?.toFixed(2)}</span>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Availability warnings (#H + #C) — show but don't hard-block */}
+          {availabilityWarnings.length > 0 && (
+            <div className="p-2.5 rounded-md mb-2" style={{ background: "#fffbeb", border: "1px solid #fde68a" }}>
+              {availabilityWarnings.map((w, i) => (
+                <div key={i} className="flex items-start gap-1.5 text-[12px]" style={{ color: "#92400e" }}>
+                  <span className="mt-0.5">{w.type === "holiday" ? "🏢" : "⏰"}</span>
+                  <span className="font-medium">{w.message}</span>
+                </div>
+              ))}
+              <p className="text-[10px] mt-1.5 italic" style={{ color: "#92400e", opacity: 0.7 }}>
+                You can still book — this is just a heads-up.
+              </p>
             </div>
           )}
 

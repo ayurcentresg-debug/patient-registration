@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db";
-import { getClinicId } from "@/lib/get-clinic-id";
+import { getClinicId, getRestrictedBranchId } from "@/lib/get-clinic-id";
 import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -44,8 +44,11 @@ export async function GET(request: NextRequest) {
       where.date = dateFilter;
     }
 
-    if (branchId) {
-      where.branchId = branchId;
+    // Multi-branch RBAC (#I): force-restrict to user's branch if scoped
+    const restrictBranch = await getRestrictedBranchId();
+    const effectiveBranchId = restrictBranch || branchId;
+    if (effectiveBranchId) {
+      where.branchId = effectiveBranchId;
     }
 
     if (search) {
