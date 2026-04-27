@@ -891,6 +891,9 @@ model User {
   id              String    @id @default(cuid())
   clinicId        String?
   branchId        String?   // primary branch for this staff member; null = floats across all branches
+  // When true, this user can ONLY see appointments/patients/etc. at their primary branch.
+  // Used to silo Branch B receptionist from Main Branch data, etc. Requires branchId to be set.
+  branchRestricted Boolean  @default(false)
   name            String
   email           String
   phone           String?

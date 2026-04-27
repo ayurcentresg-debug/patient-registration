@@ -71,6 +71,34 @@ export {
 } from "@/lib/permissions";
 
 /**
+ * Branch scope helper for multi-branch RBAC (#I).
+ * Returns the branchId the current user is RESTRICTED to (null = unrestricted).
+ *
+ * - If User.branchRestricted = true AND has branchId → returns that branchId
+ * - Otherwise null (unrestricted: sees all branches)
+ *
+ * Use in API routes to scope queries:
+ *   const restrictBranch = await getRestrictedBranchId();
+ *   if (restrictBranch) where.branchId = restrictBranch;
+ */
+import { prisma } from "./db";
+export async function getRestrictedBranchId(): Promise<string | null> {
+  const payload = await getAuthPayload();
+  if (!payload) return null;
+  // Super-admin and clinic owner are never branch-restricted
+  if (payload.role === "super_admin" || payload.role === "owner" || payload.role === "admin") return null;
+
+  const userId = (payload as { userId?: string; sub?: string }).userId || (payload as { sub?: string }).sub;
+  if (!userId) return null;
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { branchId: true, branchRestricted: true },
+  });
+  if (!user || !user.branchRestricted || !user.branchId) return null;
+  return user.branchId;
+}
+
+/**
  * Checks if the authenticated user has one of the allowed roles.
  * Returns the payload if authorized, null otherwise.
  */

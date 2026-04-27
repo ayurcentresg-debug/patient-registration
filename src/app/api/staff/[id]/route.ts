@@ -77,6 +77,7 @@ export async function PUT(
     if (body.specialization !== undefined) updateData.specialization = body.specialization || null;
     if (body.department !== undefined) updateData.department = body.department || null;
     if (body.branchId !== undefined) updateData.branchId = body.branchId || null;
+    if (body.branchRestricted !== undefined) updateData.branchRestricted = !!body.branchRestricted;
     if (body.branchSchedules !== undefined) updateData.branchSchedules = body.branchSchedules || null;
     if (body.consultationFee !== undefined) updateData.consultationFee = body.consultationFee !== null ? Number(body.consultationFee) : null;
     if (body.schedule !== undefined) updateData.schedule = body.schedule;

@@ -63,6 +63,7 @@ interface StaffForm {
   consultationFee: string;
   slotDuration: string;
   branchId: string;  // primary branch (multi-branch clinics); empty = floats across all
+  branchRestricted: boolean; // (Phase 2.26 / I) lock user to their primary branch only
   schedule: WeeklySchedule;
   // Per-branch schedules (Phase 2.22 / H). Empty means: use clinic-wide `schedule` for that branch.
   branchSchedules: Record<string, WeeklySchedule>;
@@ -121,6 +122,7 @@ const EMPTY_FORM: StaffForm = {
   weeklyContractedHours: "44", workingDaysPerWeek: "5.5",
   specialization: "", department: "", consultationFee: "", slotDuration: "30",
   branchId: "",
+  branchRestricted: false,
   schedule: {},
   branchSchedules: {},
   sendInvite: false,
@@ -207,6 +209,7 @@ export default function StaffFormPage({ mode, staffId }: Props) {
           consultationFee: s.consultationFee !== null ? String(s.consultationFee) : "",
           slotDuration: String(s.slotDuration || 30),
           branchId: (s as Staff & { branchId?: string | null }).branchId || "",
+          branchRestricted: (s as Staff & { branchRestricted?: boolean }).branchRestricted || false,
           schedule,
           branchSchedules: (() => {
             const raw = (s as Staff & { branchSchedules?: string | null }).branchSchedules;
@@ -284,6 +287,7 @@ export default function StaffFormPage({ mode, staffId }: Props) {
       consultationFee: isClinical && form.consultationFee ? Number(form.consultationFee) : null,
       slotDuration: isClinical ? Number(form.slotDuration) : 30,
       branchId: form.branchId || null,
+      branchRestricted: !!form.branchRestricted && !!form.branchId,
       branchSchedules: isClinical && Object.keys(form.branchSchedules).length > 0
         ? JSON.stringify(form.branchSchedules)
         : null,
@@ -576,7 +580,7 @@ export default function StaffFormPage({ mode, staffId }: Props) {
                 </label>
                 <select
                   value={form.branchId}
-                  onChange={(e) => setForm({ ...form, branchId: e.target.value })}
+                  onChange={(e) => setForm({ ...form, branchId: e.target.value, branchRestricted: e.target.value ? form.branchRestricted : false })}
                   className="w-full px-3 py-2 text-[15px]"
                   style={inputStyle}
                 >
@@ -585,6 +589,24 @@ export default function StaffFormPage({ mode, staffId }: Props) {
                     <option key={b.id} value={b.id}>{b.name}{b.isMainBranch ? " (Main)" : ""}</option>
                   ))}
                 </select>
+
+                {/* Branch-restricted toggle (Phase 2.26 / I) — only meaningful with branchId set */}
+                {form.branchId && (
+                  <label className="flex items-start gap-2 mt-3 p-2.5 rounded cursor-pointer" style={{ background: form.branchRestricted ? "#fff7ed" : "var(--grey-50)", border: `1px solid ${form.branchRestricted ? "#fed7aa" : "var(--grey-200)"}` }}>
+                    <input
+                      type="checkbox"
+                      checked={form.branchRestricted}
+                      onChange={(e) => setForm({ ...form, branchRestricted: e.target.checked })}
+                      className="mt-0.5"
+                    />
+                    <span className="text-[13px]" style={{ color: form.branchRestricted ? "#9a3412" : "var(--grey-700)" }}>
+                      <strong>Restrict to this branch only.</strong>
+                      <span className="block mt-0.5 text-[12px]" style={{ color: form.branchRestricted ? "#9a3412" : "var(--grey-500)" }}>
+                        When checked, this user can ONLY see/edit appointments, patients, and dashboard data for the selected branch — even if they switch the BranchSelector. Use for receptionists who shouldn&apos;t see other locations&apos; data. Owners and admins are never restricted.
+                      </span>
+                    </span>
+                  </label>
+                )}
               </div>
             )}
           </div>

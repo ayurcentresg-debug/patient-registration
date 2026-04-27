@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getClinicId, getAuthPayload } from "@/lib/get-clinic-id";
+import { getClinicId, getAuthPayload, getRestrictedBranchId } from "@/lib/get-clinic-id";
 import { getTenantPrisma } from "@/lib/tenant-db";
 
 export async function GET(request: NextRequest) {
@@ -18,7 +18,10 @@ export async function GET(request: NextRequest) {
     // Multi-branch (Phase 2.20): if ?branchId is provided, scope all
     // appointment + invoice metrics to that branch. Doctors / patients /
     // communications stay clinic-wide (they're not branch-scoped concepts).
-    const branchId = request.nextUrl.searchParams.get("branchId") || null;
+    let branchId: string | null = request.nextUrl.searchParams.get("branchId") || null;
+    // Multi-branch RBAC (#I): branch-restricted users see ONLY their branch
+    const restrictBranch = await getRestrictedBranchId();
+    if (restrictBranch) branchId = restrictBranch;
     const branchWhere = branchId ? { branchId } : {};
 
     const today = new Date();

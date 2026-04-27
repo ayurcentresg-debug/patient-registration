@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getClinicId } from "@/lib/get-clinic-id";
+import { getClinicId, getRestrictedBranchId } from "@/lib/get-clinic-id";
 import { getTenantPrisma } from "@/lib/tenant-db";
 import { sendEmail } from "@/lib/email";
 import { appointmentConfirmationEmail } from "@/lib/email-templates";
@@ -38,6 +38,10 @@ export async function GET(request: NextRequest) {
     if (doctorId) where.doctorId = doctorId;
     if (status) where.status = status;
     if (branchId) where.branchId = branchId === "unassigned" ? null : branchId;
+    // Multi-branch RBAC (#I): if user is branch-restricted, force the
+    // filter to their branch regardless of what they ask for.
+    const restrictBranch = await getRestrictedBranchId();
+    if (restrictBranch) where.branchId = restrictBranch;
 
     if (search) {
       where.OR = [

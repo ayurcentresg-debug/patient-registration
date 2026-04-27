@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getClinicId } from "@/lib/get-clinic-id";
+import { getClinicId, getRestrictedBranchId } from "@/lib/get-clinic-id";
 import { getTenantPrisma } from "@/lib/tenant-db";
 import { sendEmail } from "@/lib/email";
 import { sendWhatsApp } from "@/lib/whatsapp";
@@ -77,7 +77,10 @@ export async function GET(request: NextRequest) {
     const gender = searchParams.get("gender") || "";
     // Multi-branch (Phase 2.18): filter to patients with at least one
     // appointment at the given branch
-    const branchId = searchParams.get("branchId") || "";
+    let branchId = searchParams.get("branchId") || "";
+    // Multi-branch RBAC (#I): force-restrict to user's branch if they're scoped
+    const restrictBranch = await getRestrictedBranchId();
+    if (restrictBranch) branchId = restrictBranch;
 
     const where: Record<string, unknown> = { deletedAt: null };
     if (status) where.status = status;
