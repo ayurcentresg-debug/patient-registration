@@ -12,7 +12,59 @@ import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 
 interface Feature { title: string; description: string; howTo?: string; }
-interface Module { id: string; icon: string; title: string; tagline: string; features: Feature[]; }
+interface Module { id: string; icon?: string; title: string; tagline: string; features: Feature[]; color?: string; }
+
+// ─── Professional icon set (Heroicons-style outline SVGs) ───────────────
+function ModuleIcon({ id, color, size = 22 }: { id: string; color: string; size?: number }) {
+  const paths: Record<string, string> = {
+    // Patients — user-group
+    patients: "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z",
+    // Appointments — calendar
+    appointments: "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z",
+    // Doctors — identification badge
+    doctors: "M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V4a2 2 0 114 0v2m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2",
+    // Inventory — archive box
+    inventory: "M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4",
+    // Treatments — sparkles / leaf
+    treatments: "M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z",
+    // Billing — receipt
+    billing: "M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z",
+    // Communications — chat bubble
+    communications: "M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z",
+    // Reports — chart bar
+    reports: "M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z",
+    // Multi-branch — office building
+    "multi-branch": "M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4",
+    // RBAC — shield check
+    rbac: "M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z",
+    // Patient Portal — user circle
+    "patient-portal": "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z",
+    // Payroll — document text
+    payroll: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z",
+  };
+  const d = paths[id] || paths.patients;
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d={d} />
+    </svg>
+  );
+}
+
+// Subtle category colors per module (background tint shows in icon chip)
+const MOD_COLORS: Record<string, { fg: string; bg: string }> = {
+  patients:        { fg: "#0f766e", bg: "#ccfbf1" },
+  appointments:    { fg: "#1d4ed8", bg: "#dbeafe" },
+  doctors:         { fg: "#7c3aed", bg: "#ede9fe" },
+  inventory:       { fg: "#b45309", bg: "#fef3c7" },
+  treatments:      { fg: "#15803d", bg: "#dcfce7" },
+  billing:         { fg: "#059669", bg: "#d1fae5" },
+  communications:  { fg: "#0891b2", bg: "#cffafe" },
+  reports:         { fg: "#9333ea", bg: "#f3e8ff" },
+  "multi-branch":  { fg: "#1e3a8a", bg: "#dbeafe" },
+  rbac:            { fg: "#dc2626", bg: "#fee2e2" },
+  "patient-portal":{ fg: "#0369a1", bg: "#e0f2fe" },
+  payroll:         { fg: "#374151", bg: "#f3f4f6" },
+};
 
 const MODULES: Module[] = [
   {
@@ -275,43 +327,49 @@ export default function HelpPage() {
       {/* Compact hero — minimal vertical space */}
       <div className="px-4 md:px-6 py-4 md:py-5" style={{ background: "linear-gradient(135deg, #14532d, #2d6a4f)", color: "#fff" }}>
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-          <div className="min-w-0">
-            <h1 className="text-[20px] md:text-[24px] font-bold tracking-tight leading-tight">📚 AyurGate User Guide</h1>
-            <p className="text-[12px] md:text-[13px] mt-0.5 opacity-85">
-              {totalFeatures}+ features · {MODULES.length} modules · search or browse
-            </p>
+          <div className="min-w-0 flex items-center gap-3">
+            <svg width={28} height={28} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+            </svg>
+            <div>
+              <h1 className="text-[18px] md:text-[22px] font-bold tracking-tight leading-tight">AyurGate User Guide</h1>
+              <p className="text-[11px] md:text-[12px] mt-0.5 opacity-85">
+                {totalFeatures}+ features · {MODULES.length} modules · search or browse
+              </p>
+            </div>
           </div>
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search features…"
-            className="w-full md:w-[320px] px-3 py-2 text-[14px] rounded-md flex-shrink-0"
+            className="w-full md:w-[320px] px-3 py-2 text-[13px] rounded-md flex-shrink-0"
             style={{ background: "rgba(255,255,255,0.95)", color: "#1a1c1b", border: "none" }}
           />
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-3 md:px-5 py-4 flex gap-5">
-        {/* Sticky TOC — slimmer */}
-        <aside className="hidden lg:block w-[180px] flex-shrink-0">
+        {/* Sticky TOC */}
+        <aside className="hidden lg:block w-[200px] flex-shrink-0">
           <div className="sticky top-3 space-y-0.5">
-            <p className="text-[10px] font-bold uppercase tracking-wide mb-1.5 px-2" style={{ color: "var(--grey-500)" }}>Modules</p>
+            <p className="text-[10px] font-bold uppercase tracking-wider mb-1.5 px-2" style={{ color: "var(--grey-500)" }}>Modules</p>
             {MODULES.map(m => {
               const visible = filteredModules.find(fm => fm.id === m.id);
+              const c = MOD_COLORS[m.id] || { fg: "#374151", bg: "#f3f4f6" };
               return (
                 <a
                   key={m.id}
                   href={`#mod-${m.id}`}
                   onClick={(e) => { e.preventDefault(); document.getElementById(`mod-${m.id}`)?.scrollIntoView({ behavior: "smooth" }); setActiveId(m.id); }}
-                  className="flex items-center gap-1.5 px-2 py-1.5 rounded text-[12px] font-semibold transition-colors hover:bg-gray-100"
+                  className="flex items-center gap-2 px-2 py-1.5 rounded text-[12.5px] font-semibold transition-colors hover:bg-gray-100"
                   style={{
-                    background: activeId === m.id ? "#dcfce7" : "transparent",
-                    color: activeId === m.id ? "#166534" : (visible ? "var(--grey-700)" : "var(--grey-400)"),
+                    background: activeId === m.id ? c.bg : "transparent",
+                    color: activeId === m.id ? c.fg : (visible ? "var(--grey-700)" : "var(--grey-400)"),
                     opacity: visible ? 1 : 0.4,
                   }}
                 >
-                  <span className="text-[13px]">{m.icon}</span>
+                  <ModuleIcon id={m.id} color={activeId === m.id ? c.fg : "currentColor"} size={15} />
                   <span className="truncate">{m.title}</span>
                 </a>
               );
@@ -327,40 +385,51 @@ export default function HelpPage() {
             </div>
           )}
 
-          {filteredModules.map(m => (
+          {filteredModules.map(m => {
+            const c = MOD_COLORS[m.id] || { fg: "#374151", bg: "#f3f4f6" };
+            return (
             <section key={m.id} id={`mod-${m.id}`} className="mb-4 p-4 md:p-5 rounded-md" style={{ background: "var(--white)", border: "1px solid var(--grey-200)", boxShadow: "var(--shadow-sm)", scrollMarginTop: 12 }}>
               <div className="flex items-start justify-between gap-3 mb-3 pb-3" style={{ borderBottom: "1px solid var(--grey-200)" }}>
-                <div className="min-w-0 flex-1">
-                  <h2 className="text-[18px] md:text-[19px] font-bold flex items-center gap-2 leading-tight" style={{ color: "var(--grey-900)" }}>
-                    <span>{m.icon}</span> {m.title}
-                  </h2>
-                  <p className="text-[12px] md:text-[13px] mt-0.5" style={{ color: "var(--grey-500)" }}>{m.tagline}</p>
+                <div className="min-w-0 flex-1 flex items-start gap-2.5">
+                  <span className="flex items-center justify-center flex-shrink-0 mt-0.5" style={{ width: 36, height: 36, borderRadius: 8, background: c.bg }}>
+                    <ModuleIcon id={m.id} color={c.fg} size={20} />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <h2 className="text-[16px] md:text-[17px] font-bold leading-tight" style={{ color: "var(--grey-900)" }}>
+                      {m.title}
+                    </h2>
+                    <p className="text-[12px] md:text-[12.5px] mt-0.5 leading-snug" style={{ color: "var(--grey-500)" }}>{m.tagline}</p>
+                  </div>
                 </div>
-                <span className="text-[11px] font-bold px-1.5 py-0.5 rounded flex-shrink-0" style={{ background: "#f0faf4", color: "#166534" }}>
+                <span className="text-[11px] font-bold px-2 py-0.5 rounded flex-shrink-0" style={{ background: c.bg, color: c.fg }}>
                   {m.features.length}
                 </span>
               </div>
 
-              {/* 2-column feature grid on desktop — denser layout = less scrolling */}
-              <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2.5">
+              {/* 2-column feature grid on desktop */}
+              <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-3">
                 {m.features.map((f, i) => (
-                  <li key={i} className="pl-2.5" style={{ borderLeft: "2px solid #d1f2e0" }}>
-                    <div className="font-bold text-[12.5px] mb-0.5 leading-tight" style={{ color: "var(--grey-900)" }}>
+                  <li key={i} className="pl-2.5" style={{ borderLeft: `2px solid ${c.bg}` }}>
+                    <div className="font-bold text-[13px] mb-0.5 leading-snug" style={{ color: "var(--grey-900)" }}>
                       {f.title}
                     </div>
-                    <p className="text-[12px] leading-snug" style={{ color: "var(--grey-700)" }}>
+                    <p className="text-[12.5px] leading-relaxed" style={{ color: "var(--grey-700)" }}>
                       {f.description}
                     </p>
                     {f.howTo && (
-                      <p className="text-[11px] mt-0.5 italic" style={{ color: "var(--grey-500)" }}>
-                        💡 {f.howTo}
+                      <p className="text-[11.5px] mt-1 inline-flex items-start gap-1" style={{ color: c.fg }}>
+                        <svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 mt-0.5">
+                          <path d="M9 18h6m-6-3h6m1 3v-1a4 4 0 014-4 6 6 0 10-12 0 4 4 0 014 4v1m-2 3h4" />
+                        </svg>
+                        <span className="italic">{f.howTo}</span>
                       </p>
                     )}
                   </li>
                 ))}
               </ul>
             </section>
-          ))}
+            );
+          })}
 
           <div className="mt-4 p-3 rounded-md text-center" style={{ background: "var(--white)", border: "1px solid var(--grey-200)" }}>
             <p className="text-[12px]" style={{ color: "var(--grey-600)" }}>
