@@ -64,6 +64,8 @@ interface StaffForm {
   slotDuration: string;
   branchId: string;  // primary branch (multi-branch clinics); empty = floats across all
   schedule: WeeklySchedule;
+  // Per-branch schedules (Phase 2.22 / H). Empty means: use clinic-wide `schedule` for that branch.
+  branchSchedules: Record<string, WeeklySchedule>;
   sendInvite: boolean;
 }
 
@@ -119,7 +121,9 @@ const EMPTY_FORM: StaffForm = {
   weeklyContractedHours: "44", workingDaysPerWeek: "5.5",
   specialization: "", department: "", consultationFee: "", slotDuration: "30",
   branchId: "",
-  schedule: {}, sendInvite: false,
+  schedule: {},
+  branchSchedules: {},
+  sendInvite: false,
 };
 
 // ─── Design Tokens (match patients/new + existing staff modal) ──────────────
@@ -204,6 +208,11 @@ export default function StaffFormPage({ mode, staffId }: Props) {
           slotDuration: String(s.slotDuration || 30),
           branchId: (s as Staff & { branchId?: string | null }).branchId || "",
           schedule,
+          branchSchedules: (() => {
+            const raw = (s as Staff & { branchSchedules?: string | null }).branchSchedules;
+            if (!raw) return {};
+            try { return JSON.parse(raw) as Record<string, WeeklySchedule>; } catch { return {}; }
+          })(),
           sendInvite: false,
         });
       } catch {
@@ -275,6 +284,9 @@ export default function StaffFormPage({ mode, staffId }: Props) {
       consultationFee: isClinical && form.consultationFee ? Number(form.consultationFee) : null,
       slotDuration: isClinical ? Number(form.slotDuration) : 30,
       branchId: form.branchId || null,
+      branchSchedules: isClinical && Object.keys(form.branchSchedules).length > 0
+        ? JSON.stringify(form.branchSchedules)
+        : null,
       schedule: isClinical ? JSON.stringify(form.schedule) : "{}",
       sendInvite: form.sendInvite,
     };
@@ -325,6 +337,37 @@ export default function StaffFormPage({ mode, staffId }: Props) {
     const blocks = (s[day] || []).filter((_, i) => i !== idx);
     if (blocks.length === 0) delete s[day]; else s[day] = blocks;
     setForm({ ...form, schedule: s });
+  };
+
+  // ─── Per-branch schedule helpers (Phase 2.22 / H) ─────────────────────
+  const setBranchSchedule = (branchId: string, weekly: WeeklySchedule | null) => {
+    const next = { ...form.branchSchedules };
+    if (!weekly || Object.keys(weekly).length === 0) delete next[branchId];
+    else next[branchId] = weekly;
+    setForm({ ...form, branchSchedules: next });
+  };
+  const toggleBranchDay = (branchId: string, day: string) => {
+    const wk = { ...(form.branchSchedules[branchId] || {}) };
+    if (wk[day]) delete wk[day]; else wk[day] = [{ start: "09:00", end: "13:00" }];
+    setBranchSchedule(branchId, wk);
+  };
+  const updateBranchBlock = (branchId: string, day: string, idx: number, field: "start" | "end", value: string) => {
+    const wk = { ...(form.branchSchedules[branchId] || {}) };
+    const blocks = [...(wk[day] || [])];
+    blocks[idx] = { ...blocks[idx], [field]: value };
+    wk[day] = blocks;
+    setBranchSchedule(branchId, wk);
+  };
+  const enableBranchSchedule = (branchId: string) => {
+    if (form.branchSchedules[branchId]) return; // already custom
+    // Seed from clinic-wide schedule, or empty if clinic-wide is empty
+    const seed: WeeklySchedule = JSON.parse(JSON.stringify(form.schedule || {}));
+    setBranchSchedule(branchId, seed);
+  };
+  const disableBranchSchedule = (branchId: string) => {
+    const next = { ...form.branchSchedules };
+    delete next[branchId];
+    setForm({ ...form, branchSchedules: next });
   };
 
   const errorStyle = (field: string): React.CSSProperties =>
@@ -649,6 +692,78 @@ export default function StaffFormPage({ mode, staffId }: Props) {
                   </div>
                 ))}
               </div>
+
+              {/* Per-branch schedules (Phase 2.22 / H) — shown only when 2+ branches */}
+              {branches.length > 1 && (
+                <div>
+                  <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>
+                    Per-Branch Schedule Override
+                    <span className="font-normal text-[12px] ml-1" style={{ color: "var(--grey-400)" }}>
+                      (optional — leave off to use the clinic-wide schedule above for every branch)
+                    </span>
+                  </label>
+                  <div className="space-y-3">
+                    {branches.map((br) => {
+                      const has = !!form.branchSchedules[br.id];
+                      const wk = form.branchSchedules[br.id] || {};
+                      return (
+                        <div key={br.id} className="p-3 rounded" style={{ background: "var(--grey-50)", border: "1px solid var(--grey-200)" }}>
+                          <div className="flex items-center justify-between gap-2 mb-2">
+                            <span className="text-[14px] font-bold" style={{ color: "var(--grey-800)" }}>
+                              🏢 {br.name}{br.isMainBranch ? " (Main)" : ""}
+                            </span>
+                            {has ? (
+                              <button type="button" onClick={() => disableBranchSchedule(br.id)} className="text-[12px] font-semibold" style={{ color: "var(--red)" }}>
+                                Use clinic-wide schedule
+                              </button>
+                            ) : (
+                              <button type="button" onClick={() => enableBranchSchedule(br.id)} className="text-[12px] font-semibold" style={{ color: "var(--blue-500)" }}>
+                                + Set custom hours for this branch
+                              </button>
+                            )}
+                          </div>
+                          {has && (
+                            <>
+                              <div className="flex flex-wrap gap-1 mb-2">
+                                {DAYS.map((d) => (
+                                  <button
+                                    key={d.key}
+                                    type="button"
+                                    onClick={() => toggleBranchDay(br.id, d.key)}
+                                    className="px-2 py-1 text-[11px] font-bold transition-all"
+                                    style={{
+                                      borderRadius: "var(--radius-sm)",
+                                      background: wk[d.key] ? "var(--blue-500)" : "var(--white)",
+                                      color: wk[d.key] ? "white" : "var(--grey-600)",
+                                      border: wk[d.key] ? "1px solid var(--blue-500)" : "1px solid var(--grey-300)",
+                                    }}
+                                  >
+                                    {d.label.slice(0, 3)}
+                                  </button>
+                                ))}
+                              </div>
+                              {DAYS.filter((d) => wk[d.key]).map((d) => (
+                                <div key={d.key} className="flex items-center gap-2 mb-1 ml-1">
+                                  <span className="text-[12px] font-bold w-16" style={{ color: "var(--grey-700)" }}>{d.label.slice(0, 3)}</span>
+                                  <input type="time" value={wk[d.key][0]?.start || "09:00"} onChange={(e) => updateBranchBlock(br.id, d.key, 0, "start", e.target.value)} className="px-2 py-0.5 text-[12px]" style={{ ...inputStyle, width: 100 }} />
+                                  <span className="text-[12px]" style={{ color: "var(--grey-500)" }}>to</span>
+                                  <input type="time" value={wk[d.key][0]?.end || "18:00"} onChange={(e) => updateBranchBlock(br.id, d.key, 0, "end", e.target.value)} className="px-2 py-0.5 text-[12px]" style={{ ...inputStyle, width: 100 }} />
+                                </div>
+                              ))}
+                              {Object.keys(wk).length === 0 && (
+                                <p className="text-[12px] italic" style={{ color: "var(--grey-500)" }}>Pick days above to set hours for this branch.</p>
+                              )}
+                            </>
+                          )}
+                          {!has && (
+                            <p className="text-[12px] italic" style={{ color: "var(--grey-500)" }}>Currently uses clinic-wide schedule when working at this branch.</p>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}

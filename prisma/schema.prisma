@@ -921,7 +921,11 @@ model User {
   specialization  String?
   department      String?
   consultationFee Float?
-  schedule        String    @default("{}") // weekly schedule JSON
+  schedule        String    @default("{}") // weekly schedule JSON (clinic-wide / fallback)
+  // Per-branch weekly schedules. Shape: { [branchId]: WeeklySchedule }
+  // Each branch can override the doctor's clinic-wide schedule. Empty/null = doctor uses
+  // the User.schedule for that branch (or floats with no constraint).
+  branchSchedules String?
   slotDuration    Int       @default(30)   // minutes per slot
   status          String    @default("active") // active | inactive
 

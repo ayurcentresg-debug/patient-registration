@@ -131,7 +131,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, email, phone, role, gender, dateOfBirth, ethnicity, residencyStatus, prStartDate, specialization, department, branchId, consultationFee, schedule, slotDuration, status, dateOfJoining, nricFin, jobTitle, mainDuties, employmentType, isWorkman, weeklyContractedHours, workingDaysPerWeek, sendInvite } = body;
+    const { name, email, phone, role, gender, dateOfBirth, ethnicity, residencyStatus, prStartDate, specialization, department, branchId, branchSchedules, consultationFee, schedule, slotDuration, status, dateOfJoining, nricFin, jobTitle, mainDuties, employmentType, isWorkman, weeklyContractedHours, workingDaysPerWeek, sendInvite } = body;
 
     if (!name || !email) {
       return NextResponse.json({ error: "Name and email are required" }, { status: 400 });
@@ -186,6 +186,7 @@ export async function POST(request: NextRequest) {
         specialization: isClinical ? (specialization || null) : null,
         department: department || null,
         branchId: branchId || null,
+        branchSchedules: branchSchedules || null,
         consultationFee: isClinical && consultationFee !== undefined ? Number(consultationFee) : null,
         // Default schedule: Mon–Sat 9am–6pm for doctors/therapists without explicit schedule
         // Without this, they show in the doctor dropdown but have zero bookable slots
