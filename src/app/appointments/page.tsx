@@ -431,6 +431,15 @@ function QuickBookModal({
     if (mode === "walkin" && !walkinName.trim()) { setError("Please enter patient name"); return; }
     if (mode === "walkin" && !walkinPhone.trim()) { setError("Please enter phone number"); return; }
 
+    // Hard-block with explicit-override confirm (#1 + #2)
+    // If a holiday or out-of-hours warning is showing, force the booker
+    // to confirm they really want to book despite the conflict.
+    if (availabilityWarnings.length > 0) {
+      const lines = availabilityWarnings.map(w => `• ${w.message}`).join("\n");
+      const ok = confirm(`Booking conflict:\n\n${lines}\n\nBook anyway?`);
+      if (!ok) return;
+    }
+
     setSaving(true);
     try {
       const endMin = timeToMinutes(time) + duration;
@@ -1012,8 +1021,8 @@ function QuickBookModal({
                   <span className="font-medium">{w.message}</span>
                 </div>
               ))}
-              <p className="text-[10px] mt-1.5 italic" style={{ color: "#92400e", opacity: 0.7 }}>
-                You can still book — this is just a heads-up.
+              <p className="text-[10px] mt-1.5 italic" style={{ color: "#92400e", opacity: 0.8 }}>
+                Booking will require confirmation.
               </p>
             </div>
           )}
