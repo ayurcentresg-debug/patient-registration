@@ -88,6 +88,7 @@ export async function PUT(
       data: {
         ...(body.patientId !== undefined && { patientId: body.patientId }),
         ...(body.doctorId !== undefined && { doctorId: body.doctorId || null }),
+        ...(body.branchId !== undefined && { branchId: body.branchId || null }),
         ...(body.date !== undefined && { date: new Date(body.date) }),
         ...(body.time !== undefined && { time: body.time }),
         ...(body.endTime !== undefined && { endTime: body.endTime || null }),

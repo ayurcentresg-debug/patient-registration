@@ -1173,6 +1173,37 @@ export default function AppointmentsPage() {
   // ─── Sprint 1: new state ─────────────────────────────────────────────
   const [hoverApt, setHoverApt] = useState<{ apt: Appointment; x: number; y: number } | null>(null);
   const [ctxMenu, setCtxMenu] = useState<{ apt: Appointment; x: number; y: number } | null>(null);
+  // Inter-branch transfer modal (Phase 2.21 / G)
+  const [transferModal, setTransferModal] = useState<Appointment | null>(null);
+  const [transferTo, setTransferTo] = useState<string>("");
+  const [transferring, setTransferring] = useState(false);
+
+  async function handleTransfer() {
+    if (!transferModal || !transferTo) return;
+    if (transferTo === transferModal.branchId) {
+      showFlash({ type: "info", title: "Same branch", message: "Pick a different branch to transfer." });
+      return;
+    }
+    setTransferring(true);
+    const targetName = branchList.find(b => b.id === transferTo)?.name || "Branch";
+    try {
+      const res = await fetch(`/api/appointments/${transferModal.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ branchId: transferTo }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      // Optimistic update in local state
+      setAppointments(curr => curr.map(a => a.id === transferModal.id ? { ...a, branchId: transferTo } : a));
+      showFlash({ type: "success", title: "Transferred", message: `${getPatientName(transferModal)} → ${targetName}` });
+      setTransferModal(null);
+      setTransferTo("");
+    } catch {
+      showFlash({ type: "error", title: "Failed", message: "Could not transfer appointment" });
+    } finally {
+      setTransferring(false);
+    }
+  }
   const [now, setNow] = useState(new Date());
   const [showCancelled, setShowCancelled] = useState(true);
   const [dynHourHeight, setDynHourHeight] = useState(72);
@@ -2423,6 +2454,68 @@ export default function AppointmentsPage() {
       )}
 
       {/* Sprint 1: Right-click context menu */}
+      {/* Inter-branch transfer modal (Phase 2.21 / G) */}
+      {transferModal && (
+        <div
+          className="fixed inset-0 z-[9998] flex items-center justify-center p-4"
+          style={{ background: "rgba(0,0,0,0.5)" }}
+          onClick={() => { if (!transferring) { setTransferModal(null); setTransferTo(""); } }}
+        >
+          <div
+            className="w-full max-w-md p-5 rounded-md yoda-fade-in"
+            style={{ background: "var(--white)", boxShadow: "var(--shadow-lg)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="text-[18px] font-bold mb-1" style={{ color: "var(--grey-900)" }}>
+              🏢 Transfer Appointment to Another Branch
+            </h2>
+            <p className="text-[13px] mb-4" style={{ color: "var(--grey-600)" }}>
+              <strong>{getPatientName(transferModal)}</strong> · {transferModal.date} at {formatTime12(transferModal.time)}
+              {transferModal.branchId && (
+                <> · currently at <strong>{branchList.find(b => b.id === transferModal.branchId)?.name || "—"}</strong></>
+              )}
+            </p>
+            <label className="block text-[13px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>Move to branch</label>
+            <select
+              value={transferTo}
+              onChange={(e) => setTransferTo(e.target.value)}
+              className="w-full px-3 py-2 text-[15px] mb-4"
+              style={inputStyle}
+              autoFocus
+            >
+              <option value="">-- Select branch --</option>
+              {branchList.map((b) => (
+                <option key={b.id} value={b.id} disabled={b.id === transferModal.branchId}>
+                  {b.name}{b.id === transferModal.branchId ? " (current)" : ""}
+                </option>
+              ))}
+            </select>
+            <p className="text-[11px] mb-4" style={{ color: "var(--grey-500)" }}>
+              Note: doctor and time stay the same. If the doctor is not assigned to the target branch,
+              you may want to also reassign — open Details after transfer to change.
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => { setTransferModal(null); setTransferTo(""); }}
+                disabled={transferring}
+                className="flex-1 px-4 py-2 text-[14px] font-semibold rounded"
+                style={{ background: "var(--white)", border: "1px solid var(--grey-300)", color: "var(--grey-700)" }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleTransfer}
+                disabled={transferring || !transferTo || transferTo === transferModal.branchId}
+                className="flex-1 px-4 py-2 text-[14px] font-semibold text-white rounded disabled:opacity-50"
+                style={{ background: "var(--blue-500)" }}
+              >
+                {transferring ? "Transferring…" : "Transfer"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {ctxMenu && (
         <ContextMenu
           x={ctxMenu.x}
@@ -2437,6 +2530,11 @@ export default function AppointmentsPage() {
             { label: "Mark Confirmed", icon: "✓", divider: true, onClick: () => updateStatus(ctxMenu.apt.id, "confirmed") },
             { label: "Mark In-Progress", icon: "▶", onClick: () => updateStatus(ctxMenu.apt.id, "in-progress") },
             { label: "Mark Completed", icon: "☑", onClick: () => updateStatus(ctxMenu.apt.id, "completed") },
+            // Inter-branch transfer (Phase 2.21 / G) — only show when 2+ branches exist
+            ...(branchList.length >= 2 ? [{
+              label: "Transfer to Branch…", icon: "🏢", divider: true as const,
+              onClick: () => { setTransferModal(ctxMenu.apt); setTransferTo(ctxMenu.apt.branchId || ""); },
+            }] : []),
             { label: "Copy Phone", icon: "📋", divider: true, onClick: () => {
               const p = ctxMenu.apt.isWalkin ? ctxMenu.apt.walkinPhone : null;
               if (p) {
