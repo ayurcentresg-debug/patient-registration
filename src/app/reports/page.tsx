@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import Link from "next/link";
 import { formatCurrency } from "@/lib/formatters";
 
@@ -578,10 +578,21 @@ export default function ReportsPage() {
   }, []);
 
   /* ─── CSV Export Handlers ─── */
+  // Multi-branch (Phase 2.36): tag CSV filenames with branch + period
+  // so a manager downloading "Main" and "Branch B" reports can tell
+  // them apart in their downloads folder.
+  const branchSlug = useMemo(() => {
+    if (!selectedBranchId) return "all-branches";
+    const b = branches.find(x => x.id === selectedBranchId);
+    if (!b) return "branch";
+    return b.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  }, [selectedBranchId, branches]);
+  const fname = useCallback((base: string) => `${base}__${branchSlug}__${period}`, [branchSlug, period]);
+
   const exportOverviewCSV = useCallback(() => {
     if (!data) return;
     const collectionEff = data.revenue.billed > 0 ? ((data.revenue.total / data.revenue.billed) * 100).toFixed(1) : "0.0";
-    downloadCSV("overview-report", ["Metric", "Value"], [
+    downloadCSV(fname("overview-report"), ["Metric", "Value"], [
       ["Total Revenue", formatCurrency(data.revenue.total)],
       ["Total Billed", formatCurrency(data.revenue.billed)],
       ["Outstanding", formatCurrency(data.revenue.outstanding)],
@@ -595,7 +606,7 @@ export default function ReportsPage() {
 
   const exportRevenueCSV = useCallback(() => {
     if (!data) return;
-    downloadCSV("revenue-report",
+    downloadCSV(fname("revenue-report"),
       ["Date", "Amount"],
       data.revenue.trend.map(t => [t.date, String(t.amount)])
     );
@@ -603,7 +614,7 @@ export default function ReportsPage() {
 
   const exportDoctorsCSV = useCallback(() => {
     if (!data) return;
-    downloadCSV("doctors-report",
+    downloadCSV(fname("doctors-report"),
       ["Name", "Role", "Specialization", "Appointments", "Completed", "Cancelled", "No-Show", "Patients", "Revenue"],
       data.doctors.map(d => [d.name, d.role, d.specialization, String(d.totalAppointments), String(d.completed), String(d.cancelled), String(d.noShow), String(d.uniquePatients), String(d.revenue)])
     );
@@ -611,7 +622,7 @@ export default function ReportsPage() {
 
   const exportPatientsCSV = useCallback(() => {
     if (!data) return;
-    downloadCSV("patients-report", ["Metric", "Value"], [
+    downloadCSV(fname("patients-report"), ["Metric", "Value"], [
       ["Total Patients", String(data.patients.total)],
       ["New This Period", String(data.patients.new)],
       ["Previous Period", String(data.patients.previousNew)],
@@ -621,7 +632,7 @@ export default function ReportsPage() {
 
   const exportTreatmentsCSV = useCallback(() => {
     if (!data) return;
-    downloadCSV("treatments-report",
+    downloadCSV(fname("treatments-report"),
       ["Treatment", "Category", "Sessions", "Revenue"],
       data.treatments.map(t => [t.name, t.category, String(t.count), String(t.revenue)])
     );
@@ -629,7 +640,7 @@ export default function ReportsPage() {
 
   const exportInventoryCSV = useCallback(() => {
     if (!inventoryData) return;
-    downloadCSV("inventory-report",
+    downloadCSV(fname("inventory-report"),
       ["Item", "Category", "Current Stock", "Min Stock", "Unit"],
       inventoryData.lowStockItems.map(i => [i.name, i.category, String(i.currentStock), String(i.minStock), i.unit])
     );
@@ -637,7 +648,7 @@ export default function ReportsPage() {
 
   const exportInsuranceCSV = useCallback(() => {
     if (!insuranceData) return;
-    downloadCSV("insurance-report",
+    downloadCSV(fname("insurance-report"),
       ["Provider", "Claims", "Approved", "Approval Rate", "Total Amount"],
       insuranceData.providers.map(p => [p.name, String(p.claims), String(p.approved), `${p.approvalRate}%`, String(p.totalAmount)])
     );
@@ -645,7 +656,7 @@ export default function ReportsPage() {
 
   const exportAgingCSV = useCallback(() => {
     if (!data) return;
-    downloadCSV("outstanding-report",
+    downloadCSV(fname("outstanding-report"),
       ["Invoice", "Patient", "Total", "Balance", "Days Overdue", "Bucket"],
       data.aging.invoices.map(inv => [inv.invoiceNumber, inv.patientName, String(inv.totalAmount), String(inv.balanceAmount), String(inv.daysOverdue), inv.bucket])
     );
@@ -653,7 +664,7 @@ export default function ReportsPage() {
 
   const exportAppointmentsCSV = useCallback(() => {
     if (!data) return;
-    downloadCSV("appointments-report",
+    downloadCSV(fname("appointments-report"),
       ["Date", "Count"],
       data.appointments.trend.map(t => [t.date, String(t.count)])
     );
