@@ -102,7 +102,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
   };
 
   // Don't redirect or show loading on public pages
-  const isPublicPath = pathname === "/login" || pathname === "/register" || pathname === "/pricing" || pathname?.startsWith("/invite") || (pathname?.startsWith("/cme") && !pathname?.startsWith("/cme/admin"));
+  const isPublicPath = pathname === "/login" || pathname === "/register" || pathname === "/pricing" || pathname?.startsWith("/invite");
   if (isPublicPath) {
     return <>{children}</>;
   }

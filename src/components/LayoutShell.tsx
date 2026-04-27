@@ -45,13 +45,12 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
   const isBookingPage = pathname.startsWith("/book");
   const isDoctorPortal = pathname.startsWith("/doctor");
   const isSuperAdmin = pathname.startsWith("/super-admin");
-  // Public CME pages (not /cme/admin) — have their own layout
-  const isPublicCme = pathname.startsWith("/cme") && !pathname.startsWith("/cme/admin");
+  // CME removed — going to separate repo (~/Desktop/ayurcme-plan.md)
 
   // All public pages — no auth, no sidebar
   const isPublicPage =
     isLandingPage || isLoginPage || isInvitePage || isRegisterPage ||
-    isPricingPage || isOnboardingPage || isBookingPage || isPublicCme;
+    isPricingPage || isOnboardingPage || isBookingPage;
 
   // Super admin pages have their own layout
   if (isSuperAdmin) {
@@ -88,7 +87,7 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
     );
   }
 
-  // All other pages (including /cme/admin) get auth protection + sidebar + trial banner
+  // All other pages get auth protection + sidebar + trial banner
   return (
     <ThemeProvider>
       <AuthProvider>

@@ -69,7 +69,7 @@ const MODULE_META: Record<Module, { label: string; icon: string; href?: string }
   feedback:         { label: "Feedback",          icon: "⭐", href: "/feedback" },
   waitlist:         { label: "Waitlist",          icon: "⏳", href: "/appointments?waitlist=open" },
   security:         { label: "Security",          icon: "🔒", href: "/security" },
-  cme:              { label: "CME / Events",      icon: "🎓", href: "/cme/admin" },
+  // cme removed — going to separate AyurCME repo
 };
 
 const LEVEL_META: Record<AccessLevel, { label: string; color: string; bg: string; emoji: string }> = {
@@ -84,7 +84,7 @@ const LEVEL_META: Record<AccessLevel, { label: string; color: string; bg: string
 const SIDEBAR_MODULES: Module[] = [
   "dashboard", "doctor_portal", "patients", "appointments", "packages",
   "prescriptions", "inventory", "billing", "reports", "communications",
-  "cme", "feedback", "import", "admin_settings", "security",
+  "feedback", "import", "admin_settings", "security",
 ];
 
 // ─── Design Tokens ──────────────────────────────────────────────────────────

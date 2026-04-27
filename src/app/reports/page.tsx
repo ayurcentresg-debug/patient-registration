@@ -23,6 +23,7 @@ const SECTIONS = [
   { id: "aging", label: "Outstanding" },
   { id: "appointments", label: "Appointments" },
   { id: "staff-performance", label: "Staff Perf." },
+  { id: "branches", label: "Branches" },
 ];
 
 const STATUS_COLORS: Record<string, string> = {
@@ -387,6 +388,12 @@ export default function ReportsPage() {
   const [staffPerfLoading, setStaffPerfLoading] = useState(false);
   const [staffPerfFetched, setStaffPerfFetched] = useState(false);
 
+  // Branch comparison (Phase 2.32 / J)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [branchCompareData, setBranchCompareData] = useState<{ branches: any[] } | null>(null);
+  const [branchCompareLoading, setBranchCompareLoading] = useState(false);
+  const [branchCompareFetched, setBranchCompareFetched] = useState(false);
+
   const [branches, setBranches] = useState<Array<{ id: string; name: string }>>([]);
   const [selectedBranchId, setSelectedBranchId] = useState("");
 
@@ -439,10 +446,12 @@ export default function ReportsPage() {
     setInsuranceFetched(false);
     setTransferSummaryFetched(false);
     setStaffPerfFetched(false);
+    setBranchCompareFetched(false);
     setInventoryData(null);
     setInsuranceData(null);
     setTransferSummary(null);
     setStaffPerfData(null);
+    setBranchCompareData(null);
   }, [period, customFrom, customTo, selectedBranchId]);
 
   const fetchInventory = useCallback(async () => {
@@ -548,7 +557,15 @@ export default function ReportsPage() {
         .catch(() => {})
         .finally(() => setStaffPerfLoading(false));
     }
-  }, [activeSection, fetchInventory, fetchInsurance, fetchTransferSummary, staffPerfFetched, period, customFrom, customTo]);
+    if (activeSection === "branches" && !branchCompareFetched) {
+      setBranchCompareLoading(true);
+      fetch(`/api/reports/branch-comparison?period=${period}`)
+        .then((r) => r.ok ? r.json() : null)
+        .then((data) => { setBranchCompareData(data); setBranchCompareFetched(true); })
+        .catch(() => {})
+        .finally(() => setBranchCompareLoading(false));
+    }
+  }, [activeSection, fetchInventory, fetchInsurance, fetchTransferSummary, staffPerfFetched, branchCompareFetched, period, customFrom, customTo]);
 
   const handlePrint = useCallback(() => {
     const printWindow = window.open("", "_blank");
@@ -1700,6 +1717,68 @@ export default function ReportsPage() {
                 </div>
               </Card>
             </>
+          )}
+        </Section>
+      )}
+
+      {/* ═══ BRANCH COMPARISON SECTION (Phase 2.32 / J) ═══ */}
+      {activeSection === "branches" && (
+        <Section title="Branch Comparison" onExportCSV={() => {
+          if (!branchCompareData?.branches?.length) return;
+          downloadCSV(fname("branch-comparison"),
+            ["Branch", "Main", "Appointments", "Completed", "Cancelled", "No-Show", "Completion %", "No-Show %", "Revenue", "Billed", "Outstanding", "Unique Patients", "Top Doctor"],
+            branchCompareData.branches.map((b) => [
+              b.branchName, b.isMainBranch ? "✓" : "",
+              String(b.appointments), String(b.completed), String(b.cancelled), String(b.noShow),
+              `${b.completionRate}%`, `${b.noShowRate}%`,
+              String(b.revenue), String(b.billed), String(b.outstanding),
+              String(b.uniquePatients),
+              b.topDoctor ? `${b.topDoctor.name} (${b.topDoctor.appointments})` : "—",
+            ])
+          );
+        }}>
+          {branchCompareLoading ? (
+            <p className="text-[14px] py-6 text-center" style={{ color: "var(--grey-500)" }}>Loading branch comparison…</p>
+          ) : !branchCompareData?.branches?.length ? (
+            <p className="text-[14px] py-6 text-center" style={{ color: "var(--grey-500)" }}>No branches configured yet. Add branches at /admin/branches.</p>
+          ) : (
+            <Card>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead style={{ background: "var(--grey-50)" }}>
+                    <tr style={{ borderBottom: "2px solid var(--grey-200)" }}>
+                      <th className="text-left py-2 px-2 text-[12px] font-bold uppercase" style={{ color: "var(--grey-600)" }}>Branch</th>
+                      <th className="text-right py-2 px-2 text-[12px] font-bold uppercase" style={{ color: "var(--grey-600)" }}>Appts</th>
+                      <th className="text-right py-2 px-2 text-[12px] font-bold uppercase" style={{ color: "var(--grey-600)" }}>Completion</th>
+                      <th className="text-right py-2 px-2 text-[12px] font-bold uppercase" style={{ color: "var(--grey-600)" }}>No-Show</th>
+                      <th className="text-right py-2 px-2 text-[12px] font-bold uppercase" style={{ color: "var(--grey-600)" }}>Revenue</th>
+                      <th className="text-right py-2 px-2 text-[12px] font-bold uppercase" style={{ color: "var(--grey-600)" }}>Outstanding</th>
+                      <th className="text-right py-2 px-2 text-[12px] font-bold uppercase" style={{ color: "var(--grey-600)" }}>Unique Pts</th>
+                      <th className="text-left py-2 px-2 text-[12px] font-bold uppercase" style={{ color: "var(--grey-600)" }}>Top Doctor</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {branchCompareData.branches.map((b) => (
+                      <tr key={b.branchId} style={{ borderBottom: "1px solid var(--grey-100)" }}>
+                        <td className="py-3 px-2 text-[14px] font-bold" style={{ color: "var(--grey-900)" }}>
+                          🏢 {b.branchName} {b.isMainBranch && <span className="text-[10px] ml-1 px-1.5 py-0.5 rounded" style={{ background: "#dcfce7", color: "#166534" }}>MAIN</span>}
+                        </td>
+                        <td className="py-3 px-2 text-right text-[14px] font-bold" style={{ color: "var(--grey-700)" }}>{b.appointments}</td>
+                        <td className="py-3 px-2 text-right text-[14px] font-bold" style={{ color: b.completionRate >= 80 ? "#16a34a" : b.completionRate >= 60 ? "#ca8a04" : "#dc2626" }}>{b.completionRate}%</td>
+                        <td className="py-3 px-2 text-right text-[14px] font-medium" style={{ color: b.noShowRate > 10 ? "#f59e0b" : "var(--grey-500)" }}>{b.noShowRate}% <span className="text-[11px] opacity-70">({b.noShow})</span></td>
+                        <td className="py-3 px-2 text-right text-[14px] font-bold" style={{ color: "#2d6a4f" }}>{formatCurrency(b.revenue)}</td>
+                        <td className="py-3 px-2 text-right text-[14px] font-medium" style={{ color: b.outstanding > 0 ? "#dc2626" : "var(--grey-400)" }}>{formatCurrency(b.outstanding)}</td>
+                        <td className="py-3 px-2 text-right text-[14px] font-medium" style={{ color: "var(--grey-700)" }}>{b.uniquePatients}</td>
+                        <td className="py-3 px-2 text-[13px]" style={{ color: "var(--grey-700)" }}>{b.topDoctor ? <>{b.topDoctor.name} <span className="opacity-60 text-[11px]">({b.topDoctor.appointments})</span></> : "—"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <p className="text-[11px] mt-3 text-center" style={{ color: "var(--grey-400)" }}>
+                Period: {period} · {branchCompareData.branches.length} branch{branchCompareData.branches.length !== 1 ? "es" : ""}
+              </p>
+            </Card>
           )}
         </Section>
       )}

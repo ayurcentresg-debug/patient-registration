@@ -374,7 +374,7 @@ export async function middleware(req: NextRequest) {
   }
 
   if (!token) {
-    // Allow super admins to access tenant pages (e.g. /cme/admin)
+    // Allow super admins to access tenant pages
     const saToken = req.cookies.get("super_admin_token")?.value;
     if (saToken) {
       try {

@@ -37,7 +37,7 @@ export const MODULES = [
   "feedback",
   "waitlist",
   "security",
-  "cme",
+  // "cme" removed — going to separate AyurCME repo (~/Desktop/ayurcme-plan.md)
 ] as const;
 
 export type Module = (typeof MODULES)[number];
@@ -86,7 +86,6 @@ export const ROLE_PERMISSIONS: Record<Role, Record<Module, AccessLevel>> = {
     feedback: "full",
     waitlist: "full",
     security: "full",
-    cme: "full",
   },
 
   admin: {
@@ -110,7 +109,6 @@ export const ROLE_PERMISSIONS: Record<Role, Record<Module, AccessLevel>> = {
     feedback: "full",
     waitlist: "full",
     security: "full",
-    cme: "full",
   },
 
   receptionist: {
@@ -134,7 +132,6 @@ export const ROLE_PERMISSIONS: Record<Role, Record<Module, AccessLevel>> = {
     feedback: "full",
     waitlist: "full",
     security: "none",
-    cme: "view",
   },
 
   doctor: {
@@ -158,7 +155,6 @@ export const ROLE_PERMISSIONS: Record<Role, Record<Module, AccessLevel>> = {
     feedback: "none",
     waitlist: "none",
     security: "none",
-    cme: "view",
   },
 
   therapist: {
@@ -182,7 +178,6 @@ export const ROLE_PERMISSIONS: Record<Role, Record<Module, AccessLevel>> = {
     feedback: "none",
     waitlist: "none",
     security: "none",
-    cme: "view",
   },
 
   pharmacist: {
@@ -206,7 +201,6 @@ export const ROLE_PERMISSIONS: Record<Role, Record<Module, AccessLevel>> = {
     feedback: "none",
     waitlist: "none",
     security: "none",
-    cme: "view",
   },
 
   staff: {
@@ -230,7 +224,6 @@ export const ROLE_PERMISSIONS: Record<Role, Record<Module, AccessLevel>> = {
     feedback: "full",
     waitlist: "full",
     security: "view",
-    cme: "view",
   },
 };
 
@@ -390,7 +383,6 @@ export const ROUTE_MODULE_MAP: [string, Module][] = [
   ["/reports", "reports"],
   ["/communications/whatsapp", "whatsapp"],
   ["/communications", "communications"],
-  ["/cme", "cme"],
   ["/feedback", "feedback"],
   ["/security", "security"],
 
@@ -582,7 +574,6 @@ export function getVisibleNavItems(
     "/billing": a("billing"),
     "/reports": a("reports"),
     "/communications": a("communications"),
-    "/cme/admin": a("cme"),
     "/feedback": a("feedback"),
     "/admin/import": a("import"),
     "/admin": a("admin_settings"),

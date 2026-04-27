@@ -25,7 +25,6 @@ interface Settings {
   enablePackages: boolean;
   enableReports: boolean;
   enableMultiBranch: boolean;
-  enableCme: boolean;
   enableWhatsApp: boolean;
   enableSMS: boolean;
   enableApiAccess: boolean;
@@ -92,7 +91,7 @@ export default function SettingsPage() {
             enableOnlineBooking: s.enableOnlineBooking, enablePayroll: s.enablePayroll,
             enableInventory: s.enableInventory, enablePackages: s.enablePackages,
             enableReports: s.enableReports, enableMultiBranch: s.enableMultiBranch,
-            enableCme: s.enableCme, enableWhatsApp: s.enableWhatsApp, enableSMS: s.enableSMS,
+            enableWhatsApp: s.enableWhatsApp, enableSMS: s.enableSMS,
             enableApiAccess: s.enableApiAccess, maintenanceMode: s.maintenanceMode,
           });
           setBranding({ platformName: s.platformName, supportEmail: s.supportEmail, supportPhone: s.supportPhone });
