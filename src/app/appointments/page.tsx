@@ -2193,7 +2193,7 @@ export default function AppointmentsPage() {
                                 )}
                                 {phone && (
                                   <a
-                                    href={`https://wa.me/${phone.replace(/[^0-9+]/g, "")}?text=${encodeURIComponent(`Hi ${name.split(" ")[0]}, reminder of your appointment on ${apt.date} at ${formatTime12(apt.time)}.`)}`}
+                                    href={`https://wa.me/${phone.replace(/[^0-9+]/g, "")}?text=${encodeURIComponent(`Hi ${name.split(" ")[0]}, reminder of your appointment on ${apt.date} at ${formatTime12(apt.time)}${apt.branchId && branchList.find(b => b.id === apt.branchId)?.name ? ` at ${branchList.find(b => b.id === apt.branchId)?.name}` : ""}.`)}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     onClick={(e) => e.stopPropagation()}
@@ -2450,7 +2450,8 @@ export default function AppointmentsPage() {
               const p = ctxMenu.apt.isWalkin ? ctxMenu.apt.walkinPhone : null;
               const n = getPatientName(ctxMenu.apt);
               if (p) {
-                const msg = `Hi ${n.split(" ")[0]}, reminder of your appointment on ${ctxMenu.apt.date} at ${formatTime12(ctxMenu.apt.time)}.`;
+                const branchName = ctxMenu.apt.branchId ? branchList.find(b => b.id === ctxMenu.apt.branchId)?.name : null;
+                const msg = `Hi ${n.split(" ")[0]}, reminder of your appointment on ${ctxMenu.apt.date} at ${formatTime12(ctxMenu.apt.time)}${branchName ? ` at ${branchName}` : ""}.`;
                 window.open(`https://wa.me/${p.replace(/[^0-9+]/g, "")}?text=${encodeURIComponent(msg)}`, "_blank");
               } else {
                 showFlash({ type: "info", title: "No phone", message: "Cannot send reminder — no phone number" });

@@ -48,9 +48,12 @@ interface InvoiceDetail {
   paidAmount: number;
   balanceAmount: number;
   notes: string | null;
+  branchId: string | null;  // multi-branch: which branch this invoice belongs to
   items: InvoiceItem[];
   payments: Payment[];
 }
+
+interface BranchInfo { id: string; name: string; address: string | null; phone: string | null; email: string | null }
 
 interface ClinicSettings {
   clinicName: string;
@@ -200,6 +203,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
   const [error, setError] = useState<string | null>(null);
   const { showFlash } = useFlash();
   const [clinicSettings, setClinicSettings] = useState<ClinicSettings | null>(null);
+  const [invoiceBranch, setInvoiceBranch] = useState<BranchInfo | null>(null);
 
   // Payment form
   const [payAmount, setPayAmount] = useState("");
@@ -247,6 +251,16 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
       .then((data) => { if (data) setClinicSettings(data); })
       .catch(() => { /* use fallback */ });
   }, []);
+
+  // Multi-branch (Phase 2.30): load this invoice's branch (if tagged)
+  // so the receipt header shows the correct branch name + address
+  useEffect(() => {
+    if (!invoice?.branchId) { setInvoiceBranch(null); return; }
+    fetch(`/api/branches/${invoice.branchId}`)
+      .then(r => (r.ok ? r.json() : null))
+      .then((data: BranchInfo | null) => setInvoiceBranch(data))
+      .catch(() => setInvoiceBranch(null));
+  }, [invoice?.branchId]);
 
   // ─── Fetch Invoice ──────────────────────────────────────────────────────
   const fetchInvoice = useCallback(() => {
@@ -487,11 +501,15 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
     }, 100);
   }
 
-  // ─── Clinic info helpers ──────────────────────────────────────────────
+  // ─── Clinic / branch info helpers ──────────────────────────────────────
+  // Multi-branch: when invoice is tagged with a branch, the receipt header
+  // shows the branch's address/phone/email instead of clinic-level defaults
   const clinicName = clinicSettings?.clinicName || "Ayur Centre Pte. Ltd.";
-  const clinicAddress = clinicSettings?.address || "84 Bedok North Street 4 #01-17, Singapore 460084";
-  const clinicPhone = clinicSettings?.phone || "6445 0072";
-  const clinicEmail = clinicSettings?.email || "info@ayurvedawellness.in";
+  const branchSuffix = invoiceBranch ? ` — ${invoiceBranch.name}` : "";
+  const displayName = `${clinicName}${branchSuffix}`;
+  const clinicAddress = invoiceBranch?.address || clinicSettings?.address || "84 Bedok North Street 4 #01-17, Singapore 460084";
+  const clinicPhone = invoiceBranch?.phone || clinicSettings?.phone || "6445 0072";
+  const clinicEmail = invoiceBranch?.email || clinicSettings?.email || "info@ayurvedawellness.in";
   const clinicGst = clinicSettings?.gstRegistrationNo || "";
   const clinicTerms = clinicSettings?.termsAndConditions || "";
   const clinicInitials = clinicName.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
@@ -592,7 +610,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                   {clinicInitials}
                 </div>
               )}
-              <h1 style={{ fontSize: 20, fontWeight: 700, color: "#111" }}>{clinicName}</h1>
+              <h1 style={{ fontSize: 20, fontWeight: 700, color: "#111" }}>{displayName}</h1>
               <p style={{ fontSize: 11, color: "#666", marginTop: 2 }}>{clinicAddress}</p>
               <p style={{ fontSize: 11, color: "#666" }}>Phone: {clinicPhone} | Email: {clinicEmail}</p>
               {clinicGst && <p style={{ fontSize: 11, color: "#666" }}>GST Reg: {clinicGst}</p>}
@@ -703,7 +721,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                 </div>
               )}
               <div style={{ textAlign: "center" }}>
-                <h1 style={{ fontSize: 24, fontWeight: 700, color: "var(--grey-900)" }}>{clinicName}</h1>
+                <h1 style={{ fontSize: 24, fontWeight: 700, color: "var(--grey-900)" }}>{displayName}</h1>
                 <p style={{ fontSize: 12, marginTop: 2, color: "var(--grey-600)" }}>{clinicAddress}</p>
                 <p style={{ fontSize: 12, color: "var(--grey-600)" }}>
                   Phone: {clinicPhone} &bull; Email: {clinicEmail}

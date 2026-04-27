@@ -1638,6 +1638,14 @@ export default function PatientDetailPage() {
                 {branchVisits.length > 4 && (
                   <span className="text-[11px] font-semibold" style={{ color: "var(--grey-500)" }}>+ {branchVisits.length - 4} more</span>
                 )}
+                <Link
+                  href={`/patients/${patient.id}/branches`}
+                  className="ml-1 text-[11px] font-semibold inline-flex items-center gap-0.5 hover:underline"
+                  style={{ color: "var(--blue-500)" }}
+                  title="Full timeline grouped by branch"
+                >
+                  View timeline →
+                </Link>
               </div>
             )}
             {/* Quick contact actions */}
