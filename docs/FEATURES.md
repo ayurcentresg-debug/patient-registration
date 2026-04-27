@@ -1,6 +1,6 @@
 # AyurGate — Complete Feature Catalog
 
-**Last updated:** 2026-04-27
+**Last updated:** 2026-04-27 (afternoon session)
 **Status:** Living document — append to this whenever a new feature ships.
 **Audience:** Internal team (sales, demos, investor pitches), AyurGate owners.
 
@@ -505,6 +505,15 @@ Why AyurGate vs Practo / Cliniko / generic clinic software:
 - ✅ Per-branch revenue (Invoice.branchId)
 - ✅ Per-branch consultation log
 - ✅ Per-branch notification routing
+- ✅ **Backfill endpoint** — auto-tag legacy appointments + doctors with main branch (super-admin button)
+- ✅ **Doctor → branch admin UI** — primary-branch dropdown in /admin/staff (multi-branch clinics only)
+- ✅ **Branch chip on visit rows** — patient profile shows 🏢 BranchName per appointment
+- ✅ **Branch on hover tooltip** — appointment hover shows which branch
+- ✅ **Branch picker in booking modal** — front-desk can override per booking
+- ✅ **Branches Visited badges** — patient profile shows top 4 branches with visit count + ⭐ last-visited
+- ✅ **Patient list filter by branch** — BranchSelector → only patients who've visited that branch
+- ✅ **Dashboard branch-aware** — KPIs, revenue, appointments scoped to selected branch
+
 
 **Reports per branch**
 - Branch revenue split (in main reports)
@@ -742,7 +751,16 @@ Why AyurGate vs Practo / Cliniko / generic clinic software:
 
 ---
 
-## ✅ Recently shipped (this week — 27 commits)
+## ✅ Recently shipped (this week — 32 commits)
+
+**Today (2026-04-27):**
+- `def8363` Multi-branch Batch 1 — backfill endpoint, doctor→branch admin UI, branch chips on visits, hover tooltip
+- `6e49eaa` Multi-branch Batch 2 — branch picker in booking modal, Branches-Visited badges
+- `06e45ab` Multi-branch Batch 3a — patient list filters by selected branch
+- `861fb24` Multi-branch Batch 3b — dashboard fully branch-aware (KPIs, revenue, appointments scope)
+- `c4860e6` Added FEATURES.md catalog (this file)
+
+**Earlier this week:**
 
 - Sprint 1 (8 calendar features): fit-to-screen, red now-line, cancelled toggle, hover panel, top stat cards, check-in button, WhatsApp 1-click, right-click menu
 - Sprint 1b (3 features): More menu, drag-and-drop reschedule, copy/paste duplicate
@@ -763,11 +781,15 @@ Why AyurGate vs Practo / Cliniko / generic clinic software:
 
 Use this when prospects ask "do you have X?" — be honest, then add to roadmap.
 
-**Multi-branch**
-- Admin UI to assign doctors to branches (workaround: edit User record directly)
-- Backfill endpoint for legacy appointments without branchId
-- Branch picker in QuickBookModal (currently auto-uses selected branch)
-- Inter-branch appointment transfer workflow
+**Multi-branch (mostly shipped now)**
+- ~~Admin UI to assign doctors to branches~~ ✅ shipped Batch 1
+- ~~Backfill endpoint for legacy appointments without branchId~~ ✅ shipped Batch 1
+- ~~Branch picker in QuickBookModal~~ ✅ shipped Batch 2
+- Patient transfer history page — full timeline grouped by branch (deferred)
+- Inter-branch appointment transfer workflow (deferred — bigger sprint)
+- Per-branch operating hours enforcement (schema field exists, UI deferred)
+- Per-branch holidays (deferred)
+- Branch-restricted user roles (e.g. receptionist at Branch B can't see Main patients) (deferred)
 
 **Mobile**
 - Touch-friendly drag-and-drop on calendar (HTML5 drag is desktop-only)
