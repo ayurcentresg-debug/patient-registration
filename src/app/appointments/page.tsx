@@ -33,6 +33,8 @@ interface Appointment {
   sessionPrice: number | null;
   patient: { firstName: string; lastName: string; patientIdNumber?: string } | null;
   doctorRef: { id: string; name: string; specialization: string; department: string } | null;
+  branchId?: string | null;
+  branchName?: string | null; // optionally enriched server-side
 }
 
 interface TreatmentPkg {
@@ -972,7 +974,7 @@ function QuickBookModal({
 }
 
 /* ─── Hover Info Panel (Sprint 1) ─── */
-function HoverPanel({ apt, x, y }: { apt: Appointment; x: number; y: number }) {
+function HoverPanel({ apt, x, y, branchName }: { apt: Appointment; x: number; y: number; branchName?: string | null }) {
   const name = getPatientName(apt);
   const phone = apt.isWalkin ? apt.walkinPhone : null;
   const statusColor = STATUS_COLORS[apt.status] || "#9baa9f";
@@ -1012,6 +1014,11 @@ function HoverPanel({ apt, x, y }: { apt: Appointment; x: number; y: number }) {
       <div className="flex items-center gap-1.5 mb-1" style={{ color: "var(--grey-700)" }}>
         <span>🩺</span><span>{apt.doctorRef?.name || apt.doctor}</span>
       </div>
+      {branchName && (
+        <div className="flex items-center gap-1.5 mb-1" style={{ color: "var(--grey-700)" }}>
+          <span>🏢</span><span className="text-[11px] font-semibold px-1.5 py-0.5 rounded" style={{ background: "#eff6ff", color: "#1e40af" }}>{branchName}</span>
+        </div>
+      )}
       {apt.treatmentName && (
         <div className="flex items-center gap-1.5 mb-1" style={{ color: "var(--grey-700)" }}>
           <span>💊</span>
@@ -1106,6 +1113,8 @@ export default function AppointmentsPage() {
   const [viewMode, setViewMode] = useState<ViewMode>("Day");
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [doctors, setDoctors] = useState<Doctor[]>([]);
+  // Multi-branch (Phase 2.13/2.14): list of branches for chip/label lookup
+  const [branchList, setBranchList] = useState<Array<{ id: string; name: string }>>([]);
   const [selectedDoctor, setSelectedDoctor] = useState<string>("all");
   const [loading, setLoading] = useState(true);
   const [popup, setPopup] = useState<{ apt: Appointment; x: number; y: number } | null>(null);
@@ -1222,6 +1231,14 @@ export default function AppointmentsPage() {
     }, 300);
     return () => clearTimeout(timer);
   }, [searchQuery]);
+
+  // Fetch branches once for chip lookups
+  useEffect(() => {
+    fetch("/api/branches?active=true")
+      .then(r => (r.ok ? r.json() : []))
+      .then((data: Array<{ id: string; name: string }>) => setBranchList(Array.isArray(data) ? data : []))
+      .catch(() => setBranchList([]));
+  }, []);
 
   // Fetch doctors — defensive array guard, refetched when branch changes
   useEffect(() => {
@@ -2359,7 +2376,12 @@ export default function AppointmentsPage() {
 
       {/* Sprint 1: Hover info panel (doesn't render while context menu open) */}
       {hoverApt && !ctxMenu && !popup && (
-        <HoverPanel apt={hoverApt.apt} x={hoverApt.x} y={hoverApt.y} />
+        <HoverPanel
+          apt={hoverApt.apt}
+          x={hoverApt.x}
+          y={hoverApt.y}
+          branchName={branchList.find(b => b.id === hoverApt.apt.branchId)?.name || null}
+        />
       )}
 
       {/* Sprint 1: Right-click context menu */}

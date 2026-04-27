@@ -62,9 +62,12 @@ interface StaffForm {
   department: string;
   consultationFee: string;
   slotDuration: string;
+  branchId: string;  // primary branch (multi-branch clinics); empty = floats across all
   schedule: WeeklySchedule;
   sendInvite: boolean;
 }
+
+interface BranchOption { id: string; name: string; code: string; isMainBranch?: boolean }
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 const ALL_ROLES = [
@@ -115,6 +118,7 @@ const EMPTY_FORM: StaffForm = {
   employmentType: "full_time", isWorkman: false,
   weeklyContractedHours: "44", workingDaysPerWeek: "5.5",
   specialization: "", department: "", consultationFee: "", slotDuration: "30",
+  branchId: "",
   schedule: {}, sendInvite: false,
 };
 
@@ -153,6 +157,15 @@ export default function StaffFormPage({ mode, staffId }: Props) {
   const [errorField, setErrorField] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(mode === "edit");
+  const [branches, setBranches] = useState<BranchOption[]>([]);
+
+  // Load branches once for the branch picker
+  useEffect(() => {
+    fetch("/api/branches?active=true")
+      .then(r => (r.ok ? r.json() : []))
+      .then((data: BranchOption[]) => setBranches(Array.isArray(data) ? data : []))
+      .catch(() => setBranches([]));
+  }, []);
 
   // Fetch existing staff when editing
   useEffect(() => {
@@ -189,6 +202,7 @@ export default function StaffFormPage({ mode, staffId }: Props) {
           department: s.department || "",
           consultationFee: s.consultationFee !== null ? String(s.consultationFee) : "",
           slotDuration: String(s.slotDuration || 30),
+          branchId: (s as Staff & { branchId?: string | null }).branchId || "",
           schedule,
           sendInvite: false,
         });
@@ -260,6 +274,7 @@ export default function StaffFormPage({ mode, staffId }: Props) {
       department: form.department || null,
       consultationFee: isClinical && form.consultationFee ? Number(form.consultationFee) : null,
       slotDuration: isClinical ? Number(form.slotDuration) : 30,
+      branchId: form.branchId || null,
       schedule: isClinical ? JSON.stringify(form.schedule) : "{}",
       sendInvite: form.sendInvite,
     };
@@ -508,6 +523,27 @@ export default function StaffFormPage({ mode, staffId }: Props) {
                 <input type="date" value={form.dateOfJoining} onChange={(e) => setForm({ ...form, dateOfJoining: e.target.value })} className="w-full px-3 py-2 text-[15px]" style={inputStyle} />
               </div>
             </div>
+
+            {/* Branch (multi-branch clinics only — control hidden if 0 or 1 branch) */}
+            {branches.length > 1 && (
+              <div>
+                <label className="block text-[14px] font-semibold mb-1" style={{ color: "var(--grey-700)" }}>
+                  Primary Branch
+                  <span className="font-normal text-[12px] ml-1" style={{ color: "var(--grey-400)" }}>(empty = floats across all branches)</span>
+                </label>
+                <select
+                  value={form.branchId}
+                  onChange={(e) => setForm({ ...form, branchId: e.target.value })}
+                  className="w-full px-3 py-2 text-[15px]"
+                  style={inputStyle}
+                >
+                  <option value="">-- Floating (all branches) --</option>
+                  {branches.map((b) => (
+                    <option key={b.id} value={b.id}>{b.name}{b.isMainBranch ? " (Main)" : ""}</option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
         </div>
 

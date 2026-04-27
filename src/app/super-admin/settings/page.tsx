@@ -447,6 +447,7 @@ function DemoSeedSection() {
   const [patientSeedLoading, setPatientSeedLoading] = useState(false);
   const [backfillLoading, setBackfillLoading] = useState(false);
   const [resetPwLoading, setResetPwLoading] = useState(false);
+  const [branchBackfillLoading, setBranchBackfillLoading] = useState(false);
   const [result, setResult] = useState<null | {
     ok: boolean;
     alreadyExists?: boolean;
@@ -504,6 +505,22 @@ function DemoSeedSection() {
       setResult({ ok: false, error: e instanceof Error ? e.message : "Network error" });
     } finally {
       setResetPwLoading(false);
+    }
+  }
+
+  async function handleBackfillAppointmentBranches() {
+    if (!confirm("Tag all legacy appointments and doctors with their clinic's main branch?\n\nFor every clinic, the system will:\n• Find the 'isMainBranch' branch (or first active branch)\n• Update every appointment with branchId=null to that branch\n• Update every doctor/therapist with branchId=null to that branch\n\nIdempotent — only touches untagged rows. Safe to run multiple times.")) return;
+    setBranchBackfillLoading(true);
+    setResult(null);
+    try {
+      const res = await fetch("/api/super-admin/backfill-appointment-branches", { method: "POST" });
+      const data = await res.json();
+      if (res.ok) setResult({ ok: true, message: data.summary });
+      else setResult({ ok: false, error: data.error || "Backfill failed" });
+    } catch (e) {
+      setResult({ ok: false, error: e instanceof Error ? e.message : "Network error" });
+    } finally {
+      setBranchBackfillLoading(false);
     }
   }
 
@@ -598,6 +615,23 @@ function DemoSeedSection() {
           }}
         >
           {resetPwLoading ? "Resetting…" : "🔑 Reset Demo Passwords"}
+        </button>
+        <button
+          onClick={handleBackfillAppointmentBranches}
+          disabled={loading || patientSeedLoading || backfillLoading || resetPwLoading || branchBackfillLoading}
+          title="Tag legacy appointments + doctors with their clinic's main branch — fixes 'unassigned' rows after multi-branch rollout"
+          style={{
+            padding: "10px 20px",
+            fontSize: 14,
+            fontWeight: 600,
+            color: "#5b21b6",
+            background: (loading || patientSeedLoading || backfillLoading || resetPwLoading || branchBackfillLoading) ? "#f3f4f6" : "#f5f3ff",
+            border: "1.5px solid #ddd6fe",
+            borderRadius: 8,
+            cursor: branchBackfillLoading ? "wait" : "pointer",
+          }}
+        >
+          {branchBackfillLoading ? "Tagging…" : "🏢 Backfill Branches on Appointments"}
         </button>
       </div>
 

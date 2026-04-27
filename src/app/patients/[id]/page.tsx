@@ -32,7 +32,7 @@ interface Patient {
   familyMemberName: string | null; emergencyName: string | null; emergencyPhone: string | null;
   medicalHistory: string; otherHistory: string | null; allergies: string | null; medicalNotes: string | null;
   groups: string; photoUrl: string | null; status: string; createdAt: string;
-  appointments: Array<{ id: string; date: string; time: string; doctor: string; department: string | null; reason: string | null; status: string }>;
+  appointments: Array<{ id: string; date: string; time: string; doctor: string; department: string | null; reason: string | null; status: string; branchId?: string | null }>;
   communications: Array<{ id: string; type: string; subject: string | null; message: string; status: string; sentAt: string }>;
 }
 
@@ -205,6 +205,18 @@ export default function PatientDetailPage() {
   // Pending balance state
   const [pendingBalance, setPendingBalance] = useState<{ total: number; invoices: Array<{ id: string; invoiceNumber: string; totalAmount: number; paidAmount: number; balanceAmount: number; date: string }> }>({ total: 0, invoices: [] });
   const [familyBalances, setFamilyBalances] = useState<Array<{ patientId: string; name: string; relation: string; balance: number }>>([]);
+  // Multi-branch (Phase 2.12): branch lookup for chip on visit rows
+  const [branchLookup, setBranchLookup] = useState<Record<string, string>>({});
+  useEffect(() => {
+    fetch("/api/branches?active=true")
+      .then(r => (r.ok ? r.json() : []))
+      .then((data: Array<{ id: string; name: string }>) => {
+        const map: Record<string, string> = {};
+        if (Array.isArray(data)) data.forEach(b => { map[b.id] = b.name; });
+        setBranchLookup(map);
+      })
+      .catch(() => {});
+  }, []);
   const [sendingReminder, setSendingReminder] = useState(false);
 
   // Timeline state
@@ -2208,6 +2220,12 @@ export default function PatientDetailPage() {
                         <p className="text-[14px]" style={{ color: "var(--grey-600)" }}>
                           {formatDate(a.date)} at <strong>{a.time}</strong>
                           {a.reason && <span className="ml-1" style={{ color: "var(--grey-400)" }}>&middot; {a.reason}</span>}
+                          {/* Branch chip — shows where this visit happened */}
+                          {a.branchId && branchLookup[a.branchId] && (
+                            <span className="ml-2 inline-block text-[11px] font-bold px-1.5 py-0.5 rounded" style={{ background: "#eff6ff", color: "#1e40af" }}>
+                              🏢 {branchLookup[a.branchId]}
+                            </span>
+                          )}
                         </p>
                       </div>
                     </div>
