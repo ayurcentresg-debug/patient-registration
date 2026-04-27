@@ -1,6 +1,6 @@
 # AyurGate — Complete Feature Catalog
 
-**Last updated:** 2026-04-28 (cross-branch roadmap complete)
+**Last updated:** 2026-04-28 (cross-branch roadmap + touch DnD + iCal complete)
 **Status:** Living document — append to this whenever a new feature ships.
 **Audience:** Internal team (sales, demos, investor pitches), AyurGate owners.
 
@@ -761,7 +761,17 @@ Why AyurGate vs Practo / Cliniko / generic clinic software:
 
 ---
 
-## ✅ Recently shipped (this week — 44 commits)
+## ✅ Recently shipped (this week — 52 commits)
+
+**2026-04-28 (later) — Hardening + touch DnD + iCal (8 more commits):**
+- `1d22d31` /help layout tightened (2-col grid, smaller fonts, fit-to-page)
+- `bc755f4` /help replaces emoji with professional Heroicons-style SVG icons + module color palette
+- `8ecb9e4` /help made publicly accessible (no login — sales can share URL)
+- `7b67948` Booking-flow availability warnings (per-branch doctor hours + holidays)
+- `84dd617` Branch-restricted RBAC hardened: detail-route GETs + mutations
+- `1bf29f7` iCal calendar feed — doctors subscribe in Google/Apple Cal/Outlook
+- `44ee16f` Booking warnings upgraded to hard-block-with-confirm
+- `51a397e` Touch-friendly drag-and-drop on appointments calendar (@dnd-kit)
 
 **2026-04-28 — Cross-branch roadmap COMPLETE (7 commits):**
 - `341aaa2` Receipts + WhatsApp reminders mention branch + patient transfer history page (#F + #E + #A)
