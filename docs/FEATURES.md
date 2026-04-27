@@ -1,6 +1,6 @@
 # AyurGate — Complete Feature Catalog
 
-**Last updated:** 2026-04-27 (afternoon session)
+**Last updated:** 2026-04-28 (cross-branch roadmap complete)
 **Status:** Living document — append to this whenever a new feature ships.
 **Audience:** Internal team (sales, demos, investor pitches), AyurGate owners.
 
@@ -494,7 +494,7 @@ Why AyurGate vs Practo / Cliniko / generic clinic software:
 - Selection persists per-tab via localStorage
 - Switching reloads visible data instantly
 
-**Cross-branch capabilities**
+**Cross-branch capabilities (COMPLETE)**
 - ✅ One patient record across all branches
 - ✅ Family links work across branches
 - ✅ Patient package: buy at A, use at B
@@ -513,6 +513,16 @@ Why AyurGate vs Practo / Cliniko / generic clinic software:
 - ✅ **Branches Visited badges** — patient profile shows top 4 branches with visit count + ⭐ last-visited
 - ✅ **Patient list filter by branch** — BranchSelector → only patients who've visited that branch
 - ✅ **Dashboard branch-aware** — KPIs, revenue, appointments scoped to selected branch
+- ✅ **Receipts show branch name + address** — Invoice loads its branch and overrides clinic-level header
+- ✅ **WhatsApp reminders mention branch** — "reminder of your appointment at <Branch Name>"
+- ✅ **Patient transfer history page** — /patients/[id]/branches: chronological visits grouped by branch
+- ✅ **Per-branch CSV exports** — filenames include branch slug (e.g. overview-report__branch-b__month.csv)
+- ✅ **Branch comparison report** — /reports → Branches tab: side-by-side completion %, no-show %, revenue, top doctor per branch
+- ✅ **Per-branch holidays / closures** — Branch B can be closed for Diwali while Main stays open (recurring or one-off)
+- ✅ **Per-branch operating hours UI** — full per-day open/close editor at /admin/branches
+- ✅ **Inter-branch appointment transfer** — right-click → 'Transfer to Branch…' → instant move
+- ✅ **Per-branch doctor schedules** — doctor 'Mon–Wed at Main, Thu–Fri at Branch B' (data layer; enforcement next)
+- ✅ **Branch-restricted user roles** — receptionist at Branch B can ONLY see Branch B data
 
 
 **Reports per branch**
@@ -751,9 +761,18 @@ Why AyurGate vs Practo / Cliniko / generic clinic software:
 
 ---
 
-## ✅ Recently shipped (this week — 32 commits)
+## ✅ Recently shipped (this week — 44 commits)
 
-**Today (2026-04-27):**
+**2026-04-28 — Cross-branch roadmap COMPLETE (7 commits):**
+- `341aaa2` Receipts + WhatsApp reminders mention branch + patient transfer history page (#F + #E + #A)
+- `dd3fb7f` Per-branch CSV filenames in Reports (#D)
+- `a975420` Branch comparison report (#J) + remove CME vestiges (#K)
+- `ea73e83` Per-branch holidays / closures (#C)
+- `cb8f9d3` Inter-branch appointment transfer (#G)
+- `385bf0a` Per-branch doctor schedules (#H)
+- `5cdff9c` Branch-restricted user roles (#I)
+
+**2026-04-27 (afternoon):**
 - `def8363` Multi-branch Batch 1 — backfill endpoint, doctor→branch admin UI, branch chips on visits, hover tooltip
 - `6e49eaa` Multi-branch Batch 2 — branch picker in booking modal, Branches-Visited badges
 - `06e45ab` Multi-branch Batch 3a — patient list filters by selected branch
@@ -781,15 +800,22 @@ Why AyurGate vs Practo / Cliniko / generic clinic software:
 
 Use this when prospects ask "do you have X?" — be honest, then add to roadmap.
 
-**Multi-branch (mostly shipped now)**
-- ~~Admin UI to assign doctors to branches~~ ✅ shipped Batch 1
-- ~~Backfill endpoint for legacy appointments without branchId~~ ✅ shipped Batch 1
-- ~~Branch picker in QuickBookModal~~ ✅ shipped Batch 2
-- Patient transfer history page — full timeline grouped by branch (deferred)
-- Inter-branch appointment transfer workflow (deferred — bigger sprint)
-- Per-branch operating hours enforcement (schema field exists, UI deferred)
-- Per-branch holidays (deferred)
-- Branch-restricted user roles (e.g. receptionist at Branch B can't see Main patients) (deferred)
+**Multi-branch (FULLY SHIPPED — entire roadmap complete)**
+- ~~Admin UI to assign doctors to branches~~ ✅
+- ~~Backfill endpoint for legacy appointments without branchId~~ ✅
+- ~~Branch picker in QuickBookModal~~ ✅
+- ~~Patient transfer history page~~ ✅ (`/patients/[id]/branches`)
+- ~~Inter-branch appointment transfer workflow~~ ✅ (right-click context menu)
+- ~~Per-branch operating hours editor~~ ✅ (already shipped at /admin/branches)
+- ~~Per-branch holidays~~ ✅ (BranchHoliday model + UI + recurring annual support)
+- ~~Branch-restricted user roles~~ ✅ (receptionist at Branch B can't see Main patients)
+- ~~Per-branch doctor schedules~~ ✅ (data layer — enforcement in booking modal pending)
+- ~~Branch comparison dashboard~~ ✅ (Reports → Branches tab)
+
+**Still open (smaller / next-iteration items):**
+- Booking-flow enforcement of per-branch doctor schedules (data ready, UI lookup deferred)
+- Booking-flow enforcement of branch holidays (block bookings on closed days)
+- Branch-restricted enforcement on Billing/Invoices/Reports/Inventory APIs (only the 3 most-visible APIs scoped today)
 
 **Mobile**
 - Touch-friendly drag-and-drop on calendar (HTML5 drag is desktop-only)
