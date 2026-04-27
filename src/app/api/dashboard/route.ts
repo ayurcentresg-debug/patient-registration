@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getClinicId, getAuthPayload } from "@/lib/get-clinic-id";
 import { getTenantPrisma } from "@/lib/tenant-db";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const clinicId = await getClinicId();
     const payload = await getAuthPayload();
@@ -14,6 +14,12 @@ export async function GET() {
     }
 
     const db = getTenantPrisma(clinicId);
+
+    // Multi-branch (Phase 2.20): if ?branchId is provided, scope all
+    // appointment + invoice metrics to that branch. Doctors / patients /
+    // communications stay clinic-wide (they're not branch-scoped concepts).
+    const branchId = request.nextUrl.searchParams.get("branchId") || null;
+    const branchWhere = branchId ? { branchId } : {};
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -76,18 +82,20 @@ export async function GET() {
       // ── Existing queries ──────────────────────────────────────────────
       db.patient.count(),
       db.patient.count({ where: { status: "active" } }),
-      db.appointment.count(),
+      db.appointment.count({ where: branchWhere }),
       db.communication.count(),
       db.user.count({ where: { status: "active", role: "doctor" } }),
       db.user.count({ where: { status: "active", role: "therapist" } }),
       db.appointment.count({
         where: {
+          ...branchWhere,
           date: { gte: today, lt: tomorrow },
           status: { notIn: ["cancelled"] },
         },
       }),
       db.appointment.count({
         where: {
+          ...branchWhere,
           date: { gte: today },
           status: { in: ["scheduled", "confirmed"] },
         },
@@ -100,6 +108,7 @@ export async function GET() {
       }),
       db.appointment.findMany({
         where: {
+          ...branchWhere,
           date: { gte: today, lt: tomorrow },
           status: { notIn: ["cancelled"] },
         },
@@ -111,11 +120,12 @@ export async function GET() {
         },
       }),
 
-      // ── Revenue stats ─────────────────────────────────────────────────
+      // ── Revenue stats (branch-aware) ──────────────────────────────────
       // Today's revenue
       db.invoice.aggregate({
         _sum: { totalAmount: true },
         where: {
+          ...branchWhere,
           date: { gte: today, lt: tomorrow },
           status: { notIn: ["cancelled", "draft"] },
         },
@@ -124,6 +134,7 @@ export async function GET() {
       db.invoice.aggregate({
         _sum: { totalAmount: true },
         where: {
+          ...branchWhere,
           date: { gte: monthStart, lt: tomorrow },
           status: { notIn: ["cancelled", "draft"] },
         },
@@ -132,6 +143,7 @@ export async function GET() {
       db.invoice.aggregate({
         _sum: { totalAmount: true },
         where: {
+          ...branchWhere,
           date: { gte: lastMonthStart, lt: lastMonthEnd },
           status: { notIn: ["cancelled", "draft"] },
         },

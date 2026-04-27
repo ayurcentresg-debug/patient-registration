@@ -238,7 +238,11 @@ export default function Dashboard() {
   }, [selectedBranchId]);
 
   useEffect(() => {
-    fetch("/api/dashboard")
+    // Multi-branch (Phase 2.20): refetch dashboard when branch selector changes
+    const url = selectedBranchId
+      ? `/api/dashboard?branchId=${encodeURIComponent(selectedBranchId)}`
+      : "/api/dashboard";
+    fetch(url)
       .then((r) => {
         if (!r.ok) throw new Error(`Failed to load dashboard (${r.status})`);
         return r.json();
@@ -246,7 +250,7 @@ export default function Dashboard() {
       .then(setData)
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
-  }, []);
+  }, [selectedBranchId]);
 
   if (loading) {
     return <DashboardSkeleton />;
