@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db";
-import { getClinicId, getRestrictedBranchId } from "@/lib/get-clinic-id";
+import { getClinicId, getRestrictedBranchId, assertBranchAccess } from "@/lib/get-clinic-id";
 import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -137,6 +137,17 @@ export async function POST(request: NextRequest) {
       if (mainBranch) {
         branchId = mainBranch.id;
       }
+    }
+    // RBAC (#I): branch-restricted users can only invoice at their branch
+    const restrictBranch = await getRestrictedBranchId();
+    if (restrictBranch) {
+      if (branchId && branchId !== restrictBranch) {
+        return NextResponse.json(
+          { error: "Access denied: cannot create invoice at a different branch" },
+          { status: 403 }
+        );
+      }
+      branchId = restrictBranch;
     }
 
     // Auto-generate invoice number: INV-YYYYMM-0001

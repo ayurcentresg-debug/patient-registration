@@ -99,6 +99,28 @@ export async function getRestrictedBranchId(): Promise<string | null> {
 }
 
 /**
+ * Assert that a branch-restricted user owns this entity's branch.
+ * Returns null if access is allowed; returns a 403 NextResponse if not.
+ *
+ * Use in detail routes and mutations:
+ *   const denied = await assertBranchAccess(record.branchId);
+ *   if (denied) return denied;
+ *
+ * Treats null entity.branchId as 'unassigned/legacy' — accessible to
+ * branch-restricted users only if they have no restriction.
+ */
+import { NextResponse } from "next/server";
+export async function assertBranchAccess(entityBranchId: string | null | undefined) {
+  const restrict = await getRestrictedBranchId();
+  if (!restrict) return null; // user not restricted
+  if (entityBranchId && entityBranchId === restrict) return null; // same branch
+  return NextResponse.json(
+    { error: "Access denied: this record belongs to a different branch" },
+    { status: 403 }
+  );
+}
+
+/**
  * Checks if the authenticated user has one of the allowed roles.
  * Returns the payload if authorized, null otherwise.
  */

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getClinicId, getRestrictedBranchId } from "@/lib/get-clinic-id";
+import { getClinicId, getRestrictedBranchId, assertBranchAccess } from "@/lib/get-clinic-id";
 import { getTenantPrisma } from "@/lib/tenant-db";
 import { sendEmail } from "@/lib/email";
 import { appointmentConfirmationEmail } from "@/lib/email-templates";
@@ -150,6 +150,19 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         );
       }
+    }
+
+    // RBAC (#I): if user is branch-restricted, force the new appointment
+    // to be tagged with their branch (or block if they tried another)
+    const restrictBranch = await getRestrictedBranchId();
+    if (restrictBranch) {
+      if (body.branchId && body.branchId !== restrictBranch) {
+        return NextResponse.json(
+          { error: "Access denied: cannot book at a different branch" },
+          { status: 403 }
+        );
+      }
+      body.branchId = restrictBranch;
     }
 
     const commonData = {

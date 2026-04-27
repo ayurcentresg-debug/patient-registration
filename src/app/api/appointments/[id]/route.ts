@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getClinicId } from "@/lib/get-clinic-id";
+import { getClinicId, assertBranchAccess } from "@/lib/get-clinic-id";
 import { getTenantPrisma } from "@/lib/tenant-db";
 
 const includeRelations = {
@@ -26,6 +26,9 @@ export async function GET(
     if (!appointment) {
       return NextResponse.json({ error: "Appointment not found" }, { status: 404 });
     }
+    // RBAC (#I): branch-restricted users can only access their branch's records
+    const denied = await assertBranchAccess(appointment.branchId);
+    if (denied) return denied;
 
     return NextResponse.json(appointment);
   } catch (error) {
@@ -48,6 +51,14 @@ export async function PUT(
     const existing = await db.appointment.findUnique({ where: { id } });
     if (!existing) {
       return NextResponse.json({ error: "Appointment not found" }, { status: 404 });
+    }
+    // RBAC (#I): branch-restricted users can only mutate their branch's records
+    const denied = await assertBranchAccess(existing.branchId);
+    if (denied) return denied;
+    // Also block them from re-tagging the appointment to another branch
+    if (body.branchId !== undefined && body.branchId !== existing.branchId) {
+      const deniedNew = await assertBranchAccess(body.branchId);
+      if (deniedNew) return deniedNew;
     }
 
     // If rescheduling (date or time changed), check for conflicts
@@ -178,6 +189,9 @@ export async function DELETE(
     if (!existing) {
       return NextResponse.json({ error: "Appointment not found" }, { status: 404 });
     }
+    // RBAC (#I): branch-restricted users can only delete their branch's records
+    const denied = await assertBranchAccess(existing.branchId);
+    if (denied) return denied;
 
     await db.appointment.delete({ where: { id } });
 

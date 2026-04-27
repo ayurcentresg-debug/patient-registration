@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db";
-import { ADMIN_ROLES, getClinicId, requireRole } from "@/lib/get-clinic-id";
+import { ADMIN_ROLES, getClinicId, requireRole, assertBranchAccess } from "@/lib/get-clinic-id";
 import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -30,6 +30,9 @@ export async function GET(
         { status: 404 }
       );
     }
+    // RBAC (#I): branch-restricted users can only access their branch's invoices
+    const denied = await assertBranchAccess(invoice.branchId);
+    if (denied) return denied;
 
     return NextResponse.json(invoice);
   } catch (error) {
@@ -69,6 +72,9 @@ export async function PUT(
         { status: 404 }
       );
     }
+    // RBAC (#I): branch-restricted users can only mutate their branch's invoices
+    const deniedPut = await assertBranchAccess(existing.branchId);
+    if (deniedPut) return deniedPut;
 
     // Don't allow editing items after paid
     if (existing.status === "paid" && body.items) {
@@ -172,6 +178,9 @@ export async function DELETE(
         { status: 404 }
       );
     }
+    // RBAC (#I): branch-restricted users can only delete their branch's invoices
+    const deniedDel = await assertBranchAccess(invoice.branchId);
+    if (deniedDel) return deniedDel;
 
     if (invoice.status !== "draft") {
       return NextResponse.json(
