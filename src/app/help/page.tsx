@@ -272,27 +272,31 @@ export default function HelpPage() {
 
   return (
     <div className="min-h-screen" style={{ background: "var(--background)" }}>
-      <div className="px-6 md:px-8 py-8" style={{ background: "linear-gradient(135deg, #14532d, #2d6a4f)", color: "#fff" }}>
-        <div className="max-w-6xl mx-auto">
-          <h1 className="text-[28px] md:text-[36px] font-bold tracking-tight">📚 AyurGate User Guide</h1>
-          <p className="text-[15px] mt-2 opacity-90">
-            Everything your clinic can do — {totalFeatures}+ features across {MODULES.length} modules. Search or browse.
-          </p>
+      {/* Compact hero — minimal vertical space */}
+      <div className="px-4 md:px-6 py-4 md:py-5" style={{ background: "linear-gradient(135deg, #14532d, #2d6a4f)", color: "#fff" }}>
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className="text-[20px] md:text-[24px] font-bold tracking-tight leading-tight">📚 AyurGate User Guide</h1>
+            <p className="text-[12px] md:text-[13px] mt-0.5 opacity-85">
+              {totalFeatures}+ features · {MODULES.length} modules · search or browse
+            </p>
+          </div>
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search features… (e.g. 'reminder', 'inventory', 'WhatsApp')"
-            className="w-full mt-4 px-4 py-3 text-[15px] rounded-md"
+            placeholder="Search features…"
+            className="w-full md:w-[320px] px-3 py-2 text-[14px] rounded-md flex-shrink-0"
             style={{ background: "rgba(255,255,255,0.95)", color: "#1a1c1b", border: "none" }}
           />
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 md:px-6 py-6 flex gap-6">
-        <aside className="hidden lg:block w-[220px] flex-shrink-0">
-          <div className="sticky top-6 space-y-1">
-            <p className="text-[11px] font-bold uppercase tracking-wide mb-2 px-2" style={{ color: "var(--grey-500)" }}>Modules</p>
+      <div className="max-w-7xl mx-auto px-3 md:px-5 py-4 flex gap-5">
+        {/* Sticky TOC — slimmer */}
+        <aside className="hidden lg:block w-[180px] flex-shrink-0">
+          <div className="sticky top-3 space-y-0.5">
+            <p className="text-[10px] font-bold uppercase tracking-wide mb-1.5 px-2" style={{ color: "var(--grey-500)" }}>Modules</p>
             {MODULES.map(m => {
               const visible = filteredModules.find(fm => fm.id === m.id);
               return (
@@ -300,14 +304,14 @@ export default function HelpPage() {
                   key={m.id}
                   href={`#mod-${m.id}`}
                   onClick={(e) => { e.preventDefault(); document.getElementById(`mod-${m.id}`)?.scrollIntoView({ behavior: "smooth" }); setActiveId(m.id); }}
-                  className="flex items-center gap-2 px-3 py-2 rounded text-[13px] font-semibold transition-colors hover:bg-gray-100"
+                  className="flex items-center gap-1.5 px-2 py-1.5 rounded text-[12px] font-semibold transition-colors hover:bg-gray-100"
                   style={{
                     background: activeId === m.id ? "#dcfce7" : "transparent",
                     color: activeId === m.id ? "#166534" : (visible ? "var(--grey-700)" : "var(--grey-400)"),
                     opacity: visible ? 1 : 0.4,
                   }}
                 >
-                  <span>{m.icon}</span>
+                  <span className="text-[13px]">{m.icon}</span>
                   <span className="truncate">{m.title}</span>
                 </a>
               );
@@ -317,37 +321,38 @@ export default function HelpPage() {
 
         <main className="flex-1 min-w-0">
           {filteredModules.length === 0 && (
-            <div className="p-8 rounded-md text-center" style={{ background: "var(--white)", border: "1px solid var(--grey-200)" }}>
-              <p className="text-[15px] mb-2" style={{ color: "var(--grey-700)" }}>No features match &quot;{search}&quot;</p>
-              <button onClick={() => setSearch("")} className="text-[14px] font-semibold" style={{ color: "var(--blue-500)" }}>Clear search</button>
+            <div className="p-6 rounded-md text-center" style={{ background: "var(--white)", border: "1px solid var(--grey-200)" }}>
+              <p className="text-[14px] mb-1.5" style={{ color: "var(--grey-700)" }}>No features match &quot;{search}&quot;</p>
+              <button onClick={() => setSearch("")} className="text-[13px] font-semibold" style={{ color: "var(--blue-500)" }}>Clear search</button>
             </div>
           )}
 
           {filteredModules.map(m => (
-            <section key={m.id} id={`mod-${m.id}`} className="mb-8 p-5 md:p-6 rounded-md" style={{ background: "var(--white)", border: "1px solid var(--grey-200)", boxShadow: "var(--shadow-sm)", scrollMarginTop: 16 }}>
-              <div className="flex items-start justify-between gap-3 mb-4 pb-4" style={{ borderBottom: "1px solid var(--grey-200)" }}>
+            <section key={m.id} id={`mod-${m.id}`} className="mb-4 p-4 md:p-5 rounded-md" style={{ background: "var(--white)", border: "1px solid var(--grey-200)", boxShadow: "var(--shadow-sm)", scrollMarginTop: 12 }}>
+              <div className="flex items-start justify-between gap-3 mb-3 pb-3" style={{ borderBottom: "1px solid var(--grey-200)" }}>
                 <div className="min-w-0 flex-1">
-                  <h2 className="text-[22px] font-bold flex items-center gap-2" style={{ color: "var(--grey-900)" }}>
+                  <h2 className="text-[18px] md:text-[19px] font-bold flex items-center gap-2 leading-tight" style={{ color: "var(--grey-900)" }}>
                     <span>{m.icon}</span> {m.title}
                   </h2>
-                  <p className="text-[14px] mt-1" style={{ color: "var(--grey-500)" }}>{m.tagline}</p>
+                  <p className="text-[12px] md:text-[13px] mt-0.5" style={{ color: "var(--grey-500)" }}>{m.tagline}</p>
                 </div>
-                <span className="text-[12px] font-bold px-2 py-1 rounded flex-shrink-0" style={{ background: "#f0faf4", color: "#166534" }}>
-                  {m.features.length} feature{m.features.length !== 1 ? "s" : ""}
+                <span className="text-[11px] font-bold px-1.5 py-0.5 rounded flex-shrink-0" style={{ background: "#f0faf4", color: "#166534" }}>
+                  {m.features.length}
                 </span>
               </div>
 
-              <ul className="space-y-3">
+              {/* 2-column feature grid on desktop — denser layout = less scrolling */}
+              <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2.5">
                 {m.features.map((f, i) => (
-                  <li key={i} className="pl-3" style={{ borderLeft: "3px solid #d1f2e0" }}>
-                    <div className="font-bold text-[14px] mb-0.5" style={{ color: "var(--grey-900)" }}>
+                  <li key={i} className="pl-2.5" style={{ borderLeft: "2px solid #d1f2e0" }}>
+                    <div className="font-bold text-[12.5px] mb-0.5 leading-tight" style={{ color: "var(--grey-900)" }}>
                       {f.title}
                     </div>
-                    <p className="text-[13px] leading-relaxed" style={{ color: "var(--grey-700)" }}>
+                    <p className="text-[12px] leading-snug" style={{ color: "var(--grey-700)" }}>
                       {f.description}
                     </p>
                     {f.howTo && (
-                      <p className="text-[12px] mt-1 italic" style={{ color: "var(--grey-500)" }}>
+                      <p className="text-[11px] mt-0.5 italic" style={{ color: "var(--grey-500)" }}>
                         💡 {f.howTo}
                       </p>
                     )}
@@ -357,12 +362,9 @@ export default function HelpPage() {
             </section>
           ))}
 
-          <div className="mt-8 p-5 rounded-md text-center" style={{ background: "var(--white)", border: "1px solid var(--grey-200)" }}>
-            <p className="text-[14px] mb-2" style={{ color: "var(--grey-700)" }}>
-              Need help with something specific? Email <a href="mailto:info@ayurgate.com" className="font-bold" style={{ color: "var(--blue-500)" }}>info@ayurgate.com</a>.
-            </p>
-            <p className="text-[12px]" style={{ color: "var(--grey-400)" }}>
-              AyurGate User Guide · {totalFeatures}+ features · {MODULES.length} modules · <Link href="/dashboard" style={{ color: "var(--blue-500)" }}>Back to Dashboard</Link>
+          <div className="mt-4 p-3 rounded-md text-center" style={{ background: "var(--white)", border: "1px solid var(--grey-200)" }}>
+            <p className="text-[12px]" style={{ color: "var(--grey-600)" }}>
+              Need help? Email <a href="mailto:info@ayurgate.com" className="font-bold" style={{ color: "var(--blue-500)" }}>info@ayurgate.com</a> · {totalFeatures}+ features · {MODULES.length} modules · <Link href="/dashboard" style={{ color: "var(--blue-500)" }}>Back to Dashboard</Link>
             </p>
           </div>
         </main>
