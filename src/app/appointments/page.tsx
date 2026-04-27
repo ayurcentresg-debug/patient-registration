@@ -281,8 +281,23 @@ function QuickBookModal({
   const [selectedPatient, setSelectedPatient] = useState<PatientOption | null>(null);
   const [searchLoading, setSearchLoading] = useState(false);
 
-  // Multi-branch (Phase 3): tag the new appointment with the currently-selected branch
-  const bookingBranchId = useSelectedBranch();
+  // Multi-branch (Phase 3): default branch from BranchSelector,
+  // but allow front-desk override per booking
+  const selectedSidebarBranch = useSelectedBranch();
+  const [bookingBranchId, setBookingBranchId] = useState<string>(selectedSidebarBranch || "");
+  const [modalBranches, setModalBranches] = useState<Array<{ id: string; name: string; isMainBranch?: boolean }>>([]);
+  useEffect(() => {
+    fetch("/api/branches?active=true")
+      .then(r => (r.ok ? r.json() : []))
+      .then((data: Array<{ id: string; name: string; isMainBranch?: boolean }>) => {
+        if (Array.isArray(data)) setModalBranches(data);
+      })
+      .catch(() => setModalBranches([]));
+  }, []);
+  // When user changes branch in sidebar, sync this modal field
+  useEffect(() => {
+    if (selectedSidebarBranch) setBookingBranchId(selectedSidebarBranch);
+  }, [selectedSidebarBranch]);
 
   // Walk-in fields
   const [walkinName, setWalkinName] = useState("");
@@ -409,7 +424,7 @@ function QuickBookModal({
         duration,
         doctor: selectedDoctor?.name || "",
         doctorId,
-        // Multi-branch (Phase 3): inherit from selected branch (or doctor's primary branch)
+        // Multi-branch (Phase 3): explicit branch picker, fall back to doctor's primary
         branchId: bookingBranchId || (selectedDoctor as Doctor & { branchId?: string })?.branchId || null,
         department: selectedDoctor?.department || null,
         type: aptType,
@@ -726,6 +741,29 @@ function QuickBookModal({
                     : `Clinical staff exist but no therapists are active. Go to /admin/permissions to reactivate a therapist.`}
               </p>
             )}
+          </div>
+
+          {/* Branch picker (multi-branch only) — Phase 2.15 */}
+          {modalBranches.length > 1 && (
+            <div>
+              <label className="text-[14px] font-semibold mb-1 block" style={{ color: "var(--grey-700)" }}>
+                Branch
+                <span className="text-[12px] font-normal ml-1" style={{ color: "var(--grey-400)" }}>(where this appointment will happen)</span>
+              </label>
+              <select
+                value={bookingBranchId}
+                onChange={(e) => setBookingBranchId(e.target.value)}
+                className="w-full px-3 py-2 text-[15px]"
+                style={inputStyle}
+              >
+                <option value="">-- Use doctor's primary branch --</option>
+                {modalBranches.map((b) => (
+                  <option key={b.id} value={b.id}>{b.name}{b.isMainBranch ? " (Main)" : ""}</option>
+                ))}
+              </select>
+            </div>
+          )}
+          <div>
             {/* Gender matching warning for therapy bookings */}
             {bookingFor === "therapy" && selectedDoctor && selectedDoctor.gender && (() => {
               // Check patient gender

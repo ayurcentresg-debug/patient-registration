@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useCallback, useRef } from "react";
+import React, { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import ConfirmDialog from "@/components/ConfirmDialog";
@@ -205,7 +205,7 @@ export default function PatientDetailPage() {
   // Pending balance state
   const [pendingBalance, setPendingBalance] = useState<{ total: number; invoices: Array<{ id: string; invoiceNumber: string; totalAmount: number; paidAmount: number; balanceAmount: number; date: string }> }>({ total: 0, invoices: [] });
   const [familyBalances, setFamilyBalances] = useState<Array<{ patientId: string; name: string; relation: string; balance: number }>>([]);
-  // Multi-branch (Phase 2.12): branch lookup for chip on visit rows
+  // Multi-branch (Phase 2.12-2.16): branch lookup + per-branch visit aggregation
   const [branchLookup, setBranchLookup] = useState<Record<string, string>>({});
   useEffect(() => {
     fetch("/api/branches?active=true")
@@ -217,6 +217,26 @@ export default function PatientDetailPage() {
       })
       .catch(() => {});
   }, []);
+
+  // Compute per-branch visit counts (most-visited first)
+  const branchVisits = useMemo(() => {
+    if (!patient?.appointments) return [];
+    const counts: Record<string, number> = {};
+    let lastDate: string | null = null;
+    let lastBranchId: string | null = null;
+    for (const a of patient.appointments) {
+      if (!a.branchId) continue;
+      counts[a.branchId] = (counts[a.branchId] || 0) + 1;
+      if (!lastDate || a.date > lastDate) {
+        lastDate = a.date;
+        lastBranchId = a.branchId;
+      }
+    }
+    const list = Object.entries(counts)
+      .map(([id, count]) => ({ id, name: branchLookup[id] || "(deleted branch)", count, isLastVisited: id === lastBranchId }))
+      .sort((a, b) => b.count - a.count);
+    return list;
+  }, [patient?.appointments, branchLookup]);
   const [sendingReminder, setSendingReminder] = useState(false);
 
   // Timeline state
@@ -1595,6 +1615,31 @@ export default function PatientDetailPage() {
               {patient.patientIdNumber} &nbsp;&middot;&nbsp; {patient.gender?.charAt(0).toUpperCase() + patient.gender?.slice(1)}{patient.dateOfBirth ? <> &middot; {calcAge(patient.dateOfBirth)}</> : ""}
               {patient.bloodGroup ? <> &middot; {patient.bloodGroup}</> : ""}
             </p>
+            {/* Multi-branch (Phase 2.16): Branches Visited badges — most-frequent first */}
+            {branchVisits.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mt-2 items-center">
+                <span className="text-[11px] uppercase tracking-wide font-bold" style={{ color: "var(--grey-500)" }}>Branches:</span>
+                {branchVisits.slice(0, 4).map(b => (
+                  <span
+                    key={b.id}
+                    className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-bold rounded"
+                    style={{
+                      background: b.isLastVisited ? "#dcfce7" : "#eff6ff",
+                      color: b.isLastVisited ? "#166534" : "#1e40af",
+                      border: b.isLastVisited ? "1px solid #86efac" : "1px solid #bfdbfe",
+                    }}
+                    title={b.isLastVisited ? `Last visited at ${b.name}` : `${b.count} visits at ${b.name}`}
+                  >
+                    🏢 {b.name}
+                    <span className="opacity-70">({b.count})</span>
+                    {b.isLastVisited && <span className="text-[9px]">★</span>}
+                  </span>
+                ))}
+                {branchVisits.length > 4 && (
+                  <span className="text-[11px] font-semibold" style={{ color: "var(--grey-500)" }}>+ {branchVisits.length - 4} more</span>
+                )}
+              </div>
+            )}
             {/* Quick contact actions */}
             <div className="flex flex-wrap items-center gap-2 mt-2">
               <a href={`tel:${patient.phone}`} className="inline-flex items-center gap-1 px-2.5 py-1 text-[12px] font-semibold transition-colors hover:opacity-80" style={{ background: "var(--grey-50)", border: "1px solid var(--grey-200)", borderRadius: "var(--radius-pill)", color: "var(--grey-700)" }}>
