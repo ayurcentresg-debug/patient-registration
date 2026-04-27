@@ -45,12 +45,13 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
   const isBookingPage = pathname.startsWith("/book");
   const isDoctorPortal = pathname.startsWith("/doctor");
   const isSuperAdmin = pathname.startsWith("/super-admin");
+  const isHelpPage = pathname === "/help"; // public so sales can share the URL
   // CME removed — going to separate repo (~/Desktop/ayurcme-plan.md)
 
   // All public pages — no auth, no sidebar
   const isPublicPage =
     isLandingPage || isLoginPage || isInvitePage || isRegisterPage ||
-    isPricingPage || isOnboardingPage || isBookingPage;
+    isPricingPage || isOnboardingPage || isBookingPage || isHelpPage;
 
   // Super admin pages have their own layout
   if (isSuperAdmin) {

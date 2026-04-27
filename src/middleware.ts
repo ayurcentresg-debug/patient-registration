@@ -101,6 +101,7 @@ const PUBLIC_PATHS = [
   "/register",
   "/api/clinic/register",
   "/pricing",
+  "/help", // public feature catalog for sales / prospects
   "/api/public",
   "/api/stripe/webhook",
   "/api/daily-report",
