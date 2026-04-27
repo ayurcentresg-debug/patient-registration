@@ -8,6 +8,7 @@ import { useFlash } from "@/components/FlashCardProvider";
 import WaitlistModal from "@/components/WaitlistModal";
 import { inputStyle } from "@/lib/styles";
 import { useSelectedBranch } from "@/lib/use-selected-branch";
+import { DndContext, useDraggable, useDroppable, useSensor, useSensors, PointerSensor, TouchSensor, type DragStartEvent, type DragEndEvent } from "@dnd-kit/core";
 
 /* ─── Types ─── */
 interface Appointment {
@@ -1184,6 +1185,80 @@ function ContextMenu({ x, y, items, onClose }: { x: number; y: number; items: Co
   );
 }
 
+/* ─── DraggableCard — wraps a calendar card with useDraggable so it works on
+   touch (long-press) and mouse alike. Listeners go on the outer div. ─── */
+interface DraggableCardProps {
+  apt: Appointment;
+  disabled?: boolean;
+  className?: string;
+  style?: React.CSSProperties;
+  onClick?: (e: React.MouseEvent) => void;
+  onMouseEnter?: (e: React.MouseEvent) => void;
+  onMouseLeave?: (e: React.MouseEvent) => void;
+  onContextMenu?: (e: React.MouseEvent) => void;
+  ariaLabel?: string;
+  children: React.ReactNode;
+}
+function DraggableCard(p: DraggableCardProps) {
+  const { attributes, listeners, setNodeRef } = useDraggable({
+    id: `apt-${p.apt.id}`,
+    data: { apt: p.apt },
+    disabled: p.disabled,
+  });
+  return (
+    <div
+      ref={setNodeRef}
+      className={p.className}
+      style={p.style}
+      onClick={p.onClick}
+      onMouseEnter={p.onMouseEnter}
+      onMouseLeave={p.onMouseLeave}
+      onContextMenu={p.onContextMenu}
+      aria-label={p.ariaLabel}
+      {...listeners}
+      {...attributes}
+    >
+      {p.children}
+    </div>
+  );
+}
+
+/* ─── DroppableSlot — per-half-hour drop target (touch + mouse via dnd-kit) ─── */
+interface DroppableSlotProps {
+  id: string;
+  date: Date;
+  dKey: string;
+  minutes: number;
+  hour: number;
+  height: number;
+  isHalf: boolean;
+  isDashed?: boolean;
+  handleSlotClick: (date: Date, hour: number, isHalf: boolean) => void;
+  clipboard: boolean;
+  formatTime12: (t: string) => string;
+  minutesToTime: (m: number) => string;
+}
+function DroppableSlot(p: DroppableSlotProps) {
+  const { setNodeRef, isOver } = useDroppable({ id: p.id, data: { date: p.date, dateKey: p.dKey, minutes: p.minutes } });
+  return (
+    <div
+      ref={setNodeRef}
+      className="transition-colors"
+      style={{
+        height: p.height,
+        borderBottom: p.isDashed ? "1px dashed var(--grey-200)" : undefined,
+        background: isOver ? "rgba(45,106,79,0.18)" : "transparent",
+        outline: isOver ? "2px dashed #2d6a4f" : "none",
+        cursor: p.clipboard ? "copy" : "pointer",
+      }}
+      onMouseEnter={(e) => { if (!isOver) e.currentTarget.style.background = "rgba(45,106,79,0.04)"; }}
+      onMouseLeave={(e) => { if (!isOver) e.currentTarget.style.background = "transparent"; }}
+      onClick={() => p.handleSlotClick(p.date, p.hour, p.isHalf)}
+      title={p.clipboard ? `Paste here at ${p.formatTime12(p.minutesToTime(p.minutes))}` : `Book at ${p.formatTime12(p.minutesToTime(p.minutes))}`}
+    />
+  );
+}
+
 /* ═══════════════════════════════════════════════════════════════════════════ */
 export default function AppointmentsPage() {
   const { showFlash } = useFlash();
@@ -1256,6 +1331,24 @@ export default function AppointmentsPage() {
   const [is24Hour, setIs24Hour] = useState(false);
   const [dragApt, setDragApt] = useState<Appointment | null>(null);
   const [dragOver, setDragOver] = useState<{ dateKey: string; minutes: number } | null>(null);
+  // dnd-kit sensors: mouse + touch (long-press 200ms to start drag)
+  const dndSensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor,   { activationConstraint: { delay: 200, tolerance: 8 } }),
+  );
+  const handleDndStart = (e: DragStartEvent) => {
+    const apt = (e.active.data.current as { apt?: Appointment } | undefined)?.apt;
+    if (apt) setDragApt(apt);
+  };
+  const handleDndEnd = (e: DragEndEvent) => {
+    const apt = dragApt || (e.active.data.current as { apt?: Appointment } | undefined)?.apt;
+    setDragApt(null);
+    setDragOver(null);
+    if (!apt || !e.over) return;
+    const overData = e.over.data.current as { dateKey?: string; minutes?: number; date?: Date } | undefined;
+    if (!overData?.date || overData.minutes === undefined) return;
+    rescheduleAppointment(apt, overData.date, minutesToTime(overData.minutes));
+  };
   const [clipboard, setClipboard] = useState<Appointment | null>(null);
   // Sprint 1c: right sidebar toggle (default visible, persisted to localStorage)
   const [sidebarVisible, setSidebarVisible] = useState(true);
@@ -2048,7 +2141,8 @@ export default function AppointmentsPage() {
 
         </div>
 
-        {/* ─── Center: Calendar Grid ─── */}
+        {/* ─── Center: Calendar Grid (wrapped in DndContext for touch + mouse drag) ─── */}
+        <DndContext sensors={dndSensors} onDragStart={handleDndStart} onDragEnd={handleDndEnd}>
         <div ref={gridRef} className="flex-1 min-w-0 overflow-auto relative" style={{ background: "var(--white)" }}>
           {loading && (
             <div className="absolute inset-0 flex items-center justify-center z-10" style={{ background: "rgba(255,255,255,0.7)" }}>
@@ -2105,66 +2199,31 @@ export default function AppointmentsPage() {
                       )}
                     </div>
 
-                    {/* Clickable hour grid + Sprint 1b drop targets */}
+                    {/* Clickable hour grid + drop targets (touch + mouse via dnd-kit) */}
                     {hours.map(h => {
-                      // Highlight if this slot is the drop target during a drag
                       const dKey = dateKey(date);
-                      const topMinutes = h * 60;
-                      const botMinutes = h * 60 + 30;
-                      const topActive = !!dragOver && dragOver.dateKey === dKey && dragOver.minutes === topMinutes;
-                      const botActive = !!dragOver && dragOver.dateKey === dKey && dragOver.minutes === botMinutes;
-                      // Cursor cue when in paste mode
-                      const slotCursor = clipboard ? "copy" : "pointer";
                       return (
                         <div key={h} style={{ height: HOUR_HEIGHT, borderBottom: "1px solid var(--grey-300)" }}>
-                          {/* Top half-hour */}
-                          <div
-                            className="transition-colors"
-                            style={{
-                              height: HOUR_HEIGHT / 2,
-                              borderBottom: "1px dashed var(--grey-200)",
-                              background: topActive ? "rgba(45,106,79,0.18)" : "transparent",
-                              outline: topActive ? "2px dashed #2d6a4f" : "none",
-                              cursor: slotCursor,
-                            }}
-                            onMouseEnter={(e) => { if (!dragApt && !topActive) e.currentTarget.style.background = "rgba(45,106,79,0.04)"; }}
-                            onMouseLeave={(e) => { if (!topActive) e.currentTarget.style.background = "transparent"; }}
-                            onClick={() => handleSlotClick(date, h, false)}
-                            onDragOver={(e) => { if (dragApt) { e.preventDefault(); e.dataTransfer.dropEffect = "move"; setDragOver({ dateKey: dKey, minutes: topMinutes }); } }}
-                            onDragLeave={() => { if (topActive) setDragOver(null); }}
-                            onDrop={(e) => {
-                              if (!dragApt) return;
-                              e.preventDefault();
-                              const apt = dragApt;
-                              setDragApt(null);
-                              setDragOver(null);
-                              rescheduleAppointment(apt, date, minutesToTime(topMinutes));
-                            }}
-                            title={clipboard ? `Paste here at ${formatTime12(minutesToTime(topMinutes))}` : `Book at ${formatTime12(minutesToTime(topMinutes))}`}
+                          <DroppableSlot
+                            id={`slot-${dKey}-${h * 60}`}
+                            date={date} dKey={dKey} minutes={h * 60}
+                            height={HOUR_HEIGHT / 2}
+                            isHalf={false}
+                            hour={h}
+                            isDashed
+                            handleSlotClick={handleSlotClick}
+                            clipboard={!!clipboard}
+                            formatTime12={formatTime12} minutesToTime={minutesToTime}
                           />
-                          {/* Bottom half-hour */}
-                          <div
-                            className="transition-colors"
-                            style={{
-                              height: HOUR_HEIGHT / 2,
-                              background: botActive ? "rgba(45,106,79,0.18)" : "transparent",
-                              outline: botActive ? "2px dashed #2d6a4f" : "none",
-                              cursor: slotCursor,
-                            }}
-                            onMouseEnter={(e) => { if (!dragApt && !botActive) e.currentTarget.style.background = "rgba(45,106,79,0.04)"; }}
-                            onMouseLeave={(e) => { if (!botActive) e.currentTarget.style.background = "transparent"; }}
-                            onClick={() => handleSlotClick(date, h, true)}
-                            onDragOver={(e) => { if (dragApt) { e.preventDefault(); e.dataTransfer.dropEffect = "move"; setDragOver({ dateKey: dKey, minutes: botMinutes }); } }}
-                            onDragLeave={() => { if (botActive) setDragOver(null); }}
-                            onDrop={(e) => {
-                              if (!dragApt) return;
-                              e.preventDefault();
-                              const apt = dragApt;
-                              setDragApt(null);
-                              setDragOver(null);
-                              rescheduleAppointment(apt, date, minutesToTime(botMinutes));
-                            }}
-                            title={clipboard ? `Paste here at ${formatTime12(minutesToTime(botMinutes))}` : `Book at ${formatTime12(minutesToTime(botMinutes))}`}
+                          <DroppableSlot
+                            id={`slot-${dKey}-${h * 60 + 30}`}
+                            date={date} dKey={dKey} minutes={h * 60 + 30}
+                            height={HOUR_HEIGHT / 2}
+                            isHalf={true}
+                            hour={h}
+                            handleSlotClick={handleSlotClick}
+                            clipboard={!!clipboard}
+                            formatTime12={formatTime12} minutesToTime={minutesToTime}
                           />
                         </div>
                       );
@@ -2194,10 +2253,11 @@ export default function AppointmentsPage() {
                       const cardGap = apt.totalLanes > 1 ? 12 : 4;
 
                       return (
-                        <div
+                        <DraggableCard
                           key={apt.id}
-                          className="absolute overflow-hidden text-left transition-all hover:shadow-md cursor-grab active:cursor-grabbing group"
-                          draggable={!isCancelled}
+                          apt={apt}
+                          disabled={isCancelled}
+                          className="absolute overflow-hidden text-left transition-all hover:shadow-md cursor-grab active:cursor-grabbing group touch-none"
                           style={{
                             top,
                             height,
@@ -2212,10 +2272,8 @@ export default function AppointmentsPage() {
                             zIndex: 5,
                             borderLeft: `3px solid ${color.bg === "#f9a825" ? "#e88f00" : "rgba(0,0,0,0.15)"}`,
                             boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
-                            // Sprint 1: cancelled = strikethrough + dim
                             opacity: isCancelled ? 0.55 : (isBeingDragged ? 0.4 : 1),
                             textDecoration: isCancelled ? "line-through" : "none",
-                            // Sprint 1b: dashed outline = "this is on clipboard"
                             outline: isClipboardSource ? "2px dashed #fbbf24" : "none",
                             outlineOffset: isClipboardSource ? 2 : 0,
                           }}
@@ -2235,18 +2293,7 @@ export default function AppointmentsPage() {
                             setHoverApt(null);
                             setCtxMenu({ apt, x: e.clientX, y: e.clientY });
                           }}
-                          // Sprint 1b: drag-and-drop reschedule
-                          onDragStart={(e) => {
-                            if (isCancelled) { e.preventDefault(); return; }
-                            setHoverApt(null);
-                            setDragApt(apt);
-                            e.dataTransfer.effectAllowed = "move";
-                            try { e.dataTransfer.setData("text/plain", apt.id); } catch { /* ignore */ }
-                          }}
-                          onDragEnd={() => { setDragApt(null); setDragOver(null); }}
-                          role="button"
-                          tabIndex={0}
-                          aria-label={`${name} at ${formatTime12(apt.time)}, status ${apt.status}, drag to reschedule`}
+                          ariaLabel={`${name} at ${formatTime12(apt.time)}, status ${apt.status}, drag or long-press to reschedule`}
                         >
                           <div className="font-bold truncate flex items-center justify-between gap-1">
                             <span className="truncate">{formatTime12(apt.time)}{apt.endTime ? ` - ${formatTime12(apt.endTime)}` : ""}{apt.department ? ` (${apt.department})` : ""}</span>
@@ -2279,7 +2326,7 @@ export default function AppointmentsPage() {
                             )}
                           </div>
                           <div className="truncate font-medium">{name}</div>
-                        </div>
+                        </DraggableCard>
                       );
                     })}
 
@@ -2310,6 +2357,7 @@ export default function AppointmentsPage() {
             </div>
           )}
         </div>
+        </DndContext>
 
         {/* ─── Right Sidebar: Today's Schedule ─── */}
         {sidebarVisible && (
