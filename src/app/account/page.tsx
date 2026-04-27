@@ -333,6 +333,9 @@ export default function MyAccountPage() {
         ) : (
           <>
             {/* Security Tab */}
+            {/* iCal subscription — sync appointments to Google/Apple/Outlook calendar */}
+            <ICalSubscription />
+
             {/* Change Password */}
             <div style={{ ...cardStyle, padding: "24px 28px", marginBottom: 20 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: showPasswordSection ? 20 : 0 }}>
@@ -504,5 +507,97 @@ export default function MyAccountPage() {
           </>
         )}
       </div>
+  );
+}
+
+// ─── iCal subscription component (Phase 2.4 / iCal feed) ────────────────
+function ICalSubscription() {
+  const [info, setInfo] = useState<{ hasToken: boolean; url: string | null; role: string } | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/portal/ical-token").then(r => r.ok ? r.json() : null).then(setInfo).catch(() => {});
+  }, []);
+
+  async function generate() {
+    if (!confirm("Generate a private calendar URL?\n\nAnyone with this URL can read your appointments. Treat it like a password.")) return;
+    setBusy(true);
+    try {
+      const r = await fetch("/api/portal/ical-token", { method: "POST" });
+      const data = await r.json();
+      setInfo({ hasToken: true, url: data.url, role: info?.role || "" });
+    } finally { setBusy(false); }
+  }
+
+  async function revoke() {
+    if (!confirm("Revoke the calendar URL? Calendar apps using it will stop syncing.")) return;
+    setBusy(true);
+    try {
+      await fetch("/api/portal/ical-token", { method: "DELETE" });
+      setInfo({ hasToken: false, url: null, role: info?.role || "" });
+    } finally { setBusy(false); }
+  }
+
+  function copy() {
+    if (!info?.url) return;
+    navigator.clipboard?.writeText(info.url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  // Only show for clinical staff (doctors/therapists). Admins/receptionists don't have own appointments.
+  if (info && info.role && !["doctor", "therapist"].includes(info.role)) return null;
+
+  return (
+    <div style={{ background: "#fff", border: "1px solid var(--grey-200)", borderRadius: 8, padding: "20px 24px", marginBottom: 16, boxShadow: "var(--shadow-card)" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <h3 style={{ fontSize: 15, fontWeight: 700, color: "var(--grey-900)", margin: 0 }}>📅 Sync to Google / Apple Calendar</h3>
+          <p style={{ fontSize: 12.5, color: "var(--grey-500)", marginTop: 4, lineHeight: 1.5 }}>
+            Subscribe to your AyurGate appointments in your personal calendar app. Syncs every ~12 hours. Patient name, treatment, branch and time included.
+          </p>
+        </div>
+        {!info?.hasToken && (
+          <button
+            onClick={generate}
+            disabled={busy}
+            style={{ padding: "8px 16px", fontSize: 13, fontWeight: 600, color: "#fff", background: busy ? "#9ca3af" : "var(--blue-500)", border: "none", borderRadius: 6, cursor: busy ? "wait" : "pointer", whiteSpace: "nowrap" }}
+          >
+            {busy ? "…" : "Generate URL"}
+          </button>
+        )}
+      </div>
+      {info?.hasToken && info.url && (
+        <div style={{ marginTop: 14 }}>
+          <div style={{ display: "flex", gap: 6, alignItems: "stretch" }}>
+            <input
+              type="text"
+              value={info.url}
+              readOnly
+              onClick={(e) => (e.target as HTMLInputElement).select()}
+              style={{ flex: 1, fontFamily: "monospace", fontSize: 11.5, padding: "8px 10px", background: "var(--grey-50)", border: "1px solid var(--grey-300)", borderRadius: 6, color: "var(--grey-800)" }}
+            />
+            <button onClick={copy} style={{ padding: "8px 14px", fontSize: 12, fontWeight: 600, background: copied ? "#059669" : "var(--grey-100)", color: copied ? "#fff" : "var(--grey-700)", border: "1px solid var(--grey-300)", borderRadius: 6, cursor: "pointer", whiteSpace: "nowrap" }}>
+              {copied ? "✓ Copied" : "Copy"}
+            </button>
+            <button onClick={revoke} disabled={busy} style={{ padding: "8px 14px", fontSize: 12, fontWeight: 600, color: "var(--red)", background: "var(--white)", border: "1px solid var(--grey-300)", borderRadius: 6, cursor: "pointer" }}>
+              Revoke
+            </button>
+          </div>
+          <details style={{ marginTop: 10 }}>
+            <summary style={{ fontSize: 12, fontWeight: 600, color: "var(--blue-500)", cursor: "pointer" }}>How to add to my calendar</summary>
+            <div style={{ fontSize: 12, color: "var(--grey-700)", lineHeight: 1.6, marginTop: 8, paddingLeft: 8 }}>
+              <p><strong>Google Calendar:</strong> Settings → Add calendar → From URL → paste the URL above</p>
+              <p><strong>Apple Calendar:</strong> File → New Calendar Subscription → paste the URL</p>
+              <p><strong>Outlook:</strong> Add Calendar → From Internet → paste the URL</p>
+              <p style={{ color: "var(--grey-500)", fontStyle: "italic", marginTop: 6 }}>
+                ⚠️ Anyone with this URL can read your appointments. Don&apos;t share it. Click Revoke if it leaks.
+              </p>
+            </div>
+          </details>
+        </div>
+      )}
+    </div>
   );
 }

@@ -102,6 +102,7 @@ const PUBLIC_PATHS = [
   "/api/clinic/register",
   "/pricing",
   "/help", // public feature catalog for sales / prospects
+  "/api/portal/ical", // iCal feed — auth-by-token in URL, not by session
   "/api/public",
   "/api/stripe/webhook",
   "/api/daily-report",

@@ -894,6 +894,9 @@ model User {
   // When true, this user can ONLY see appointments/patients/etc. at their primary branch.
   // Used to silo Branch B receptionist from Main Branch data, etc. Requires branchId to be set.
   branchRestricted Boolean  @default(false)
+  // Long random token for the personal iCal feed (generated on demand)
+  // Doctors paste /api/portal/ical/{icalToken}.ics into Google Calendar etc.
+  icalToken       String?   @unique
   name            String
   email           String
   phone           String?
