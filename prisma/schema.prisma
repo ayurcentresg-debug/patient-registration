@@ -1000,6 +1000,24 @@ model Branch {
 
 // ─── Branch-Level Stock ─────────────────────────────────────────────────
 
+// Per-branch holiday/closure dates (independent from doctor leave)
+// e.g. Branch B closed for regional festival but Main Branch open
+model BranchHoliday {
+  id          String   @id @default(cuid())
+  clinicId    String?
+  branchId    String
+  date        DateTime
+  name        String   // e.g. "Diwali", "Maintenance Day"
+  recurring   Boolean  @default(false) // true = repeats annually on same MM-DD
+  notes       String?
+  createdAt   DateTime @default(now())
+
+  @@index([clinicId])
+  @@index([branchId])
+  @@index([date])
+  @@unique([branchId, date, name])
+}
+
 model BranchStock {
   id        String  @id @default(cuid())
   clinicId  String?

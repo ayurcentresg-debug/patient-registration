@@ -101,6 +101,56 @@ export default function BranchesPage() {
   const [form, setForm] = useState<BranchForm>({ ...EMPTY_FORM });
   const [saving, setSaving] = useState(false);
 
+  // Per-branch holidays (Phase 2.24 / C)
+  type Holiday = { id: string; date: string; name: string; recurring: boolean; notes?: string | null };
+  const [holidays, setHolidays] = useState<Holiday[]>([]);
+  const [newHoliday, setNewHoliday] = useState<{ date: string; name: string; recurring: boolean }>({ date: "", name: "", recurring: false });
+  const [holidaysLoading, setHolidaysLoading] = useState(false);
+
+  // Load holidays when an existing branch is opened for editing
+  useEffect(() => {
+    if (!editingId) { setHolidays([]); return; }
+    setHolidaysLoading(true);
+    fetch(`/api/branches/${editingId}/holidays`)
+      .then(r => (r.ok ? r.json() : []))
+      .then((data: Holiday[]) => setHolidays(Array.isArray(data) ? data : []))
+      .catch(() => setHolidays([]))
+      .finally(() => setHolidaysLoading(false));
+  }, [editingId]);
+
+  async function addHoliday() {
+    if (!editingId) { showFlash({ type: "info", title: "Save branch first", message: "Create the branch before adding holidays." }); return; }
+    if (!newHoliday.date || !newHoliday.name.trim()) {
+      showFlash({ type: "error", title: "Missing info", message: "Date and name required" }); return;
+    }
+    const res = await fetch(`/api/branches/${editingId}/holidays`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ date: newHoliday.date, name: newHoliday.name.trim(), recurring: newHoliday.recurring }),
+    });
+    if (res.ok) {
+      const created: Holiday = await res.json();
+      setHolidays(h => [...h, created].sort((a, b) => a.date.localeCompare(b.date)));
+      setNewHoliday({ date: "", name: "", recurring: false });
+      showFlash({ type: "success", title: "Added", message: `${created.name} on ${new Date(created.date).toLocaleDateString()}` });
+    } else {
+      const err = await res.json().catch(() => ({}));
+      showFlash({ type: "error", title: "Failed", message: err.error || "Could not add holiday" });
+    }
+  }
+
+  async function deleteHoliday(id: string, name: string) {
+    if (!editingId) return;
+    if (!confirm(`Delete holiday "${name}"?`)) return;
+    const res = await fetch(`/api/branches/${editingId}/holidays?holidayId=${id}`, { method: "DELETE" });
+    if (res.ok) {
+      setHolidays(h => h.filter(x => x.id !== id));
+      showFlash({ type: "success", title: "Removed", message: `${name} deleted` });
+    } else {
+      showFlash({ type: "error", title: "Failed", message: "Could not delete holiday" });
+    }
+  }
+
   useEffect(() => { setMounted(true); }, []);
 
   const fetchBranches = useCallback(() => {
@@ -389,6 +439,82 @@ export default function BranchesPage() {
                   })}
                 </div>
               </div>
+
+              {/* Holidays — per-branch closure dates */}
+              {editingId && (
+                <div>
+                  <label className="block text-[14px] font-semibold mb-2" style={{ color: "var(--grey-700)" }}>
+                    Holidays / Closures
+                    <span className="font-normal text-[12px] ml-1" style={{ color: "var(--grey-400)" }}>
+                      (this branch only — independent from staff leave)
+                    </span>
+                  </label>
+
+                  {/* Add new holiday */}
+                  <div className="flex flex-wrap items-center gap-2 mb-3 p-3 rounded" style={{ background: "var(--grey-50)", border: "1px solid var(--grey-200)" }}>
+                    <input
+                      type="date"
+                      value={newHoliday.date}
+                      onChange={e => setNewHoliday(h => ({ ...h, date: e.target.value }))}
+                      className="px-2 py-1 text-[14px]"
+                      style={{ ...inputStyle, width: 150 }}
+                    />
+                    <input
+                      type="text"
+                      placeholder="e.g. Diwali"
+                      value={newHoliday.name}
+                      onChange={e => setNewHoliday(h => ({ ...h, name: e.target.value }))}
+                      className="px-2 py-1 text-[14px] flex-1 min-w-[120px]"
+                      style={inputStyle}
+                    />
+                    <label className="text-[12px] font-semibold flex items-center gap-1 cursor-pointer" style={{ color: "var(--grey-600)" }}>
+                      <input
+                        type="checkbox"
+                        checked={newHoliday.recurring}
+                        onChange={e => setNewHoliday(h => ({ ...h, recurring: e.target.checked }))}
+                      />
+                      Annual
+                    </label>
+                    <button
+                      onClick={addHoliday}
+                      className="px-3 py-1 text-[13px] font-semibold text-white rounded"
+                      style={{ background: "var(--blue-500)", borderRadius: "var(--radius-sm)" }}
+                    >
+                      + Add
+                    </button>
+                  </div>
+
+                  {/* List existing holidays */}
+                  {holidaysLoading ? (
+                    <p className="text-[13px]" style={{ color: "var(--grey-500)" }}>Loading…</p>
+                  ) : holidays.length === 0 ? (
+                    <p className="text-[13px] py-3 text-center" style={{ color: "var(--grey-400)", border: "1px dashed var(--grey-300)", borderRadius: "var(--radius-sm)" }}>
+                      No holidays configured
+                    </p>
+                  ) : (
+                    <ul className="space-y-1">
+                      {holidays.map(h => (
+                        <li key={h.id} className="flex items-center justify-between gap-2 px-3 py-1.5 rounded text-[13px]" style={{ background: "var(--white)", border: "1px solid var(--grey-200)" }}>
+                          <span className="font-semibold flex-shrink-0" style={{ color: "var(--grey-700)", minWidth: 110 }}>
+                            {new Date(h.date).toLocaleDateString("en-SG", { day: "numeric", month: "short", year: h.recurring ? undefined : "numeric" })}
+                          </span>
+                          <span className="flex-1 min-w-0 truncate" style={{ color: "var(--grey-900)" }}>{h.name}</span>
+                          {h.recurring && (
+                            <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded" style={{ background: "#dbeafe", color: "#1e40af" }}>Annual</span>
+                          )}
+                          <button
+                            onClick={() => deleteHoliday(h.id, h.name)}
+                            className="text-[11px] font-semibold px-2 py-0.5 rounded transition-colors hover:bg-red-50"
+                            style={{ color: "var(--red)" }}
+                          >
+                            Remove
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
 
               {/* Main Branch toggle */}
               <div className="flex items-center gap-3">
