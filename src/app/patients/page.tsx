@@ -6,6 +6,7 @@ import { PatientListSkeleton } from "@/components/Skeleton";
 import { downloadCSV } from "@/lib/csv-export";
 import { cardStyle, btnPrimary, chipBase } from "@/lib/styles";
 import { formatDate } from "@/lib/formatters";
+import { useSelectedBranch } from "@/lib/use-selected-branch";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface Patient {
@@ -86,6 +87,9 @@ export default function PatientsPage() {
   // Filters
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [genderFilter, setGenderFilter] = useState<string>("all");
+  // Multi-branch (Phase 2.18): when BranchSelector is set, filter patients
+  // to those who have at least one appointment at that branch
+  const selectedBranchId = useSelectedBranch();
 
   // Sorting — default: newest first
   const [sortField, setSortField] = useState<SortField>("createdAt");
@@ -100,6 +104,7 @@ export default function PatientsPage() {
     if (search) params.set("search", search);
     if (statusFilter !== "all") params.set("status", statusFilter);
     if (genderFilter !== "all") params.set("gender", genderFilter);
+    if (selectedBranchId) params.set("branchId", selectedBranchId);
     if (!search) {
       params.set("page", String(page));
       params.set("limit", "50");
@@ -124,10 +129,10 @@ export default function PatientsPage() {
       })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
-  }, [search, statusFilter, genderFilter, page]);
+  }, [search, statusFilter, genderFilter, page, selectedBranchId]);
 
   // Reset to page 1 when search or filter changes
-  useEffect(() => { setPage(1); }, [search, statusFilter, genderFilter]);
+  useEffect(() => { setPage(1); }, [search, statusFilter, genderFilter, selectedBranchId]);
 
   useEffect(() => {
     const timeout = setTimeout(fetchPatients, 300);

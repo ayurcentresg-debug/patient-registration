@@ -75,10 +75,16 @@ export async function GET(request: NextRequest) {
     const all = searchParams.get("all") === "true";
 
     const gender = searchParams.get("gender") || "";
+    // Multi-branch (Phase 2.18): filter to patients with at least one
+    // appointment at the given branch
+    const branchId = searchParams.get("branchId") || "";
 
     const where: Record<string, unknown> = { deletedAt: null };
     if (status) where.status = status;
     if (gender) where.gender = gender;
+    if (branchId) {
+      where.appointments = { some: { branchId } };
+    }
     if (search) {
       where.OR = [
         { firstName: { contains: search } },
