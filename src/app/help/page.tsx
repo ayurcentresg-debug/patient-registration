@@ -219,6 +219,7 @@ const MODULES: Module[] = [
       { title: "Branch comparison report", description: "Side-by-side per-branch: completion %, no-show %, revenue, outstanding, top doctor.", howTo: "/reports → Branches tab" },
       { title: "Per-branch CSV export", description: "Filenames include branch slug so you can keep multiple downloads sorted." },
       { title: "Print-quality PDF", description: "Brand-able, ready for stakeholder packets." },
+      { title: "Custom Report Builder", description: "Pick a data source (Appointments / Invoices / Patients), drag fields into the columns area, set filters + group-by, run, export to CSV. No coding needed.", howTo: "/reports → 🛠 Custom Builder tab" },
     ],
   },
   {

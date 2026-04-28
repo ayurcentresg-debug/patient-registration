@@ -24,6 +24,7 @@ const SECTIONS = [
   { id: "appointments", label: "Appointments" },
   { id: "staff-performance", label: "Staff Perf." },
   { id: "branches", label: "Branches" },
+  { id: "custom", label: "🛠 Custom Builder" },
 ];
 
 const STATUS_COLORS: Record<string, string> = {
@@ -771,18 +772,26 @@ export default function ReportsPage() {
         </div>
       )}
 
-      {/* Section tabs */}
+      {/* Section tabs — 'custom' navigates to dedicated builder page */}
       <div className="flex gap-1 mb-5 overflow-x-auto pb-1">
         {SECTIONS.map((s) => (
-          <button key={s.id} onClick={() => setActiveSection(s.id)}
-            className="px-3 py-1.5 text-[14px] font-semibold whitespace-nowrap transition-colors"
-            style={{
-              background: activeSection === s.id ? "var(--grey-900)" : "transparent",
-              color: activeSection === s.id ? "#fff" : "var(--grey-600)",
-              borderRadius: "var(--radius-sm)",
-            }}>
-            {s.label}
-          </button>
+          s.id === "custom" ? (
+            <Link key={s.id} href="/reports/custom"
+              className="px-3 py-1.5 text-[14px] font-semibold whitespace-nowrap transition-colors"
+              style={{ background: "transparent", color: "var(--blue-500)", borderRadius: "var(--radius-sm)", border: "1px dashed var(--blue-200)" }}>
+              {s.label} ↗
+            </Link>
+          ) : (
+            <button key={s.id} onClick={() => setActiveSection(s.id)}
+              className="px-3 py-1.5 text-[14px] font-semibold whitespace-nowrap transition-colors"
+              style={{
+                background: activeSection === s.id ? "var(--grey-900)" : "transparent",
+                color: activeSection === s.id ? "#fff" : "var(--grey-600)",
+                borderRadius: "var(--radius-sm)",
+              }}>
+              {s.label}
+            </button>
+          )
         ))}
       </div>
 
