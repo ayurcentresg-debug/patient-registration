@@ -10,6 +10,7 @@ import StatusBanner from "@/components/StatusBanner";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { FlashCardProvider } from "@/components/FlashCardProvider";
 import { ConfirmDialogProvider } from "@/components/ConfirmDialog";
+import OfflineBanner from "@/components/OfflineBanner";
 import TopBar from "@/components/TopBar";
 import EmailVerifyBanner from "@/components/EmailVerifyBanner";
 
@@ -17,19 +18,22 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
   const [mounted, setMounted] = useState(false);
   const pathname = usePathname() || "";
 
-  // Unregister any existing service worker + clear caches
-  // (was causing stale JS to be served — forcing fresh loads now)
+  // Register the service worker for PWA offline mode.
+  // The SW uses a versioned CACHE_NAME so old caches get evicted on each
+  // bumped release — preventing the stale-JS issue that bit us before.
   useEffect(() => {
     setMounted(true);
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.getRegistrations().then((regs) => {
-        regs.forEach((r) => r.unregister());
-      }).catch(() => {});
-      if ("caches" in window) {
-        caches.keys().then((keys) => {
-          keys.forEach((k) => caches.delete(k));
-        }).catch(() => {});
-      }
+    if (typeof window === "undefined" || !("serviceWorker" in navigator)) return;
+    // Defer to idle so registration doesn't block first-paint
+    const register = () => {
+      navigator.serviceWorker
+        .register("/sw.js", { scope: "/" })
+        .catch(() => { /* ignore registration failures */ });
+    };
+    if ("requestIdleCallback" in window) {
+      (window as Window & { requestIdleCallback?: (cb: () => void) => void }).requestIdleCallback?.(register);
+    } else {
+      setTimeout(register, 1500);
     }
   }, []);
 
@@ -77,6 +81,7 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
           <FlashCardProvider>
             <ConfirmDialogProvider>
               <ErrorBoundary>
+                <OfflineBanner />
                 <TrialBanner />
                 <StatusBanner />
                 <main className="min-h-screen" role="main">{children}</main>
