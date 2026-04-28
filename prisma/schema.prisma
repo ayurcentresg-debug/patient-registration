@@ -896,7 +896,10 @@ model User {
   branchRestricted Boolean  @default(false)
   // Long random token for the personal iCal feed (generated on demand)
   // Doctors paste /api/portal/ical/{icalToken}.ics into Google Calendar etc.
-  icalToken       String?   @unique
+  // Indexed (not @unique) — 24-byte random token has astronomically low
+  // collision probability and @unique tripped a Prisma db push on an
+  // existing-data migration. Lookup uses findFirst({ where: { icalToken } }).
+  icalToken       String?
   name            String
   email           String
   phone           String?
