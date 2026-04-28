@@ -763,7 +763,12 @@ Why AyurGate vs Practo / Cliniko / generic clinic software:
 
 ## ✅ Recently shipped (this week — 52 commits)
 
-**2026-04-28 (later) — Hardening + touch DnD + iCal (8 more commits):**
+**2026-04-28 (latest) — Custom report builder + iCal + touch DnD (10 more commits):**
+- `ac6494d` Custom Report Builder — pick fields, drag-reorder, filters, group-by, CSV export
+- `eb63b98` Schema fix — drop @unique from icalToken (had broken prisma db push)
+- `a633846` /help updated with iCal + touch DnD + booking-warning entries
+
+**2026-04-28 (afternoon) — Hardening + touch DnD + iCal (8 more commits):**
 - `1d22d31` /help layout tightened (2-col grid, smaller fonts, fit-to-page)
 - `bc755f4` /help replaces emoji with professional Heroicons-style SVG icons + module color palette
 - `8ecb9e4` /help made publicly accessible (no login — sales can share URL)

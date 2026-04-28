@@ -208,6 +208,7 @@ const MODULES: Module[] = [
     id: "reports", icon: "📊", title: "Reports & Analytics",
     tagline: "Know your clinic — revenue, doctors, no-shows, branches, all of it.",
     features: [
+      { title: "🛠 Custom Report Builder (NEW)", description: "Build your own report — no SQL, no coding. Pick Appointments / Invoices / Patients, drag fields into the columns area, set filters + date range + group-by, click Run, export to CSV. Branch-restricted users automatically see only their branch's data.", howTo: "/reports → 🛠 Custom Builder tab" },
       { title: "Overview dashboard", description: "8 KPI cards + sparkline trend: Total Revenue / Billed / Outstanding / New Patients / Total Appointments / Completion Rate / No-Show Rate / Collection Efficiency." },
       { title: "Revenue reports", description: "By date range, payment method, treatment category. GST summary (CGST / SGST / IGST breakdown)." },
       { title: "Per-doctor performance", description: "Total appointments, completion rate, no-show rate, revenue, unique patients per doctor." },
@@ -219,7 +220,6 @@ const MODULES: Module[] = [
       { title: "Branch comparison report", description: "Side-by-side per-branch: completion %, no-show %, revenue, outstanding, top doctor.", howTo: "/reports → Branches tab" },
       { title: "Per-branch CSV export", description: "Filenames include branch slug so you can keep multiple downloads sorted." },
       { title: "Print-quality PDF", description: "Brand-able, ready for stakeholder packets." },
-      { title: "Custom Report Builder", description: "Pick a data source (Appointments / Invoices / Patients), drag fields into the columns area, set filters + group-by, run, export to CSV. No coding needed.", howTo: "/reports → 🛠 Custom Builder tab" },
     ],
   },
   {
