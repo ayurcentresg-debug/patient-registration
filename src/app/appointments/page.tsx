@@ -514,19 +514,15 @@ function QuickBookModal({
   return (
     <>
       <div className="fixed inset-0 z-[150]" style={{ background: "rgba(0,0,0,0.4)" }} onClick={onClose} />
+      {/* Mobile: bottom-sheet (slides up from bottom, full-width).
+          Desktop: centered modal. CSS media-query handled inline. */}
       <div
-        className="fixed z-[151] yoda-slide-in"
+        className="fixed z-[151] bg-white quickbook-modal"
         style={{
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          width: "min(480px, calc(100vw - 32px))",
-          maxHeight: "90vh",
-          overflow: "auto",
           background: "var(--white)",
           border: "1px solid var(--grey-300)",
-          borderRadius: "var(--radius)",
-          boxShadow: "0 12px 40px rgba(0,0,0,0.2)",
+          boxShadow: "0 -8px 32px rgba(0,0,0,0.15)",
+          overflow: "auto",
         }}
       >
         {/* Header */}

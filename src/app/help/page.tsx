@@ -91,6 +91,7 @@ const MODULES: Module[] = [
     features: [
       { title: "Day / Week / 5-Day / Month views", description: "Switch view modes from the toolbar. Day view fits to screen with no scrolling for last 2 hours." },
       { title: "Drag-and-drop reschedule (touch + mouse)", description: "Pick up any appointment card and drop it on a new time slot. Works on tablets and phones via long-press (250ms). Snap-to-15-min, automatic conflict detection blocks double-bookings.", howTo: "Desktop: click & drag · Mobile: long-press → drag" },
+      { title: "Mobile bottom-sheet booking", description: "On phones, the booking modal slides up from the bottom like a native iOS/Android sheet — full width with a drag handle. Easier to fill out one-handed than a centered modal.", howTo: "Open /appointments on mobile → tap any empty slot or '+ Walk-in' button" },
       { title: "Side-by-side overlap layout", description: "When 2-3 appointments share a time slot, they sit side-by-side instead of stacking. The 12px gap between them is clickable for adding a 3rd." },
       { title: "Red current-time indicator", description: "Live thin red line shows the current time on today's column. Updates every minute." },
       { title: "Hover info panel", description: "Hover any appointment for instant patient name, phone, treatment, status, price, and branch — no need to click." },

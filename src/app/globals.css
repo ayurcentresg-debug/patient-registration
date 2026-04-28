@@ -289,6 +289,53 @@ html, body {
   }
 }
 
+/* QuickBook booking modal — centered on desktop, bottom-sheet on mobile */
+.quickbook-modal {
+  /* Desktop default: centered modal */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(480px, calc(100vw - 32px));
+  max-height: 90vh;
+  border-radius: var(--radius);
+  animation: fadeIn 0.2s ease-out;
+}
+@media (max-width: 767px) {
+  .quickbook-modal {
+    /* Mobile: bottom-sheet — full width, slides up from bottom */
+    top: auto;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    transform: none;
+    width: 100%;
+    max-height: 92vh;
+    border-radius: 16px 16px 0 0;
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+    animation: slideUpSheet 0.25s cubic-bezier(0.32, 0.72, 0, 1);
+    /* iOS safe-area for the home-indicator bar */
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  /* Drag handle hint at top of sheet */
+  .quickbook-modal::before {
+    content: "";
+    display: block;
+    width: 40px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--grey-300);
+    margin: 8px auto 0;
+    position: sticky;
+    top: 8px;
+  }
+}
+@keyframes slideUpSheet {
+  from { transform: translateY(100%); opacity: 0.6; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
 /* Slide-in animation for mobile menu */
 @keyframes slideInFromLeft {
   from { transform: translateX(-100%); }
