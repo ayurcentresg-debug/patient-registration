@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getClinicId, assertBranchAccess } from "@/lib/get-clinic-id";
+import { getAuthPayload, getClinicId, assertBranchAccess } from "@/lib/get-clinic-id";
 import { getTenantPrisma } from "@/lib/tenant-db";
+import {
+  balanceBlockedResponse,
+  canOverrideBalanceGate,
+  checkPackageBalance,
+} from "@/lib/package-balance";
+import { logAudit } from "@/lib/audit";
 
 const includeRelations = {
   patient: { select: { firstName: true, lastName: true, email: true, whatsapp: true, phone: true } },
@@ -91,6 +97,46 @@ export async function PUT(
           { error: "Doctor already has an appointment at this date and time" },
           { status: 409 }
         );
+      }
+    }
+
+    // ─── Pre-check: balance gate when flipping to "completed" with a package ──
+    // Block the status flip if patient hasn't paid enough to cover the next
+    // session's value. owner/admin may override with body.overrideReason.
+    if (
+      body.status === "completed" &&
+      existing.status !== "completed"
+    ) {
+      const ppId = body.patientPackageId ?? existing.patientPackageId;
+      if (ppId) {
+        const pkg = await db.patientPackage.findUnique({ where: { id: ppId } });
+        if (pkg && pkg.status === "active" && pkg.remainingSessions > 0) {
+          const balance = checkPackageBalance(pkg);
+          if (!balance.ok) {
+            const overrideReason = (body.overrideReason || "").trim();
+            const auth = await getAuthPayload();
+            const role = auth?.role || null;
+            if (!overrideReason || !canOverrideBalanceGate(role)) {
+              return NextResponse.json(balanceBlockedResponse(balance), {
+                status: 402,
+              });
+            }
+            await logAudit({
+              action: "update",
+              entity: "patient-package",
+              entityId: ppId,
+              details: {
+                event: "balance_gate_override",
+                via: "appointment_completion",
+                appointmentId: id,
+                shortfall: balance.shortfall,
+                paidAmount: balance.paidAmount,
+                consumedValueAfter: balance.consumedValueAfter,
+                reason: overrideReason,
+              },
+            });
+          }
+        }
       }
     }
 

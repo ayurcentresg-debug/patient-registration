@@ -1,7 +1,13 @@
 import { prisma } from "@/lib/db";
-import { getClinicId } from "@/lib/get-clinic-id";
+import { getAuthPayload, getClinicId } from "@/lib/get-clinic-id";
 import { getTenantPrisma } from "@/lib/tenant-db";
 import { NextRequest, NextResponse } from "next/server";
+import {
+  balanceBlockedResponse,
+  canOverrideBalanceGate,
+  checkPackageBalance,
+} from "@/lib/package-balance";
+import { logAudit } from "@/lib/audit";
 
 // GET /api/patient-packages/[id]/sessions - List sessions for a package
 export async function GET(
@@ -99,6 +105,36 @@ export async function POST(
           { status: 403 }
         );
       }
+    }
+
+    // ─── Balance gate ─────────────────────────────────────────────────
+    // Block deduction if paidAmount doesn't cover value of sessions consumed.
+    // Authorized roles (owner/admin) may override with a reason — logged.
+    const balance = checkPackageBalance(pkg);
+    if (!balance.ok) {
+      const overrideReason = (body.overrideReason || "").trim();
+      const auth = await getAuthPayload();
+      const role = auth?.role || null;
+
+      if (!overrideReason || !canOverrideBalanceGate(role)) {
+        return NextResponse.json(balanceBlockedResponse(balance), {
+          status: 402,
+        });
+      }
+
+      // Override granted — log it
+      await logAudit({
+        action: "update",
+        entity: "patient-package",
+        entityId: id,
+        details: {
+          event: "balance_gate_override",
+          shortfall: balance.shortfall,
+          paidAmount: balance.paidAmount,
+          consumedValueAfter: balance.consumedValueAfter,
+          reason: overrideReason,
+        },
+      });
     }
 
     // Auto-increment session number

@@ -444,6 +444,16 @@ export default function PackageDetailPage() {
   const days = pkg.expiryDate ? daysRemaining(pkg.expiryDate) : null;
   const refundCalc = calculateRefund();
 
+  // ─── Balance gate: paidAmount must cover next session's value ─────────────
+  const perSessionPrice =
+    pkg.totalSessions > 0 ? pkg.totalPrice / pkg.totalSessions : 0;
+  const consumedValueAfterNext = (pkg.usedSessions + 1) * perSessionPrice;
+  const balanceShortfall = Math.max(
+    0,
+    consumedValueAfterNext - (pkg.paidAmount || 0),
+  );
+  const balanceBlocked = balanceShortfall > 0.005;
+
   const TABS: { id: TabId; label: string }[] = [
     { id: "sessions", label: "Sessions" },
     { id: "sharing", label: "Sharing" },
@@ -535,6 +545,41 @@ export default function PackageDetailPage() {
         </div>
       </div>
 
+      {/* ── Balance-gate warning ─────────────────────────────────── */}
+      {balanceBlocked && pkg.status === "active" && remaining > 0 && (
+        <div
+          className="mb-4 p-4 flex items-start gap-3"
+          style={{
+            background: "#fff7ed",
+            border: "1px solid #fb923c",
+            borderRadius: "var(--radius)",
+          }}
+          role="alert"
+        >
+          <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" stroke="#c2410c" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+          </svg>
+          <div className="flex-1">
+            <p className="text-[15px] font-bold" style={{ color: "#9a3412" }}>
+              Payment required before next session
+            </p>
+            <p className="text-[14px] mt-0.5" style={{ color: "#7c2d12" }}>
+              Patient must pay <strong>{formatCurrency(balanceShortfall)}</strong> before
+              the next session can be recorded. Sessions used so far are worth{" "}
+              <strong>{formatCurrency(pkg.usedSessions * perSessionPrice)}</strong>;
+              paid <strong>{formatCurrency(pkg.paidAmount)}</strong>.
+            </p>
+            <button
+              onClick={() => setActiveTab("payment")}
+              className="mt-2 px-3 py-1.5 text-[13px] font-bold text-white rounded transition-colors"
+              style={{ background: "#c2410c" }}
+            >
+              Take Payment Now →
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* ── Tabs ─────────────────────────────────────────────────── */}
       <div className="flex gap-0 mb-6 overflow-x-auto" style={{ borderBottom: "2px solid var(--grey-200)" }}>
         {TABS.map((tab) => (
@@ -561,13 +606,19 @@ export default function PackageDetailPage() {
             {pkg.status === "active" && remaining > 0 && (
               <button
                 onClick={() => setShowSessionModal(true)}
+                disabled={balanceBlocked}
+                title={balanceBlocked ? `Settle ${formatCurrency(balanceShortfall)} balance first` : undefined}
                 className="inline-flex items-center gap-2 text-white px-4 py-2 text-[15px] font-semibold transition-colors"
-                style={btnPrimary}
+                style={{
+                  ...btnPrimary,
+                  opacity: balanceBlocked ? 0.5 : 1,
+                  cursor: balanceBlocked ? "not-allowed" : "pointer",
+                }}
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
-                Record Session
+                {balanceBlocked ? "Balance Due" : "Record Session"}
               </button>
             )}
           </div>
