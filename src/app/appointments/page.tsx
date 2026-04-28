@@ -1348,6 +1348,8 @@ export default function AppointmentsPage() {
   const [clipboard, setClipboard] = useState<Appointment | null>(null);
   // Sprint 1c: right sidebar toggle (default visible, persisted to localStorage)
   const [sidebarVisible, setSidebarVisible] = useState(true);
+  // Practo-parity polish: hide therapists with zero appointments today (default ON)
+  const [hideEmptyStaff, setHideEmptyStaff] = useState(true);
   // Multi-branch (Phase 2): filter calendar + doctors by selected branch
   const selectedBranchId = useSelectedBranch();
   const moreMenuRef = useRef<HTMLDivElement>(null);
@@ -1740,7 +1742,7 @@ export default function AppointmentsPage() {
   }
 
   return (
-    <div className="flex flex-col yoda-fade-in" style={{ background: "var(--background)", minHeight: "100vh" }}>
+    <div className="flex flex-col yoda-fade-in overflow-hidden" style={{ background: "var(--background)", height: "calc(100dvh - var(--header-height, 56px))" }}>
       {/* Quick Book Modal */}
       {bookModal && (
         <QuickBookModal
@@ -1783,28 +1785,20 @@ export default function AppointmentsPage() {
         </div>
       )}
 
-      {/* ─── Sprint 1: Top Stat Cards Row ─── */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 px-3 pt-3 pb-2">
-        {[
-          { label: "Today's Appointments", value: topStats.todayCount, color: "#2d6a4f", bg: "#f0faf4", icon: "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" },
-          { label: "In Progress",          value: topStats.inProgress, color: "#f97c00", bg: "#fff7ed", icon: "M13 10V3L4 14h7v7l9-11h-7z" },
-          { label: "Confirmed",            value: topStats.confirmed,  color: "#059669", bg: "#ecfdf5", icon: "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" },
-          { label: "This Week",            value: topStats.weekCount,  color: "#7c3aed", bg: "#f5f3ff", icon: "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" },
-        ].map(s => (
-          <div key={s.label} className="flex items-center gap-3 px-3 py-2 rounded-md" style={{ background: "var(--white)", border: "1px solid var(--grey-200)", boxShadow: "var(--shadow-sm)" }}>
-            <div className="w-9 h-9 rounded-md flex items-center justify-center flex-shrink-0" style={{ background: s.bg }}>
-              <svg className="w-4 h-4" fill="none" stroke={s.color} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={s.icon} /></svg>
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-[11px] font-semibold uppercase tracking-wide truncate" style={{ color: "var(--grey-500)" }}>{s.label}</p>
-              <p className="text-[20px] font-bold leading-tight" style={{ color: s.color }}>{s.value}</p>
-            </div>
-          </div>
-        ))}
+      {/* ─── Slim stat ribbon (Practo-parity: airier header, ~32px tall) ─── */}
+      <div className="flex items-center gap-4 px-4 py-1.5 text-[12px] overflow-x-auto whitespace-nowrap"
+           style={{ background: "var(--white)", borderBottom: "1px solid var(--grey-200)", color: "var(--grey-600)" }}>
+        <span className="flex items-center gap-1.5"><span className="font-semibold uppercase tracking-wide">Today</span><span className="text-[14px] font-bold" style={{ color: "#2d6a4f" }}>{topStats.todayCount}</span></span>
+        <span className="h-3 w-px" style={{ background: "var(--grey-300)" }} />
+        <span className="flex items-center gap-1.5"><span className="font-semibold uppercase tracking-wide">In&nbsp;Progress</span><span className="text-[14px] font-bold" style={{ color: "#f97c00" }}>{topStats.inProgress}</span></span>
+        <span className="h-3 w-px" style={{ background: "var(--grey-300)" }} />
+        <span className="flex items-center gap-1.5"><span className="font-semibold uppercase tracking-wide">Confirmed</span><span className="text-[14px] font-bold" style={{ color: "#059669" }}>{topStats.confirmed}</span></span>
+        <span className="h-3 w-px" style={{ background: "var(--grey-300)" }} />
+        <span className="flex items-center gap-1.5"><span className="font-semibold uppercase tracking-wide">Week</span><span className="text-[14px] font-bold" style={{ color: "#7c3aed" }}>{topStats.weekCount}</span></span>
       </div>
 
       {/* ─── Toolbar Row 1: Date + Today + View Toggles + Nav + Export ─── */}
-      <div className="flex items-center gap-0 border-b border-t overflow-x-auto" style={{ background: "#f8f8f8", borderColor: "var(--grey-300)", height: 52, marginTop: 8 }}>
+      <div className="flex items-center gap-0 border-b overflow-x-auto" style={{ background: "#f8f8f8", borderColor: "var(--grey-300)", height: 48 }}>
         {/* Date display with calendar icon */}
         <div className="h-full flex items-center gap-2 px-4" style={{ borderRight: "1px solid var(--grey-300)" }}>
           <svg className="w-4 h-4" fill="none" stroke="var(--grey-600)" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
@@ -1901,6 +1895,10 @@ export default function AppointmentsPage() {
               <label className="flex items-center gap-2 px-3 py-2 rounded text-[13px] cursor-pointer hover:bg-gray-100" style={{ color: "var(--grey-800)" }}>
                 <input type="checkbox" checked={is24Hour} onChange={(e) => setIs24Hour(e.target.checked)} className="w-3.5 h-3.5" />
                 <span>24 Hours</span>
+              </label>
+              <label className="flex items-center gap-2 px-3 py-2 rounded text-[13px] cursor-pointer hover:bg-gray-100" style={{ color: "var(--grey-800)" }}>
+                <input type="checkbox" checked={hideEmptyStaff} onChange={(e) => setHideEmptyStaff(e.target.checked)} className="w-3.5 h-3.5" />
+                <span>Hide empty therapists</span>
               </label>
               <div className="my-1 h-px" style={{ background: "var(--grey-200)" }} />
               <button
@@ -2106,7 +2104,9 @@ export default function AppointmentsPage() {
               <span className="text-[13px] font-bold" style={{ color: "var(--grey-500)" }}>({appointments.length})</span>
             </button>
 
-            {doctors.map(doc => {
+            {doctors
+              .filter(doc => !hideEmptyStaff || (doctorCounts[doc.id] || 0) > 0 || selectedDoctor === doc.id)
+              .map(doc => {
               const count = doctorCounts[doc.id] || 0;
               const isActive = selectedDoctor === doc.id;
               return (
@@ -2117,10 +2117,11 @@ export default function AppointmentsPage() {
                   style={{
                     color: isActive ? "var(--blue-500)" : "var(--grey-700)",
                     background: isActive ? "var(--blue-50)" : "transparent",
+                    borderLeft: `3px solid ${BLOCK_COLORS[doctors.indexOf(doc) % BLOCK_COLORS.length].bg}`,
+                    paddingLeft: 8,
                   }}
                 >
                   <div className="flex items-center gap-2 truncate">
-                    <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: BLOCK_COLORS[doctors.indexOf(doc) % BLOCK_COLORS.length].bg }} />
                     <span className="truncate">{doc.name}</span>
                     <span className="text-[9px] font-bold uppercase px-1 py-0.5 rounded flex-shrink-0" style={{
                       background: doc.role === "therapist" ? "#f3e8ff" : "#ecfdf5",
@@ -2266,7 +2267,8 @@ export default function AppointmentsPage() {
                             fontSize: 11,
                             lineHeight: "15px",
                             zIndex: 5,
-                            borderLeft: `3px solid ${color.bg === "#f9a825" ? "#e88f00" : "rgba(0,0,0,0.15)"}`,
+                            // Left edge encodes STATUS (doctor is encoded by fill color)
+                            borderLeft: `4px solid ${STATUS_COLORS[apt.status] || "rgba(0,0,0,0.2)"}`,
                             boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
                             opacity: isCancelled ? 0.55 : (isBeingDragged ? 0.4 : 1),
                             textDecoration: isCancelled ? "line-through" : "none",
@@ -2292,7 +2294,7 @@ export default function AppointmentsPage() {
                           ariaLabel={`${name} at ${formatTime12(apt.time)}, status ${apt.status}, drag or long-press to reschedule`}
                         >
                           <div className="font-bold truncate flex items-center justify-between gap-1">
-                            <span className="truncate">{formatTime12(apt.time)}{apt.endTime ? ` - ${formatTime12(apt.endTime)}` : ""}{apt.department ? ` (${apt.department})` : ""}</span>
+                            <span className="truncate">{formatTime12(apt.time)}{apt.endTime ? ` - ${formatTime12(apt.endTime)}` : ""}</span>
                             {/* Sprint 1: quick actions on hover — check-in + WhatsApp */}
                             {showActions && !isCancelled && (
                               <span className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0.5 flex-shrink-0">
@@ -2322,6 +2324,9 @@ export default function AppointmentsPage() {
                             )}
                           </div>
                           <div className="truncate font-medium">{name}</div>
+                          {apt.treatmentName && height >= 56 && (
+                            <div className="truncate opacity-80" style={{ fontSize: 10, fontStyle: "italic" }}>{apt.treatmentName}</div>
+                          )}
                         </DraggableCard>
                       );
                     })}
