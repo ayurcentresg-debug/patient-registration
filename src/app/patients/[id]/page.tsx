@@ -3539,7 +3539,7 @@ export default function PatientDetailPage() {
                   <h2 className="text-[16px] font-bold" style={{ color: "var(--grey-900)" }}>Treatment Plans</h2>
                   <p className="text-[13px] mt-1" style={{ color: "var(--grey-500)" }}>Doctor-prescribed treatment plans and progress</p>
                 </div>
-                <Link href={`/treatment-plans?patientId=${id}`} className="px-3 py-1.5 text-[13px] font-semibold" style={{ background: "#2d6a4f", color: "#fff", borderRadius: "var(--radius-sm)" }}>+ New Plan</Link>
+                <Link href={`/admin/treatments/plans/new?patientId=${id}`} className="px-3 py-1.5 text-[13px] font-semibold" style={{ background: "#2d6a4f", color: "#fff", borderRadius: "var(--radius-sm)" }}>+ New Plan</Link>
               </div>
               {treatmentPlansLoading ? (
                 <div className="py-16 text-center"><div className="w-6 h-6 mx-auto border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: "#2d6a4f", borderTopColor: "transparent" }} /></div>

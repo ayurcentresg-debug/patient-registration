@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { Suspense, useState, useEffect, useRef, useCallback } from "react";
 import { useFlash } from "@/components/FlashCardProvider";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import AdminTabs from "@/components/AdminTabs";
 import TreatmentTabs from "@/components/TreatmentTabs";
 import { cardStyle, inputStyle } from "@/lib/styles";
@@ -41,8 +41,10 @@ function nextKey() {
 // ═══════════════════════════════════════════════════════════════════════════════
 // NEW TREATMENT PLAN PAGE
 // ═══════════════════════════════════════════════════════════════════════════════
-export default function NewTreatmentPlanPage() {
+function NewTreatmentPlanPageInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const prefillPatientId = searchParams?.get("patientId") || "";
   const [mounted, setMounted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const { showFlash } = useFlash();
@@ -72,6 +74,19 @@ export default function NewTreatmentPlanPage() {
   const [milestones, setMilestones] = useState<MilestoneItem[]>([]);
 
   useEffect(() => { setMounted(true); }, []);
+
+  // Auto-prefill from ?patientId= URL param (deep-link from patient page)
+  useEffect(() => {
+    if (!prefillPatientId || patientId) return;
+    fetch(`/api/patients/${prefillPatientId}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((p) => {
+        if (!p?.id) return;
+        setPatientId(p.id);
+        setPatientDisplay(`${p.firstName} ${p.lastName} (${p.patientIdNumber})`);
+      })
+      .catch(() => { /* ignore — user can search manually */ });
+  }, [prefillPatientId, patientId]);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -443,5 +458,13 @@ export default function NewTreatmentPlanPage() {
         </button>
       </div>
     </div>
+  );
+}
+
+export default function NewTreatmentPlanPage() {
+  return (
+    <Suspense fallback={null}>
+      <NewTreatmentPlanPageInner />
+    </Suspense>
   );
 }

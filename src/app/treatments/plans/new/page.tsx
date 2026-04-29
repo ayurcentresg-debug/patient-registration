@@ -1,10 +1,22 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+
+function NewPlanRedirectInner() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    const qs = searchParams?.toString();
+    router.replace(`/admin/treatments/plans/new${qs ? `?${qs}` : ""}`);
+  }, [router, searchParams]);
+  return null;
+}
 
 export default function NewPlanRedirect() {
-  const router = useRouter();
-  useEffect(() => { router.replace("/admin/treatments/plans/new"); }, [router]);
-  return null;
+  return (
+    <Suspense fallback={null}>
+      <NewPlanRedirectInner />
+    </Suspense>
+  );
 }
