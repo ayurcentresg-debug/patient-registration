@@ -1,6 +1,6 @@
 # AyurGate — Complete Feature Catalog
 
-**Last updated:** 2026-04-28 (cross-branch roadmap + touch DnD + iCal complete)
+**Last updated:** 2026-04-29 (Practo polish + package balance gate + 625 Kottakkal items)
 **Status:** Living document — append to this whenever a new feature ships.
 **Audience:** Internal team (sales, demos, investor pitches), AyurGate owners.
 
@@ -761,7 +761,14 @@ Why AyurGate vs Practo / Cliniko / generic clinic software:
 
 ---
 
-## ✅ Recently shipped (this week — 52 commits)
+## ✅ Recently shipped (this week — 56 commits)
+
+**2026-04-29 — Practo polish + package balance gate + Kottakkal import (4 commits + data):**
+- `9b205a5` Appointments Practo-parity polish + fit-to-page (per-doctor card color, per-status left bar, slim stat ribbon, hide-empty therapists toggle, dvh sizing)
+- `4a604a8` Package balance gate — block session deduction when paidAmount < consumed value × pricePerSession (HTTP 402, owner/admin override with audit log)
+- `3afd3eb` Treatment-plans 404 fix — patient-page link rewired to /admin/treatments/plans/new with patientId auto-prefill, redirect stubs preserve query string, Suspense wrappers
+- (current) Inventory bulk-import auto-mapper — raw Ayurvedic subcategory names ("Arishtas & Asavas", "Kashayam Tablet", "Tailam") now auto-map to schema enum
+- **Data:** 625 Kottakkal Arya Vaidya Sala items imported into demo clinic via authenticated curl loop (411 priced + 214 placeholder $0 for later update)
 
 **2026-04-28 (latest) — Custom report builder + iCal + touch DnD (10 more commits):**
 - `ac6494d` Custom Report Builder — pick fields, drag-reorder, filters, group-by, CSV export

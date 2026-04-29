@@ -33,6 +33,43 @@ const CATEGORY_PREFIX: Record<string, string> = {
   equipment: "E",
 };
 
+/**
+ * Map a free-text category/subcategory (e.g. "Kashayam Tablet",
+ * "Arishtas & Asavas", "Tailam", "Choornam") to the schema enum.
+ * Returns null when no match — caller should treat as invalid.
+ *
+ * Rationale: clinics export master lists from suppliers (Kottakkal,
+ * AVN, Vaidyaratnam) where the "category" column uses Ayurvedic
+ * subcategory names rather than our 5-bucket enum. Without this
+ * normalization the user has to manually rewrite the column before
+ * upload, which they often skip — and 600+ rows fail.
+ */
+function autoMapCategory(raw: string): string | null {
+  const s = raw.trim().toLowerCase();
+  if (!s) return null;
+  if (VALID_CATEGORIES.includes(s)) return s;
+
+  // Oil family
+  if (/(tailam|thailam|tailum|thylum|oil|kuzhambu|coozhambu)/.test(s)) return "oil";
+
+  // Consumable
+  if (/(cotton|gauze|bandage|consumable|disposable|swab|syringe|gloves)/.test(s)) return "consumable";
+
+  // Equipment
+  if (/(equipment|machine|table|nasyam table|dhara pot|dhara stand|massage table|steam box)/.test(s)) return "equipment";
+
+  // Herb / powder / raw
+  if (/(churnam|choornam|powder|herb|bhasma|kashayam churnam|raw|granule)/.test(s)) {
+    // But Kashayam (without "churnam") is liquid → medicine
+    if (/kashayam$|kashayam\s/.test(s) && !/churnam/.test(s)) return "medicine";
+    return "herb";
+  }
+
+  // Everything else (Arishtam, Asavam, Kashayam liquid, Lehyam, Gulika,
+  // Tablet, Capsule, Ghritham, Rasakriya, Avaleha, Vati, etc.) → medicine
+  return "medicine";
+}
+
 export async function POST(request: NextRequest) {
   try {
     const clinicId = await getClinicId();
@@ -69,18 +106,28 @@ export async function POST(request: NextRequest) {
         continue;
       }
 
-      const category = item.category?.trim().toLowerCase() || "";
-      if (!category) {
+      const rawCategory = item.category?.trim() || "";
+      if (!rawCategory) {
         failed.push({ name: rowLabel, error: "Category is required" });
         continue;
       }
 
-      if (!VALID_CATEGORIES.includes(category)) {
+      // Auto-map free-text Ayurvedic subcategory names to the 5-bucket enum.
+      // Falls through unchanged for valid enum values. Stash the original
+      // value in subcategory if mapping changed it AND subcategory is empty.
+      const category = autoMapCategory(rawCategory);
+      if (!category) {
         failed.push({
           name: rowLabel,
           error: `Invalid category "${item.category}". Must be one of: ${VALID_CATEGORIES.join(", ")}`,
         });
         continue;
+      }
+      if (
+        rawCategory.toLowerCase() !== category &&
+        (!item.subcategory || !item.subcategory.trim())
+      ) {
+        item.subcategory = rawCategory;
       }
 
       try {

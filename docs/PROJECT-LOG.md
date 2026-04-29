@@ -1813,4 +1813,81 @@ Rewired Payroll tab to use **SalaryConfig** table as single source of truth (Opt
 
 ---
 
-*Last updated: 17 April 2026 (Session 21)*
+## Session 22 — 29 April 2026 — Practo-parity polish, package balance gate, treatment-plan deeplink, inventory mass import
+
+### 1. Appointments: Practo-parity polish + fit-to-page (commit `9b205a5`)
+**File:** `src/app/appointments/page.tsx`
+
+Side-by-side comparison with Practo Ray surfaced 6 differences. Shipped 4 + page sizing:
+
+- **Per-doctor card fill, per-status left bar (4px).** Both dimensions readable at a glance — replaces status-only color, decouples staff identity from workflow state
+- **Stripped duplicate `(Panchakarma)`** from card titles. Surfaces specific treatment (Abhyangam / Shirodhara / Pizhichil) as small italic third line when card height ≥ 56px
+- **Slim 32px stat ribbon** (was 4× ~80px tiles): `Today 14 · In Progress 2 · Confirmed 9 · Week 47`. Saves ~50px vertical
+- **"Hide empty therapists" toggle** in More menu, default ON. Left rail shows only therapists with appointments today
+- **Doctor rail rows: thin colored left bar** (Practo style) instead of round dot
+- **Fit-to-page**: wrapper `height: calc(100dvh − var(--header-height))` + `overflow-hidden`. Only the calendar grid scrolls now. Toolbar trimmed 52→48px. `dvh` handles mobile browser chrome correctly
+
+### 2. Packages: balance gate before session deduction (commit `4a604a8`)
+**Files:** `src/lib/package-balance.ts` (new), `src/app/api/patient-packages/[id]/sessions/route.ts`, `src/app/api/appointments/[id]/route.ts`, `src/app/packages/[id]/page.tsx`
+
+Closed a real revenue leak. Before this commit a patient could buy a $560 / 10-session package, pay only a $300 deposit, and consume all 10 sessions without ever paying the $260 balance — system happy, status flipped to `completed`.
+
+**Rule:** before each session deduction, check `paidAmount ≥ (usedSessions + 1) × pricePerSession`. If short, return HTTP 402 with shortfall details and block.
+
+**Two code paths gated:**
+- `POST /api/patient-packages/[id]/sessions` (manual mark-used)
+- `PUT /api/appointments/[id]` (auto-deduct on `status → completed`)
+
+**Override:** owner / admin role only, via `body.overrideReason` — logged to audit (`event: balance_gate_override`).
+
+**UI:** orange banner on `/packages/[id]` when blocked, "Take Payment Now →" CTA jumps to Payment tab. Record Session button disabled, label flips to "Balance Due" with title-tooltip showing exact shortfall.
+
+**Helper:** `src/lib/package-balance.ts` exposes `checkPackageBalance()`, `canOverrideBalanceGate()`, `balanceBlockedResponse()` — pure, no I/O, sub-cent float drift tolerance.
+
+### 3. Treatment plans: 404 fix + auto-prefill patient (commit `3afd3eb`)
+**Files:** `src/app/patients/[id]/page.tsx`, `src/app/treatments/plans/page.tsx`, `src/app/treatments/plans/new/page.tsx`, `src/app/admin/treatments/plans/new/page.tsx`
+
+3 bugs in the patient-detail → new-plan deeplink:
+
+1. **Patient page link pointed to `/treatment-plans` (no such folder)** — real route is `/admin/treatments/plans`. Click → 404 with stuck `?patientId=…` in URL
+2. **Redirect stubs at `/treatments/plans*` stripped query string** when bouncing — would have lost the patientId even if URL had been correct
+3. **`/admin/treatments/plans/new` didn't read `?patientId=`** — user had to re-search for the patient
+
+All three fixed. Both stubs and the new-plan page wrapped in `<Suspense>` (required by `useSearchParams` in this Next version). New-plan page now fetches `/api/patients/[id]` on mount when `?patientId=` present and prefills name + ID number.
+
+### 4. Inventory: bulk import + auto-mapper for Ayurvedic subcategories
+**Data:** 625 Kottakkal Arya Vaidya Sala items imported into demo clinic
+**Files:** `src/app/api/inventory/import/route.ts` (added `autoMapCategory()`), `scripts/import-inventory.sh` (new)
+
+User shared a 678-row Kottakkal master list (Excel). Built:
+- **`/Users/karthik/Desktop/Kottakkal_Medicines_SGD_Pricelist.xlsx`** — formatted draft with Summary sheet, AUTO/REVIEW status per row, Saraswatharishtam exception flagged, color-coded
+- **Pricing rules applied (411 AUTO):** Asavam 450ml = S$20 · Arishtam 450ml = S$16 · Kashayam 200ml = S$20 · Kashayam Tablet (per tab) S$0.60 → 100s = S$60 · Tailam 200ml = S$16 · Tailam drops 10ml = S$6 · Choornam 10g = S$1 · Lehyam 200/150g = S$12 · Lehyam 500g = S$20 · Gulika/Tablet (per tab) S$0.60
+- **214 REVIEW items** (Bhasmas, Ghrithams, Capsules, Personal Care, Rasakriyas, Other) imported with `unitPrice = 0` for later update
+- Imported via authenticated curl loop using `scripts/import-inventory.sh` + Demo2026! login
+
+**Auto-mapper added to import API:** raw subcategory names like "Arishtas & Asavas", "Kashayam Tablet", "Tailam", "Bhasma" now auto-map to the 5-bucket schema enum (medicine/herb/oil/consumable/equipment). Original raw label preserved in `subcategory` column when source `category` was free-text. Rationale: clinics paste master CSVs from suppliers without rewriting the column — without normalization, 600+ rows fail.
+
+### Verification
+- `npx tsc --noEmit` — zero errors (4 commits)
+- `npx next build` — production build green
+- Curl loop: 411 + 214 = 625 inventory items POST → HTTP 200, `created: 625, failed: 0`
+- Demo `/inventory` count = 641 (16 prior + 625 imported)
+
+### Files touched today
+```
+src/app/appointments/page.tsx                                     +29 -24
+src/app/api/appointments/[id]/route.ts                            +47 -1
+src/app/api/patient-packages/[id]/sessions/route.ts               +37 -1
+src/app/api/inventory/import/route.ts                             +50 -3
+src/app/packages/[id]/page.tsx                                    +52 -3
+src/app/patients/[id]/page.tsx                                     +1 -1
+src/app/treatments/plans/page.tsx                                 +12 -3
+src/app/treatments/plans/new/page.tsx                             +12 -3
+src/app/admin/treatments/plans/new/page.tsx                       +27 -2
+src/lib/package-balance.ts                                        +84 (new)
+scripts/import-inventory.sh                                       +71 (new)
+```
+
+---
+
+*Last updated: 29 April 2026 (Session 22)*
